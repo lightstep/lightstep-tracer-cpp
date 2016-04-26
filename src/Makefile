@@ -1,23 +1,28 @@
 .PHONY: clean thrift
 
-HEADERS=lightstep_thrift/lightstep_constants.h \
+HEADERS=tracer.h \
+	lightstep_thrift/lightstep_constants.h \
 	lightstep_thrift/lightstep_types.h
 
+# Where to find the Thrift libraries.
 INCLUDE=/usr/local/include
 
 CFLAGS=-g -I$(INCLUDE)
 
 %.o: %.cpp $(HEADERS)
-	echo $(HEADERS)
-	$(CXX) -std=c++11 -c -o $@ $< $(CFLAGS)
+	$(CXX) -c -std=c++11 $(CFLAGS) -o $@ $<
+
+%.o: %.cc $(HEADERS)
+	$(CXX) -c -std=c++11 $(CFLAGS) -o $@ $<
 
 OBJECTS=lightstep_thrift/lightstep_constants.o \
-	lightstep_thrift/lightstep_types.o
+	lightstep_thrift/lightstep_types.o \
+	tracer.o
 
 all: $(OBJECTS)
 
 clean:
-	rm $(OBJECTS)
+	@rm -f $(OBJECTS)
 
 # LightStep-specific: rebuilds the LightStep thrift protocol files.  Assumes
 # the command is run within the LightStep development environment (i.e. the
