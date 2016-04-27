@@ -2,12 +2,15 @@
 
 HEADERS=tracer.h \
 	lightstep_thrift/lightstep_constants.h \
-	lightstep_thrift/lightstep_types.h
+	lightstep_thrift/lightstep_types.h \
+	mapbox_variant/variant.hpp
 
 # Where to find the Thrift libraries.
 INCLUDE=/usr/local/include
 
 CFLAGS=-g -I$(INCLUDE)
+LDFLAGS=-L. -L/usr/local/lib
+LIBS=-lthrift -lc++
 
 %.o: %.cpp $(HEADERS)
 	$(CXX) -c -std=c++11 $(CFLAGS) -o $@ $<
@@ -17,12 +20,16 @@ CFLAGS=-g -I$(INCLUDE)
 
 OBJECTS=lightstep_thrift/lightstep_constants.o \
 	lightstep_thrift/lightstep_types.o \
-	tracer.o
+	tracer.o \
+	span.o
 
 all: $(OBJECTS)
 
 clean:
 	@rm -f $(OBJECTS)
+
+test: test.cc $(OBJECTS)
+	$(CC) -std=c++11 -o test test.cc $(CFLAGS) $(LDFLAGS) $(OBJECTS) $(LIBS)
 
 # LightStep-specific: rebuilds the LightStep thrift protocol files.  Assumes
 # the command is run within the LightStep development environment (i.e. the
