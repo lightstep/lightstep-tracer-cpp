@@ -16,20 +16,11 @@ namespace lightstep {
 
 class Tracer {
  public:
-  Tracer(std::shared_ptr<TracerImpl> *impl) {
-    if (!impl) return;
-    impl_ = *impl;
-  }
+  explicit Tracer(std::shared_ptr<TracerImpl> *impl);
 
-  Span StartSpan(const std::string& operation_name) {
-    if (!impl_) return Span();
-    return Span();
-  }
+  Span StartSpan(const std::string& operation_name);
 
-  Span StartSpanWithOptions(const StartSpanOptions& options) {
-    if (!impl_) return Span();
-    return Span();
-  }
+  Span StartSpanWithOptions(const StartSpanOptions& options);
 
   // GlobalTracer returns the global tracer.
   static Tracer Global();

@@ -1,6 +1,11 @@
 .PHONY: clean thrift
 
-HEADERS=tracer.h \
+HEADERS=\
+	impl.h \
+	options.h \
+	span.h \
+	tracer.h \
+	value.h \
 	lightstep_thrift/lightstep_constants.h \
 	lightstep_thrift/lightstep_types.h \
 	mapbox_variant/variant.hpp
@@ -18,10 +23,12 @@ LIBS=-lthrift -lc++
 %.o: %.cc $(HEADERS)
 	$(CXX) -c -std=c++11 $(CFLAGS) -o $@ $<
 
-OBJECTS=lightstep_thrift/lightstep_constants.o \
-	lightstep_thrift/lightstep_types.o \
+OBJECTS=\
+	impl.o \
+	span.o \
 	tracer.o \
-	span.o
+	lightstep_thrift/lightstep_constants.o \
+	lightstep_thrift/lightstep_types.o
 
 all: $(OBJECTS)
 

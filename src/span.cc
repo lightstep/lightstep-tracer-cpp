@@ -13,4 +13,9 @@ Span StartChildSpan(Span parent, const std::string& operation_name) {
 					       SetParent(parent));
 }
 
+Tracer Span::tracer() {
+  if (!impl_) return Tracer(nullptr);
+  return Tracer(nullptr);
+}
+  
 } // namespace lightstep

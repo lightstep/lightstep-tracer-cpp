@@ -52,6 +52,17 @@ struct StartSpanOptions {
   }
 };
 
+struct FinishOptions {
+  // finish_time specifies the Span's finish time, otherwise
+  // system_clock::now() will be used if FinishTime is the default.
+  //
+  // finish_time must resolve to a timestamp that's >= the Span's
+  // start_time (per StartSpanOptions).
+  TimeStamp finish_time;
+
+  // TODO bulk_log_data
+};
+
 }  // namespace lightstep
 
 #endif // __LIGHTSTEP_OPTIONS_H__
