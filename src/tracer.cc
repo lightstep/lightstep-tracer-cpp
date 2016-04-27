@@ -1,7 +1,7 @@
 #include <atomic>
 #include <memory>
-#include <mutex>
 
+#include "impl.h"
 #include "tracer.h"
 
 namespace lightstep {
@@ -30,13 +30,13 @@ Tracer Tracer::InitGlobal(Tracer newt) {
 }
 
 Span Tracer::StartSpan(const std::string& operation_name) {
-  auto opts = StartSpanOptions().SetOperationName(operation_name);
-  return StartSpanWithOptions(opts);
+  return StartSpanWithOptions(StartSpanOptions().
+			      SetOperationName(operation_name));
 }
 
 Span Tracer::StartSpanWithOptions(const StartSpanOptions& options) {
   if (!impl_) return Span();
-  return Span(impl_->StartSpan(options));
+  return Span(impl_->StartSpan(impl_, options));
 }
 
 }  // namespace lightstep

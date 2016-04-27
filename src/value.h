@@ -22,13 +22,16 @@ typedef mapbox::util::variant<bool,
 			      std::string,
 			      std::nullptr_t,
 			      Values,
-			      Dictionary> variant_type;  
+			      Dictionary> variant_type;
+
 
 class Value : public variant_type {
 public:
+  Value() : variant_type(nullptr) { }
+
   template <typename T>
   Value(T&& t) : variant_type(t) { }
-  
+
 private:
 
 };

@@ -9,7 +9,12 @@
 
 namespace lightstep {
 
-typedef std::chrono::system_clock::time_point TimeStamp;
+typedef std::chrono::system_clock Clock;
+typedef Clock::time_point TimeStamp;
+
+struct TracerOptions {
+  std::function<bool(uint64_t)> should_sample;
+};
 
 struct StartSpanOptions {
   // operation_name may be empty (and set later via Span.SetOperationName)
@@ -52,7 +57,7 @@ struct StartSpanOptions {
   }
 };
 
-struct FinishOptions {
+struct FinishSpanOptions {
   // finish_time specifies the Span's finish time, otherwise
   // system_clock::now() will be used if FinishTime is the default.
   //

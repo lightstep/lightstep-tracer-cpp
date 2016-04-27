@@ -2,62 +2,41 @@
 #ifndef __LIGHTSTEP_SPAN_H__
 #define __LIGHTSTEP_SPAN_H__
 
-#include "impl.h"
 #include "value.h"
 
 #include <memory>
 
 namespace lightstep {
 
-class FinishOptions;
+struct FinishSpanOptions;
 class Tracer;
+class SpanImpl;
 
 class Span {
 public:
   Span() { }
+ 
+  explicit Span(std::unique_ptr<SpanImpl> impl);
 
-  explicit Span(std::unique_ptr<SpanImpl> impl) :impl_(std::move(impl)) { }
+  Span& SetOperationName(const std::string& name);
 
-  Span& SetOperationName(const std::string& name) {
-    if (impl_) {
-      impl_->SetOperationName(name);
-    }
-    return *this;
-  }
+  Span& SetTag(const std::string& key, const Value& value);
 
-  Span& SetTag(const std::string& key, const Value& value) {
-    if (impl_) {
-      impl_->SetTag(key, value);
-    }
-    return *this;
-  }
-
-  void Finish() {
-    if (!impl_) return;
-
-  }
-
-  void FinishWithOptions(const FinishOptions& fopts) {
-    if (!impl_) return;
-
-  }
+  void Finish();
+  void FinishWithOptions(const FinishSpanOptions& fopts);
 
   // TODO LogData
 
   Span& SetBaggageItem(const std::string& restricted_key,
-		       const std::string& value) {
-    if (impl_) {
-    }
-    return *this;
-  }
+		       const std::string& value);
 
-  std::string BaggageItem(const std::string& restricted_key) {
-    if (!impl_) return "";
-    return "";
-  }
+  std::string BaggageItem(const std::string& restricted_key);
 
   // Gets the Tracer associated with this Span.
-  Tracer tracer();
+  Tracer tracer() const;
+
+  // Get the implementation object.
+  std::shared_ptr<SpanImpl> impl() const { return impl_; }
 
 private:
   std::shared_ptr<SpanImpl> impl_;

@@ -2,7 +2,6 @@
 #include "lightstep_thrift/lightstep_constants.h"
 #include "lightstep_thrift/lightstep_types.h"
 
-#include "impl.h"
 #include "options.h"
 #include "span.h"
 #include "value.h"
@@ -13,6 +12,8 @@
 #define __LIGHTSTEP_TRACER_H__
 
 namespace lightstep {
+
+class TracerImpl;
 
 class Tracer {
  public:
@@ -29,6 +30,9 @@ class Tracer {
   // former global tracer value.
   static Tracer InitGlobal(Tracer);
   
+  // Get the implementation object.
+  std::shared_ptr<TracerImpl> impl() const { return impl_; }
+
  private:
   std::shared_ptr<TracerImpl> impl_;
 };

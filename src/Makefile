@@ -13,15 +13,15 @@ HEADERS=\
 # Where to find the Thrift libraries.
 INCLUDE=/usr/local/include
 
-CFLAGS=-g -I$(INCLUDE)
+CXXFLAGS=-g -I$(INCLUDE) -Wall
 LDFLAGS=-L. -L/usr/local/lib
 LIBS=-lthrift -lc++
 
 %.o: %.cpp $(HEADERS)
-	$(CXX) -c -std=c++11 $(CFLAGS) -o $@ $<
+	$(CXX) -c -std=c++11 $(CXXFLAGS) -o $@ $<
 
 %.o: %.cc $(HEADERS)
-	$(CXX) -c -std=c++11 $(CFLAGS) -o $@ $<
+	$(CXX) -c -std=c++11 $(CXXFLAGS) -o $@ $<
 
 OBJECTS=\
 	impl.o \
@@ -36,7 +36,7 @@ clean:
 	@rm -f $(OBJECTS)
 
 test: test.cc $(OBJECTS)
-	$(CC) -std=c++11 -o test test.cc $(CFLAGS) $(LDFLAGS) $(OBJECTS) $(LIBS)
+	$(CC) -std=c++11 -o test test.cc $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) $(LIBS)
 
 # LightStep-specific: rebuilds the LightStep thrift protocol files.  Assumes
 # the command is run within the LightStep development environment (i.e. the
