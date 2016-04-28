@@ -15,9 +15,12 @@ namespace lightstep {
 
 class TracerImpl;
 
+typedef std::shared_ptr<TracerImpl> ImplPtr;
+
 class Tracer {
  public:
-  explicit Tracer(std::shared_ptr<TracerImpl> *impl);
+  explicit Tracer(ImplPtr impl) : impl_(impl) { }
+  explicit Tracer(std::nullptr_t) { }
 
   Span StartSpan(const std::string& operation_name);
 
@@ -31,11 +34,13 @@ class Tracer {
   static Tracer InitGlobal(Tracer);
   
   // Get the implementation object.
-  std::shared_ptr<TracerImpl> impl() const { return impl_; }
+  ImplPtr impl() const { return impl_; }
 
  private:
-  std::shared_ptr<TracerImpl> impl_;
+  ImplPtr impl_;
 };
+
+Tracer NewTracer(const TracerOptions& options);
   
 }  // namespace lightstep
 

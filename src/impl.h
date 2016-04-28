@@ -33,13 +33,17 @@ class TracerImpl {
  public:
   explicit TracerImpl(const TracerOptions& options);
 
-  std::unique_ptr<SpanImpl> StartSpan(std::shared_ptr<TracerImpl> tracer,
+  std::unique_ptr<SpanImpl> StartSpan(std::shared_ptr<TracerImpl> selfptr,
 				      const StartSpanOptions& options);
 
+  const TracerOptions& options() const { return options_; }
+
  private:
+  friend class SpanImpl;
+
   void GetTwoIds(uint64_t *a, uint64_t *b);
 
-  TracerOptions options_;
+  const TracerOptions options_;
 
   // Protects rand_source_
   std::mutex mutex_;
@@ -77,9 +81,7 @@ public:
     return "";
   }
 
-  void FinishSpan(const FinishSpanOptions& options) {
-    // @@@
-  }
+  void FinishSpan(const FinishSpanOptions& options);
 
 private:
   friend class TracerImpl;

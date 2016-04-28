@@ -13,7 +13,20 @@ typedef std::chrono::system_clock Clock;
 typedef Clock::time_point TimeStamp;
 
 struct TracerOptions {
+  TracerOptions()
+    : should_sample([](uint64_t tid) { return true; }),
+      binary_transport([](const uint8_t*, uint32_t){}) { }
+
+  // TODO not used
+  std::string collector_host;
+  uint32_t    collector_port;
+  std::string collector_encryption;
+
+  // Indicates whether to sample.
   std::function<bool(uint64_t)> should_sample;
+
+  // A method that receives encoded lightstep::ReportRequest objects
+  std::function<void(const uint8_t* payload, uint32_t length)> binary_transport;
 };
 
 struct StartSpanOptions {

@@ -7,26 +7,25 @@
 namespace lightstep {
 namespace {
 
-typedef std::shared_ptr<TracerImpl> SharedTracerImpl;
-
-std::atomic<SharedTracerImpl*> global_tracer;
+std::atomic<ImplPtr*> global_tracer;
 
 }  // namespace
 
-Tracer::Tracer(std::shared_ptr<TracerImpl> *impl) {
-  if (!impl) return;
-  impl_ = *impl;
-}
-
 Tracer Tracer::Global() {
-  return Tracer(global_tracer.load());
+  ImplPtr *ptr = global_tracer.load();
+  if (ptr == nullptr) {
+    return Tracer(nullptr);
+  }
+  // Note: there is an intentional race here.
+  return Tracer(*ptr);
 }
 
 Tracer Tracer::InitGlobal(Tracer newt) {
-  auto shimpl = global_tracer.exchange(new SharedTracerImpl(newt.impl_));
-  Tracer tracer(shimpl);      // This takes a reference (if not null)
-  if (shimpl) delete shimpl;  // Destroys the global reference
-  return tracer;
+  ImplPtr *newptr = new ImplPtr(newt.impl_);
+  if (auto oldptr = global_tracer.exchange(newptr)) {
+    delete oldptr;
+  }
+  return Tracer(*newptr);
 }
 
 Span Tracer::StartSpan(const std::string& operation_name) {
@@ -37,6 +36,11 @@ Span Tracer::StartSpan(const std::string& operation_name) {
 Span Tracer::StartSpanWithOptions(const StartSpanOptions& options) {
   if (!impl_) return Span();
   return Span(impl_->StartSpan(impl_, options));
+}
+
+Tracer NewTracer(const TracerOptions& options) {
+  ImplPtr impl(new TracerImpl(options));
+  return Tracer(impl);
 }
 
 }  // namespace lightstep
