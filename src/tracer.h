@@ -19,7 +19,7 @@ typedef std::shared_ptr<TracerImpl> ImplPtr;
 
 class Tracer {
  public:
-  explicit Tracer(ImplPtr impl) : impl_(impl) { }
+  explicit Tracer(const ImplPtr &impl) : impl_(impl) { }
   explicit Tracer(std::nullptr_t) { }
 
   Span StartSpan(const std::string& operation_name);

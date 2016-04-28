@@ -32,8 +32,7 @@ public:
   template <typename T>
   Value(T&& t) : variant_type(t) { }
 
-private:
-
+  std::string to_string() const;
 };
 
 } // namespace lighstep

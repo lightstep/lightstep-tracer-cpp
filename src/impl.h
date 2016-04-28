@@ -42,6 +42,7 @@ class TracerImpl {
   friend class SpanImpl;
 
   void GetTwoIds(uint64_t *a, uint64_t *b);
+  uint64_t GetOneId();
 
   const TracerOptions options_;
 
@@ -52,6 +53,18 @@ class TracerImpl {
   // it may be converted to use a thread-local cache or thread-local
   // source.
   std::mt19937_64 rand_source_;
+
+  // Computed from rand_source_, hexified.
+  std::string runtime_guid_;
+
+  // Either from TracerOptions.component_name or set by default logic.
+  std::string component_name_;
+
+  // Start time of this runtime process, in microseconds.
+  uint64_t runtime_micros_;
+
+  // Runtime attributes.
+  std::vector<lightstep_thrift::KeyValue> runtime_attributes_;
 };
 
 class SpanImpl {
@@ -64,6 +77,7 @@ public:
   void SetTag(const std::string& key, const Value& value) {
     MutexLock l(mutex_);
     tags_[key] = value;
+
   }
 
   void SetBaggageItem(const std::string& restricted_key,
@@ -85,16 +99,25 @@ public:
 
 private:
   friend class TracerImpl;
+  friend class Span;
 
   // Protects Baggage and Tags.
   std::mutex  mutex_;
   std::string operation_name_;
-  TimeStamp   start_time_;
+  uint64_t    start_micros_;
   Context     context_;
   Dictionary  tags_;
   std::shared_ptr<TracerImpl> tracer_;
 };
 
+namespace util {
+
+std::string id_to_string(uint64_t);
+std::string program_name();
+
+uint64_t to_micros(TimeStamp t);
+
+} // namespace util 
 } // namespace lightstep
 
 #endif

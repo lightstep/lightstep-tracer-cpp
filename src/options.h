@@ -2,6 +2,7 @@
 #ifndef __LIGHTSTEP_OPTIONS_H__
 #define __LIGHTSTEP_OPTIONS_H__
 
+#include "lightstep_thrift/lightstep_types.h"
 #include <chrono>
 
 #include "span.h"
@@ -15,12 +16,20 @@ typedef Clock::time_point TimeStamp;
 struct TracerOptions {
   TracerOptions()
     : should_sample([](uint64_t tid) { return true; }),
-      binary_transport([](const uint8_t*, uint32_t){}) { }
+      binary_transport([](const uint8_t*, uint32_t) { }) { }
 
-  // TODO not used
+  // TODO presently these are not used 
+  std::string access_token;
   std::string collector_host;
   uint32_t    collector_port;
   std::string collector_encryption;
+
+  // The name of this LightStep component (a.k.a. "group name").
+  // TODO should this be tags["lightstep:component_name"] instead?
+  std::string component_name;
+
+  // Runtime attributes
+  std::unordered_map<std::string, std::string> tags;
 
   // Indicates whether to sample.
   std::function<bool(uint64_t)> should_sample;

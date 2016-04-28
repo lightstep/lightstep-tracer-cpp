@@ -27,6 +27,7 @@ OBJECTS=\
 	impl.o \
 	span.o \
 	tracer.o \
+	util.o \
 	lightstep_thrift/lightstep_constants.o \
 	lightstep_thrift/lightstep_types.o
 
