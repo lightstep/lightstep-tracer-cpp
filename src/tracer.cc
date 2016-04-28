@@ -16,7 +16,8 @@ Tracer Tracer::Global() {
   if (ptr == nullptr) {
     return Tracer(nullptr);
   }
-  // Note: there is an intentional race here.
+  // Note: there is an intentional race here.  InitGlobal releases the
+  // shared pointer reference without synchronization.
   return Tracer(*ptr);
 }
 

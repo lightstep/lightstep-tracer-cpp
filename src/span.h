@@ -26,7 +26,7 @@ public:
   void FinishWithOptions(const FinishSpanOptions& fopts);
 
   // TODO LogData
-  // TODO error flag
+  // TODO set error flag
 
   Span& SetBaggageItem(const std::string& restricted_key,
 		       const std::string& value);

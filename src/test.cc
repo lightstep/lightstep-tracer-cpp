@@ -22,10 +22,11 @@ int main() {
   span.Finish();
 
   TracerOptions topts;
-  topts.binary_transport = [](const uint8_t* buffer, uint32_t length) {
-    std::cerr << "Wrote " << length << " bytes" << std::endl
-                          << std::string(reinterpret_cast<const char*>(buffer), length) << std::endl;
-  };
+  // TODO
+  // topts.binary_transport = [](const uint8_t* buffer, uint32_t length) {
+  //   std::cerr << "Wrote " << length << " bytes" << std::endl
+  //                         << std::string(reinterpret_cast<const char*>(buffer), length) << std::endl;
+  // };
   Tracer::InitGlobal(NewTracer(topts));
   span = Tracer::Global().StartSpanWithOptions(sopts);
   span.Finish();

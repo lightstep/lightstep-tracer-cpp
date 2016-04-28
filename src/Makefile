@@ -25,6 +25,7 @@ LIBS=-lthrift -lc++
 
 OBJECTS=\
 	impl.o \
+	recorder.o \
 	span.o \
 	tracer.o \
 	util.o \
@@ -42,11 +43,14 @@ test: test.cc $(OBJECTS)
 # LightStep-specific: rebuilds the LightStep thrift protocol files.  Assumes
 # the command is run within the LightStep development environment (i.e. the
 # LIGHTSTEP_HOME environment variable is set).
+#
+# TODO Note that the "moveable_types" option is not functioning and
+# needs to be fixed.
 thrift:
 	mkdir -p lightstep_thrift
 	rm -f lightstep_thrift/*
 	cp $(LIGHTSTEP_HOME)/go/src/crouton/crouton.thrift lightstep_thrift/lightstep.thrift
-	thrift -r -gen cpp -out lightstep_thrift/ lightstep_thrift/lightstep.thrift
+	thrift -r -gen cpp:moveable_types -out lightstep_thrift/ lightstep_thrift/lightstep.thrift
 	rm lightstep_thrift/ReportingService.cpp \
 		lightstep_thrift/ReportingService.h \
 		lightstep_thrift/ReportingService_server.skeleton.cpp \

@@ -7,6 +7,7 @@
 
 #include "impl.h"
 #include "options.h"
+#include "recorder.h"
 
 namespace lightstep {
 namespace {
@@ -46,6 +47,9 @@ TracerImpl::TracerImpl(const TracerOptions& options)
   }
   runtime_attributes_.emplace_back(make_kv("lightstep_tracer_platform", "c++"));
   runtime_attributes_.emplace_back(make_kv("lightstep_tracer_version", "0.8"));
+  if (!options.recorder) {
+    abort();
+  }
 }
 
 void TracerImpl::GetTwoIds(uint64_t *a, uint64_t *b) {
@@ -88,7 +92,9 @@ std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> self
 }
 
 void SpanImpl::FinishSpan(const FinishSpanOptions& options) {
-  MutexLock l(mutex_);
+  TimeStamp finish_time = (options.finish_time == TimeStamp() ?
+			   Clock::now() :
+			   options.finish_time);
 
   using namespace apache::thrift::transport;
   using namespace apache::thrift::protocol;
@@ -96,14 +102,8 @@ void SpanImpl::FinishSpan(const FinishSpanOptions& options) {
   boost::shared_ptr<TMemoryBuffer> memory(new TMemoryBuffer(4096));
   TBinaryProtocol proto(memory);
 
-  Runtime runtime;
   SpanRecord span;
-  ReportRequest report;
-
-  runtime.__set_guid(tracer_->runtime_guid_);
-  runtime.__set_start_micros(tracer_->runtime_micros_);
-  runtime.__set_group_name(tracer_->component_name_);
-  runtime.__set_attrs(tracer_->runtime_attributes_);
+  MutexLock l(mutex_);
 
   std::vector<KeyValue> attrs{
     make_kv(ParentSpanGUIDKey, util::id_to_string(context_.parent_span_id)),
@@ -124,25 +124,16 @@ void SpanImpl::FinishSpan(const FinishSpanOptions& options) {
   span.__set_span_guid(util::id_to_string(context_.span_id));
   span.__set_runtime_guid(tracer_->runtime_guid_);
   span.__set_span_name(operation_name_);
-
-  TimeStamp finish_time = options.finish_time == TimeStamp() ? Clock::now() : options.finish_time;
-
   span.__set_oldest_micros(start_micros_);
   span.__set_youngest_micros(util::to_micros(finish_time));
 
   span.__set_join_ids(std::move(joins));
   span.__set_attributes(std::move(attrs));
 
-  report.__set_runtime(std::move(runtime));
-  report.__set_span_records({std::move(span)});
-
-  int n = report.write(&proto);
-
-  uint8_t *buffer;
-  uint32_t length;
-  memory->getBuffer(&buffer, &length);
-  if (length != n) abort();
-  tracer_->options_.binary_transport(buffer, length);
+  // TODO! Note that thrift needs its c++v2 generator or a special
+  // compiler option (not present in 0.9.2) to generate move
+  // constructors, so this is not efficient.  Must be addressed.
+  tracer_->options_.recorder->ReportSpan(std::move(span));
 }
 
 }  // namespace lightstep

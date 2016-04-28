@@ -10,13 +10,14 @@
 
 namespace lightstep {
 
+class Recorder;
+
 typedef std::chrono::system_clock Clock;
 typedef Clock::time_point TimeStamp;
 
 struct TracerOptions {
   TracerOptions()
-    : should_sample([](uint64_t tid) { return true; }),
-      binary_transport([](const uint8_t*, uint32_t) { }) { }
+    : should_sample([](uint64_t tid) { return true; }) { }
 
   // TODO presently these are not used 
   std::string access_token;
@@ -25,17 +26,17 @@ struct TracerOptions {
   std::string collector_encryption;
 
   // The name of this LightStep component (a.k.a. "group name").
-  // TODO should this be tags["lightstep:component_name"] instead?
+  // TODO should this be entered via tags["lightstep:component_name"]?
   std::string component_name;
 
   // Runtime attributes
   std::unordered_map<std::string, std::string> tags;
 
-  // Indicates whether to sample.
+  // Indicates whether to sample (default true).
   std::function<bool(uint64_t)> should_sample;
 
-  // A method that receives encoded lightstep::ReportRequest objects
-  std::function<void(const uint8_t* payload, uint32_t length)> binary_transport;
+  // The flush / transport implementation.
+  std::shared_ptr<Recorder> recorder;
 };
 
 struct StartSpanOptions {
