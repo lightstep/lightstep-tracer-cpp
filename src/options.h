@@ -2,6 +2,9 @@
 #ifndef __LIGHTSTEP_OPTIONS_H__
 #define __LIGHTSTEP_OPTIONS_H__
 
+// Options for Tracer implementations, starting Spans, and finishing
+// Spans.
+
 #include "lightstep_thrift/lightstep_types.h"
 #include <chrono>
 
@@ -15,10 +18,9 @@ class Recorder;
 typedef std::chrono::system_clock Clock;
 typedef Clock::time_point TimeStamp;
 
-struct TracerOptions {
-  TracerOptions()
-    : should_sample([](uint64_t tid) { return true; }) { }
+typedef std::unordered_map<std::string, std::string> Attributes;
 
+struct TracerOptions {
   // TODO presently these are not used 
   std::string access_token;
   std::string collector_host;
@@ -30,12 +32,14 @@ struct TracerOptions {
   std::string component_name;
 
   // Runtime attributes
-  std::unordered_map<std::string, std::string> tags;
+  Attributes tags;
 
-  // Indicates whether to sample (default true).
+  // Indicates whether to collect this span.
   std::function<bool(uint64_t)> should_sample;
 
-  // The flush / transport implementation.
+  // The flush / transport implementation.  If 'recorder' is a
+  // nullptr, the default implementation will be supplied using the
+  // fields above to configure the delivery endpoint.
   std::shared_ptr<Recorder> recorder;
 };
 

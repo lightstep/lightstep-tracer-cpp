@@ -6,6 +6,8 @@
 #include <vector>
 #include <unordered_map>
 
+// Variant value types for span tags and log payloads.
+
 #ifndef __LIGHTSTEP_VALUE_H__
 #define __LIGHTSTEP_VALUE_H__
 

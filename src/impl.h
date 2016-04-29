@@ -2,6 +2,8 @@
 #ifndef __LIGHTSTEP_IMPL_H__
 #define __LIGHTSTEP_IMPL_H__
 
+// TODO some comments, please
+
 #include <chrono>
 #include <memory>
 #include <mutex>
@@ -38,13 +40,19 @@ class TracerImpl {
 
   const TracerOptions& options() const { return options_; }
 
- private:
-  friend class SpanImpl;
+  const std::string& component_name() const { return component_name_; }
+  const std::string& runtime_guid() const { return runtime_guid_; }
+  const std::string& access_token() const { return options_.access_token; }
+  uint64_t           runtime_start_micros() const { return runtime_micros_; }
+  const Attributes&  runtime_attributes() const { return options_.tags; }
 
+  void RecordSpan(lightstep_thrift::SpanRecord&& span);
+
+ private:
   void GetTwoIds(uint64_t *a, uint64_t *b);
   uint64_t GetOneId();
 
-  const TracerOptions options_;
+  TracerOptions options_;
 
   // Protects rand_source_
   std::mutex mutex_;

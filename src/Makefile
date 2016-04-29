@@ -1,3 +1,5 @@
+# TODO will need to autoconf this to find Thrift and OpenSSL
+
 .PHONY: clean thrift
 
 HEADERS=\
@@ -11,10 +13,10 @@ HEADERS=\
 	mapbox_variant/variant.hpp
 
 # Where to find the Thrift libraries.
-INCLUDE=/usr/local/include
+INCLUDE=-I/usr/local/include -I/usr/local/Cellar/openssl/1.0.2g/include
+LDFLAGS=-L/usr/local/lib -L/usr/local/Cellar/openssl/1.0.2g/lib
 
-CXXFLAGS=-g -I$(INCLUDE) -Wall
-LDFLAGS=-L. -L/usr/local/lib
+CXXFLAGS=-g $(INCLUDE) -Wall
 LIBS=-lthrift -lc++
 
 %.o: %.cpp $(HEADERS)

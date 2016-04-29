@@ -9,6 +9,8 @@
 namespace lightstep {
 namespace util {
 
+using namespace lightstep_thrift;
+
 // TODO This works only on UNIX, and is not tested.
 std::string program_name() {
   constexpr int path_max = 1024;
@@ -37,6 +39,20 @@ std::string id_to_string(uint64_t id) {
 uint64_t to_micros(TimeStamp t) {
   using namespace std::chrono;
   return duration_cast<microseconds>(t.time_since_epoch()).count();
+}
+
+KeyValue make_kv(const std::string& key, const std::string& value) {
+  KeyValue kv;
+  kv.__set_Key(key);
+  kv.__set_Value(value);
+  return kv;
+}
+
+TraceJoinId make_join(const std::string& key, const std::string& value) {
+  TraceJoinId kv;
+  kv.__set_TraceKey(key);
+  kv.__set_Value(value);
+  return kv;
 }
 
 } // namespace util

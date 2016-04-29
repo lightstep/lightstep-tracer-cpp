@@ -17,9 +17,12 @@ class TracerImpl;
 
 typedef std::shared_ptr<TracerImpl> ImplPtr;
 
+// Tracer is a handle to a TracerImpl or acts as a No-Op.
 class Tracer {
  public:
   explicit Tracer(const ImplPtr &impl) : impl_(impl) { }
+
+  // Constructs a No-Op tracer handle. implementation.
   explicit Tracer(std::nullptr_t) { }
 
   Span StartSpan(const std::string& operation_name);
