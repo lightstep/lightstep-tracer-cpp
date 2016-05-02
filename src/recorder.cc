@@ -1,6 +1,6 @@
-#include <iostream> // TODO REMOVE ME
-
+#include <exception>
 #include <thread>
+#include <iostream>  // TODO Remove in favor of error logging support.
 
 #include <thrift/transport/TBufferTransports.h>
 #include <thrift/protocol/TBinaryProtocol.h>
@@ -14,8 +14,6 @@
 #include "thrift/transport/THttpClient.h"
 #include "thrift/transport/TSocket.h"
 #include "thrift/transport/TSSLSocket.h"
-
-// TODO Replace several abort() calls w/ better error handling.
 
 namespace lightstep {
 
@@ -44,6 +42,8 @@ private:
   void Write();
 
   void Flush();
+
+  void ProcessResponse(const ReportResponse& response);
 
   const TracerImpl& tracer_;
 
@@ -76,10 +76,15 @@ DefaultRecorder::DefaultRecorder(const TracerImpl& tracer)
     trans = ssl_factory_->createSocket(socket_->getSocketFD());
   }
 
+  // Note: THttpClient buffers the input and output automatically.
   transport_ = boost::shared_ptr<THttpClient>(
       new THttpClient(trans, tracer_.options().collector_host, CollectorThriftRpcPath));
 
-  transport_->open();
+  try {
+    transport_->open();
+  } catch (std::exception &e) {
+    std::cerr << "Connect error: " << e.what() << std::endl;
+  }
 }
 
 DefaultRecorder::~DefaultRecorder() {
@@ -125,16 +130,56 @@ void DefaultRecorder::Flush() {
     // outstanding because the Flush API is not exposed.  More
     // synchronization will be needed if flushing_spans_ is pending in
     // another Flush operation.
-    if (!flushing_spans_.empty()) abort();
+    if (!flushing_spans_.empty()) {
+      throw std::runtime_error("Invalid flushing_spans_ state");
+    }
     std::swap(flushing_spans_, pending_spans_);
 
     if (flushing_spans_.empty()) return;
   }
 
   EncodeForTransit(tracer_, flushing_spans_, [this](const uint8_t* buffer, uint32_t length) {
-      this->transport_->write(buffer, length);
-      this->transport_->flush();
+
+      try {
+	if (!transport_->isOpen()) {
+	  transport_->open();
+	}
+	transport_->write(buffer, length);
+	transport_->flush();
+
+	// Note: Use Thrift directly here to read a response because
+	// it's difficult to know how much to read without making
+	// assumptions about the underlying transport.
+	//
+	// Recommend for "DIY" transport to ignore the response and
+	// simply drain the response channel.  We will abandon Thrift
+	// for transport in favor of gRPC, after which this topic will
+	// be revisited.
+	boost::shared_ptr<TBinaryProtocol> proto(new TBinaryProtocol(transport_));
+	ReportingServiceClient client(proto);
+
+	ReportResponse response;
+	client.recv_Report(response);
+	ProcessResponse(response);
+      } catch (std::exception &e) {
+	std::cerr << "Write error: " << e.what() << std::endl;
+      }	
     });
+}
+
+void DefaultRecorder::ProcessResponse(const ReportResponse& response) {
+  // TODO Implement clock synchroniation. If this code is running on a machine
+  // with NTP, shouldn't be necessary.
+  //
+  // TODO Implement Disable command ("Big Red Button") support.
+  for (const auto& error : response.errors) {
+    if (error.empty()) continue;
+    // TODO Use proper logging.
+    std::cerr << error;
+    if (error[error.size()-1] != '\n') {
+      std::cerr << std::endl;
+    }
+  }
 }
 
 } // namespace transport

@@ -35,7 +35,7 @@ OBJECTS=\
 	lightstep_thrift/lightstep_service.o \
 	lightstep_thrift/lightstep_types.o
 
-all: $(OBJECTS)
+all: $(OBJECTS) test
 
 clean:
 	@rm -f $(OBJECTS)
