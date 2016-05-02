@@ -1,3 +1,5 @@
+#include <iostream> // TODO REMOVE ME
+
 #include <thread>
 
 #include <thrift/transport/TBufferTransports.h>
@@ -6,6 +8,8 @@
 #include "impl.h"
 #include "recorder.h"
 #include "options.h"
+
+#include "lightstep_thrift/lightstep_service.h"
 
 #include "thrift/transport/THttpClient.h"
 #include "thrift/transport/TSocket.h"
@@ -20,7 +24,6 @@ using namespace apache::thrift::transport;
 using namespace apache::thrift::protocol;
 
 const char CollectorThriftRpcPath[] = "/_rpc/v1/reports/binary";
-const char AccessTokenHeader[] = "LightStep-Access-Token";
 
 const uint64_t MaxSpansPerReport = 2500;
 const uint64_t ReportIntervalMillisecs = 2500;
@@ -41,15 +44,6 @@ private:
   void Write();
 
   void Flush();
-
-  // This is a workaround until we decide on a replacement for Thrift
-  // transport.  THttpClient does not allow setting headers, but does
-  // blindly copy the 'path' argument into the HTTP header.
-  std::string inject_access_control_hack() {
-    return std::string(CollectorThriftRpcPath) + " HTTP/1.1\r\n"
-      + AccessTokenHeader + ": " + tracer_.access_token() + "\r\n"
-      + "Ignore-This-Header:";
-  }
 
   const TracerImpl& tracer_;
 
@@ -83,8 +77,7 @@ DefaultRecorder::DefaultRecorder(const TracerImpl& tracer)
   }
 
   transport_ = boost::shared_ptr<THttpClient>(
-      new THttpClient(trans, tracer_.options().collector_host,
-		      inject_access_control_hack()));
+      new THttpClient(trans, tracer_.options().collector_host, CollectorThriftRpcPath));
 
   transport_->open();
 }
@@ -161,7 +154,7 @@ void Recorder::EncodeForTransit(const TracerImpl& tracer,
   // TODO Use a more accurate size upper-bound.
   uint32_t size_est = ReportSizeLowerBound * spans.size();
   boost::shared_ptr<TMemoryBuffer> memory(new TMemoryBuffer(size_est));
-  TBinaryProtocol proto(memory);
+  boost::shared_ptr<TBinaryProtocol> proto(new TBinaryProtocol(memory));
 
   ReportRequest report;
 
@@ -184,14 +177,17 @@ void Recorder::EncodeForTransit(const TracerImpl& tracer,
   std::swap(report.span_records, spans);
   report.__isset.span_records = true;
 
-  int nwritten = report.write(&proto);
+  lightstep_thrift::ReportingServiceClient client(proto);
+  lightstep_thrift::Auth auth;
+  auth.__set_access_token(tracer.access_token());
+  client.send_Report(auth, report);
+
   std::swap(report.span_records, spans);
   spans.clear();
 
   uint8_t *buffer;
   uint32_t length;
   memory->getBuffer(&buffer, &length);
-  if (length != nwritten) abort();
 
   func(buffer, length);
 }
