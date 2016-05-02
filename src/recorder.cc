@@ -1,4 +1,6 @@
+#include <exception>
 #include <thread>
+#include <iostream>  // TODO Remove in favor of error logging support.
 
 #include <thrift/transport/TBufferTransports.h>
 #include <thrift/protocol/TBinaryProtocol.h>
@@ -7,11 +9,11 @@
 #include "recorder.h"
 #include "options.h"
 
+#include "lightstep_thrift/lightstep_service.h"
+
 #include "thrift/transport/THttpClient.h"
 #include "thrift/transport/TSocket.h"
 #include "thrift/transport/TSSLSocket.h"
-
-// TODO Replace several abort() calls w/ better error handling.
 
 namespace lightstep {
 
@@ -20,7 +22,6 @@ using namespace apache::thrift::transport;
 using namespace apache::thrift::protocol;
 
 const char CollectorThriftRpcPath[] = "/_rpc/v1/reports/binary";
-const char AccessTokenHeader[] = "LightStep-Access-Token";
 
 const uint64_t MaxSpansPerReport = 2500;
 const uint64_t ReportIntervalMillisecs = 2500;
@@ -42,14 +43,7 @@ private:
 
   void Flush();
 
-  // This is a workaround until we decide on a replacement for Thrift
-  // transport.  THttpClient does not allow setting headers, but does
-  // blindly copy the 'path' argument into the HTTP header.
-  std::string inject_access_control_hack() {
-    return std::string(CollectorThriftRpcPath) + " HTTP/1.1\r\n"
-      + AccessTokenHeader + ": " + tracer_.access_token() + "\r\n"
-      + "Ignore-This-Header:";
-  }
+  void ProcessResponse(const ReportResponse& response);
 
   const TracerImpl& tracer_;
 
@@ -82,11 +76,15 @@ DefaultRecorder::DefaultRecorder(const TracerImpl& tracer)
     trans = ssl_factory_->createSocket(socket_->getSocketFD());
   }
 
+  // Note: THttpClient buffers the input and output automatically.
   transport_ = boost::shared_ptr<THttpClient>(
-      new THttpClient(trans, tracer_.options().collector_host,
-		      inject_access_control_hack()));
+      new THttpClient(trans, tracer_.options().collector_host, CollectorThriftRpcPath));
 
-  transport_->open();
+  try {
+    transport_->open();
+  } catch (std::exception &e) {
+    std::cerr << "Connect error: " << e.what() << std::endl;
+  }
 }
 
 DefaultRecorder::~DefaultRecorder() {
@@ -132,16 +130,56 @@ void DefaultRecorder::Flush() {
     // outstanding because the Flush API is not exposed.  More
     // synchronization will be needed if flushing_spans_ is pending in
     // another Flush operation.
-    if (!flushing_spans_.empty()) abort();
+    if (!flushing_spans_.empty()) {
+      throw std::runtime_error("Invalid flushing_spans_ state");
+    }
     std::swap(flushing_spans_, pending_spans_);
 
     if (flushing_spans_.empty()) return;
   }
 
   EncodeForTransit(tracer_, flushing_spans_, [this](const uint8_t* buffer, uint32_t length) {
-      this->transport_->write(buffer, length);
-      this->transport_->flush();
+
+      try {
+	if (!transport_->isOpen()) {
+	  transport_->open();
+	}
+	transport_->write(buffer, length);
+	transport_->flush();
+
+	// Note: Use Thrift directly here to read a response because
+	// it's difficult to know how much to read without making
+	// assumptions about the underlying transport.
+	//
+	// Recommend for "DIY" transport to ignore the response and
+	// simply drain the response channel.  We will abandon Thrift
+	// for transport in favor of gRPC, after which this topic will
+	// be revisited.
+	boost::shared_ptr<TBinaryProtocol> proto(new TBinaryProtocol(transport_));
+	ReportingServiceClient client(proto);
+
+	ReportResponse response;
+	client.recv_Report(response);
+	ProcessResponse(response);
+      } catch (std::exception &e) {
+	std::cerr << "Write error: " << e.what() << std::endl;
+      }	
     });
+}
+
+void DefaultRecorder::ProcessResponse(const ReportResponse& response) {
+  // TODO Implement clock synchroniation. If this code is running on a machine
+  // with NTP, shouldn't be necessary.
+  //
+  // TODO Implement Disable command ("Big Red Button") support.
+  for (const auto& error : response.errors) {
+    if (error.empty()) continue;
+    // TODO Use proper logging.
+    std::cerr << error;
+    if (error[error.size()-1] != '\n') {
+      std::cerr << std::endl;
+    }
+  }
 }
 
 } // namespace transport
@@ -161,7 +199,7 @@ void Recorder::EncodeForTransit(const TracerImpl& tracer,
   // TODO Use a more accurate size upper-bound.
   uint32_t size_est = ReportSizeLowerBound * spans.size();
   boost::shared_ptr<TMemoryBuffer> memory(new TMemoryBuffer(size_est));
-  TBinaryProtocol proto(memory);
+  boost::shared_ptr<TBinaryProtocol> proto(new TBinaryProtocol(memory));
 
   ReportRequest report;
 
@@ -184,14 +222,17 @@ void Recorder::EncodeForTransit(const TracerImpl& tracer,
   std::swap(report.span_records, spans);
   report.__isset.span_records = true;
 
-  int nwritten = report.write(&proto);
+  lightstep_thrift::ReportingServiceClient client(proto);
+  lightstep_thrift::Auth auth;
+  auth.__set_access_token(tracer.access_token());
+  client.send_Report(auth, report);
+
   std::swap(report.span_records, spans);
   spans.clear();
 
   uint8_t *buffer;
   uint32_t length;
   memory->getBuffer(&buffer, &length);
-  if (length != nwritten) abort();
 
   func(buffer, length);
 }
