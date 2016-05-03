@@ -4,6 +4,7 @@
 #include <string>
 
 #include "impl.h"
+#include "util.h"
 #include "value.h"
 
 namespace lightstep {

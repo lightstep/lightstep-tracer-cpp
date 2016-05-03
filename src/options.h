@@ -5,7 +5,6 @@
 // Options for Tracer implementations, starting Spans, and finishing
 // Spans.
 
-#include "lightstep_thrift/lightstep_types.h"
 #include <chrono>
 
 #include "span.h"

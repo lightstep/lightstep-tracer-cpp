@@ -54,12 +54,6 @@ protected:
 // LightStep using a background thread that flushes periodically.
 std::unique_ptr<Recorder> NewDefaultRecorder(const TracerImpl &impl);
 
-namespace util {
-
-lightstep_thrift::KeyValue make_kv(const std::string& key, const std::string& value);
-lightstep_thrift::TraceJoinId make_join(const std::string& key, const std::string& value);
-
-}  // namespace util 
 }  // namespace lightstep
 
 #endif // __LIGHTSTEP_RECORDER_H__

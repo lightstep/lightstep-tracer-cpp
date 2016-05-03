@@ -8,6 +8,7 @@
 #include "impl.h"
 #include "recorder.h"
 #include "options.h"
+#include "util.h"
 
 #include "lightstep_thrift/lightstep_service.h"
 
@@ -45,6 +46,15 @@ private:
 
   void ProcessResponse(const ReportResponse& response);
 
+  void make_writer_exit() {
+    MutexLock lock(mutex_);
+    exit_writer_ = true;
+  }
+  bool writer_should_exit() {
+    MutexLock lock(mutex_);
+    return exit_writer_;
+  }
+    
   const TracerImpl& tracer_;
 
   // Protects this Recorder state.
@@ -53,6 +63,7 @@ private:
   // Background Flush thread.
   std::thread writer_;
   std::vector<lightstep_thrift::SpanRecord> flushing_spans_;
+  bool exit_writer_;
 
   // Transport mechanism.
   boost::shared_ptr<TSocket> socket_;
@@ -61,7 +72,8 @@ private:
 };
 
 DefaultRecorder::DefaultRecorder(const TracerImpl& tracer)
-  : tracer_(tracer) {
+  : tracer_(tracer),
+    exit_writer_(false) {
   MutexLock lock(mutex_);
 
   writer_ = std::thread(&DefaultRecorder::Write, this);
@@ -88,7 +100,7 @@ DefaultRecorder::DefaultRecorder(const TracerImpl& tracer)
 }
 
 DefaultRecorder::~DefaultRecorder() {
-  // TODO Make the thread return.  This will hang indefinitely.
+  make_writer_exit();
   writer_.join();
 }
 
@@ -106,7 +118,8 @@ void DefaultRecorder::Write() {
   auto interval = milliseconds(ReportIntervalMillisecs);
   auto next = steady_clock::now() + interval;
 
-  while (true) {
+  // TODO Takes one sleep interval to exit, speed this up.
+  while (!writer_should_exit()) {
     std::this_thread::sleep_until(next);
 
     Flush();

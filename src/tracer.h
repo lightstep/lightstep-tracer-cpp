@@ -1,6 +1,4 @@
 // -*- Mode: C++ -*-
-#include "lightstep_thrift/lightstep_constants.h"
-#include "lightstep_thrift/lightstep_types.h"
 
 #include "options.h"
 #include "span.h"

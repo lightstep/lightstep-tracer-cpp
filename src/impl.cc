@@ -6,6 +6,7 @@
 #include "impl.h"
 #include "options.h"
 #include "recorder.h"
+#include "util.h"
 
 namespace lightstep {
 namespace {
@@ -27,10 +28,10 @@ TracerImpl::TracerImpl(const TracerOptions& options_in)
   component_name_ = options_.component_name.empty() ? util::program_name() : options_.component_name;
   for (auto it = options_.tags.begin();
        it != options_.tags.end(); ++it) {
-    runtime_attributes_.emplace_back(util::make_kv(it->first, it->second));
+    runtime_attributes_.emplace_back(std::make_pair(it->first, it->second));
   }
-  runtime_attributes_.emplace_back(util::make_kv("lightstep_tracer_platform", "c++"));
-  runtime_attributes_.emplace_back(util::make_kv("lightstep_tracer_version", "0.8"));
+  runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_platform", "c++"));
+  runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_version", "0.8"));
 
   if (!options_.recorder) {
     options_.recorder = std::shared_ptr<Recorder>(NewDefaultRecorder(*this));
@@ -117,7 +118,14 @@ void SpanImpl::FinishSpan(const FinishSpanOptions& options) {
 }
 
 void TracerImpl::RecordSpan(lightstep_thrift::SpanRecord&& span) {
-  options_.recorder->RecordSpan(std::move(span));
+  std::shared_ptr<Recorder> recorder;
+  {
+    MutexLock lock(mutex_);
+    recorder = options_.recorder;
+  }
+  if (recorder) {
+    recorder->RecordSpan(std::move(span));
+  }
 }
 
 }  // namespace lightstep
