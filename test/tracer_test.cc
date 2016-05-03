@@ -2,10 +2,7 @@
 #include <chrono>
 #include <thread>
 
-#include "lightstep_thrift/lightstep_types.h"
-
 #include "tracer.h"
-#include "impl.h"
 
 using namespace lightstep;
 
