@@ -63,6 +63,7 @@ private:
   // Background Flush thread.
   std::thread writer_;
   std::vector<lightstep_thrift::SpanRecord> flushing_spans_;
+  std::vector<lightstep_thrift::SpanRecord> pending_spans_;
   bool exit_writer_;
 
   // Transport mechanism.
@@ -107,7 +108,7 @@ DefaultRecorder::~DefaultRecorder() {
 void DefaultRecorder::RecordSpan(lightstep_thrift::SpanRecord&& span) {
   MutexLock lock(mutex_);
   if (pending_spans_.size() < MaxSpansPerReport) {
-    Recorder::RecordSpan(std::move(span));
+    pending_spans_.emplace_back(std::move(span));
   } else {
     // TODO Count dropped span.
   }
@@ -191,7 +192,7 @@ void DefaultRecorder::ProcessResponse(const ReportResponse& response) {
   for (const auto& error : response.errors) {
     if (error.empty()) continue;
     // TODO Use proper logging.
-    std::cerr << error;
+    std::cerr << "Controller error: " << error;
     if (error[error.size()-1] != '\n') {
       std::cerr << std::endl;
     }
@@ -202,10 +203,6 @@ void DefaultRecorder::ProcessResponse(const ReportResponse& response) {
 
 std::unique_ptr<Recorder> NewDefaultRecorder(const TracerImpl& impl) {
   return std::unique_ptr<Recorder>(new transport::DefaultRecorder(impl));
-}
-
-void Recorder::RecordSpan(lightstep_thrift::SpanRecord&& span) {
-  pending_spans_.emplace_back(std::move(span));
 }
 
 void Recorder::EncodeForTransit(const TracerImpl& tracer,

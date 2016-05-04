@@ -30,7 +30,7 @@ public:
 
   // RecordSpan is called by TracerImpl when a new Span is finished.
   // An rvalue-reference is taken to avoid copying the Span contents.
-  virtual void RecordSpan(lightstep_thrift::SpanRecord&& span);
+  virtual void RecordSpan(lightstep_thrift::SpanRecord&& span) = 0;
 
   // EncodeForTransit encodes the vector of spans as a LightStep
   // report suitable for sending to the Collector.
@@ -43,11 +43,7 @@ public:
 			       std::vector<lightstep_thrift::SpanRecord>& spans,
 			       std::function<void(const uint8_t* bytes, uint32_t len)> func);
   
-  // TODO Add explicit Tracer::Flush() support.
-
-protected:
-  // Buffered spans for the next report.  Not synchronized.
-  std::vector<lightstep_thrift::SpanRecord> pending_spans_;
+  // TODO Add explicit TracerImpl::Flush() support.
 };
 
 // NewDefaultRecorder returns a Recorder implementation that writes to
