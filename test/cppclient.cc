@@ -146,7 +146,7 @@ void Test::test_body(const lightstep::Tracer& tracer,
     if (!sleep_nanos->empty()) {
       sleep_nanos->append(",");
     }
-    *sleep_nanos += elapsed_nanos;
+    *sleep_nanos += std::to_string(elapsed_nanos);
   }
 }
 
