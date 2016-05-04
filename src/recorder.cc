@@ -227,8 +227,10 @@ void Recorder::EncodeForTransit(const TracerImpl& tracer,
        it != tracer.runtime_attributes().end(); ++it) {
     attrs.emplace_back(util::make_kv(it->first, it->second));
   }
-  runtime.__set_attrs(std::move(attrs));
-  report.__set_runtime(std::move(runtime));
+  runtime.attrs = std::move(attrs);
+  runtime.__isset.attrs = true;
+  report.runtime = std::move(runtime);
+  report.__isset.runtime = true;
 
   // Swap the flushing spans into report, serialize, swap back, then
   // clear.  This allows re-use of the spans memory.

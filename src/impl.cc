@@ -108,12 +108,11 @@ void SpanImpl::FinishSpan(const FinishSpanOptions& options) {
   span.__set_oldest_micros(start_micros_);
   span.__set_youngest_micros(util::to_micros(finish_time));
 
-  span.__set_join_ids(std::move(joins));
-  span.__set_attributes(std::move(attrs));
+  span.join_ids = std::move(joins);
+  span.__isset.join_ids = true;
+  span.attributes = std::move(attrs);
+  span.__isset.attributes = true;
 
-  // TODO! Note that thrift needs its c++v2 generator or a special
-  // compiler option (not present in 0.9.2) to generate move
-  // constructors, so this is not efficient.  Must be addressed.
   tracer_->RecordSpan(std::move(span));
 }
 
