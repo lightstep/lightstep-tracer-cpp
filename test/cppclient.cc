@@ -1,5 +1,7 @@
 #include <iostream>
 #include <sstream>
+#include <thread>
+#include <chrono>
 
 #include "tracer.h"
 #include "impl.h"
@@ -7,29 +9,16 @@
 #include "dropbox_json/json11.hpp"
 #include "zintinio_happyhttp/happyhttp.h"
 
-// test_tracer = lightstep.tracer.init_tracer(
-//     access_token='ignored',
-//     secure=False,
-//     service_host='localhost',
-//     service_port=8000,
-// )
-
-// noop_tracer = opentracing.tracer
-// base_url = 'http://localhost:8000'
-// prime_work = 982451653
-// logs_memory = None
-// logs_size_max = 1<<20
-// nanos_per_second = 1e9
-
 namespace {
 
 const char hostName[] = "localhost";
 const int  hostPort = 8000;
 const char controlPath[] = "/control";
 const char resultPath[] = "/result";
+const double nanosPerSecond = 1e9;
 
-lightstep::Tracer real_tracer(nullptr);
-lightstep::Tracer test_tracer(nullptr);
+// logs_memory = None
+// logs_size_max = 1<<20
 
 using namespace json11;
 
@@ -45,7 +34,7 @@ lightstep::Tracer NewTracer() {
 double to_seconds(lightstep::TimeStamp::duration d) {
   using namespace std::chrono;
   return static_cast<double>(
-      duration_cast<nanoseconds>(d).count()) / 1e9;
+      duration_cast<nanoseconds>(d).count()) / nanosPerSecond;
 }
 
 struct UD {
@@ -60,13 +49,13 @@ public:
       noop_tracer_(nullptr),
       conn_(hostName, hostPort) {
     conn_.setcallbacks([](const happyhttp::Response* r, void* ud) {},
-		      [](const happyhttp::Response* r, void* ud, const unsigned char* data, int size) {
-			reinterpret_cast<UD*>(ud)->payload.append(std::string(reinterpret_cast<const char*>(data), size));
-		      },
-		      [](const happyhttp::Response* r, void* ud) {
-			reinterpret_cast<UD*>(ud)->complete = true;
-		      },
-		      &data_);
+		       [](const happyhttp::Response* r, void* ud, const unsigned char* data, int size) {
+			 reinterpret_cast<UD*>(ud)->payload.append(std::string(reinterpret_cast<const char*>(data), size));
+		       },
+		       [](const happyhttp::Response* r, void* ud) {
+			 reinterpret_cast<UD*>(ud)->complete = true;
+		       },
+		       &data_);
     conn_.connect();
   }
 
@@ -75,10 +64,13 @@ public:
 private:
   Json get_control();
 
-  void test_body(const Json::object& cobject,
+  uint64_t do_work(uint64_t work);
+
+  void test_body(const lightstep::Tracer& tracer,
+		 const Json& control,
 		 std::string* sleep_nanos,
-		 std::string* answer);
-  
+		 uint64_t* answer);
+
   std::string get(const std::string &path) {
     data_.complete = false;
     conn_.request("GET", path.c_str());
@@ -96,34 +88,76 @@ private:
 };
 
 Json Test::get_control() {
-  try {
-    auto c = get(controlPath);
-    std::string errors;
-    Json control = Json::parse(c, errors);
-    if (!errors.empty()) {
-      throw std::exception();
-    }
-    return control;
-  } catch (happyhttp::Wobbly& e) {
-    std::cerr << "HTTP Exception: " << e.what() << std::endl;
-    throw;
+  auto c = get(controlPath);
+  std::string errors;
+  Json control = Json::parse(c, errors);
+  if (!errors.empty()) {
+    throw std::exception();
   }
+  return control;
 }
 
-void Test::test_body(const Json::object& cobject,
-		     std::string* sleep_nanos,
-		     std::string* answer) {
+uint64_t Test::do_work(uint64_t work) {
+  const uint64_t prime_work = 982451653;
+  uint64_t x = prime_work;
+
+  for (uint64_t i = 0; i < work; i++) {
+    x *= prime_work;
+  }
+
+  return x;
+}
+
+void Test::test_body(const lightstep::Tracer& tracer,
+		     const Json&   control,
+		     std::string*  sleep_nanos,
+		     uint64_t*     answer) {
+  auto repeat    = static_cast<uint64_t>(control["Repeat"].number_value());
+  auto sleepnano = static_cast<uint64_t>(control["Sleep"].number_value());
+  auto sleepival = static_cast<uint64_t>(control["SleepInterval"].number_value());
+  auto work      = static_cast<uint64_t>(control["Work"].number_value());
+  auto logn      = static_cast<uint64_t>(control["NumLogs"].number_value());
+  auto logsz     = static_cast<uint64_t>(control["BytesPerLog"].number_value());
+
+  uint64_t sleep_debt = 0;
+
+  for (uint64_t i = 0; i < repeat; i++) {
+    lightstep::Span span = tracer.StartSpan("span/test");
+    // TODO logging test
+    *answer = do_work(work);
+    span.Finish();
+
+    if (sleepnano == 0) {
+      continue;
+    }
+
+    sleep_debt += sleepnano;
+
+    if (sleep_debt < sleepival) {
+      continue;
+    }
+
+    using namespace std::chrono;
+    lightstep::TimeStamp sleep = lightstep::Clock::now();
+    std::this_thread::sleep_for(nanoseconds(sleep_debt));
+    lightstep::TimeStamp awake = lightstep::Clock::now();
+    uint64_t elapsed_nanos = duration_cast<nanoseconds>(awake - sleep).count();
+    sleep_debt -= elapsed_nanos;
+    if (!sleep_nanos->empty()) {
+      sleep_nanos->append(",");
+    }
+    *sleep_nanos += elapsed_nanos;
+  }
 }
 
 void Test::run_benchmark() {
   while (true) {
     Json control = get_control();
-    Json::object cobject = control.object_items();
-    if (cobject["Exit"].bool_value()) {
+    if (control["Exit"].bool_value()) {
       break;
     }
     lightstep::Tracer tracer(nullptr);
-    if (cobject["Trace"].bool_value()) {
+    if (control["Trace"].bool_value()) {
       tracer = test_tracer_;
     } else {
       tracer = noop_tracer_;
@@ -131,14 +165,14 @@ void Test::run_benchmark() {
     lightstep::TimeStamp start = lightstep::Clock::now();
 
     std::string sleep_nanos;
-    std::string answer;
+    uint64_t answer;
     // TODO concurrency test
-    test_body(cobject, &sleep_nanos, &answer);
+    test_body(tracer, control, &sleep_nanos, &answer);
 
     lightstep::TimeStamp finish = lightstep::Clock::now();
     lightstep::TimeStamp flushed = finish;
 
-    if (cobject["Trace"].bool_value()) {
+    if (control["Trace"].bool_value()) {
       // TODO explicit Flush is not implemented, anyway
       tracer.impl()->Flush();
       flushed = lightstep::Clock::now();
@@ -150,7 +184,7 @@ void Test::run_benchmark() {
 	  << "&s=" << sleep_nanos
 	  << "&a=" << answer;
 
-    get(rpath.str());
+      get(rpath.str());
   }
   test_tracer_.impl()->Stop();
 }
@@ -163,6 +197,11 @@ int main(int, char**) {
       abort();
     });
   Test test;
-  test.run_benchmark();
+  try {
+    test.run_benchmark();
+  } catch (happyhttp::Wobbly& e) {
+    std::cerr << "HTTP Exception: " << e.what() << std::endl;
+    throw;
+  }
   return 0;
 }
