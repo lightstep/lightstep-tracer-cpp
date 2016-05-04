@@ -56,7 +56,6 @@ public:
 			 reinterpret_cast<UD*>(ud)->complete = true;
 		       },
 		       &data_);
-    conn_.connect();
   }
 
   void run_benchmark();
@@ -151,6 +150,7 @@ void Test::test_body(const lightstep::Tracer& tracer,
 }
 
 void Test::run_benchmark() {
+  conn_.connect();
   while (true) {
     Json control = get_control();
     if (control["Exit"].bool_value()) {
