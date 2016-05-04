@@ -118,7 +118,9 @@ void DefaultRecorder::Write() {
   auto interval = milliseconds(ReportIntervalMillisecs);
   auto next = steady_clock::now() + interval;
 
-  // TODO Takes one sleep interval to exit, speed this up.
+  // TODO Takes one sleep interval to exit even when there are no
+  // pending spans.  Speed this up.  Also, this will drop spans at
+  // exit and it shouldn't.
   while (!writer_should_exit()) {
     std::this_thread::sleep_until(next);
 
@@ -181,8 +183,9 @@ void DefaultRecorder::Flush() {
 }
 
 void DefaultRecorder::ProcessResponse(const ReportResponse& response) {
-  // TODO Implement clock synchroniation. If this code is running on a machine
-  // with NTP, shouldn't be necessary.
+  // TODO Implement clock synchronization.  (Though we think that if
+  // this code is running on a machine with NTP, shouldn't be
+  // necessary.)
   //
   // TODO Implement Disable command ("Big Red Button") support.
   for (const auto& error : response.errors) {

@@ -52,6 +52,10 @@ class TracerImpl {
 
   void RecordSpan(lightstep_thrift::SpanRecord&& span);
 
+  void Flush() {
+    // TODO
+  }
+
   void Stop() {
     std::shared_ptr<Recorder> recorder;
     {
