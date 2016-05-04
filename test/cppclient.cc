@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 
 #include "tracer.h"
 #include "impl.h"
@@ -41,6 +42,12 @@ lightstep::Tracer NewTracer() {
   return lightstep::NewTracer(topts);
 }
 
+double to_seconds(lightstep::TimeStamp::duration d) {
+  using namespace std::chrono;
+  return static_cast<double>(
+      duration_cast<nanoseconds>(d).count()) / 1e9;
+}
+
 struct UD {
   std::string payload;
   bool complete = false;
@@ -68,6 +75,10 @@ public:
 private:
   Json get_control();
 
+  void test_body(const Json::object& cobject,
+		 std::string* sleep_nanos,
+		 std::string* answer);
+  
   std::string get(const std::string &path) {
     data_.complete = false;
     conn_.request("GET", path.c_str());
@@ -99,6 +110,11 @@ Json Test::get_control() {
   }
 }
 
+void Test::test_body(const Json::object& cobject,
+		     std::string* sleep_nanos,
+		     std::string* answer) {
+}
+
 void Test::run_benchmark() {
   while (true) {
     Json control = get_control();
@@ -106,7 +122,35 @@ void Test::run_benchmark() {
     if (cobject["Exit"].bool_value()) {
       break;
     }
+    lightstep::Tracer tracer(nullptr);
+    if (cobject["Trace"].bool_value()) {
+      tracer = test_tracer_;
+    } else {
+      tracer = noop_tracer_;
+    }
+    lightstep::TimeStamp start = lightstep::Clock::now();
 
+    std::string sleep_nanos;
+    std::string answer;
+    // TODO concurrency test
+    test_body(cobject, &sleep_nanos, &answer);
+
+    lightstep::TimeStamp finish = lightstep::Clock::now();
+    lightstep::TimeStamp flushed = finish;
+
+    if (cobject["Trace"].bool_value()) {
+      // TODO explicit Flush is not implemented, anyway
+      tracer.impl()->Flush();
+      flushed = lightstep::Clock::now();
+    }
+
+    std::stringstream rpath;
+    rpath << resultPath << "?timing=" << to_seconds(finish - start)
+	  << "&flush=" << to_seconds(flushed - finish)
+	  << "&s=" << sleep_nanos
+	  << "&a=" << answer;
+
+    get(rpath.str());
   }
   test_tracer_.impl()->Stop();
 }
