@@ -29,12 +29,12 @@ Tracer Tracer::InitGlobal(Tracer newt) {
   return Tracer(*newptr);
 }
 
-Span Tracer::StartSpan(const std::string& operation_name) {
+Span Tracer::StartSpan(const std::string& operation_name) const {
   return StartSpanWithOptions(StartSpanOptions().
 			      SetOperationName(operation_name));
 }
 
-Span Tracer::StartSpanWithOptions(const StartSpanOptions& options) {
+Span Tracer::StartSpanWithOptions(const StartSpanOptions& options) const {
   if (!impl_) return Span();
   return Span(impl_->StartSpan(impl_, options));
 }
