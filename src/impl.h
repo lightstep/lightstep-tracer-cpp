@@ -52,9 +52,7 @@ class TracerImpl {
 
   void RecordSpan(lightstep_thrift::SpanRecord&& span);
 
-  void Flush() {
-    // TODO
-  }
+  void Flush();
 
   void Stop() {
     std::shared_ptr<Recorder> recorder;
@@ -69,9 +67,14 @@ class TracerImpl {
   void GetTwoIds(uint64_t *a, uint64_t *b);
   uint64_t GetOneId();
 
+  std::shared_ptr<Recorder> recorder() {
+    MutexLock lock(mutex_);
+    return options_.recorder;
+  }
+
   TracerOptions options_;
 
-  // Protects rand_source_
+  // Protects rand_source_, options_.recorder.
   std::mutex mutex_;
 
   // N.B. This may become a source of contention, if and when it does,

@@ -117,13 +117,16 @@ void SpanImpl::FinishSpan(const FinishSpanOptions& options) {
 }
 
 void TracerImpl::RecordSpan(lightstep_thrift::SpanRecord&& span) {
-  std::shared_ptr<Recorder> recorder;
-  {
-    MutexLock lock(mutex_);
-    recorder = options_.recorder;
+  auto r = recorder();
+  if (r) {
+    r->RecordSpan(std::move(span));
   }
-  if (recorder) {
-    recorder->RecordSpan(std::move(span));
+}
+
+void TracerImpl::Flush() {
+  auto r = recorder();
+  if (r) {
+    r->Flush();
   }
 }
 
