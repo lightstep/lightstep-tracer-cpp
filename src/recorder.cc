@@ -8,6 +8,7 @@
 #include "impl.h"
 #include "recorder.h"
 #include "options.h"
+#include "util.h"
 
 #include "lightstep_thrift/lightstep_service.h"
 
@@ -38,21 +39,48 @@ public:
 
   void RecordSpan(lightstep_thrift::SpanRecord&& span) override;
 
+  void Flush() override;
+  
 private:
   void Write();
 
-  void Flush();
-
   void ProcessResponse(const ReportResponse& response);
 
+  // Forces the writer thread to exit immediately.
+  void make_writer_exit() {
+    MutexLock lock(cond_mutex_);
+    writer_exit_ = true;
+    writer_cond_.notify_one();
+  }
+
+  // Waits until either the timeout or the writer thread is forced to
+  // exit.  Returns true if it should continue writing, false if it
+  // should exit.
+  bool wait_to_write_until(const std::chrono::steady_clock::time_point &next) {
+    std::unique_lock<std::mutex> lock(cond_mutex_);
+    writer_cond_.wait_until(lock, next, [this]() {
+	return this->writer_exit_;
+      });
+    return !writer_exit_;
+  }
+    
   const TracerImpl& tracer_;
 
-  // Protects this Recorder state.
-  std::mutex mutex_;
+  std::mutex cond_mutex_; // For the writer condition variable
+  std::mutex flush_mutex_; // Prevent simultaneous flushes
+  std::mutex pending_mutex_; // Protect pending_spans
 
   // Background Flush thread.
   std::thread writer_;
+  std::condition_variable writer_cond_;
+  bool writer_exit_;
+
+  // Vector of spans for the current/last flush.  This is swapped with
+  // pending_spans_ at each flush.
   std::vector<lightstep_thrift::SpanRecord> flushing_spans_;
+
+  // Vector of spans for the next flush
+  std::vector<lightstep_thrift::SpanRecord> pending_spans_;
 
   // Transport mechanism.
   boost::shared_ptr<TSocket> socket_;
@@ -61,8 +89,9 @@ private:
 };
 
 DefaultRecorder::DefaultRecorder(const TracerImpl& tracer)
-  : tracer_(tracer) {
-  MutexLock lock(mutex_);
+  : tracer_(tracer),
+    writer_exit_(false) {
+  MutexLock lock(flush_mutex_);
 
   writer_ = std::thread(&DefaultRecorder::Write, this);
 
@@ -88,14 +117,14 @@ DefaultRecorder::DefaultRecorder(const TracerImpl& tracer)
 }
 
 DefaultRecorder::~DefaultRecorder() {
-  // TODO Make the thread return.  This will hang indefinitely.
+  make_writer_exit();
   writer_.join();
 }
 
 void DefaultRecorder::RecordSpan(lightstep_thrift::SpanRecord&& span) {
-  MutexLock lock(mutex_);
+  MutexLock lock(pending_mutex_);
   if (pending_spans_.size() < MaxSpansPerReport) {
-    Recorder::RecordSpan(std::move(span));
+    pending_spans_.emplace_back(std::move(span));
   } else {
     // TODO Count dropped span.
   }
@@ -106,9 +135,7 @@ void DefaultRecorder::Write() {
   auto interval = milliseconds(ReportIntervalMillisecs);
   auto next = steady_clock::now() + interval;
 
-  while (true) {
-    std::this_thread::sleep_until(next);
-
+  while (wait_to_write_until(next)) {
     Flush();
 
     auto end = steady_clock::now();
@@ -123,8 +150,9 @@ void DefaultRecorder::Write() {
 }
 
 void DefaultRecorder::Flush() {
+  MutexLock lock(flush_mutex_);
   {
-    MutexLock lock(mutex_);
+    MutexLock lock(pending_mutex_);
 
     // Note: At present, there cannot be another Flush call
     // outstanding because the Flush API is not exposed.  More
@@ -139,7 +167,6 @@ void DefaultRecorder::Flush() {
   }
 
   EncodeForTransit(tracer_, flushing_spans_, [this](const uint8_t* buffer, uint32_t length) {
-
       try {
 	if (!transport_->isOpen()) {
 	  transport_->open();
@@ -168,14 +195,15 @@ void DefaultRecorder::Flush() {
 }
 
 void DefaultRecorder::ProcessResponse(const ReportResponse& response) {
-  // TODO Implement clock synchroniation. If this code is running on a machine
-  // with NTP, shouldn't be necessary.
+  // TODO Implement clock synchronization.  (Though we think that if
+  // this code is running on a machine with NTP, shouldn't be
+  // necessary.)
   //
   // TODO Implement Disable command ("Big Red Button") support.
   for (const auto& error : response.errors) {
     if (error.empty()) continue;
     // TODO Use proper logging.
-    std::cerr << error;
+    std::cerr << "Controller error: " << error;
     if (error[error.size()-1] != '\n') {
       std::cerr << std::endl;
     }
@@ -186,10 +214,6 @@ void DefaultRecorder::ProcessResponse(const ReportResponse& response) {
 
 std::unique_ptr<Recorder> NewDefaultRecorder(const TracerImpl& impl) {
   return std::unique_ptr<Recorder>(new transport::DefaultRecorder(impl));
-}
-
-void Recorder::RecordSpan(lightstep_thrift::SpanRecord&& span) {
-  pending_spans_.emplace_back(std::move(span));
 }
 
 void Recorder::EncodeForTransit(const TracerImpl& tracer,
@@ -214,8 +238,10 @@ void Recorder::EncodeForTransit(const TracerImpl& tracer,
        it != tracer.runtime_attributes().end(); ++it) {
     attrs.emplace_back(util::make_kv(it->first, it->second));
   }
-  runtime.__set_attrs(std::move(attrs));
-  report.__set_runtime(std::move(runtime));
+  runtime.attrs = std::move(attrs);
+  runtime.__isset.attrs = true;
+  report.runtime = std::move(runtime);
+  report.__isset.runtime = true;
 
   // Swap the flushing spans into report, serialize, swap back, then
   // clear.  This allows re-use of the spans memory.

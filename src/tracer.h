@@ -1,6 +1,4 @@
 // -*- Mode: C++ -*-
-#include "lightstep_thrift/lightstep_constants.h"
-#include "lightstep_thrift/lightstep_types.h"
 
 #include "options.h"
 #include "span.h"
@@ -25,9 +23,9 @@ class Tracer {
   // Constructs a No-Op tracer handle. implementation.
   explicit Tracer(std::nullptr_t) { }
 
-  Span StartSpan(const std::string& operation_name);
+  Span StartSpan(const std::string& operation_name) const;
 
-  Span StartSpanWithOptions(const StartSpanOptions& options);
+  Span StartSpanWithOptions(const StartSpanOptions& options) const;
 
   // GlobalTracer returns the global tracer.
   static Tracer Global();

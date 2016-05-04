@@ -5,7 +5,6 @@
 // Options for Tracer implementations, starting Spans, and finishing
 // Spans.
 
-#include "lightstep_thrift/lightstep_types.h"
 #include <chrono>
 
 #include "span.h"
@@ -21,7 +20,6 @@ typedef Clock::time_point TimeStamp;
 typedef std::unordered_map<std::string, std::string> Attributes;
 
 struct TracerOptions {
-  // TODO presently these are not used 
   std::string access_token;
   std::string collector_host;
   uint32_t    collector_port;

@@ -6,6 +6,7 @@
 #include "impl.h"
 #include "options.h"
 #include "recorder.h"
+#include "util.h"
 
 namespace lightstep {
 namespace {
@@ -27,10 +28,10 @@ TracerImpl::TracerImpl(const TracerOptions& options_in)
   component_name_ = options_.component_name.empty() ? util::program_name() : options_.component_name;
   for (auto it = options_.tags.begin();
        it != options_.tags.end(); ++it) {
-    runtime_attributes_.emplace_back(util::make_kv(it->first, it->second));
+    runtime_attributes_.emplace_back(std::make_pair(it->first, it->second));
   }
-  runtime_attributes_.emplace_back(util::make_kv("lightstep_tracer_platform", "c++"));
-  runtime_attributes_.emplace_back(util::make_kv("lightstep_tracer_version", "0.8"));
+  runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_platform", "c++"));
+  runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_version", "0.8"));
 
   if (!options_.recorder) {
     options_.recorder = std::shared_ptr<Recorder>(NewDefaultRecorder(*this));
@@ -107,17 +108,26 @@ void SpanImpl::FinishSpan(const FinishSpanOptions& options) {
   span.__set_oldest_micros(start_micros_);
   span.__set_youngest_micros(util::to_micros(finish_time));
 
-  span.__set_join_ids(std::move(joins));
-  span.__set_attributes(std::move(attrs));
+  span.join_ids = std::move(joins);
+  span.__isset.join_ids = true;
+  span.attributes = std::move(attrs);
+  span.__isset.attributes = true;
 
-  // TODO! Note that thrift needs its c++v2 generator or a special
-  // compiler option (not present in 0.9.2) to generate move
-  // constructors, so this is not efficient.  Must be addressed.
   tracer_->RecordSpan(std::move(span));
 }
 
 void TracerImpl::RecordSpan(lightstep_thrift::SpanRecord&& span) {
-  options_.recorder->RecordSpan(std::move(span));
+  auto r = recorder();
+  if (r) {
+    r->RecordSpan(std::move(span));
+  }
+}
+
+void TracerImpl::Flush() {
+  auto r = recorder();
+  if (r) {
+    r->Flush();
+  }
 }
 
 }  // namespace lightstep

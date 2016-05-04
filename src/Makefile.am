@@ -19,11 +19,6 @@ liblightstep_la_CXXFLAGS += $(openssl_CFLAGS)
 liblightstep_la_LIBADD   += $(thrift_LIBS)
 liblightstep_la_LIBADD   += $(openssl_LIBS)
 
-noinst_PROGRAMS = test
-test_SOURCES = test.cc
-test_CXXFLAGS = $(thrift_CFLAGS) $(openssl_CFLAGS)
-test_LDADD = liblightstep.la
-
 # LightStep-specific: rebuilds the LightStep thrift protocol files.  Assumes
 # the command is run within the LightStep development environment (i.e. the
 # LIGHTSTEP_HOME environment variable is set).

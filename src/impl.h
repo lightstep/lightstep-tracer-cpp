@@ -12,6 +12,10 @@
 #include "options.h"
 #include "value.h"
 
+namespace lightstep_thrift {
+class SpanRecord;
+} // namespace lightstep_thrift
+
 namespace lightstep {
 
 typedef std::lock_guard<std::mutex> MutexLock;
@@ -48,13 +52,29 @@ class TracerImpl {
 
   void RecordSpan(lightstep_thrift::SpanRecord&& span);
 
+  void Flush();
+
+  void Stop() {
+    std::shared_ptr<Recorder> recorder;
+    {
+      MutexLock lock(mutex_);
+      std::swap(options_.recorder, recorder);
+    }
+    recorder.reset();
+  }
+
  private:
   void GetTwoIds(uint64_t *a, uint64_t *b);
   uint64_t GetOneId();
 
+  std::shared_ptr<Recorder> recorder() {
+    MutexLock lock(mutex_);
+    return options_.recorder;
+  }
+
   TracerOptions options_;
 
-  // Protects rand_source_
+  // Protects rand_source_, options_.recorder.
   std::mutex mutex_;
 
   // N.B. This may become a source of contention, if and when it does,
@@ -72,7 +92,7 @@ class TracerImpl {
   uint64_t runtime_micros_;
 
   // Runtime attributes.
-  std::vector<lightstep_thrift::KeyValue> runtime_attributes_;
+  std::vector<std::pair<std::string, std::string>> runtime_attributes_;
 };
 
 class SpanImpl {
@@ -118,14 +138,6 @@ private:
   std::shared_ptr<TracerImpl> tracer_;
 };
 
-namespace util {
-
-std::string id_to_string(uint64_t);
-std::string program_name();
-
-uint64_t to_micros(TimeStamp t);
-
-} // namespace util 
 } // namespace lightstep
 
 #endif

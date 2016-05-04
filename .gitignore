@@ -27,4 +27,5 @@ config.h
 *.la
 .dirstamp
 stamp-h1
-test
+tracer_test
+cppclient

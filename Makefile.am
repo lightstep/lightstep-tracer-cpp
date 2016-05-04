@@ -1,3 +1,3 @@
 EXTRA_DIST = LICENSE
 
-SUBDIRS = src
+SUBDIRS = src test

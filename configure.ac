@@ -28,5 +28,5 @@ AC_SUBST(openssl_CFLAGS)
 
 AC_CHECK_HEADERS([unistd.h])
 
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile test/Makefile])
 AC_OUTPUT
