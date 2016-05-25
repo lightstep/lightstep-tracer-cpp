@@ -11,8 +11,8 @@ AC_INIT([LightStep C++ Tracer], [0.8],
         [https://github.com/lightstep/lightstep-tracer-cpp/issues])
 LT_INIT
 AM_INIT_AUTOMAKE([1.15 foreign subdir-objects])
-AC_CONFIG_SRCDIR([src])
-AC_CONFIG_HEADERS([src/config.h])
+AC_CONFIG_SRCDIR([src/c++11])
+AC_CONFIG_HEADERS([src/c++11/config.h])
 AC_CONFIG_MACRO_DIRS([m4])
 
 AC_PROG_CXX
@@ -28,5 +28,5 @@ AC_SUBST(openssl_CFLAGS)
 
 AC_CHECK_HEADERS([unistd.h])
 
-AC_CONFIG_FILES([Makefile src/Makefile test/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile test/Makefile src/c++11/Makefile test/c++11/Makefile])
 AC_OUTPUT
