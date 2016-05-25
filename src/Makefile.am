@@ -19,12 +19,9 @@ liblightstep_la_CXXFLAGS += $(openssl_CFLAGS)
 liblightstep_la_LIBADD   += $(thrift_LIBS)
 liblightstep_la_LIBADD   += $(openssl_LIBS)
 
-# LightStep-specific: rebuilds the LightStep thrift protocol files.  Assumes
-# the command is run within the LightStep development environment (i.e. the
-# LIGHTSTEP_HOME environment variable is set).
-#
-# TODO Note that the "moveable_types" option is not functioning and
-# needs to be fixed.
+# LightStep-specific: rebuilds the LightStep thrift protocol files for
+# C++11.  Assumes the command is run within the LightStep development
+# environment (i.e. the LIGHTSTEP_HOME environment variable is set).
 thrift:
 	mkdir -p lightstep_thrift
 	rm -f lightstep_thrift/*
