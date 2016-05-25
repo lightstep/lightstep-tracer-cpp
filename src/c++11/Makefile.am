@@ -1,6 +1,6 @@
 
-lib_LTLIBRARIES = liblightstep.la
-liblightstep_la_SOURCES = \
+lib_LTLIBRARIES = liblightstep_cpp.la
+liblightstep_cpp_la_SOURCES = \
 	impl.cc \
 	recorder.cc \
 	span.cc \
@@ -10,14 +10,14 @@ liblightstep_la_SOURCES = \
 	lightstep_thrift/lightstep_service.cpp \
 	lightstep_thrift/lightstep_types.cpp
 
-liblightstep_la_CXXFLAGS = $(AM_CXXFLAGS)
-liblightstep_la_LIBADD   =
+liblightstep_cpp_la_CXXFLAGS = $(AM_CXXFLAGS)
+liblightstep_cpp_la_LIBADD   =
 
-liblightstep_la_CXXFLAGS += $(thrift_CFLAGS)
-liblightstep_la_CXXFLAGS += $(openssl_CFLAGS)
+liblightstep_cpp_la_CXXFLAGS += $(thrift_CFLAGS)
+liblightstep_cpp_la_CXXFLAGS += $(openssl_CFLAGS)
 
-liblightstep_la_LIBADD   += $(thrift_LIBS)
-liblightstep_la_LIBADD   += $(openssl_LIBS)
+liblightstep_cpp_la_LIBADD   += $(thrift_LIBS)
+liblightstep_cpp_la_LIBADD   += $(openssl_LIBS)
 
 # LightStep-specific: rebuilds the LightStep thrift protocol files for
 # C++11.  Assumes the command is run within the LightStep development
