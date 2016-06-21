@@ -2,25 +2,14 @@
 #include <thread>
 #include <iostream>  // TODO Remove in favor of error logging support.
 
-#include <thrift/transport/TBufferTransports.h>
-#include <thrift/protocol/TBinaryProtocol.h>
-
 #include "impl.h"
 #include "recorder.h"
 #include "options.h"
 #include "util.h"
 
-#include "lightstep_thrift/lightstep_service.h"
-
-#include "thrift/transport/THttpClient.h"
-#include "thrift/transport/TSocket.h"
-#include "thrift/transport/TSSLSocket.h"
-
 namespace lightstep {
 
-using namespace lightstep_thrift;
-using namespace apache::thrift::transport;
-using namespace apache::thrift::protocol;
+using namespace lightstep_net;
 
 const char CollectorThriftRpcPath[] = "/_rpc/v1/reports/binary";
 
@@ -37,7 +26,7 @@ public:
   DefaultRecorder(const TracerImpl& impl);
   ~DefaultRecorder();
 
-  void RecordSpan(lightstep_thrift::SpanRecord&& span) override;
+  void RecordSpan(lightstep_net::SpanRecord&& span) override;
 
   void Flush() override;
   
@@ -77,15 +66,15 @@ private:
 
   // Vector of spans for the current/last flush.  This is swapped with
   // pending_spans_ at each flush.
-  std::vector<lightstep_thrift::SpanRecord> flushing_spans_;
+  std::vector<lightstep_net::SpanRecord> flushing_spans_;
 
   // Vector of spans for the next flush
-  std::vector<lightstep_thrift::SpanRecord> pending_spans_;
+  std::vector<lightstep_net::SpanRecord> pending_spans_;
 
   // Transport mechanism.
-  boost::shared_ptr<TSocket> socket_;
-  boost::shared_ptr<TSSLSocketFactory> ssl_factory_;
-  boost::shared_ptr<THttpClient> transport_;
+  // boost::shared_ptr<TSocket> socket_;
+  // boost::shared_ptr<TSSLSocketFactory> ssl_factory_;
+  // boost::shared_ptr<THttpClient> transport_;
 };
 
 DefaultRecorder::DefaultRecorder(const TracerImpl& tracer)
@@ -94,6 +83,8 @@ DefaultRecorder::DefaultRecorder(const TracerImpl& tracer)
   MutexLock lock(flush_mutex_);
 
   writer_ = std::thread(&DefaultRecorder::Write, this);
+
+  std::cerr << "Connecting..." << tracer_.options().collector_host << ":" << tracer_.options().collector_port << CollectorThriftRpcPath;
 
   socket_ = boost::shared_ptr<TSocket>(new TSocket(tracer_.options().collector_host,
 						   tracer_.options().collector_port));
@@ -106,8 +97,7 @@ DefaultRecorder::DefaultRecorder(const TracerImpl& tracer)
   }
 
   // Note: THttpClient buffers the input and output automatically.
-  transport_ = boost::shared_ptr<THttpClient>(
-      new THttpClient(trans, tracer_.options().collector_host, CollectorThriftRpcPath));
+  transport_ = boost::shared_ptr<THttpClient>(new THttpClient(trans, tracer_.options().collector_host, CollectorThriftRpcPath));
 
   try {
     transport_->open();
@@ -121,7 +111,7 @@ DefaultRecorder::~DefaultRecorder() {
   writer_.join();
 }
 
-void DefaultRecorder::RecordSpan(lightstep_thrift::SpanRecord&& span) {
+void DefaultRecorder::RecordSpan(lightstep_net::SpanRecord&& span) {
   MutexLock lock(pending_mutex_);
   if (pending_spans_.size() < MaxSpansPerReport) {
     pending_spans_.emplace_back(std::move(span));
@@ -217,7 +207,7 @@ std::unique_ptr<Recorder> NewDefaultRecorder(const TracerImpl& impl) {
 }
 
 void Recorder::EncodeForTransit(const TracerImpl& tracer,
-				std::vector<lightstep_thrift::SpanRecord>& spans,
+				std::vector<lightstep_net::SpanRecord>& spans,
 				std::function<void(const uint8_t* bytes, uint32_t len)> func) {
 
   // TODO Use a more accurate size upper-bound.
@@ -248,8 +238,8 @@ void Recorder::EncodeForTransit(const TracerImpl& tracer,
   std::swap(report.span_records, spans);
   report.__isset.span_records = true;
 
-  lightstep_thrift::ReportingServiceClient client(proto);
-  lightstep_thrift::Auth auth;
+  lightstep_net::ReportingServiceClient client(proto);
+  lightstep_net::Auth auth;
   auth.__set_access_token(tracer.access_token());
   client.send_Report(auth, report);
 

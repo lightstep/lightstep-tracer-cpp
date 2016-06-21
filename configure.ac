@@ -27,7 +27,7 @@ AX_CXX_COMPILE_STDCXX([11])
 
 AC_ARG_ENABLE([cpp-network],
   [AS_HELP_STRING([--disable-cpp-network],
-  [Disable LightStep default networking @<:@check@:>@])],
+  [Enable LightStep default networking @<:@yes@:>@])],
   [:],
   [enable_cpp_network=check])
 
@@ -35,8 +35,11 @@ AS_IF([test "$enable_cpp_network" != "no"],
       [AC_CHECK_HEADER(boost/network/protocol.hpp,
 		[enable_cpp_network=yes],
 		[AS_IF([test "$enable_cpp_network" != "no"],
-	        [AC_MSG_ERROR([cpp-network required, but not found.])],
-		      [enable_cpp_network=no])])])
+		        [AC_MSG_ERROR([cpp-network required, but not found.])],
+			      [enable_cpp_network=no])])])
+
+AM_CONDITIONAL([ENABLE_CPP_NETWORK], [test "$enable_cpp_network" = "yes"])
+AC_SUBST([HAVE_CPP_NETWORK], [test "$enable_cpp_network" = "yes"])
 
 AC_CHECK_HEADERS([unistd.h])
 

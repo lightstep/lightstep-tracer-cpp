@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "lightstep_thrift/lightstep_types.h"
+#include "types.h"
 
 namespace lightstep {
 namespace util {
@@ -14,8 +14,8 @@ std::string program_name();
 
 uint64_t to_micros(TimeStamp t);
 
-lightstep_thrift::KeyValue make_kv(const std::string& key, const std::string& value);
-lightstep_thrift::TraceJoinId make_join(const std::string& key, const std::string& value);
+lightstep_net::KeyValue make_kv(const std::string& key, const std::string& value);
+lightstep_net::TraceJoinId make_join(const std::string& key, const std::string& value);
 
 }  // namespace util 
 }  // namespace lightstep

@@ -1,8 +1,7 @@
 #include <functional>
 #include <random>
 
-#include "lightstep_thrift/lightstep_types.h"
-
+#include "types.h"
 #include "impl.h"
 #include "options.h"
 #include "recorder.h"
@@ -11,7 +10,7 @@
 namespace lightstep {
 namespace {
 
-using namespace lightstep_thrift;
+using namespace lightstep_net;
 
 const char TraceKeyPrefix[] = "join:";
 const char TraceGUIDKey[] = "join:trace_guid";
@@ -102,21 +101,19 @@ void SpanImpl::FinishSpan(const FinishSpanOptions& options) {
     }
   }
 
-  span.__set_span_guid(util::id_to_string(context_.span_id));
-  span.__set_runtime_guid(tracer_->runtime_guid());
-  span.__set_span_name(operation_name_);
-  span.__set_oldest_micros(start_micros_);
-  span.__set_youngest_micros(util::to_micros(finish_time));
+  span.span_guid = util::id_to_string(context_.span_id);
+  span.runtime_guid = tracer_->runtime_guid();
+  span.span_name = operation_name_;
+  span.oldest_micros = start_micros_;
+  span.youngest_micros = util::to_micros(finish_time);
 
   span.join_ids = std::move(joins);
-  span.__isset.join_ids = true;
   span.attributes = std::move(attrs);
-  span.__isset.attributes = true;
 
   tracer_->RecordSpan(std::move(span));
 }
 
-void TracerImpl::RecordSpan(lightstep_thrift::SpanRecord&& span) {
+void TracerImpl::RecordSpan(lightstep_net::SpanRecord&& span) {
   auto r = recorder();
   if (r) {
     r->RecordSpan(std::move(span));

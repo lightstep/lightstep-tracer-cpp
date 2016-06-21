@@ -10,7 +10,7 @@
 namespace lightstep {
 namespace util {
 
-using namespace lightstep_thrift;
+using namespace lightstep_net;
 
 // TODO This works only on UNIX, and is not tested.
 std::string program_name() {
@@ -44,15 +44,15 @@ uint64_t to_micros(TimeStamp t) {
 
 KeyValue make_kv(const std::string& key, const std::string& value) {
   KeyValue kv;
-  kv.__set_Key(key);
-  kv.__set_Value(value);
+  kv.Key = key;
+  kv.Value = value;
   return kv;
 }
 
 TraceJoinId make_join(const std::string& key, const std::string& value) {
   TraceJoinId kv;
-  kv.__set_TraceKey(key);
-  kv.__set_Value(value);
+  kv.TraceKey = key;
+  kv.Value = value;
   return kv;
 }
 

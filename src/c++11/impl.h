@@ -12,9 +12,9 @@
 #include "options.h"
 #include "value.h"
 
-namespace lightstep_thrift {
+namespace lightstep_net {
 class SpanRecord;
-} // namespace lightstep_thrift
+} // namespace lightstep_net
 
 namespace lightstep {
 
@@ -50,7 +50,7 @@ class TracerImpl {
   uint64_t           runtime_start_micros() const { return runtime_micros_; }
   const Attributes&  runtime_attributes() const { return options_.tags; }
 
-  void RecordSpan(lightstep_thrift::SpanRecord&& span);
+  void RecordSpan(lightstep_net::SpanRecord&& span);
 
   void Flush();
 

@@ -9,9 +9,9 @@
 #include <utility>
 #include <vector>
 
-namespace lightstep_thrift {
+namespace lightstep_net {
 class SpanRecord;
-}  // namespace lightstep_thrift
+}  // namespace lightstep_net
 
 namespace lightstep {
 
@@ -35,7 +35,7 @@ public:
 
   // RecordSpan is called by TracerImpl when a new Span is finished.
   // An rvalue-reference is taken to avoid copying the Span contents.
-  virtual void RecordSpan(lightstep_thrift::SpanRecord&& span) = 0;
+  virtual void RecordSpan(lightstep_net::SpanRecord&& span) = 0;
 
   // Flush is called by the user, indicating for some reason that
   // buffered spans should be flushed.
@@ -49,7 +49,7 @@ public:
   //           be cleared after returning.
   //   'func' is provided the encoded report.
   static void EncodeForTransit(const TracerImpl& tracer,
-			       std::vector<lightstep_thrift::SpanRecord>& spans,
+			       std::vector<lightstep_net::SpanRecord>& spans,
 			       std::function<void(const uint8_t* bytes, uint32_t len)> func);
 };
 

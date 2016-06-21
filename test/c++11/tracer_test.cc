@@ -21,10 +21,10 @@ int main() {
   span.Finish();
 
   TracerOptions topts;
-  topts.access_token = "foobar";
-  topts.collector_host = "localhost";
-  topts.collector_port = 8000;
-  topts.collector_encryption = "none";
+  topts.access_token = "bfcebc4e1fa7e66d5502a4af87ae854f";
+  topts.collector_host = "collector.lightstep.com";
+  topts.collector_port = 9997;
+  topts.collector_encryption = "tls";
 
   Tracer::InitGlobal(NewTracer(topts));
 

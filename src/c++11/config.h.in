@@ -62,3 +62,6 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* Required unless --disable-cpp-network. See http://cpp-netlib.org. */
+#undef HAVE_CPP_NETWORK
