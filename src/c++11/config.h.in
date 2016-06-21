@@ -1,5 +1,11 @@
 /* src/c++11/config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* define if the Boost library is available */
+#undef HAVE_BOOST
+
+/* defined if cpp-netlib is available */
+#undef HAVE_CPP_NETWORK
+
 /* define if the compiler supports basic C++11 syntax */
 #undef HAVE_CXX11
 
@@ -62,6 +68,3 @@
 
 /* Version number of package */
 #undef VERSION
-
-/* Required unless --disable-cpp-network. See http://cpp-netlib.org. */
-#undef HAVE_CPP_NETWORK
