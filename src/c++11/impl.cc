@@ -1,10 +1,12 @@
 #include <functional>
+#include <iostream>
 #include <random>
 
-#include "types.h"
+#include "config.h"
 #include "impl.h"
 #include "options.h"
-#include "recorder.h"
+#include "tracer.h"
+#include "types.h"
 #include "util.h"
 
 namespace lightstep {
@@ -16,6 +18,9 @@ const char TraceKeyPrefix[] = "join:";
 const char TraceGUIDKey[] = "join:trace_guid";
 const char ParentSpanGUIDKey[] = "parent_span_guid";
 const char UndefinedSpanName[] = "undefined";
+
+// TODO synchronize this variable
+RecorderFactory *recorder_factory;
 
 } // namespace
 
@@ -29,11 +34,15 @@ TracerImpl::TracerImpl(const TracerOptions& options_in)
        it != options_.tags.end(); ++it) {
     runtime_attributes_.emplace_back(std::make_pair(it->first, it->second));
   }
-  runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_platform", "c++"));
-  runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_version", "0.8"));
+  runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_platform", "C++11"));
+  runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_version", PACKAGE_VERSION));
 
   if (!options_.recorder) {
-    options_.recorder = std::shared_ptr<Recorder>(NewDefaultRecorder(*this));
+    if (!recorder_factory) {
+      std::cerr << "No recorder factory is registered; compiled with --disable-cpp-netlib?" << std::endl;
+      abort();
+    }
+    options_.recorder = (*recorder_factory)(*this);
   }
 }
 
@@ -125,6 +134,11 @@ void TracerImpl::Flush() {
   if (r) {
     r->Flush();
   }
+}
+
+void RegisterRecorderFactory(RecorderFactory factory) {
+  // TODO Let this happen once, or else crash.
+  recorder_factory = new RecorderFactory(factory);
 }
 
 }  // namespace lightstep

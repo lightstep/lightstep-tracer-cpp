@@ -10,17 +10,19 @@ liblightstep_basic_cxx11_la_SOURCES = \
 liblightstep_basic_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS)
 liblightstep_basic_cxx11_la_LIBADD   =
 
-if ENABLE_CPP_NETWORK
+if ENABLE_CPP_NETLIB
 liblightstep_cxx11_la_SOURCES = \
 	recorder.cc
 
 liblightstep_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) $(CPP_NETLIB_CPPFLAGS)
 liblightstep_cxx11_la_LIBADD   = liblightstep_basic_cxx11.la $(CPP_NETLIB_LDFLAGS)
 
-lib_LTLIBRARIES += liblightstep_cxx11.la 
+lib_LTLIBRARIES += liblightstep_cxx11.la
+
+if ENABLE_OPENSSL
+liblightstep_cxx11_la_CXXFLAGS += $(openssl_CFLAGS)
+liblightstep_cxx11_la_LIBADD   += $(openssl_LIBS)
 endif
 
-# if ENABLE_OPENSSL
-# liblightstep_cxx11_la_CXXFLAGS += $(openssl_CFLAGS)
-# liblightstep_cxx11_la_LIBADD   += $(openssl_LIBS)
-# endif
+endif
+

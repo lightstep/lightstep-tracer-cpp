@@ -17,6 +17,22 @@ const uint64_t MaxSpansPerReport = 2500;
 const uint64_t ReportIntervalMillisecs = 2500;
 const uint32_t ReportSizeLowerBound = 200;
 
+namespace {
+
+class Initializer {
+public:
+  Initializer() {
+    RegisterRecorderFactory([](const TracerImpl& impl) {
+	return NewDefaultRecorder(impl);
+      });
+  }
+};
+
+// Registers a factory.
+Initializer initializer;
+
+}  // namespace
+
 namespace transport {
 
 typedef std::lock_guard<std::mutex> MutexLock;

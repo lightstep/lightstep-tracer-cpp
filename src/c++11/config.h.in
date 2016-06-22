@@ -3,8 +3,8 @@
 /* define if the Boost library is available */
 #undef HAVE_BOOST
 
-/* defined if cpp-netlib is available */
-#undef HAVE_CPP_NETWORK
+/* Defined if cpp-netlib is available. */
+#undef HAVE_CPP_NETLIB
 
 /* define if the compiler supports basic C++11 syntax */
 #undef HAVE_CXX11

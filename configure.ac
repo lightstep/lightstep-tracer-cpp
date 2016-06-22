@@ -25,9 +25,9 @@ AC_ARG_ENABLE([cpp-netlib],
   [AS_HELP_STRING([--disable-cpp-netlib],
   [Enable LightStep default networking @<:@yes@:>@])],
   [:],
-  [enable_cpp_network=check])
+  [enable_cpp_netlib=check])
 
-AS_IF([test "$enable_cpp_network" != "no"],
+AS_IF([test "$enable_cpp_netlib" != "no"],
       [dnl OpenSSL is needed only when networking is used, but it's possible
        dnl a user would like networking without SSL support. Optional?
        PKG_CHECK_MODULES(openssl, openssl >= 0.9.8zg)
@@ -47,16 +47,17 @@ AS_IF([test "$enable_cpp_network" != "no"],
 SAVE_CPPFLAGS="${CPPFLAGS}"
 CPPFLAGS="${CPPFLAGS} ${CPP_NETLIB_CPPFLAGS}"
 
-AS_IF([test "$enable_cpp_network" != "no"],
+AS_IF([test "$enable_cpp_netlib" != "no"],
       [AC_CHECK_HEADER(network/protocol.hpp,
-		[enable_cpp_network=yes],
-		[AS_IF([test "$enable_cpp_network" != "no"],
+		[enable_cpp_netlib=yes],
+		[AS_IF([test "$enable_cpp_netlib" != "no"],
 		       [AC_MSG_ERROR([cpp-netlib required, but not found.])],
-  		       [enable_cpp_network=no])])]) 
+  		       [enable_cpp_netlib=no])])]) 
 
-AM_CONDITIONAL([ENABLE_CPP_NETWORK], [test "$enable_cpp_network" = "yes"])
-AC_DEFINE(HAVE_CPP_NETWORK,[test "$enable_cpp_network" = "yes"],
-	 [defined if cpp-netlib is available])
+AM_CONDITIONAL([ENABLE_CPP_NETLIB], [test "$enable_cpp_netlib" = "yes"])
+AM_CONDITIONAL([ENABLE_OPENSSL], [test "$enable_cpp_netlib" = "yes"])
+AC_DEFINE(HAVE_CPP_NETLIB,[$enable_cpp_netlib],
+	 [Defined if cpp-netlib is available.])
 
 CPPFLAGS="${SAVE_CPPFLAGS}"
 

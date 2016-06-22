@@ -138,6 +138,10 @@ private:
   std::shared_ptr<TracerImpl> tracer_;
 };
 
+typedef std::function<std::unique_ptr<Recorder>(const TracerImpl &impl)> RecorderFactory;
+
+void RegisterRecorderFactory(RecorderFactory factory);
+
 } // namespace lightstep
 
 #endif

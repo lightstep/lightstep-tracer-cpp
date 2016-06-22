@@ -4,7 +4,7 @@ tracer_test_SOURCES = tracer_test.cc
 tracer_test_CXXFLAGS = -I ../../src/c++11
 tracer_test_LDADD = ../../src/c++11/liblightstep_basic_cxx11.la
 
-if ENABLE_CPP_NETWORK
+if ENABLE_CPP_NETLIB
 noinst_PROGRAMS += cppclient
 
 cppclient_SOURCES = cppclient.cc dropbox_json/json11.cpp zintinio_happyhttp/happyhttp.cpp
