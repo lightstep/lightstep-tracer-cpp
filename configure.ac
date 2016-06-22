@@ -56,8 +56,9 @@ AS_IF([test "$enable_cpp_netlib" != "no"],
 
 AM_CONDITIONAL([ENABLE_CPP_NETLIB], [test "$enable_cpp_netlib" = "yes"])
 AM_CONDITIONAL([ENABLE_OPENSSL], [test "$enable_cpp_netlib" = "yes"])
-AC_DEFINE(HAVE_CPP_NETLIB,[$enable_cpp_netlib],
-	 [Defined if cpp-netlib is available.])
+
+AS_IF([test "$enable_cpp_netlib" == "yes"],
+      [AC_DEFINE(HAVE_CPP_NETLIB,[],[Defined if cpp-netlib is available.])])
 
 CPPFLAGS="${SAVE_CPPFLAGS}"
 

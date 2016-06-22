@@ -42,7 +42,7 @@ struct SpanRecord {
   std::vector<LogRecord>  log_records;
 };
 
-#if HAVE_CPP_NETLIB
+#ifdef HAVE_CPP_NETLIB
 // Reporting Service
 
  struct Runtime {
