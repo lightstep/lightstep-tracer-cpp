@@ -59,11 +59,6 @@ struct Runtime {
   std::vector<KeyValue>  attrs;
 };
 
-struct NamedCounter {
-  std::string Name;
-  int64_t Value;
-};
-
 struct MetricsSample {
   std::string name;
   int64_t int64_value;
@@ -90,7 +85,6 @@ struct ReportRequest {
   int64_t timestamp_offset_micros;
   int64_t oldest_micros;
   int64_t youngest_micros;
-  std::vector<NamedCounter>  counters;
   std::vector<LogRecord>  internal_logs;
   Metrics internal_metrics;
 };
