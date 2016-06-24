@@ -37,12 +37,14 @@ TracerImpl::TracerImpl(const TracerOptions& options_in)
   runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_platform", "C++11"));
   runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_version", PACKAGE_VERSION));
 
-  if (!options_.recorder) {
+  if (!options_.recorder_factory) {
     if (!recorder_factory) {
       std::cerr << "No recorder factory is registered; compiled with --disable-cpp-netlib?" << std::endl;
       abort();
     }
-    options_.recorder = (*recorder_factory)(*this);
+    recorder_ = (*recorder_factory)(*this);
+  } else {
+    recorder_ = options_.recorder_factory(*this);
   }
 }
 

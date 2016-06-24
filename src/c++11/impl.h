@@ -58,23 +58,24 @@ class TracerImpl {
     std::shared_ptr<Recorder> recorder;
     {
       MutexLock lock(mutex_);
-      std::swap(options_.recorder, recorder);
+      std::swap(recorder_, recorder);
     }
     recorder.reset();
+  }
+
+  std::shared_ptr<Recorder> recorder() {
+    MutexLock lock(mutex_);
+    return recorder_;
   }
 
  private:
   void GetTwoIds(uint64_t *a, uint64_t *b);
   uint64_t GetOneId();
 
-  std::shared_ptr<Recorder> recorder() {
-    MutexLock lock(mutex_);
-    return options_.recorder;
-  }
-
   TracerOptions options_;
+  std::shared_ptr<Recorder> recorder_;
 
-  // Protects rand_source_, options_.recorder.
+  // Protects rand_source_, recorder_.
   std::mutex mutex_;
 
   // N.B. This may become a source of contention, if and when it does,
@@ -137,10 +138,6 @@ private:
   Dictionary  tags_;
   std::shared_ptr<TracerImpl> tracer_;
 };
-
-typedef std::function<std::unique_ptr<Recorder>(const TracerImpl &impl)> RecorderFactory;
-
-void RegisterRecorderFactory(RecorderFactory factory);
 
 } // namespace lightstep
 
