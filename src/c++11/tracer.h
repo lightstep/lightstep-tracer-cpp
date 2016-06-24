@@ -2,6 +2,7 @@
 
 #include "options.h"
 #include "span.h"
+#include "types.h"
 #include "value.h"
 
 #include <memory>
@@ -43,6 +44,36 @@ class Tracer {
 
 Tracer NewTracer(const TracerOptions& options);
   
+// Recorder is an abstract class for buffering and encoding LightStep
+// reports.
+class Recorder {
+public:
+  virtual ~Recorder() { }
+
+  // RecordSpan is called by TracerImpl when a new Span is finished.
+  // An rvalue-reference is taken to avoid copying the Span contents.
+  virtual void RecordSpan(lightstep_net::SpanRecord&& span) = 0;
+
+  // Flush is called by the user, indicating for some reason that
+  // buffered spans should be flushed.
+  virtual void Flush() = 0;
+};
+
+// Register the factory prior to NewTracer().
+void RegisterRecorderFactory(RecorderFactory factory);
+
+// To setup user-defined transport, configure UserDefinedTransportOptions.
+class UserDefinedTransportOptions {
+public:
+  UserDefinedTransportOptions();
+  // TODO setting to limit batch size.
+
+  std::function<void(const std::string& report)> callback;
+};
+
+// To setup user-defined transport, set the TracerOptions.recorder to one of these:
+std::unique_ptr<Recorder> NewUserDefinedTransport(const TracerImpl& impl, const UserDefinedTransportOptions& options);
+
 }  // namespace lightstep
 
 #endif // __LIGHTSTEP_TRACER_H__

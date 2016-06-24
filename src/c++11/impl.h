@@ -12,9 +12,9 @@
 #include "options.h"
 #include "value.h"
 
-namespace lightstep_thrift {
+namespace lightstep_net {
 class SpanRecord;
-} // namespace lightstep_thrift
+} // namespace lightstep_net
 
 namespace lightstep {
 
@@ -50,7 +50,7 @@ class TracerImpl {
   uint64_t           runtime_start_micros() const { return runtime_micros_; }
   const Attributes&  runtime_attributes() const { return options_.tags; }
 
-  void RecordSpan(lightstep_thrift::SpanRecord&& span);
+  void RecordSpan(lightstep_net::SpanRecord&& span);
 
   void Flush();
 
@@ -58,23 +58,24 @@ class TracerImpl {
     std::shared_ptr<Recorder> recorder;
     {
       MutexLock lock(mutex_);
-      std::swap(options_.recorder, recorder);
+      std::swap(recorder_, recorder);
     }
     recorder.reset();
+  }
+
+  std::shared_ptr<Recorder> recorder() {
+    MutexLock lock(mutex_);
+    return recorder_;
   }
 
  private:
   void GetTwoIds(uint64_t *a, uint64_t *b);
   uint64_t GetOneId();
 
-  std::shared_ptr<Recorder> recorder() {
-    MutexLock lock(mutex_);
-    return options_.recorder;
-  }
-
   TracerOptions options_;
+  std::shared_ptr<Recorder> recorder_;
 
-  // Protects rand_source_, options_.recorder.
+  // Protects rand_source_, recorder_.
   std::mutex mutex_;
 
   // N.B. This may become a source of contention, if and when it does,

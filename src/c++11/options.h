@@ -12,12 +12,15 @@
 
 namespace lightstep {
 
+class TracerImpl;
 class Recorder;
 
 typedef std::chrono::system_clock Clock;
 typedef Clock::time_point TimeStamp;
 
 typedef std::unordered_map<std::string, std::string> Attributes;
+
+typedef std::function<std::unique_ptr<Recorder>(const TracerImpl& impl)> RecorderFactory;
 
 struct TracerOptions {
   std::string access_token;
@@ -36,9 +39,9 @@ struct TracerOptions {
   std::function<bool(uint64_t)> should_sample;
 
   // The flush / transport implementation.  If 'recorder' is a
-  // nullptr, the default implementation will be supplied using the
-  // fields above to configure the delivery endpoint.
-  std::shared_ptr<Recorder> recorder;
+  // nullptr, the default implementation will be supplied using this
+  // options struct to configure the delivery endpoint.
+  RecorderFactory recorder_factory;
 };
 
 struct StartSpanOptions {

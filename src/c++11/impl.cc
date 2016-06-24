@@ -1,22 +1,26 @@
 #include <functional>
+#include <iostream>
 #include <random>
 
-#include "lightstep_thrift/lightstep_types.h"
-
+#include "config.h"
 #include "impl.h"
 #include "options.h"
-#include "recorder.h"
+#include "tracer.h"
+#include "types.h"
 #include "util.h"
 
 namespace lightstep {
 namespace {
 
-using namespace lightstep_thrift;
+using namespace lightstep_net;
 
 const char TraceKeyPrefix[] = "join:";
 const char TraceGUIDKey[] = "join:trace_guid";
 const char ParentSpanGUIDKey[] = "parent_span_guid";
 const char UndefinedSpanName[] = "undefined";
+
+// TODO synchronize this variable
+RecorderFactory *recorder_factory;
 
 } // namespace
 
@@ -30,11 +34,17 @@ TracerImpl::TracerImpl(const TracerOptions& options_in)
        it != options_.tags.end(); ++it) {
     runtime_attributes_.emplace_back(std::make_pair(it->first, it->second));
   }
-  runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_platform", "c++"));
-  runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_version", "0.8"));
+  runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_platform", "C++11"));
+  runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_version", PACKAGE_VERSION));
 
-  if (!options_.recorder) {
-    options_.recorder = std::shared_ptr<Recorder>(NewDefaultRecorder(*this));
+  if (!options_.recorder_factory) {
+    if (!recorder_factory) {
+      std::cerr << "No recorder factory is registered; compiled with --disable-cpp-netlib?" << std::endl;
+      abort();
+    }
+    recorder_ = (*recorder_factory)(*this);
+  } else {
+    recorder_ = options_.recorder_factory(*this);
   }
 }
 
@@ -102,21 +112,19 @@ void SpanImpl::FinishSpan(const FinishSpanOptions& options) {
     }
   }
 
-  span.__set_span_guid(util::id_to_string(context_.span_id));
-  span.__set_runtime_guid(tracer_->runtime_guid());
-  span.__set_span_name(operation_name_);
-  span.__set_oldest_micros(start_micros_);
-  span.__set_youngest_micros(util::to_micros(finish_time));
+  span.span_guid = util::id_to_string(context_.span_id);
+  span.runtime_guid = tracer_->runtime_guid();
+  span.span_name = operation_name_;
+  span.oldest_micros = start_micros_;
+  span.youngest_micros = util::to_micros(finish_time);
 
   span.join_ids = std::move(joins);
-  span.__isset.join_ids = true;
   span.attributes = std::move(attrs);
-  span.__isset.attributes = true;
 
   tracer_->RecordSpan(std::move(span));
 }
 
-void TracerImpl::RecordSpan(lightstep_thrift::SpanRecord&& span) {
+void TracerImpl::RecordSpan(lightstep_net::SpanRecord&& span) {
   auto r = recorder();
   if (r) {
     r->RecordSpan(std::move(span));
@@ -128,6 +136,11 @@ void TracerImpl::Flush() {
   if (r) {
     r->Flush();
   }
+}
+
+void RegisterRecorderFactory(RecorderFactory factory) {
+  // TODO Let this happen once, or else crash.
+  recorder_factory = new RecorderFactory(factory);
 }
 
 }  // namespace lightstep

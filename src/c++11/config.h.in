@@ -1,5 +1,11 @@
 /* src/c++11/config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* define if the Boost library is available */
+#undef HAVE_BOOST
+
+/* Defined if cpp-netlib is available. */
+#undef HAVE_CPP_NETLIB
+
 /* define if the compiler supports basic C++11 syntax */
 #undef HAVE_CXX11
 
