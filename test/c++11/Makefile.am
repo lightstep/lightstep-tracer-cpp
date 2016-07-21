@@ -2,7 +2,7 @@ noinst_PROGRAMS = tracer_test
 
 tracer_test_SOURCES = tracer_test.cc
 tracer_test_CXXFLAGS = -I ../../src/c++11
-tracer_test_LDADD = ../../src/c++11/liblightstep_basic_cxx11.la
+tracer_test_LDADD = ../../src/c++11/liblightstep_cxx11.la
 
 if ENABLE_CPP_NETLIB
 noinst_PROGRAMS += cppclient

@@ -34,18 +34,20 @@ AS_IF([test "$enable_cpp_netlib" != "no"],
        AC_SUBST(openssl_LIBS)
        AC_SUBST(openssl_CFLAGS)
 
+       AC_DEFINE(BOOST_NETWORK_ENABLE_HTTPS, [], [With HTTPS support])
+
        dnl cpp-netlib installs itself within the boost directory by default.
        dnl so we presume this is where we'll find it, the AC_CHECK_HEADER below
        dnl does the check. TODO This needs a proper solution.
        AX_BOOST_BASE([1.58], [:], [AC_MSG_ERROR([cpp-netlib requires boost, but not found.])])
        CPP_NETLIB_CPPFLAGS="$BOOST_CPPFLAGS $BOOST_CPPFLAGS/boost"
-       CPP_NETLIB_LDFLAGS="$BOOST_LDFLAGS $BOOST_LDFLAGS/boost"
+       CPP_NETLIB_LDFLAGS="$BOOST_LDFLAGS $BOOST_LDFLAGS/boost -lcppnetlib-client-connections -lcppnetlib-uri -lcppnetlib-server-parsers"
        AC_SUBST(CPP_NETLIB_CPPFLAGS)
        AC_SUBST(CPP_NETLIB_LDFLAGS)
        ])
 
 SAVE_CPPFLAGS="${CPPFLAGS}"
-CPPFLAGS="${CPPFLAGS} ${CPP_NETLIB_CPPFLAGS}"
+CPPFLAGS="${CPPFLAGS} ${CPP_NETLIB_CPPFLAGS} ${openssl_CFLAGS}"
 
 AS_IF([test "$enable_cpp_netlib" != "no"],
       [AC_CHECK_HEADER(network/protocol.hpp,

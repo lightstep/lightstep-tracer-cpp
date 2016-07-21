@@ -1,5 +1,8 @@
 /* src/c++11/config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* With HTTPS support */
+#undef BOOST_NETWORK_ENABLE_HTTPS
+
 /* define if the Boost library is available */
 #undef HAVE_BOOST
 

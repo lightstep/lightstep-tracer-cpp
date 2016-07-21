@@ -19,9 +19,6 @@ const char TraceGUIDKey[] = "join:trace_guid";
 const char ParentSpanGUIDKey[] = "parent_span_guid";
 const char UndefinedSpanName[] = "undefined";
 
-// TODO synchronize this variable
-RecorderFactory *recorder_factory;
-
 } // namespace
 
 TracerImpl::TracerImpl(const TracerOptions& options_in)
@@ -36,16 +33,6 @@ TracerImpl::TracerImpl(const TracerOptions& options_in)
   }
   runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_platform", "C++11"));
   runtime_attributes_.emplace_back(std::make_pair("lightstep_tracer_version", PACKAGE_VERSION));
-
-  if (!options_.recorder_factory) {
-    if (!recorder_factory) {
-      std::cerr << "No recorder factory is registered; compiled with --disable-cpp-netlib?" << std::endl;
-      abort();
-    }
-    recorder_ = (*recorder_factory)(*this);
-  } else {
-    recorder_ = options_.recorder_factory(*this);
-  }
 }
 
 void TracerImpl::GetTwoIds(uint64_t *a, uint64_t *b) {
@@ -57,6 +44,10 @@ void TracerImpl::GetTwoIds(uint64_t *a, uint64_t *b) {
 uint64_t TracerImpl::GetOneId() {
   MutexLock l(mutex_);
   return rand_source_();
+}
+
+void TracerImpl::set_recorder(std::unique_ptr<Recorder> recorder) {
+  recorder_ = std::shared_ptr<Recorder>(std::move(recorder));
 }
 
 std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> selfptr,
@@ -136,11 +127,6 @@ void TracerImpl::Flush() {
   if (r) {
     r->Flush();
   }
-}
-
-void RegisterRecorderFactory(RecorderFactory factory) {
-  // TODO Let this happen once, or else crash.
-  recorder_factory = new RecorderFactory(factory);
 }
 
 }  // namespace lightstep

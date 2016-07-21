@@ -10,6 +10,15 @@
 #ifndef __LIGHTSTEP_TRACER_H__
 #define __LIGHTSTEP_TRACER_H__
 
+namespace json11 {
+class Json;
+}
+
+namespace lightstep_net {
+class KeyValue;
+class TraceJoinId;
+}
+
 namespace lightstep {
 
 class TracerImpl;
@@ -42,8 +51,6 @@ class Tracer {
   ImplPtr impl_;
 };
 
-Tracer NewTracer(const TracerOptions& options);
-  
 // Recorder is an abstract class for buffering and encoding LightStep
 // reports.
 class Recorder {
@@ -55,24 +62,48 @@ public:
   virtual void RecordSpan(lightstep_net::SpanRecord&& span) = 0;
 
   // Flush is called by the user, indicating for some reason that
-  // buffered spans should be flushed.
-  virtual void Flush() = 0;
+  // buffered spans should be flushed.  Returns true if the flush
+  // succeeded, false if it timed out.
+  virtual bool FlushWithTimeout(Duration timeout) = 0;
+
+  // Flush with an indefinite timeout.
+  virtual void Flush() {
+    FlushWithTimeout(Duration::max());
+  }
 };
 
-// Register the factory prior to NewTracer().
-void RegisterRecorderFactory(RecorderFactory factory);
-
-// To setup user-defined transport, configure UserDefinedTransportOptions.
-class UserDefinedTransportOptions {
+// JsonEncoder is used as the base class for the DefaultRecorder.
+class JsonEncoder {
 public:
-  UserDefinedTransportOptions();
-  // TODO setting to limit batch size.
+  explicit JsonEncoder(const TracerImpl& tracer);
 
-  std::function<void(const std::string& report)> callback;
+  void recordSpan(lightstep_net::SpanRecord&& span);
+
+  size_t pendingSize() const {
+    if (assembled_ < 0) {
+      return 0;
+    }
+    return assembly_.size() + 3;  // 3 == strlen("] }")
+  }
+
+  // the caller can swap() the value, otherwise it stays valid until
+  // the next call to recordSpan().
+  std::string& jsonString();
+
+private:
+  json11::Json keyValueArray(const std::vector<lightstep_net::KeyValue>& v);
+  json11::Json keyValueArray(const std::unordered_map<std::string, std::string>& v);
+  json11::Json traceJoinArray(const std::vector<lightstep_net::TraceJoinId>& v);
+  void setJsonPrefix();
+  void addReportFields();
+  void addJsonSuffix();
+
+  const TracerImpl& tracer_;
+ 
+  std::mutex mutex_;
+  std::string assembly_;
+  int assembled_;
 };
-
-// To setup user-defined transport, set the TracerOptions.recorder to one of these:
-std::unique_ptr<Recorder> NewUserDefinedTransport(const TracerImpl& impl, const UserDefinedTransportOptions& options);
 
 }  // namespace lightstep
 
