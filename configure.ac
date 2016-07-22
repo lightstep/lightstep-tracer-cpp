@@ -39,7 +39,7 @@ AS_IF([test "$enable_cpp_netlib" != "no"],
        dnl cpp-netlib installs itself within the boost directory by default.
        dnl so we presume this is where we'll find it, the AC_CHECK_HEADER below
        dnl does the check. TODO This needs a proper solution.
-       AX_BOOST_BASE([1.58], [:], [AC_MSG_ERROR([cpp-netlib requires boost, but not found.])])
+       AX_BOOST_BASE([1.55], [:], [AC_MSG_ERROR([cpp-netlib requires boost, but not found.])])
        CPP_NETLIB_CPPFLAGS="$BOOST_CPPFLAGS $BOOST_CPPFLAGS/boost"
        CPP_NETLIB_LDFLAGS="$BOOST_LDFLAGS $BOOST_LDFLAGS/boost -lcppnetlib-client-connections -lcppnetlib-uri -lcppnetlib-server-parsers"
        AC_SUBST(CPP_NETLIB_CPPFLAGS)
