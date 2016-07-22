@@ -20,6 +20,7 @@ namespace lightstep {
 
 typedef std::lock_guard<std::mutex> MutexLock;
 
+class Recorder;
 class SpanImpl;
 struct TracerOptions;
 struct StartSpanOptions;
@@ -67,6 +68,8 @@ class TracerImpl {
     MutexLock lock(mutex_);
     return recorder_;
   }
+
+  void set_recorder(std::unique_ptr<Recorder> recorder);
 
  private:
   void GetTwoIds(uint64_t *a, uint64_t *b);

@@ -2,8 +2,9 @@
 #include <chrono>
 #include <thread>
 
-#include "tracer.h"
 #include "impl.h"
+#include "recorder.h"
+#include "tracer.h"
 
 using namespace lightstep;
 
@@ -23,18 +24,21 @@ int main() {
     span.Finish();
 
     TracerOptions topts;
-    // TODO these are not used b/c user-defined transport below.
-    // topts.access_token = "bfcebc4e1fa7e66d5502a4af87ae854f";
-    // topts.collector_host = "collector.lightstep.com";
+    topts.access_token = "bfcebc4e1fa7e66d5502a4af87ae854f";
+    topts.collector_host = "collector.lightstep.com";
     // topts.collector_port = 9997;
     // topts.collector_encryption = "tls";
+    topts.collector_port = 9998;
+    topts.collector_encryption = "";
 
-    topts.recorder_factory = [](const TracerImpl& tracer) {
-      UserDefinedTransportOptions tropts;
-      return lightstep::NewUserDefinedTransport(tracer, tropts);
-    };
+    // topts.access_token = "DEVELOPMENT_TOKEN_spoons";
+    // topts.collector_host = "localhost";
+    // topts.collector_port = 9998;
+    // topts.collector_encryption = "";
 
-    Tracer::InitGlobal(NewTracer(topts));
+    BasicRecorderOptions bopts;
+
+    Tracer::InitGlobal(NewLightStepTracer(topts, bopts));
 
     for (int i = 0; i < 10; i++) {
       span = Tracer::Global().StartSpanWithOptions(sopts);
@@ -45,6 +49,8 @@ int main() {
     Tracer::Global().impl()->Flush();
   } catch (std::exception &e) {
     std::cerr << "Exception! " << e.what() << std::endl;
+    return 1;
   }
+  std::cerr << "Success!" << std::endl;
   return 0;
 }

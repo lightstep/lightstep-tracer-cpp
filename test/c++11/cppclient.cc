@@ -3,8 +3,9 @@
 #include <thread>
 #include <chrono>
 
-#include "tracer.h"
 #include "impl.h"
+#include "recorder.h"
+#include "tracer.h"
 
 #include "dropbox_json/json11.hpp"
 #include "zintinio_happyhttp/happyhttp.h"
@@ -28,7 +29,8 @@ lightstep::Tracer NewTracer() {
   topts.collector_host = hostName;
   topts.collector_port = hostPort;
   topts.collector_encryption = "none";
-  return lightstep::NewTracer(topts);
+  lightstep::BasicRecorderOptions bopts;
+  return lightstep::NewLightStepTracer(topts, bopts);
 }
 
 double to_seconds(lightstep::TimeStamp::duration d) {
