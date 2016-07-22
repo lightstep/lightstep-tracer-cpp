@@ -23,8 +23,8 @@ typedef mapbox::util::variant<bool,
 			      uint64_t,
 			      std::string,
 			      std::nullptr_t,
-			      Values,
-			      Dictionary> variant_type;
+			      mapbox::util::recursive_wrapper<Values>,
+			      mapbox::util::recursive_wrapper<Dictionary>> variant_type;
 
 
 class Value : public variant_type {
