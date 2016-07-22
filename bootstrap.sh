@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# In case this source is being cross-compiled.
+make maintainer-clean 2> /dev/null
+rm -rf autom4te.cache 2> /dev/null
+
 # TODO Make this portable. Written for OS X.
 LIBTOOLIZE=libtoolize
 if [ `uname` = 'Darwin' ]; then
