@@ -158,12 +158,13 @@ void BasicRecorder::flush_one() {
 }
 
 void BasicRecorder::write_report(const std::string& report) {
-  std::cout << "Writing body " << report.size() << " bytes" << std::endl;
   try {
     boost::network::http::client::response response = client_.post(request_, report, "application/json");
-    std::cout << "STATUS: " << status(response) << " " << status_message(response) << std::endl;
+    if (status(response) != 200) {
+      std::cerr << "HTTP Status: " << status(response) << " " << status_message(response) << std::endl;
+    }
   } catch (std::exception &e) {
-    std::cerr << "Exception! " << e.what() << std::endl;
+    std::cerr << "HTTP Exception: " << e.what() << std::endl;
   }
 }
 
