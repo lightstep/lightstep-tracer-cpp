@@ -33,7 +33,7 @@ lightstep::Tracer NewTracer() {
   return lightstep::NewLightStepTracer(topts, bopts);
 }
 
-double to_seconds(lightstep::TimeStamp::duration d) {
+double to_seconds(lightstep::Duration d) {
   using namespace std::chrono;
   return static_cast<double>(
       duration_cast<nanoseconds>(d).count()) / nanosPerSecond;
@@ -69,7 +69,7 @@ private:
 
   void test_body(const lightstep::Tracer& tracer,
 		 const Json& control,
-		 std::string* sleep_nanos,
+		 uint64_t* sleep_nanos,
 		 uint64_t* answer);
 
   std::string get(const std::string &path) {
@@ -111,7 +111,7 @@ uint64_t Test::do_work(uint64_t work) {
 
 void Test::test_body(const lightstep::Tracer& tracer,
 		     const Json&   control,
-		     std::string*  sleep_nanos,
+		     uint64_t*     sleep_nanos,
 		     uint64_t*     answer) {
   auto repeat    = static_cast<uint64_t>(control["Repeat"].number_value());
   auto sleepnano = static_cast<uint64_t>(control["Sleep"].number_value());
@@ -134,7 +134,7 @@ void Test::test_body(const lightstep::Tracer& tracer,
 
     sleep_debt += sleepnano;
 
-    if (sleep_debt < sleepival) {
+    if (sleep_debt <= sleepival) {
       continue;
     }
 
@@ -144,10 +144,7 @@ void Test::test_body(const lightstep::Tracer& tracer,
     lightstep::TimeStamp awake = lightstep::Clock::now();
     uint64_t elapsed_nanos = duration_cast<nanoseconds>(awake - sleep).count();
     sleep_debt -= elapsed_nanos;
-    if (!sleep_nanos->empty()) {
-      sleep_nanos->append(",");
-    }
-    *sleep_nanos += std::to_string(elapsed_nanos);
+    *sleep_nanos += elapsed_nanos;
   }
 }
 
@@ -166,7 +163,7 @@ void Test::run_benchmark() {
     }
     lightstep::TimeStamp start = lightstep::Clock::now();
 
-    std::string sleep_nanos;
+    uint64_t sleep_nanos;
     uint64_t answer;
     // TODO concurrency test
     test_body(tracer, control, &sleep_nanos, &answer);
@@ -175,7 +172,6 @@ void Test::run_benchmark() {
     lightstep::TimeStamp flushed = finish;
 
     if (control["Trace"].bool_value()) {
-      // TODO explicit Flush is not implemented, anyway
       tracer.impl()->Flush();
       flushed = lightstep::Clock::now();
     }
@@ -183,7 +179,7 @@ void Test::run_benchmark() {
     std::stringstream rpath;
     rpath << resultPath << "?timing=" << to_seconds(finish - start)
 	  << "&flush=" << to_seconds(flushed - finish)
-	  << "&s=" << sleep_nanos
+	  << "&s=" << (double(sleep_nanos) / nanosPerSecond)
 	  << "&a=" << answer;
 
       get(rpath.str());

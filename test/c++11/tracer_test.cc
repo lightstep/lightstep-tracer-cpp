@@ -24,17 +24,17 @@ int main() {
     span.Finish();
 
     TracerOptions topts;
+
+    // topts.access_token = "DEVELOPMENT_TOKEN_jmacd";
+    // topts.collector_host = "localhost";
     topts.access_token = "bfcebc4e1fa7e66d5502a4af87ae854f";
     topts.collector_host = "collector.lightstep.com";
-    // topts.collector_port = 9997;
-    // topts.collector_encryption = "tls";
-    topts.collector_port = 9998;
-    topts.collector_encryption = "";
 
-    // topts.access_token = "DEVELOPMENT_TOKEN_spoons";
-    // topts.collector_host = "localhost";
     // topts.collector_port = 9998;
     // topts.collector_encryption = "";
+    topts.collector_port = 443;
+    // topts.collector_port = 9997;
+    topts.collector_encryption = "tls";
 
     BasicRecorderOptions bopts;
 
