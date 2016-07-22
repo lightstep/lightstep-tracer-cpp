@@ -22,7 +22,7 @@ namespace lightstep {
 
 using namespace lightstep_net;
 
-const char CollectorJsonRpcPath[] = "/_rpc/v1/reports/binary";
+const char CollectorJsonRpcPath[] = "/api/v0/reports";
 
 std::string urlOf(const TracerOptions& options) {
   std::ostringstream os;
