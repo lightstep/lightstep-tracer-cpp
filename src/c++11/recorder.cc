@@ -114,7 +114,10 @@ BasicRecorder::BasicRecorder(const TracerImpl& tracer, const BasicRecorderOption
     flushed_seqno_(0),
     encoding_seqno_(1),
     dropped_spans_(0),
-    request_(urlOf(tracer.options())) { }
+    client_(boost::network::http::client::options().timeout(30)),
+    request_(urlOf(tracer.options())) {
+  request_ << boost::network::header("LightStep-Access-Token", tracer.options().access_token);
+}
 
 void BasicRecorder::write() {
   auto next = Clock::now() + options_.time_limit;
@@ -140,6 +143,9 @@ void BasicRecorder::flush_one() {
     // inflight without a lock. Assumption is that this thread is the
     // only place inflight_ is used.
     MutexLock lock(write_mutex_);
+    if (encoder_.pendingSize() == 0) {
+      return;
+    }
     std::swap(encoder_.jsonString(), inflight_);
     ++encoding_seqno_;
   }
@@ -147,12 +153,18 @@ void BasicRecorder::flush_one() {
   {
     MutexLock lock(write_mutex_);
     ++flushed_seqno_;
+    write_cond_.notify_all();
   }  
 }
 
 void BasicRecorder::write_report(const std::string& report) {
-  boost::network::http::client::response response = client_.get(request_);
-  std::cout << body(response) << std::endl;
+  std::cout << "Writing body " << report.size() << " bytes" << std::endl;
+  try {
+    boost::network::http::client::response response = client_.post(request_, report, "application/json");
+    std::cout << "STATUS: " << status(response) << " " << status_message(response) << std::endl;
+  } catch (std::exception &e) {
+    std::cerr << "Exception! " << e.what() << std::endl;
+  }
 }
 
 bool BasicRecorder::FlushWithTimeout(Duration timeout) {
@@ -167,7 +179,7 @@ bool BasicRecorder::FlushWithTimeout(Duration timeout) {
     return true;
   }
 
-  size_t wait_seq = encoding_seqno_ + (has_encoded ? 1 : 0);
+  size_t wait_seq = encoding_seqno_ - (has_encoded ? 0 : 1);
 
   return write_cond_.wait_for(lock, timeout, [this, wait_seq]() {
     return this->flushed_seqno_ >= wait_seq;

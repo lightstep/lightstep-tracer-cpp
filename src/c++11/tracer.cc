@@ -76,7 +76,9 @@ void JsonEncoder::recordSpan(lightstep_net::SpanRecord&& span) {
 }
 
 std::string& JsonEncoder::jsonString() {
-  if (assembled_ >= 0) {
+  if (assembled_ < 0) {
+    assembly_.clear();
+  } else {
     addJsonSuffix();
     assembled_ = -1;
   }

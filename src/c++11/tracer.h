@@ -68,7 +68,11 @@ public:
 
   // Flush with an indefinite timeout.
   virtual void Flush() {
-    FlushWithTimeout(Duration::max());
+    // N.B.: Do not use Duration::max() it will overflow the internals
+    // of std::condition_variable::wait_for, for example.
+    FlushWithTimeout(std::chrono::hours(24));
+    // TODO and panic when it fails? use absolute time instead, to
+    // avoid the overflow issue?
   }
 };
 

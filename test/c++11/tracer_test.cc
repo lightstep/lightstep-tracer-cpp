@@ -26,8 +26,15 @@ int main() {
     TracerOptions topts;
     topts.access_token = "bfcebc4e1fa7e66d5502a4af87ae854f";
     topts.collector_host = "collector.lightstep.com";
-    topts.collector_port = 9997;
-    topts.collector_encryption = "tls";
+    // topts.collector_port = 9997;
+    // topts.collector_encryption = "tls";
+    topts.collector_port = 9998;
+    topts.collector_encryption = "";
+
+    // topts.access_token = "DEVELOPMENT_TOKEN_spoons";
+    // topts.collector_host = "localhost";
+    // topts.collector_port = 9998;
+    // topts.collector_encryption = "";
 
     BasicRecorderOptions bopts;
 
@@ -42,6 +49,8 @@ int main() {
     Tracer::Global().impl()->Flush();
   } catch (std::exception &e) {
     std::cerr << "Exception! " << e.what() << std::endl;
+    return 1;
   }
+  std::cerr << "Success!" << std::endl;
   return 0;
 }
