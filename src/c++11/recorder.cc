@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <condition_variable>
 #include <exception>
 #include <thread>
 #include <iostream>
@@ -159,7 +160,7 @@ void BasicRecorder::flush_one() {
 
 void BasicRecorder::write_report(const std::string& report) {
   try {
-    boost::network::http::client::response response = client_.post(request_, report, "application/json");
+    boost::network::http::client::response response = client_.post(request_, report, std::string("application/json"));
     if (status(response) != 200) {
       std::cerr << "HTTP Status: " << status(response) << " " << status_message(response) << std::endl;
     }

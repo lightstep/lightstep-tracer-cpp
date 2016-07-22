@@ -41,7 +41,7 @@ AS_IF([test "$enable_cpp_netlib" != "no"],
        dnl does the check. TODO This needs a proper solution.
        AX_BOOST_BASE([1.55], [:], [AC_MSG_ERROR([cpp-netlib requires boost, but not found.])])
        CPP_NETLIB_CPPFLAGS="$BOOST_CPPFLAGS $BOOST_CPPFLAGS/boost"
-       CPP_NETLIB_LDFLAGS="$BOOST_LDFLAGS $BOOST_LDFLAGS/boost -lcppnetlib-client-connections -lcppnetlib-uri -lcppnetlib-server-parsers"
+       CPP_NETLIB_LDFLAGS="$BOOST_LDFLAGS $BOOST_LDFLAGS/boost -lcppnetlib-client-connections -lcppnetlib-uri -lcppnetlib-server-parsers -lboost_thread"
        AC_SUBST(CPP_NETLIB_CPPFLAGS)
        AC_SUBST(CPP_NETLIB_LDFLAGS)
        ])
