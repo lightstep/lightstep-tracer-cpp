@@ -26,4 +26,3 @@ liblightstep_cxx11_la_LIBADD   += $(openssl_LIBS)
 endif
 
 endif
-
