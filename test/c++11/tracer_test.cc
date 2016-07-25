@@ -16,11 +16,10 @@ int main() {
     Dictionary val4 = { std::make_pair("hello", val3),
 			std::make_pair("whatever", val2) };
 
-    StartSpanOptions sopts;
-    sopts.operation_name = "span/test";
-    sopts.tags = std::move(val4);
-
-    auto span = Tracer::Global().StartSpanWithOptions(sopts);
+    auto span = Tracer::Global().StartSpan("span/untraced", {
+	StartTagOption("hello", std::move(val3)),
+	StartTagOption("whatever", std::move(val2)),
+      });
     span.Finish();
 
     TracerOptions topts;
@@ -41,10 +40,17 @@ int main() {
     Tracer::InitGlobal(NewLightStepTracer(topts, bopts));
 
     for (int i = 0; i < 10; i++) {
-      span = Tracer::Global().StartSpanWithOptions(sopts);
+      span = Tracer::Global().StartSpan("span/test");
       span.Finish();
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
+
+    span = Tracer::Global().StartSpan("span/parent");
+    auto parent = span.context();
+    span.Finish();
+
+    auto child = Tracer::Global().StartSpan("span/child", { ChildOf(parent) });
+    child.Finish();
 
     Tracer::Global().impl()->Flush();
   } catch (std::exception &e) {

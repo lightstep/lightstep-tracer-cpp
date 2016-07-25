@@ -8,9 +8,31 @@
 
 namespace lightstep {
 
-struct FinishSpanOptions;
+class StartSpanOption;
+class FinishSpanOption;
 class Tracer;
 class SpanImpl;
+
+class SpanContext {
+public:
+
+  // TODO opentracing to possibly std::string BaggageItem(const std::string& key);
+  // See https://github.com/opentracing/opentracing.github.io/issues/106
+
+  uint64_t trace_id() const;
+  uint64_t span_id() const;
+  uint64_t parent_span_id() const;
+  bool sampled() const;
+
+  void ForeachBaggageItem(std::function<bool(const std::string& key, const std::string& value)> f) const;
+
+private:
+  friend class SpanImpl;
+
+  explicit SpanContext(std::shared_ptr<SpanImpl> span) : owner_(span) { }
+
+  std::shared_ptr<SpanImpl> owner_;
+};
 
 // Span is a handle to an active (started), inactive (started and
 // finished), or no-op span.
@@ -29,13 +51,7 @@ public:
   Span& SetTag(const std::string& key, const Value& value);
 
   // Finish the span with default options.
-  void Finish();
-
-  // Finish the span with provided options.
-  void FinishWithOptions(const FinishSpanOptions& fopts);
-
-  // TODO LogData not implemented
-  // TODO set error flag not implemented
+  void Finish(std::initializer_list<FinishSpanOption> opts = {});
 
   // SetBaggageItem may be be called prior to Finish.
   Span& SetBaggageItem(const std::string& restricted_key,
@@ -47,19 +63,21 @@ public:
   // Gets the Tracer associated with this Span.
   Tracer tracer() const;
 
+  // Gets an immutable reference to this Span's context.
+  SpanContext context() const;
+
   // Get the implementation object.
   std::shared_ptr<SpanImpl> impl() const { return impl_; }
+
+  // TODO LogData not implemented
+  // TODO Set error flag not implemented
 
 private:
   std::shared_ptr<SpanImpl> impl_;
 };
 
 // Convenience method for starting a span using the Global tracer.
-Span StartSpan(const std::string& operation_name);
-
-// Convenience method for starting a span using the Global tracer and
-// a parent span.
-Span StartChildSpan(Span parent, const std::string& operation_name);
+Span StartSpan(const std::string& operation_name, std::initializer_list<StartSpanOption> opts = {});
 
 } // namespace lightstep
 

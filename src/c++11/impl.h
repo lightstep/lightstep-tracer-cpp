@@ -22,13 +22,12 @@ typedef std::lock_guard<std::mutex> MutexLock;
 
 class Recorder;
 class SpanImpl;
-struct TracerOptions;
-struct StartSpanOptions;
-struct FinishSpanOptions;
 
 typedef std::unordered_map<std::string, std::string> Baggage;
 
-struct Context {
+struct ContextImpl {
+  ContextImpl() : trace_id(0), span_id(0), parent_span_id(0), sampled(false) { }
+
   uint64_t trace_id;
   uint64_t span_id;
   uint64_t parent_span_id;
@@ -41,15 +40,16 @@ class TracerImpl {
   explicit TracerImpl(const TracerOptions& options);
 
   std::unique_ptr<SpanImpl> StartSpan(std::shared_ptr<TracerImpl> selfptr,
-				      const StartSpanOptions& options);
-
+				      const std::string& op_name,
+				      std::initializer_list<StartSpanOption> opts = {});
+  
   const TracerOptions& options() const { return options_; }
 
   const std::string& component_name() const { return component_name_; }
   const std::string& runtime_guid() const { return runtime_guid_; }
   const std::string& access_token() const { return options_.access_token; }
   uint64_t           runtime_start_micros() const { return runtime_micros_; }
-  const Attributes&  runtime_attributes() const { return options_.tags; }
+  const Attributes&  runtime_attributes() const { return options_.runtime_attributes; }
 
   void RecordSpan(lightstep_net::SpanRecord&& span);
 
@@ -72,6 +72,8 @@ class TracerImpl {
   void set_recorder(std::unique_ptr<Recorder> recorder);
 
  private:
+  friend class SpanReference;
+
   void GetTwoIds(uint64_t *a, uint64_t *b);
   uint64_t GetOneId();
 
@@ -94,13 +96,13 @@ class TracerImpl {
 
   // Start time of this runtime process, in microseconds.
   uint64_t runtime_micros_;
-
-  // Runtime attributes.
-  std::vector<std::pair<std::string, std::string>> runtime_attributes_;
 };
 
 class SpanImpl {
 public:
+  explicit SpanImpl(ImplPtr tracer)
+    : start_micros_(0), tracer_(tracer) { }
+
   void SetOperationName(const std::string& name) {
     MutexLock l(mutex_);
     operation_name_ = name;
@@ -127,19 +129,23 @@ public:
     return "";
   }
 
-  void FinishSpan(const FinishSpanOptions& options);
+  void FinishSpan(std::initializer_list<FinishSpanOption> opts = {});
 
 private:
-  friend class TracerImpl;
   friend class Span;
+  friend class SpanContext;
+  friend class SpanReference;
+  friend class StartTagOption;
+  friend class StartTimestampOption;
+  friend class TracerImpl;
 
   // Protects Baggage and Tags.
+  ImplPtr     tracer_;
   std::mutex  mutex_;
   std::string operation_name_;
   uint64_t    start_micros_;
-  Context     context_;
+  ContextImpl context_;
   Dictionary  tags_;
-  std::shared_ptr<TracerImpl> tracer_;
 };
 
 } // namespace lightstep

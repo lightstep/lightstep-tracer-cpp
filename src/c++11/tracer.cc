@@ -34,15 +34,20 @@ Tracer Tracer::InitGlobal(Tracer newt) {
   return Tracer(*newptr);
 }
 
-Span Tracer::StartSpan(const std::string& operation_name) const {
-  return StartSpanWithOptions(StartSpanOptions().
-			      SetOperationName(operation_name));
+Span Tracer::StartSpan(const std::string& operation_name,
+		       std::initializer_list<StartSpanOption> opts) const {
+  if (!impl_) return Span();
+  return Span(impl_->StartSpan(impl_, operation_name, opts));
 }
 
-Span Tracer::StartSpanWithOptions(const StartSpanOptions& options) const {
-  if (!impl_) return Span();
-  return Span(impl_->StartSpan(impl_, options));
+SpanReference ChildOf(const SpanContext& ctx) {
+  return SpanReference(ChildOfRef, ctx);
 }
+
+SpanReference FollowsFrom(const SpanContext& ctx) {
+  return SpanReference(FollowsFromRef, ctx);
+}
+
 
 JsonEncoder::JsonEncoder(const TracerImpl& tracer)
   : tracer_(tracer) {

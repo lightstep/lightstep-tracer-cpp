@@ -35,29 +35,31 @@ std::string Span::BaggageItem(const std::string& restricted_key) {
   return impl_->BaggageItem(restricted_key);
 }
 
-void Span::Finish() {
+void Span::Finish(std::initializer_list<FinishSpanOption> opts) {
   if (!impl_) return;
-  impl_->FinishSpan(FinishSpanOptions());
+  impl_->FinishSpan(opts);  
 }
 
-void Span::FinishWithOptions(const FinishSpanOptions& fopts) {
-  if (!impl_) return;
-  impl_->FinishSpan(fopts);
-}
-
-Span StartSpan(const std::string& operation_name) {
-  return Tracer::Global().StartSpan(operation_name);
-}
-
-Span StartChildSpan(Span parent, const std::string& operation_name) {
-  return Tracer::Global().StartSpanWithOptions(StartSpanOptions().
-					       SetOperationName(operation_name).
-					       SetParent(parent));
+Span StartSpan(const std::string& operation_name, std::initializer_list<StartSpanOption> opts) {
+  return Tracer::Global().StartSpan(operation_name, opts);
 }
 
 Tracer Span::tracer() const {
   if (!impl_) return Tracer(nullptr);
   return Tracer(impl_->tracer_);
 }
-  
+
+uint64_t SpanContext::trace_id() const { return owner_->context_.trace_id; }
+uint64_t SpanContext::span_id() const { return owner_->context_.span_id; }
+uint64_t SpanContext::parent_span_id() const { return owner_->context_.parent_span_id; }
+bool SpanContext::sampled() const { return owner_->context_.sampled; }
+
+void SpanContext::ForeachBaggageItem(std::function<bool(const std::string& key, const std::string& value)> f) const {
+  for (const auto& bi : owner_->context_.baggage) {
+    if (!f(bi.first, bi.second)) {
+      return;
+    }
+  }
+}
+
 } // namespace lightstep

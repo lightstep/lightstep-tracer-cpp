@@ -37,6 +37,8 @@ struct KeyValue {
 };
 
 struct SpanRecord {
+  SpanRecord() : oldest_micros(0), youngest_micros(0), error_flag(false) { }
+
   std::string span_guid;
   std::string trace_guid;
   std::string runtime_guid;
