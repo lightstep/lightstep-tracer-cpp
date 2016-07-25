@@ -28,6 +28,7 @@ public:
 
 private:
   friend class SpanImpl;
+  friend class Span;
 
   explicit SpanContext(std::shared_ptr<SpanImpl> span) : owner_(span) { }
 

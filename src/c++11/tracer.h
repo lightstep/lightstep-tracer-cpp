@@ -1,6 +1,7 @@
 // -*- Mode: C++ -*-
 
 #include "options.h"
+#include "propagation.h"
 #include "span.h"
 #include "types.h"
 #include "value.h"
@@ -41,6 +42,24 @@ class Tracer {
   
   // Get the implementation object.
   ImplPtr impl() const { return impl_; }
+
+  // Inject() takes the `sc` SpanContext instance and injects it for
+  // propagation within `carrier`. The actual type of `carrier` depends on
+  // the value of `format`.
+  //
+  // OpenTracing defines a common set of `format` values (see BuiltinFormat),
+  // and each has an expected carrier type.
+  //
+  // TODO throws?
+  void Inject(SpanContext sc, const CarrierFormat &format, CarrierWriter *writer);
+
+  // Extract() returns a SpanContext instance given `format` and `carrier`.
+  //
+  // OpenTracing defines a common set of `format` values (see BuiltinFormat),
+  // and each has an expected carrier type.
+  //
+  // TODO throws?
+  SpanContext Extract(const CarrierFormat &format, CarrierReader *reader);
 
  private:
   ImplPtr impl_;

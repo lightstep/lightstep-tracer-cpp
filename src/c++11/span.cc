@@ -49,6 +49,10 @@ Tracer Span::tracer() const {
   return Tracer(impl_->tracer_);
 }
 
+SpanContext Span::context() const {
+  return SpanContext(impl_);
+}
+
 uint64_t SpanContext::trace_id() const { return owner_->context_.trace_id; }
 uint64_t SpanContext::span_id() const { return owner_->context_.span_id; }
 uint64_t SpanContext::parent_span_id() const { return owner_->context_.parent_span_id; }

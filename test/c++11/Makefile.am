@@ -6,7 +6,6 @@ TESTCXXFLAGS = $(AM_CXXFLAGS) \
 TESTLDFLAGS  = -L$(top_srcdir)/vendor/cpp-netlib/build/libs/network/src \
 		$(BOOST_LDFLAGS) \
 		-lboost_system -lcppnetlib-uri -lcppnetlib-client-connections
-#  -I ../../src/c++11/dropbox_json -I zintinio_happyhttp
 
 noinst_PROGRAMS = tracer_test
 
