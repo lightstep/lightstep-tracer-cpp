@@ -1,3 +1,3 @@
 EXTRA_DIST = LICENSE
 
-SUBDIRS = src test
+SUBDIRS = vendor src test

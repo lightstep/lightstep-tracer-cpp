@@ -33,26 +33,8 @@ AS_IF([test "$enable_cpp_netlib" != "no"],
        AC_SUBST(openssl_CFLAGS)
 
        AC_DEFINE(BOOST_NETWORK_ENABLE_HTTPS, [], [With HTTPS support])
-
-       dnl cpp-netlib installs itself within the boost directory by default.
-       dnl so we presume this is where we'll find it, the AC_CHECK_HEADER below
-       dnl does the check. TODO This needs a proper solution.
        AX_BOOST_BASE([1.55], [:], [AC_MSG_ERROR([cpp-netlib requires boost, but not found.])])
-       CPP_NETLIB_CPPFLAGS="$BOOST_CPPFLAGS $BOOST_CPPFLAGS/boost"
-       CPP_NETLIB_LDFLAGS="$BOOST_LDFLAGS $BOOST_LDFLAGS/boost -lcppnetlib-client-connections -lcppnetlib-uri -lcppnetlib-server-parsers -lboost_thread -lboost_system -lpthread"
-       AC_SUBST(CPP_NETLIB_CPPFLAGS)
-       AC_SUBST(CPP_NETLIB_LDFLAGS)
-       ])
-
-SAVE_CPPFLAGS="${CPPFLAGS}"
-CPPFLAGS="${CPPFLAGS} ${CPP_NETLIB_CPPFLAGS} ${openssl_CFLAGS}"
-
-AS_IF([test "$enable_cpp_netlib" != "no"],
-      [AC_CHECK_HEADER(network/protocol.hpp,
-		[enable_cpp_netlib=yes],
-		[AS_IF([test "$enable_cpp_netlib" != "no"],
-		       [AC_MSG_ERROR([cpp-netlib required, but not found.])],
-  		       [enable_cpp_netlib=no])])]) 
+       enable_cpp_netlib=yes])
 
 AM_CONDITIONAL([ENABLE_CPP_NETLIB], [test "$enable_cpp_netlib" = "yes"])
 AM_CONDITIONAL([ENABLE_OPENSSL], [test "$enable_cpp_netlib" = "yes"])
@@ -60,11 +42,11 @@ AM_CONDITIONAL([ENABLE_OPENSSL], [test "$enable_cpp_netlib" = "yes"])
 AS_IF([test "$enable_cpp_netlib" == "yes"],
       [AC_DEFINE(HAVE_CPP_NETLIB,[],[Defined if cpp-netlib is available.])])
 
-CPPFLAGS="${SAVE_CPPFLAGS}"
-
 AC_LANG_POP([C++])
 
 AC_CHECK_HEADERS([unistd.h])
 
-AC_CONFIG_FILES([Makefile src/Makefile test/Makefile src/c++11/Makefile test/c++11/Makefile])
+AC_PATH_PROG([CMAKE], [cmake], [/usr/bin/cmake])
+
+AC_CONFIG_FILES([Makefile src/Makefile test/Makefile src/c++11/Makefile test/c++11/Makefile vendor/Makefile])
 AC_OUTPUT
