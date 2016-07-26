@@ -1,12 +1,22 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <exception>
 
 #include "impl.h"
 #include "recorder.h"
 #include "tracer.h"
 
 using namespace lightstep;
+
+class error : public std::exception {
+public:
+  error(const char *what) : what_(what) { }
+
+  const char* what() const noexcept override { return what_; }
+private:
+  const char *what_;
+};
 
 int main() {
   try {
@@ -17,23 +27,17 @@ int main() {
 			std::make_pair("whatever", val2) };
 
     auto span = Tracer::Global().StartSpan("span/untraced", {
-	StartTagOption("hello", std::move(val3)),
-	StartTagOption("whatever", std::move(val2)),
+	AddTag("hello", std::move(val3)),
+	AddTag("whatever", std::move(val2)),
       });
     span.Finish();
 
     TracerOptions topts;
 
-    // topts.access_token = "DEVELOPMENT_TOKEN_jmacd";
-    // topts.collector_host = "localhost";
-    topts.access_token = "bfcebc4e1fa7e66d5502a4af87ae854f";
-    topts.collector_host = "collector.lightstep.com";
-
-    // topts.collector_port = 9998;
-    // topts.collector_encryption = "";
-    topts.collector_port = 443;
-    // topts.collector_port = 9997;
-    topts.collector_encryption = "tls";
+    topts.access_token = "DEVELOPMENT_TOKEN_jmacd";
+    topts.collector_host = "localhost";
+    topts.collector_port = 9998;
+    topts.collector_encryption = "";
 
     BasicRecorderOptions bopts;
 
@@ -49,9 +53,16 @@ int main() {
     auto parent = span.context();
     span.Finish();
 
-    auto child = Tracer::Global().StartSpan("span/child", { ChildOf(parent) });
-    child.Finish();
+    auto cspan = Tracer::Global().StartSpan("span/child", { ChildOf(parent) });
+    cspan.Finish();
 
+    auto child = cspan.context();
+
+    if (child.parent_span_id() == 0 ||
+	child.parent_span_id() != parent.span_id()) {
+      throw error("parent/child span_id mismatch");
+    }
+	
     Tracer::Global().impl()->Flush();
   } catch (std::exception &e) {
     std::cerr << "Exception! " << e.what() << std::endl;

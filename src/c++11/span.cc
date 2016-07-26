@@ -35,12 +35,12 @@ std::string Span::BaggageItem(const std::string& restricted_key) {
   return impl_->BaggageItem(restricted_key);
 }
 
-void Span::Finish(std::initializer_list<FinishSpanOption> opts) {
+void Span::Finish(std::initializer_list<SpanFinishOption> opts) {
   if (!impl_) return;
   impl_->FinishSpan(opts);  
 }
 
-Span StartSpan(const std::string& operation_name, std::initializer_list<StartSpanOption> opts) {
+Span StartSpan(const std::string& operation_name, std::initializer_list<SpanStartOption> opts) {
   return Tracer::Global().StartSpan(operation_name, opts);
 }
 

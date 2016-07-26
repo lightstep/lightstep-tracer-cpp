@@ -13,9 +13,9 @@ liblightstep_nonetwork_cxx11_la_SOURCES = \
 # they are only here to escape and unescape URIs.  Separate the pure, lightweight
 # library from the HTTP header stuff somehow?
 BLOATYCPPFLAGS = -I$(top_srcdir)/vendor/cpp-netlib \
-		$(BOOST_CPPFLAGS)
+		-I$(top_srcdir)/vendor/boost_1_60_0/build/include
 BLOATYLDFLAGS = -L$(top_srcdir)/vendor/cpp-netlib/build/libs/network/src \
-		$(BOOST_LDFLAGS) \
+		-L$(top_srcdir)/vendor/boost_1_60_0/build/lib \
 		-lcppnetlib-uri
 
 liblightstep_nonetwork_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) -I dropbox_json $(BLOATYCPPFLAGS)
@@ -29,10 +29,10 @@ liblightstep_cxx11_la_SOURCES = \
 liblightstep_cxx11_la_LIBADD   = liblightstep_nonetwork_cxx11.la
 liblightstep_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) \
 				-I$(top_srcdir)/vendor/cpp-netlib \
-				$(BOOST_CPPFLAGS) \
+				-I$(top_srcdir)/vendor/boost_1_60_0/build/include \
 				-I dropbox_json
 liblightstep_cxx11_la_LDFLAGS  = -L$(top_srcdir)/vendor/cpp-netlib/build/libs/network/src \
-				$(BOOST_LDFLAGS) \
+				-L$(top_srcdir)/vendor/boost_1_60_0/build/lib \
 				-lboost_system \
 				-lcppnetlib-uri
 

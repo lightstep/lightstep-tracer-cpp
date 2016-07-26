@@ -56,7 +56,7 @@ void TracerImpl::set_recorder(std::unique_ptr<Recorder> recorder) {
 
 std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> selfptr,
 						const std::string& operation_name,
-						std::initializer_list<StartSpanOption> opts) {
+						std::initializer_list<SpanStartOption> opts) {
   std::unique_ptr<SpanImpl> span(new SpanImpl(selfptr));
 
   for (const auto& o : opts) {
@@ -81,11 +81,11 @@ std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> self
   return span;
 }
 
-void StartTimestampOption::Apply(SpanImpl *span) const {
+void StartTimestamp::Apply(SpanImpl *span) const {
   span->start_micros_ = util::to_micros(when_);
 }
 
-void StartTagOption::Apply(SpanImpl *span) const {
+void AddTag::Apply(SpanImpl *span) const {
   span->tags_.emplace(std::make_pair(key_, value_));
 }
 
@@ -102,7 +102,7 @@ void SpanReference::Apply(SpanImpl *span) const {
   span->context_.sampled = referenced_.sampled();
 }
 
-void SpanImpl::FinishSpan(std::initializer_list<FinishSpanOption> opts) {
+void SpanImpl::FinishSpan(std::initializer_list<SpanFinishOption> opts) {
   SpanRecord span;
 
   for (const auto& o : opts) {
@@ -118,9 +118,7 @@ void SpanImpl::FinishSpan(std::initializer_list<FinishSpanOption> opts) {
   std::vector<KeyValue> attrs{
     util::make_kv(ParentSpanGUIDKey, util::id_to_string(context_.parent_span_id)),
   };
-  std::vector<TraceJoinId> joins{
-    util::make_join(TraceGUIDKey, util::id_to_string(context_.trace_id)),
-  };
+  std::vector<TraceJoinId> joins;
 
   for (auto it = tags_.begin(); it != tags_.end(); ++it) {
     const std::string& key = it->first;
@@ -131,6 +129,7 @@ void SpanImpl::FinishSpan(std::initializer_list<FinishSpanOption> opts) {
     }
   }
 
+  span.trace_guid = util::id_to_string(context_.trace_id);
   span.span_guid = util::id_to_string(context_.span_id);
   span.runtime_guid = tracer_->runtime_guid();
   span.span_name = operation_name_;

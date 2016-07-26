@@ -2,9 +2,9 @@
 # getting the value of $(top_srcdir)??
 TESTCXXFLAGS = $(AM_CXXFLAGS) \
 		-I$(top_srcdir)/vendor/cpp-netlib \
-		$(BOOST_CPPFLAGS)
+		-I$(top_srcdir)/vendor/boost_1_60_0/build/include
 TESTLDFLAGS  = -L$(top_srcdir)/vendor/cpp-netlib/build/libs/network/src \
-		$(BOOST_LDFLAGS) \
+		-L$(top_srcdir)/vendor/boost_1_60_0/build/lib \
 		-lboost_system -lcppnetlib-uri -lcppnetlib-client-connections
 
 noinst_PROGRAMS = tracer_test

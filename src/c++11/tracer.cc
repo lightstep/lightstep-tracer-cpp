@@ -35,7 +35,7 @@ Tracer Tracer::InitGlobal(Tracer newt) {
 }
 
 Span Tracer::StartSpan(const std::string& operation_name,
-		       std::initializer_list<StartSpanOption> opts) const {
+		       std::initializer_list<SpanStartOption> opts) const {
   if (!impl_) return Span();
   return Span(impl_->StartSpan(impl_, operation_name, opts));
 }

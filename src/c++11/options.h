@@ -32,17 +32,17 @@ public:
   std::function<bool(uint64_t)> should_sample;
 };
 
-// StartSpanOptions
-class StartSpanOption {
+// SpanStartOptions
+class SpanStartOption {
 public:
-  virtual ~StartSpanOption() { }
+  virtual ~SpanStartOption() { }
 
   virtual void Apply(SpanImpl* span) const = 0;
 };
 
-class StartTimestampOption : public StartSpanOption {
+class StartTimestamp : public SpanStartOption {
 public:
-  StartTimestampOption(TimeStamp when) : when_(when) { }
+  StartTimestamp(TimeStamp when) : when_(when) { }
 
   virtual void Apply(SpanImpl *span) const;
 
@@ -50,9 +50,9 @@ private:
   TimeStamp when_;
 };
 
-class StartTagOption : public StartSpanOption {
+class AddTag : public SpanStartOption {
 public:
-  StartTagOption(const std::string& key, const Value& value)
+  AddTag(const std::string& key, const Value& value)
     : key_(key), value_(value) { }
 
   virtual void Apply(SpanImpl *span) const;
@@ -62,15 +62,15 @@ private:
   const Value &value_;
 };
 
-// FinishSpanOptions
-class FinishSpanOption {
+// SpanFinishOption
+class SpanFinishOption {
 public:
-  virtual ~FinishSpanOption() { }
+  virtual ~SpanFinishOption() { }
 
   virtual void Apply(lightstep_net::SpanRecord *span) const = 0;
 };
 
-class FinishTimestampOption : public FinishSpanOption {
+class FinishTimestampOption : public SpanFinishOption {
 public:
   FinishTimestampOption(TimeStamp when) : when_(when) { }
 

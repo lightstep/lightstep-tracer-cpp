@@ -41,7 +41,7 @@ class TracerImpl {
 
   std::unique_ptr<SpanImpl> StartSpan(std::shared_ptr<TracerImpl> selfptr,
 				      const std::string& op_name,
-				      std::initializer_list<StartSpanOption> opts = {});
+				      std::initializer_list<SpanStartOption> opts = {});
   
   const TracerOptions& options() const { return options_; }
 
@@ -129,19 +129,18 @@ public:
     return "";
   }
 
-  void FinishSpan(std::initializer_list<FinishSpanOption> opts = {});
+  void FinishSpan(std::initializer_list<SpanFinishOption> opts = {});
 
 private:
+  friend class AddTag;
   friend class Span;
   friend class SpanContext;
   friend class SpanReference;
-  friend class StartTagOption;
-  friend class StartTimestampOption;
+  friend class StartTimestamp;
   friend class TracerImpl;
 
-  // Protects Baggage and Tags.
   ImplPtr     tracer_;
-  std::mutex  mutex_;
+  std::mutex  mutex_;  // Protects Baggage and Tags.
   std::string operation_name_;
   uint64_t    start_micros_;
   ContextImpl context_;

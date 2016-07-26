@@ -8,8 +8,8 @@
 
 namespace lightstep {
 
-class StartSpanOption;
-class FinishSpanOption;
+class SpanStartOption;
+class SpanFinishOption;
 class Tracer;
 class SpanImpl;
 
@@ -52,7 +52,7 @@ public:
   Span& SetTag(const std::string& key, const Value& value);
 
   // Finish the span with default options.
-  void Finish(std::initializer_list<FinishSpanOption> opts = {});
+  void Finish(std::initializer_list<SpanFinishOption> opts = {});
 
   // SetBaggageItem may be be called prior to Finish.
   Span& SetBaggageItem(const std::string& restricted_key,
@@ -78,7 +78,7 @@ private:
 };
 
 // Convenience method for starting a span using the Global tracer.
-Span StartSpan(const std::string& operation_name, std::initializer_list<StartSpanOption> opts = {});
+Span StartSpan(const std::string& operation_name, std::initializer_list<SpanStartOption> opts = {});
 
 } // namespace lightstep
 
