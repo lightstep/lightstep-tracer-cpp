@@ -78,6 +78,8 @@ public:
   SpanReference(SpanReferenceType type, const SpanContext &referenced)
     : type_(type),
       referenced_(referenced) { }
+  SpanReference(const SpanReference& o)
+    : type_(o.type_), referenced_(o.referenced_) { }
 
   virtual void Apply(SpanImpl *span) const override;
 

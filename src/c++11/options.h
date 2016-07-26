@@ -32,17 +32,22 @@ public:
   std::function<bool(uint64_t)> should_sample;
 };
 
-// SpanStartOptions
 class SpanStartOption {
 public:
+  SpanStartOption(const SpanStartOption&) = delete;
+
   virtual ~SpanStartOption() { }
 
   virtual void Apply(SpanImpl* span) const = 0;
+
+protected:
+  SpanStartOption() { }
 };
 
 class StartTimestamp : public SpanStartOption {
 public:
   StartTimestamp(TimeStamp when) : when_(when) { }
+  StartTimestamp(const StartTimestamp& o) : when_(o.when_) { }
 
   virtual void Apply(SpanImpl *span) const override;
 
@@ -54,6 +59,7 @@ class AddTag : public SpanStartOption {
 public:
   AddTag(const std::string& key, const Value& value)
     : key_(key), value_(value) { }
+  AddTag(const AddTag& o) : key_(o.key_), value_(o.value_) { }
 
   virtual void Apply(SpanImpl *span) const override;
 
@@ -62,17 +68,21 @@ private:
   const Value &value_;
 };
 
-// SpanFinishOption
 class SpanFinishOption {
 public:
+  SpanFinishOption(const SpanFinishOption&) = delete;
   virtual ~SpanFinishOption() { }
 
   virtual void Apply(lightstep_net::SpanRecord *span) const = 0;
+
+protected:
+  SpanFinishOption() { };
 };
 
-class FinishTimestampOption : public SpanFinishOption {
+class FinishTimestamp : public SpanFinishOption {
 public:
-  FinishTimestampOption(TimeStamp when) : when_(when) { }
+  FinishTimestamp(TimeStamp when) : when_(when) { }
+  FinishTimestamp(const FinishTimestamp &o) : when_(o.when_) { }
 
   virtual void Apply(lightstep_net::SpanRecord *span) const override;
 

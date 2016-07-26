@@ -16,7 +16,6 @@ namespace {
 using namespace lightstep_net;
 
 const char TraceKeyPrefix[] = "join:";
-const char TraceGUIDKey[] = "join:trace_guid";
 const char ParentSpanGUIDKey[] = "parent_span_guid";
 const char UndefinedSpanName[] = "undefined";
 const char ComponentNameKey[] = "lightstep.component_name";
@@ -141,7 +140,7 @@ void SpanImpl::FinishSpan(SpanFinishOptions opts) {
   tracer_->RecordSpan(std::move(span));
 }
 
-void FinishTimestampOption::Apply(lightstep_net::SpanRecord *span) const {
+void FinishTimestamp::Apply(lightstep_net::SpanRecord *span) const {
   span->youngest_micros = util::to_micros(when_);
 }
 
