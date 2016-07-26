@@ -9,6 +9,28 @@
 
 namespace lightstep {
   
+class SpanContext {
+public:
+
+  // TODO opentracing to possibly std::string BaggageItem(const std::string& key);
+  // See https://github.com/opentracing/opentracing.github.io/issues/106
+
+  uint64_t trace_id() const;
+  uint64_t span_id() const;
+  uint64_t parent_span_id() const;
+  bool sampled() const;
+
+  void ForeachBaggageItem(std::function<bool(const std::string& key, const std::string& value)> f) const;
+
+private:
+  friend class SpanImpl;
+  friend class Span;
+
+  explicit SpanContext(std::shared_ptr<SpanImpl> span) : owner_(span) { }
+
+  std::shared_ptr<SpanImpl> owner_;
+};
+
 enum SpanReferenceType {
   // ChildOfRef refers to a parent Span that caused *and* somehow depends
   // upon the new child Span. Often (but not always), the parent Span cannot
@@ -57,7 +79,7 @@ public:
     : type_(type),
       referenced_(referenced) { }
 
-  virtual void Apply(SpanImpl *span) const;
+  virtual void Apply(SpanImpl *span) const override;
 
 private:
   SpanReferenceType type_;

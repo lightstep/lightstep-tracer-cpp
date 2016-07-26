@@ -41,7 +41,7 @@ class TracerImpl {
 
   std::unique_ptr<SpanImpl> StartSpan(std::shared_ptr<TracerImpl> selfptr,
 				      const std::string& op_name,
-				      std::initializer_list<SpanStartOption> opts = {});
+				      SpanStartOptions opts = {});
   
   const TracerOptions& options() const { return options_; }
 
@@ -129,7 +129,7 @@ public:
     return "";
   }
 
-  void FinishSpan(std::initializer_list<SpanFinishOption> opts = {});
+  void FinishSpan(SpanFinishOptions opts = {});
 
 private:
   friend class AddTag;

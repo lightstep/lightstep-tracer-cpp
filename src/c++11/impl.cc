@@ -56,11 +56,11 @@ void TracerImpl::set_recorder(std::unique_ptr<Recorder> recorder) {
 
 std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> selfptr,
 						const std::string& operation_name,
-						std::initializer_list<SpanStartOption> opts) {
+						SpanStartOptions opts) {
   std::unique_ptr<SpanImpl> span(new SpanImpl(selfptr));
 
   for (const auto& o : opts) {
-    o.Apply(span.get());
+    o.get().Apply(span.get());
   }
 
   if (span->start_micros_ == 0) {
@@ -102,11 +102,11 @@ void SpanReference::Apply(SpanImpl *span) const {
   span->context_.sampled = referenced_.sampled();
 }
 
-void SpanImpl::FinishSpan(std::initializer_list<SpanFinishOption> opts) {
+void SpanImpl::FinishSpan(SpanFinishOptions opts) {
   SpanRecord span;
 
   for (const auto& o : opts) {
-    o.Apply(&span);
+    o.get().Apply(&span);
   }
 
   if (span.youngest_micros == 0) {

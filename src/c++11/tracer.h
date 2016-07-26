@@ -7,6 +7,7 @@
 #include "value.h"
 
 #include <memory>
+#include <functional>
 
 #ifndef __LIGHTSTEP_TRACER_H__
 #define __LIGHTSTEP_TRACER_H__
@@ -30,8 +31,7 @@ class Tracer {
   // Constructs a No-Op tracer handle. implementation.
   explicit Tracer(std::nullptr_t) { }
 
-  Span StartSpan(const std::string& operation_name,
-		 std::initializer_list<SpanStartOption> opts = {}) const;
+  Span StartSpan(const std::string& operation_name, SpanStartOptions opts = {}) const;
 
   // GlobalTracer returns the global tracer.
   static Tracer Global();
@@ -122,6 +122,11 @@ private:
   std::string assembly_;
   int assembled_;
 };
+
+// Create a tracer with user-defined transport.
+typedef std::function<std::unique_ptr<Recorder>(const TracerImpl&)> RecorderFactory;
+
+Tracer NewUserDefinedTransportLightStepTracer(const TracerOptions& topts, RecorderFactory rf);
 
 }  // namespace lightstep
 

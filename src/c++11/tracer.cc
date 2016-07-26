@@ -35,7 +35,7 @@ Tracer Tracer::InitGlobal(Tracer newt) {
 }
 
 Span Tracer::StartSpan(const std::string& operation_name,
-		       std::initializer_list<SpanStartOption> opts) const {
+		       SpanStartOptions opts) const {
   if (!impl_) return Span();
   return Span(impl_->StartSpan(impl_, operation_name, opts));
 }
@@ -150,6 +150,12 @@ void JsonEncoder::addJsonSuffix() {
   // assembly_ contains { "runtime": ..., ..., "span_records": [ ...
   // now close the span_records array and report request object:
   assembly_.append("] }");
+}
+
+Tracer NewUserDefinedTransportLightStepTracer(const TracerOptions& topts, RecorderFactory rf) {
+  ImplPtr impl(new TracerImpl(topts));
+  impl->set_recorder(rf(*impl));
+  return Tracer(impl);
 }
 
 }  // namespace lightstep
