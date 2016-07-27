@@ -3,7 +3,6 @@ lib_LTLIBRARIES = liblightstep_nonetwork_cxx11.la
 
 liblightstep_nonetwork_cxx11_la_SOURCES = \
 	impl.cc \
-	propagation.cc \
 	span.cc \
 	tracer.cc \
 	util.cc \

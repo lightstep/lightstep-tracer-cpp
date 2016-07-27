@@ -5,6 +5,8 @@
 #include "tracer.h"
 #include "impl.h"
 
+using namespace lightstep;
+
 class error : public std::exception {
 public:
   error(const char *what) : what_(what) { }
@@ -14,43 +16,46 @@ private:
   const char *what_;
 };
 
-class TestRecorder : public lightstep::Recorder {
+class TestRecorder : public Recorder {
 public:
-  explicit TestRecorder(const lightstep::TracerImpl& impl) : encoder_(impl) { }
+  explicit TestRecorder(const TracerImpl& impl) : encoder_(impl) { }
 
   virtual void RecordSpan(lightstep_net::SpanRecord&& span) {
     std::lock_guard<std::mutex> lock(mutex_);
     encoder_.recordSpan(std::move(span));
   }
-  virtual bool FlushWithTimeout(lightstep::Duration timeout) {
+  virtual bool FlushWithTimeout(Duration timeout) {
     std::cerr << encoder_.jsonString() << std::endl;
     return true;
   }
 
   std::mutex mutex_;
-  lightstep::JsonEncoder encoder_;
+  JsonEncoder encoder_;
 };
 
 int main() {
   try {
-    lightstep::TracerOptions topts;
+    TracerOptions topts;
 
     topts.access_token = "";
     topts.collector_host = "";
     topts.collector_port = 9998;
     topts.collector_encryption = "";
     
-    lightstep::Tracer::InitGlobal(NewUserDefinedTransportLightStepTracer(topts, [](const lightstep::TracerImpl& impl) { return std::unique_ptr<lightstep::Recorder>(new TestRecorder(impl)); }));
+    Tracer::InitGlobal(NewUserDefinedTransportLightStepTracer(topts, [](const TracerImpl& impl) {
+	  return std::unique_ptr<Recorder>(new TestRecorder(impl));
+	}));
 
     // Recorder has shared ownership. Get a pointer.
-    auto tracer = lightstep::Tracer::Global();
+    auto tracer = Tracer::Global();
     auto recorder = tracer.impl()->recorder();
 
-    auto span = lightstep::Tracer::Global().StartSpan("span/parent");
+    auto span = Tracer::Global().StartSpan("span/parent");
+    span.SetBaggageItem("test", "baggage");
     auto parent = span.context();
     span.Finish();
 
-    auto cspan = lightstep::Tracer::Global().StartSpan("span/child", { ChildOf(parent) });
+    auto cspan = Tracer::Global().StartSpan("span/child", { ChildOf(parent) });
     cspan.Finish();
 
     auto child = cspan.context();
@@ -63,8 +68,41 @@ int main() {
     if (child.trace_id() != parent.trace_id()) {
       throw error("trace_id mismatch");
     }
+
+    std::vector<std::pair<std::string, std::string>> headers;
     
-    lightstep::Tracer::Global().impl()->Flush();
+    if (!Tracer::Global().Inject(parent,
+				 BuiltinCarrierFormat::HTTPHeadersCarrier,
+				 make_ordered_string_pairs_writer(&headers))) {
+      throw error("inject failed");
+    }
+
+    SpanContext extracted = Tracer::Global().Extract(BuiltinCarrierFormat::HTTPHeadersCarrier,
+						     make_ordered_string_pairs_reader(headers));
+
+    if (extracted.trace_id() != parent.trace_id()) {
+      throw error("extracted trace_id mismatch");
+    }
+    if (extracted.span_id() != parent.span_id()) {
+      throw error("extracted span_id mismatch");
+    }
+    int baggage_count = 0;
+    extracted.ForeachBaggageItem([&baggage_count](const std::string& key,
+						  const std::string& value) {
+				   baggage_count++;
+				   if (key != "test") {
+				     throw error("unexpected baggage key");
+				   }
+				   if (value != "baggage") {
+				     throw error("unexpected baggage value");
+				   }
+				   return true;
+				 });
+    if (baggage_count != 1) {
+      throw error("unexpected baggage count");
+    }
+    
+    Tracer::Global().impl()->Flush();
   } catch (std::exception &e) {
     std::cerr << "Exception! " << e.what() << std::endl;
     return 1;

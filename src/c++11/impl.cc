@@ -1,7 +1,7 @@
 #include <string.h>
 #include <functional>
-#include <iostream>
 #include <random>
+#include <sstream>
 
 #include "config.h"
 #include "impl.h"
@@ -21,6 +21,28 @@ const char UndefinedSpanName[] = "undefined";
 const char ComponentNameKey[] = "lightstep.component_name";
 const char PlatformNameKey[] = "lightstep.tracer_platform";
 const char VersionNameKey[] = "lightstep.tracer_version";
+
+#define PREFIX_TRACER_STATE "ot-tracer-"
+const char PrefixTracerState[] = PREFIX_TRACER_STATE;
+const char PrefixBaggage[] = "ot-baggage-";
+
+const char FieldNameTraceID[] = PREFIX_TRACER_STATE "traceid";
+const char FieldNameSpanID[] = PREFIX_TRACER_STATE "spanid";
+const char FieldNameSampled[] = PREFIX_TRACER_STATE "sampled";
+
+std::string uint64ToHex(uint64_t u) {
+  std::stringstream ss;
+  ss << u;
+  return ss.str();
+}
+
+uint64_t stringToUint64(const std::string& s) {
+  // TODO error handling
+  std::stringstream ss(s);
+  uint64_t x;
+  ss >> x;
+  return x;
+}
 
 } // namespace
 
@@ -65,6 +87,7 @@ std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> self
   if (span->start_micros_ == 0) {
     span->start_micros_ = util::to_micros(Clock::now());
   }
+  span->operation_name_ = operation_name;
   if (span->operation_name_.empty()) {
     span->operation_name_ = UndefinedSpanName;
   }
@@ -78,6 +101,71 @@ std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> self
   }
 
   return span;
+}
+
+bool TracerImpl::inject(SpanContext sc, const CarrierFormat& format, const CarrierWriter& opaque) {
+  const BuiltinCarrierFormat *bcf = dynamic_cast<const BuiltinCarrierFormat*>(&format);
+  if (bcf == nullptr) {
+    return false;
+  }
+  switch (bcf->type()) {
+  case BuiltinCarrierFormat::HTTPHeaders:
+  case BuiltinCarrierFormat::TextMap:
+    break;
+  default:
+    return false;
+  }
+
+  const TextMapWriter* carrier = dynamic_cast<const TextMapWriter*>(&opaque);
+  if (carrier == nullptr) {
+    return false;
+  }
+  carrier->Set(FieldNameTraceID, uint64ToHex(sc.trace_id()));
+  carrier->Set(FieldNameSpanID, uint64ToHex(sc.span_id()));
+  carrier->Set(FieldNameSampled, sc.sampled() ? "true" : "false");
+
+  sc.ForeachBaggageItem([carrier](const std::string& key,
+				  const std::string& value) {
+			  carrier->Set(std::string(PrefixBaggage) + key, value);
+			  return false;
+			});
+  return true;
+}
+
+SpanContext TracerImpl::extract(const CarrierFormat& format, const CarrierReader& opaque) {
+  const BuiltinCarrierFormat *bcf = dynamic_cast<const BuiltinCarrierFormat*>(&format);
+  if (bcf == nullptr) {
+    // TODO error handling
+    return SpanContext();
+  }
+  switch (bcf->type()) {
+  case BuiltinCarrierFormat::HTTPHeaders:
+  case BuiltinCarrierFormat::TextMap:
+    break;
+  default:
+    return SpanContext();
+  }
+
+  const TextMapReader* carrier = dynamic_cast<const TextMapReader*>(&opaque);
+  if (carrier == nullptr) {
+    return SpanContext();
+  }
+
+  std::shared_ptr<ContextImpl> ctx(new ContextImpl);
+  carrier->ForeachKey([carrier, &ctx](const std::string& key,
+				const std::string& value) {
+			if (key == FieldNameTraceID) {
+			  ctx->trace_id = stringToUint64(value);
+			} else if (key == FieldNameSpanID) {
+			  ctx->span_id = stringToUint64(value);
+			} else if (key == FieldNameSampled) {
+			  ctx->sampled = (value == "true");
+			} else if (key.size() > strlen(PrefixBaggage) &&
+				   memcmp(key.data(), PrefixBaggage, strlen(PrefixBaggage)) == 0) {
+			  ctx->setBaggageItem(std::make_pair(key.substr(strlen(PrefixBaggage)), value));
+			}
+		      });
+  return SpanContext(ctx);
 }
 
 void StartTimestamp::Apply(SpanImpl *span) const {
@@ -94,7 +182,7 @@ void SpanReference::Apply(SpanImpl *span) const {
   span->context_.parent_span_id = referenced_.span_id();
 
   referenced_.ForeachBaggageItem([span](const std::string& key, const std::string& value) {
-      span->context_.baggage.emplace(std::make_pair(key, value));
+      span->context_.setBaggageItem(std::make_pair(key, value));
       return true;
     });
   

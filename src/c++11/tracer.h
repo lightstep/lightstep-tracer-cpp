@@ -50,16 +50,20 @@ class Tracer {
   // OpenTracing defines a common set of `format` values (see BuiltinFormat),
   // and each has an expected carrier type.
   //
-  // TODO throws?
-  void Inject(SpanContext sc, const CarrierFormat &format, CarrierWriter *writer);
+  // Returns true on success.
+  //
+  // TODO return error status somehow?
+  bool Inject(SpanContext sc, const CarrierFormat& format, const CarrierWriter& writer);
 
   // Extract() returns a SpanContext instance given `format` and `carrier`.
   //
   // OpenTracing defines a common set of `format` values (see BuiltinFormat),
   // and each has an expected carrier type.
   //
-  // TODO throws?
-  SpanContext Extract(const CarrierFormat &format, CarrierReader *reader);
+  // Returns true on success.
+  //
+  // TODO return error status somehow.
+  SpanContext Extract(const CarrierFormat& format, const CarrierReader& reader);
 
  private:
   ImplPtr impl_;

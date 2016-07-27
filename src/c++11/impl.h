@@ -10,6 +10,7 @@
 #include <random>
 
 #include "options.h"
+#include "propagation.h"
 #include "value.h"
 
 namespace lightstep_net {
@@ -25,14 +26,44 @@ class SpanImpl;
 
 typedef std::unordered_map<std::string, std::string> Baggage;
 
-struct ContextImpl {
+class ContextImpl {
+public:
   ContextImpl() : trace_id(0), span_id(0), parent_span_id(0), sampled(false) { }
 
+  void setBaggageItem(std::pair<std::string, std::string>&& item) {
+    MutexLock l(baggage_mutex_);
+    baggage_.emplace(item);
+  }
+
+  std::string baggageItem(const std::string& key) {
+    MutexLock l(baggage_mutex_);
+    auto lookup = baggage_.find(key);
+    if (lookup != baggage_.end()) {
+      return lookup->second;
+    }
+    return "";
+  }
+
+  void foreachBaggageItem(std::function<bool(const std::string& key,
+					     const std::string& value)> f) const {
+    MutexLock l(baggage_mutex_);
+    for (const auto& bi : baggage_) {
+      if (!f(bi.first, bi.second)) {
+	return;
+      }
+    }
+  }
+  
+  // These four fields are only modified in StartSpan. TODO could
+  // rearrange that code to make these fields const.
   uint64_t trace_id;
   uint64_t span_id;
   uint64_t parent_span_id;
   bool     sampled;
-  Baggage  baggage;
+
+private:
+  mutable std::mutex baggage_mutex_;
+  Baggage baggage_;
 };
 
 class TracerImpl {
@@ -72,8 +103,12 @@ class TracerImpl {
   void set_recorder(std::unique_ptr<Recorder> recorder);
 
  private:
+  friend class Tracer;
   friend class SpanReference;
 
+  bool inject(SpanContext sc, const CarrierFormat &format, const CarrierWriter &writer);
+  SpanContext extract(const CarrierFormat& format, const CarrierReader& reader);
+  
   void GetTwoIds(uint64_t *a, uint64_t *b);
   uint64_t GetOneId();
 
@@ -111,22 +146,15 @@ public:
   void SetTag(const std::string& key, const Value& value) {
     MutexLock l(mutex_);
     tags_[key] = value;
-
   }
 
-  void SetBaggageItem(const std::string& restricted_key,
+  void SetBaggageItem(const std::string& key,
 		      const std::string& value) {
-    MutexLock l(mutex_);
-    context_.baggage.insert(std::make_pair(restricted_key, value));
+    context_.setBaggageItem(std::make_pair(key, value));
   }
 
-  std::string BaggageItem(const std::string& restricted_key) {
-    MutexLock l(mutex_);
-    auto lookup = context_.baggage.find(restricted_key);
-    if (lookup != context_.baggage.end()) {
-      return lookup->second;
-    }
-    return "";
+  std::string BaggageItem(const std::string& key) {
+    return context_.baggageItem(key);
   }
 
   void FinishSpan(SpanFinishOptions opts = {});

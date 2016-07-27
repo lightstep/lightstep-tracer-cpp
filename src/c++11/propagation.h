@@ -8,6 +8,8 @@
 #include "options.h"
 
 namespace lightstep {
+
+class ContextImpl;
   
 class SpanContext {
 public:
@@ -20,15 +22,24 @@ public:
   uint64_t parent_span_id() const;
   bool sampled() const;
 
-  void ForeachBaggageItem(std::function<bool(const std::string& key, const std::string& value)> f) const;
+  void ForeachBaggageItem(std::function<bool(const std::string& key,
+					     const std::string& value)> f) const;
 
 private:
-  friend class SpanImpl;
   friend class Span;
+  friend class SpanImpl;
+  friend class TracerImpl;
 
-  explicit SpanContext(std::shared_ptr<SpanImpl> span) : owner_(span) { }
+  const ContextImpl* ctx() const;
 
-  std::shared_ptr<SpanImpl> owner_;
+  explicit SpanContext(std::shared_ptr<SpanImpl> span) : span_ctx_(span) { }
+  explicit SpanContext(std::shared_ptr<ContextImpl> ctx) : impl_ctx_(ctx) { }
+
+  // This is presently used where there should be error handling.  TODO rework this.
+  SpanContext() { }
+
+  std::shared_ptr<SpanImpl>    span_ctx_;
+  std::shared_ptr<ContextImpl> impl_ctx_;
 };
 
 enum SpanReferenceType {
@@ -94,79 +105,98 @@ SpanReference ChildOf(const SpanContext& ctx);
 // Create a FollowsFrom-referencing StartSpan option.
 SpanReference FollowsFrom(const SpanContext& ctx);
 
-enum BuiltinFormat {
-  // Binary encodes the SpanContext for propagation as opaque binary data.
-  Binary = 1,  // NOT IMPLEMENTED
-
-  // TextMap encodes the SpanContext as key:value pairs.
-  TextMap = 2,  // NOT IMPLEMENTED
-
-  // HTTPHeaders represents SpanContexts as HTTP header string pairs.
-  //
-  // The HTTPHeaders format requires that the keys and values be valid
-  // as HTTP headers as-is (i.e., character casing may be unstable and
-  // special characters are disallowed in keys, values should be
-  // URL-escaped, etc).
-  //
-  // For Tracer::Inject(): the carrier must be a `HTTPHeadersWriter`.
-  //
-  // For Tracer::Extract(): the carrier must be a `HTTPHeadersReader`.
-  //
-  // For example, Inject():
-  //
-  //    std::vector<std::pair> headers;
-  //    lightstep::HTTPHeadersWriter writer(&headers);
-  //    span.tracer().Inject(span, lightstep::HTTPHeaders, &writer);
-  //    ... apply headers to HTTP request ...
-  //
-  // Or Extract():
-  //
-  //    lightstep::HTTPHeadersReader writer(request->headers());
-  //    SpanContext parent = span.tracer().Extract(lightstep::HTTPHeaders, &writer);
-  //    Span child = StartSpan("childOp", { ChildOf(parent) });
-  //
-  HTTPHeaders = 3,
-};
-
 // Base class for implementation-provided or builtin carrier formats.
-class CarrierFormat { };
+class CarrierFormat {
+public:
+  virtual ~CarrierFormat() { }
+};
 
 // Builtin carrier format values.
 class BuiltinCarrierFormat : public CarrierFormat {
 public:
-  explicit BuiltinCarrierFormat(BuiltinFormat format) : format_(format) { }
+  enum FormatType {
+    // Binary encodes the SpanContext for propagation as opaque binary data.
+    Binary = 1,  // NOT IMPLEMENTED
+    
+    // TextMap encodes the SpanContext as key:value pairs.
+    TextMap = 2,  // NOT IMPLEMENTED
+    
+    // HTTPHeaders represents SpanContexts as HTTP header string pairs.
+    //
+    // The HTTPHeaders format requires that the keys and values be valid
+    // as HTTP headers as-is (i.e., character casing may be unstable and
+    // special characters are disallowed in keys, values should be
+    // URL-escaped, etc).
+    //
+    // For Tracer::Inject(): the carrier must be a `HTTPHeadersWriter`.
+    //
+    // For Tracer::Extract(): the carrier must be a `HTTPHeadersReader`.
+    //
+    // For example, Inject():
+    //
+    //    std::vector<std::pair> headers;
+    //    lightstep::HTTPHeadersWriter writer(&headers);
+    //    span.tracer().Inject(span, lightstep::HTTPHeaders, &writer);
+    //    ... apply headers to HTTP request ...
+    //
+    // Or Extract():
+    //
+    //    lightstep::HTTPHeadersReader writer(request->headers());
+    //    SpanContext parent = span.tracer().Extract(lightstep::HTTPHeaders, &writer);
+    //    Span child = StartSpan("childOp", { ChildOf(parent) });
+    //
+    HTTPHeaders = 3,
+  };
 
-  static BuiltinCarrierFormat Binary;
-  static BuiltinCarrierFormat TextMap;
-  static BuiltinCarrierFormat HTTPHeaders;
+  static BuiltinCarrierFormat BinaryCarrier;
+  static BuiltinCarrierFormat TextMapCarrier;
+  static BuiltinCarrierFormat HTTPHeadersCarrier;
+
+  BuiltinCarrierFormat(FormatType type) : type_(type) { }
+
+  FormatType type() const { return type_; }
 
 private:
-  BuiltinFormat format_;
+  const FormatType type_;
 };
 
 // Base class for implementation-dependent Tracer::Inject argument.
-class CarrierReader { };
+class CarrierReader {
+public:
+  virtual ~CarrierReader() { }
+};
 
 // Base class for implementation-dependent Tracer::Extract argument.
-class CarrierWriter { };
-
-// Helper methods for the HTTP carriers.
-std::string uriQueryEscape(const std::string& str);
-std::string uriQueryUnescape(const std::string& str);
-
-// HTTPHeadersReader is the Extract() carrier for the HTTPHeaders builtin format.
-//
-// Headers should be similar to a std::vector of std::pairs.
-template <typename T>
-class HTTPHeadersReader : public CarrierReader {
+class CarrierWriter {
 public:
-  explicit HTTPHeadersReader(const T& data) : data_(data) { }
-  virtual ~HTTPHeadersReader() { }
+  virtual ~CarrierWriter() { }
+};
+
+// Base class for injecting into TextMap and HTTPHeaders carriers.
+class TextMapReader : public CarrierReader {
+public:
+  virtual void ForeachKey(std::function<void(const std::string& key,
+					     const std::string& value)> f) const = 0;
+};
+
+// Base class for extracting from TextMap and HTTPHeaders carriers.
+class TextMapWriter : public CarrierWriter {
+public:
+  virtual void Set(const std::string& key, const std::string& value) const = 0;
+};
+
+// OrderedStringPairsReader is a TextMapReader for any container
+// similar to a std::vector of std::pair<std::string, std::string>.
+template <typename T>
+class OrderedStringPairsReader : public TextMapReader {
+public:
+  explicit OrderedStringPairsReader(const T& data) : data_(data) { }
 
   // TODO throws?
-  virtual void ForeachKey(std::function<void(const std::string& key, const std::string& value)> f) const {
+  virtual void ForeachKey(std::function<void(const std::string& key,
+					     const std::string& value)> f) const override {
     for (const auto& e : data_) {
-      f(e.first, uriQueryEscape(e.second));
+      f(e.first, e.second);
     }
   }
 
@@ -174,22 +204,32 @@ private:
   const T& data_;
 };
 
-// HTTPHeadersReader is the Inject() carrier for the HTTPHeaders builtin format.
+template <typename T>
+OrderedStringPairsReader<T> make_ordered_string_pairs_reader(const T& arg) {
+  return OrderedStringPairsReader<T>(arg);
+}
+
+// OrderedStringPairsReader is the Inject() carrier for the HTTPHeaders builtin format.
 //
 // Headers should be similar to a std::vector of std::pairs.
 template <typename T>
-class HTTPHeadersWriter : public CarrierWriter {
+class OrderedStringPairsWriter : public TextMapWriter {
 public:
-  explicit HTTPHeadersWriter(const T* data) : data_(data) { }
-  virtual ~HTTPHeadersWriter() { }
+  explicit OrderedStringPairsWriter(T* data) : data_(data) { }
 
-  virtual void Set(const std::string& key, const std::string& value) {
-    data_->emplace(typename T::value_type(key, uriQueryUnescape(value)));
+  virtual void Set(const std::string& key, const std::string& value) const override {
+    // TODO could have a Set(..., std::string&& value) method too, use emplace().
+    data_->push_back(typename T::value_type(key, value));
   }
 
 private:
-  const T* data_;
+  T* const data_;
 };
+
+template <typename T>
+OrderedStringPairsWriter<T> make_ordered_string_pairs_writer(T* arg) {
+  return OrderedStringPairsWriter<T>(arg);
+}
 
 } // namespace lightstep
 

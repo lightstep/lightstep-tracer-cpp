@@ -53,16 +53,45 @@ SpanContext Span::context() const {
   return SpanContext(impl_);
 }
 
-uint64_t SpanContext::trace_id() const { return owner_->context_.trace_id; }
-uint64_t SpanContext::span_id() const { return owner_->context_.span_id; }
-uint64_t SpanContext::parent_span_id() const { return owner_->context_.parent_span_id; }
-bool SpanContext::sampled() const { return owner_->context_.sampled; }
+const ContextImpl* SpanContext::ctx() const {
+  if (span_ctx_ != nullptr) {
+    return &span_ctx_->context_;
+  } else if (impl_ctx_ != nullptr) {
+    return impl_ctx_.get();
+  } else {
+    return nullptr;
+  }
+}
 
-void SpanContext::ForeachBaggageItem(std::function<bool(const std::string& key, const std::string& value)> f) const {
-  for (const auto& bi : owner_->context_.baggage) {
-    if (!f(bi.first, bi.second)) {
-      return;
-    }
+uint64_t SpanContext::trace_id() const {
+  if (const ContextImpl* impl = ctx()) {
+    return impl->trace_id;
+  }
+  return 0;
+}
+uint64_t SpanContext::span_id() const {
+  if (const ContextImpl* impl = ctx()) {
+    return impl->span_id;
+  }
+  return 0;
+}
+uint64_t SpanContext::parent_span_id() const {
+  if (const ContextImpl* impl = ctx()) {
+    return impl->parent_span_id;
+  }
+  return 0;
+}
+bool SpanContext::sampled() const {
+  if (const ContextImpl* impl = ctx()) {
+    return impl->sampled;
+  }
+  return false;
+}
+
+void SpanContext::ForeachBaggageItem(std::function<bool(const std::string& key,
+							const std::string& value)> f) const {
+  if (const ContextImpl* impl = ctx()) {
+    impl->foreachBaggageItem(f);
   }
 }
 

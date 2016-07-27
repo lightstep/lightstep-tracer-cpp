@@ -16,6 +16,10 @@ std::atomic<ImplPtr*> global_tracer;
 
 }  // namespace
 
+BuiltinCarrierFormat BuiltinCarrierFormat::BinaryCarrier{BuiltinCarrierFormat::Binary};
+BuiltinCarrierFormat BuiltinCarrierFormat::TextMapCarrier{BuiltinCarrierFormat::TextMap};
+BuiltinCarrierFormat BuiltinCarrierFormat::HTTPHeadersCarrier{BuiltinCarrierFormat::HTTPHeaders};
+
 Tracer Tracer::Global() {
   ImplPtr *ptr = global_tracer.load();
   if (ptr == nullptr) {
@@ -40,6 +44,14 @@ Span Tracer::StartSpan(const std::string& operation_name,
   return Span(impl_->StartSpan(impl_, operation_name, opts));
 }
 
+bool Tracer::Inject(SpanContext sc, const CarrierFormat &format, const CarrierWriter &writer) {
+  return impl_->inject(sc, format, writer);
+}
+
+SpanContext Tracer::Extract(const CarrierFormat& format, const CarrierReader& reader) {
+  return impl_->extract(format, reader);
+}
+
 SpanReference ChildOf(const SpanContext& ctx) {
   return SpanReference(ChildOfRef, ctx);
 }
@@ -47,7 +59,6 @@ SpanReference ChildOf(const SpanContext& ctx) {
 SpanReference FollowsFrom(const SpanContext& ctx) {
   return SpanReference(FollowsFromRef, ctx);
 }
-
 
 JsonEncoder::JsonEncoder(const TracerImpl& tracer)
   : tracer_(tracer) {
