@@ -26,6 +26,7 @@ const char VersionNameKey[] = "lightstep.tracer_version";
 const char PrefixTracerState[] = PREFIX_TRACER_STATE;
 const char PrefixBaggage[] = "ot-baggage-";
 
+const char FieldCount = 3;
 const char FieldNameTraceID[] = PREFIX_TRACER_STATE "traceid";
 const char FieldNameSpanID[] = PREFIX_TRACER_STATE "spanid";
 const char FieldNameSampled[] = PREFIX_TRACER_STATE "sampled";
@@ -134,8 +135,8 @@ bool TracerImpl::inject(SpanContext sc, const CarrierFormat& format, const Carri
 
 SpanContext TracerImpl::extract(const CarrierFormat& format, const CarrierReader& opaque) {
   const BuiltinCarrierFormat *bcf = dynamic_cast<const BuiltinCarrierFormat*>(&format);
+  // TODO a way to log errors here
   if (bcf == nullptr) {
-    // TODO error handling
     return SpanContext();
   }
   switch (bcf->type()) {
@@ -152,19 +153,26 @@ SpanContext TracerImpl::extract(const CarrierFormat& format, const CarrierReader
   }
 
   std::shared_ptr<ContextImpl> ctx(new ContextImpl);
-  carrier->ForeachKey([carrier, &ctx](const std::string& key,
+  int count = 0;
+  carrier->ForeachKey([carrier, &ctx, &count](const std::string& key,
 				const std::string& value) {
 			if (key == FieldNameTraceID) {
 			  ctx->trace_id = stringToUint64(value);
+			  count++;
 			} else if (key == FieldNameSpanID) {
 			  ctx->span_id = stringToUint64(value);
+			  count++;
 			} else if (key == FieldNameSampled) {
 			  ctx->sampled = (value == "true");
+			  count++;
 			} else if (key.size() > strlen(PrefixBaggage) &&
 				   memcmp(key.data(), PrefixBaggage, strlen(PrefixBaggage)) == 0) {
 			  ctx->setBaggageItem(std::make_pair(key.substr(strlen(PrefixBaggage)), value));
 			}
 		      });
+  if (count != FieldCount) {
+    return SpanContext();
+  }
   return SpanContext(ctx);
 }
 
@@ -172,11 +180,14 @@ void StartTimestamp::Apply(SpanImpl *span) const {
   span->start_micros_ = util::to_micros(when_);
 }
 
-void AddTag::Apply(SpanImpl *span) const {
+void SetTag::Apply(SpanImpl *span) const {
   span->tags_.emplace(std::make_pair(key_, value_));
 }
 
 void SpanReference::Apply(SpanImpl *span) const {
+  if (!referenced_.valid()) {
+    return;
+  }
   span->context_.span_id = span->tracer_->GetOneId();
   span->context_.trace_id = referenced_.trace_id();
   span->context_.parent_span_id = referenced_.span_id();

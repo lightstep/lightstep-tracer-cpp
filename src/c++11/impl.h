@@ -2,8 +2,6 @@
 #ifndef __LIGHTSTEP_IMPL_H__
 #define __LIGHTSTEP_IMPL_H__
 
-// TODO some comments, please
-
 #include <chrono>
 #include <memory>
 #include <mutex>
@@ -54,8 +52,8 @@ public:
     }
   }
   
-  // These four fields are only modified in StartSpan. TODO could
-  // rearrange that code to make these fields const.
+  // These are modified during constructors (StartSpan and Extract),
+  // but would require extra work/copying to make them const.
   uint64_t trace_id;
   uint64_t span_id;
   uint64_t parent_span_id;
@@ -160,10 +158,10 @@ public:
   void FinishSpan(SpanFinishOptions opts = {});
 
 private:
-  friend class AddTag;
   friend class Span;
   friend class SpanContext;
   friend class SpanReference;
+  friend class SetTag;
   friend class StartTimestamp;
   friend class TracerImpl;
 

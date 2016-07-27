@@ -10,12 +10,12 @@
 namespace lightstep {
 
 class ContextImpl;
-  
+
+// SpanContext is an immutable span context.
 class SpanContext {
 public:
-
-  // TODO opentracing to possibly std::string BaggageItem(const std::string& key);
-  // See https://github.com/opentracing/opentracing.github.io/issues/106
+  // Returns a !valid() span context.
+  SpanContext() { }
 
   uint64_t trace_id() const;
   uint64_t span_id() const;
@@ -24,6 +24,13 @@ public:
 
   void ForeachBaggageItem(std::function<bool(const std::string& key,
 					     const std::string& value)> f) const;
+
+  // Note: opentracing to possibly add std::string BaggageItem(const std::string& key);
+  // See https://github.com/opentracing/opentracing.github.io/issues/106
+
+  // Returns true if the context is initialized.  A span context may not be valid
+  // because Extract() encounters an error.
+  bool valid() const { return ctx() != nullptr; }
 
 private:
   friend class Span;
@@ -34,9 +41,6 @@ private:
 
   explicit SpanContext(std::shared_ptr<SpanImpl> span) : span_ctx_(span) { }
   explicit SpanContext(std::shared_ptr<ContextImpl> ctx) : impl_ctx_(ctx) { }
-
-  // This is presently used where there should be error handling.  TODO rework this.
-  SpanContext() { }
 
   std::shared_ptr<SpanImpl>    span_ctx_;
   std::shared_ptr<ContextImpl> impl_ctx_;
@@ -92,6 +96,7 @@ public:
   SpanReference(const SpanReference& o)
     : type_(o.type_), referenced_(o.referenced_) { }
 
+  // This is a no-op if the referenced context is not valid.
   virtual void Apply(SpanImpl *span) const override;
 
 private:
@@ -118,9 +123,6 @@ public:
     // Binary encodes the SpanContext for propagation as opaque binary data.
     Binary = 1,  // NOT IMPLEMENTED
     
-    // TextMap encodes the SpanContext as key:value pairs.
-    TextMap = 2,  // NOT IMPLEMENTED
-    
     // HTTPHeaders represents SpanContexts as HTTP header string pairs.
     //
     // The HTTPHeaders format requires that the keys and values be valid
@@ -128,24 +130,38 @@ public:
     // special characters are disallowed in keys, values should be
     // URL-escaped, etc).
     //
-    // For Tracer::Inject(): the carrier must be a `HTTPHeadersWriter`.
+    // For Tracer::Inject(): the carrier must be a `TextMapReader`.
     //
-    // For Tracer::Extract(): the carrier must be a `HTTPHeadersReader`.
+    // For Tracer::Extract(): the carrier must be a `TextMapWriter`.
     //
     // For example, Inject():
     //
-    //    std::vector<std::pair> headers;
-    //    lightstep::HTTPHeadersWriter writer(&headers);
-    //    span.tracer().Inject(span, lightstep::HTTPHeaders, &writer);
-    //    ... apply headers to HTTP request ...
+    //   std::vector<std::pair<std::string, std::string>> *headers = ...;
+    //   if (!span.tracer().Inject(span, BuiltinCarrierFormat::HTTPHeadersCarrier,
+    // 	  			   make_ordered_string_pairs_writer(headers))) {
+    //     throw error("inject failed");
+    //   }
     //
     // Or Extract():
     //
-    //    lightstep::HTTPHeadersReader writer(request->headers());
-    //    SpanContext parent = span.tracer().Extract(lightstep::HTTPHeaders, &writer);
-    //    Span child = StartSpan("childOp", { ChildOf(parent) });
+    //   SpanContext extracted;
+    //   extracted = Tracer::Global().Extract(BuiltinCarrierFormat::HTTPHeadersCarrier,
+    //                                        make_ordered_string_pairs_reader(*headers));
+    //   auto span = Tracer::Global().StartSpan("op", { ChildOf(extracted) });
     //
-    HTTPHeaders = 3,
+    HTTPHeaders = 2,
+
+    // TextMap encodes the SpanContext as key:value pairs.
+    //
+    // The TextMap format is similar to the HTTPHeaderes format,
+    // without restrictions on the character set.
+    //
+    // For Tracer::Inject(): the carrier must be a `TextMapReader`.
+    //
+    // For Tracer::Extract(): the carrier must be a `TextMapWriter`.
+    //
+    // See the HTTPHeaders examples.
+    TextMap = 3,
   };
 
   static BuiltinCarrierFormat BinaryCarrier;
@@ -160,13 +176,13 @@ private:
   const FormatType type_;
 };
 
-// Base class for implementation-dependent Tracer::Inject argument.
+// Base class for implementation-dependent Tracer::Inject carrier-type adapter.
 class CarrierReader {
 public:
   virtual ~CarrierReader() { }
 };
 
-// Base class for implementation-dependent Tracer::Extract argument.
+// Base class for implementation-dependent Tracer::Extract carrier-type adapter.
 class CarrierWriter {
 public:
   virtual ~CarrierWriter() { }
@@ -192,7 +208,6 @@ class OrderedStringPairsReader : public TextMapReader {
 public:
   explicit OrderedStringPairsReader(const T& data) : data_(data) { }
 
-  // TODO throws?
   virtual void ForeachKey(std::function<void(const std::string& key,
 					     const std::string& value)> f) const override {
     for (const auto& e : data_) {

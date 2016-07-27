@@ -3,7 +3,7 @@
 AC_PREREQ([2.69])
 AC_INIT([LightStep C++ Tracer], [0.9],
         [https://github.com/lightstep/lightstep-tracer-cpp/issues])
-LT_INIT
+LT_INIT([disable-shared])
 AM_INIT_AUTOMAKE([1.14 foreign subdir-objects])
 AC_CONFIG_SRCDIR([src/c++11])
 AC_CONFIG_HEADERS([src/c++11/config.h])

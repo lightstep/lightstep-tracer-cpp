@@ -27,8 +27,8 @@ int main() {
 			std::make_pair("whatever", val2) };
 
     auto span = Tracer::Global().StartSpan("span/untraced", {
-	AddTag("hello", std::move(val3)),
-	AddTag("whatever", std::move(val2)),
+	SetTag("hello", std::move(val3)),
+	SetTag("whatever", std::move(val2)),
       });
     span.Finish();
 

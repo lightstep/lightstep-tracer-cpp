@@ -51,8 +51,6 @@ class Tracer {
   // and each has an expected carrier type.
   //
   // Returns true on success.
-  //
-  // TODO return error status somehow?
   bool Inject(SpanContext sc, const CarrierFormat& format, const CarrierWriter& writer);
 
   // Extract() returns a SpanContext instance given `format` and `carrier`.
@@ -60,9 +58,7 @@ class Tracer {
   // OpenTracing defines a common set of `format` values (see BuiltinFormat),
   // and each has an expected carrier type.
   //
-  // Returns true on success.
-  //
-  // TODO return error status somehow.
+  // Returns a `SpanContext` that is `valid()` on success.
   SpanContext Extract(const CarrierFormat& format, const CarrierReader& reader);
 
  private:

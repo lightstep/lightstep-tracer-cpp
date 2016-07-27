@@ -8,18 +8,17 @@ liblightstep_nonetwork_cxx11_la_SOURCES = \
 	util.cc \
 	dropbox_json/json11.cpp
 
-# TODO these Boost dependencies for the 'nonetwork' are not a good thing,
-# they are only here to escape and unescape URIs.  Separate the pure, lightweight
-# library from the HTTP header stuff somehow?
-BLOATYCPPFLAGS = -I$(top_srcdir)/vendor/cpp-netlib \
-		-I$(top_srcdir)/vendor/boost_1_60_0/build/include
-BLOATYLDFLAGS = -L$(top_srcdir)/vendor/cpp-netlib/build/libs/network/src \
+# TODO Boost->gRPC
+BOOSTNETCPPFLAGS = -I$(top_srcdir)/vendor/cpp-netlib \
+		-I$(top_srcdir)/vendor/boost_1_60_0/build/include \
+		-Wno-#pragma-messages
+BOOSTNETLDFLAGS = -L$(top_srcdir)/vendor/cpp-netlib/build/libs/network/src \
 		-L$(top_srcdir)/vendor/boost_1_60_0/build/lib \
 		-lcppnetlib-uri
 
-liblightstep_nonetwork_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) -I dropbox_json $(BLOATYCPPFLAGS)
+liblightstep_nonetwork_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) -I dropbox_json $(BOOSTNETCPPFLAGS)
 liblightstep_nonetwork_cxx11_la_LIBADD   =
-liblightstep_nonetwork_cxx11_la_LDFLAGS  = $(BLOATYLDFLAGS)
+liblightstep_nonetwork_cxx11_la_LDFLAGS  = $(BOOSTNETLDFLAGS)
 
 if ENABLE_CPP_NETLIB
 liblightstep_cxx11_la_SOURCES = \

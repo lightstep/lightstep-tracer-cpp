@@ -55,11 +55,11 @@ private:
   TimeStamp when_;
 };
 
-class AddTag : public SpanStartOption {
+class SetTag : public SpanStartOption {
 public:
-  AddTag(const std::string& key, const Value& value)
+  SetTag(const std::string& key, const Value& value)
     : key_(key), value_(value) { }
-  AddTag(const AddTag& o) : key_(o.key_), value_(o.value_) { }
+  SetTag(const SetTag& o) : key_(o.key_), value_(o.value_) { }
 
   virtual void Apply(SpanImpl *span) const override;
 

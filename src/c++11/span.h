@@ -49,7 +49,6 @@ public:
   std::shared_ptr<SpanImpl> impl() const { return impl_; }
 
   // TODO LogData not implemented
-  // TODO Set error flag not implemented
 
 private:
   std::shared_ptr<SpanImpl> impl_;
