@@ -2,13 +2,14 @@
 #ifndef __LIGHTSTEP_SPAN_H__
 #define __LIGHTSTEP_SPAN_H__
 
+#include "options.h"
+#include "propagation.h"
 #include "value.h"
 
 #include <memory>
 
 namespace lightstep {
 
-struct FinishSpanOptions;
 class Tracer;
 class SpanImpl;
 
@@ -29,13 +30,7 @@ public:
   Span& SetTag(const std::string& key, const Value& value);
 
   // Finish the span with default options.
-  void Finish();
-
-  // Finish the span with provided options.
-  void FinishWithOptions(const FinishSpanOptions& fopts);
-
-  // TODO LogData not implemented
-  // TODO set error flag not implemented
+  void Finish(SpanFinishOptions opts = {});
 
   // SetBaggageItem may be be called prior to Finish.
   Span& SetBaggageItem(const std::string& restricted_key,
@@ -47,19 +42,20 @@ public:
   // Gets the Tracer associated with this Span.
   Tracer tracer() const;
 
+  // Gets an immutable reference to this Span's context.
+  SpanContext context() const;
+
   // Get the implementation object.
   std::shared_ptr<SpanImpl> impl() const { return impl_; }
+
+  // TODO LogData not implemented
 
 private:
   std::shared_ptr<SpanImpl> impl_;
 };
 
 // Convenience method for starting a span using the Global tracer.
-Span StartSpan(const std::string& operation_name);
-
-// Convenience method for starting a span using the Global tracer and
-// a parent span.
-Span StartChildSpan(Span parent, const std::string& operation_name);
+Span StartSpan(const std::string& operation_name, SpanStartOptions opts = {});
 
 } // namespace lightstep
 

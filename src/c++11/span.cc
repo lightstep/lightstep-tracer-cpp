@@ -35,29 +35,64 @@ std::string Span::BaggageItem(const std::string& restricted_key) {
   return impl_->BaggageItem(restricted_key);
 }
 
-void Span::Finish() {
+void Span::Finish(SpanFinishOptions opts) {
   if (!impl_) return;
-  impl_->FinishSpan(FinishSpanOptions());
+  impl_->FinishSpan(opts);  
 }
 
-void Span::FinishWithOptions(const FinishSpanOptions& fopts) {
-  if (!impl_) return;
-  impl_->FinishSpan(fopts);
-}
-
-Span StartSpan(const std::string& operation_name) {
-  return Tracer::Global().StartSpan(operation_name);
-}
-
-Span StartChildSpan(Span parent, const std::string& operation_name) {
-  return Tracer::Global().StartSpanWithOptions(StartSpanOptions().
-					       SetOperationName(operation_name).
-					       SetParent(parent));
+Span StartSpan(const std::string& operation_name, SpanStartOptions opts) {
+  return Tracer::Global().StartSpan(operation_name, opts);
 }
 
 Tracer Span::tracer() const {
   if (!impl_) return Tracer(nullptr);
   return Tracer(impl_->tracer_);
 }
-  
+
+SpanContext Span::context() const {
+  return SpanContext(impl_);
+}
+
+const ContextImpl* SpanContext::ctx() const {
+  if (span_ctx_ != nullptr) {
+    return &span_ctx_->context_;
+  } else if (impl_ctx_ != nullptr) {
+    return impl_ctx_.get();
+  } else {
+    return nullptr;
+  }
+}
+
+uint64_t SpanContext::trace_id() const {
+  if (const ContextImpl* impl = ctx()) {
+    return impl->trace_id;
+  }
+  return 0;
+}
+uint64_t SpanContext::span_id() const {
+  if (const ContextImpl* impl = ctx()) {
+    return impl->span_id;
+  }
+  return 0;
+}
+uint64_t SpanContext::parent_span_id() const {
+  if (const ContextImpl* impl = ctx()) {
+    return impl->parent_span_id;
+  }
+  return 0;
+}
+bool SpanContext::sampled() const {
+  if (const ContextImpl* impl = ctx()) {
+    return impl->sampled;
+  }
+  return false;
+}
+
+void SpanContext::ForeachBaggageItem(std::function<bool(const std::string& key,
+							const std::string& value)> f) const {
+  if (const ContextImpl* impl = ctx()) {
+    impl->foreachBaggageItem(f);
+  }
+}
+
 } // namespace lightstep

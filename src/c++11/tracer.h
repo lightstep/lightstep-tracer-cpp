@@ -1,11 +1,13 @@
 // -*- Mode: C++ -*-
 
 #include "options.h"
+#include "propagation.h"
 #include "span.h"
 #include "types.h"
 #include "value.h"
 
 #include <memory>
+#include <functional>
 
 #ifndef __LIGHTSTEP_TRACER_H__
 #define __LIGHTSTEP_TRACER_H__
@@ -21,10 +23,6 @@ class TraceJoinId;
 
 namespace lightstep {
 
-class TracerImpl;
-
-typedef std::shared_ptr<TracerImpl> ImplPtr;
-
 // Tracer is a handle to a TracerImpl or acts as a No-Op.
 class Tracer {
  public:
@@ -33,9 +31,7 @@ class Tracer {
   // Constructs a No-Op tracer handle. implementation.
   explicit Tracer(std::nullptr_t) { }
 
-  Span StartSpan(const std::string& operation_name) const;
-
-  Span StartSpanWithOptions(const StartSpanOptions& options) const;
+  Span StartSpan(const std::string& operation_name, SpanStartOptions opts = {}) const;
 
   // GlobalTracer returns the global tracer.
   static Tracer Global();
@@ -46,6 +42,24 @@ class Tracer {
   
   // Get the implementation object.
   ImplPtr impl() const { return impl_; }
+
+  // Inject() takes the `sc` SpanContext instance and injects it for
+  // propagation within `carrier`. The actual type of `carrier` depends on
+  // the value of `format`.
+  //
+  // OpenTracing defines a common set of `format` values (see BuiltinFormat),
+  // and each has an expected carrier type.
+  //
+  // Returns true on success.
+  bool Inject(SpanContext sc, const CarrierFormat& format, const CarrierWriter& writer);
+
+  // Extract() returns a SpanContext instance given `format` and `carrier`.
+  //
+  // OpenTracing defines a common set of `format` values (see BuiltinFormat),
+  // and each has an expected carrier type.
+  //
+  // Returns a `SpanContext` that is `valid()` on success.
+  SpanContext Extract(const CarrierFormat& format, const CarrierReader& reader);
 
  private:
   ImplPtr impl_;
@@ -108,6 +122,11 @@ private:
   std::string assembly_;
   int assembled_;
 };
+
+// Create a tracer with user-defined transport.
+typedef std::function<std::unique_ptr<Recorder>(const TracerImpl&)> RecorderFactory;
+
+Tracer NewUserDefinedTransportLightStepTracer(const TracerOptions& topts, RecorderFactory rf);
 
 }  // namespace lightstep
 

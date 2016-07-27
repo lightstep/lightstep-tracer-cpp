@@ -16,6 +16,10 @@ std::atomic<ImplPtr*> global_tracer;
 
 }  // namespace
 
+BuiltinCarrierFormat BuiltinCarrierFormat::BinaryCarrier{BuiltinCarrierFormat::Binary};
+BuiltinCarrierFormat BuiltinCarrierFormat::TextMapCarrier{BuiltinCarrierFormat::TextMap};
+BuiltinCarrierFormat BuiltinCarrierFormat::HTTPHeadersCarrier{BuiltinCarrierFormat::HTTPHeaders};
+
 Tracer Tracer::Global() {
   ImplPtr *ptr = global_tracer.load();
   if (ptr == nullptr) {
@@ -34,14 +38,26 @@ Tracer Tracer::InitGlobal(Tracer newt) {
   return Tracer(*newptr);
 }
 
-Span Tracer::StartSpan(const std::string& operation_name) const {
-  return StartSpanWithOptions(StartSpanOptions().
-			      SetOperationName(operation_name));
+Span Tracer::StartSpan(const std::string& operation_name,
+		       SpanStartOptions opts) const {
+  if (!impl_) return Span();
+  return Span(impl_->StartSpan(impl_, operation_name, opts));
 }
 
-Span Tracer::StartSpanWithOptions(const StartSpanOptions& options) const {
-  if (!impl_) return Span();
-  return Span(impl_->StartSpan(impl_, options));
+bool Tracer::Inject(SpanContext sc, const CarrierFormat &format, const CarrierWriter &writer) {
+  return impl_->inject(sc, format, writer);
+}
+
+SpanContext Tracer::Extract(const CarrierFormat& format, const CarrierReader& reader) {
+  return impl_->extract(format, reader);
+}
+
+SpanReference ChildOf(const SpanContext& ctx) {
+  return SpanReference(ChildOfRef, ctx);
+}
+
+SpanReference FollowsFrom(const SpanContext& ctx) {
+  return SpanReference(FollowsFromRef, ctx);
 }
 
 JsonEncoder::JsonEncoder(const TracerImpl& tracer)
@@ -145,6 +161,12 @@ void JsonEncoder::addJsonSuffix() {
   // assembly_ contains { "runtime": ..., ..., "span_records": [ ...
   // now close the span_records array and report request object:
   assembly_.append("] }");
+}
+
+Tracer NewUserDefinedTransportLightStepTracer(const TracerOptions& topts, RecorderFactory rf) {
+  ImplPtr impl(new TracerImpl(topts));
+  impl->set_recorder(rf(*impl));
+  return Tracer(impl);
 }
 
 }  // namespace lightstep

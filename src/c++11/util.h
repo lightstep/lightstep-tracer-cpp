@@ -7,6 +7,11 @@
 #include "types.h"
 
 namespace lightstep {
+
+typedef std::chrono::system_clock Clock;
+typedef Clock::time_point TimeStamp;
+typedef Clock::duration Duration;
+
 namespace util {
 
 std::string id_to_string(uint64_t);

@@ -7,87 +7,107 @@
 
 #include <chrono>
 
-#include "span.h"
+#include "util.h"
 #include "value.h"
 
 namespace lightstep {
 
+class SpanImpl;
 class TracerImpl;
 
-typedef std::chrono::system_clock Clock;
-typedef Clock::time_point TimeStamp;
-typedef Clock::duration Duration;
-
 typedef std::unordered_map<std::string, std::string> Attributes;
+typedef std::shared_ptr<TracerImpl> ImplPtr;
 
-struct TracerOptions {
+class TracerOptions {
+public:
   std::string access_token;
   std::string collector_host;
   uint32_t    collector_port;
   std::string collector_encryption;
 
-  // The name of this LightStep component (a.k.a. "group name").
-  // TODO should this be entered via tags["lightstep:component_name"]?
-  std::string component_name;
-
   // Runtime attributes
-  Attributes tags;
+  Attributes runtime_attributes;
 
   // Indicates whether to collect this span.
   std::function<bool(uint64_t)> should_sample;
 };
 
-struct StartSpanOptions {
-  // operation_name may be empty (and set later via Span.SetOperationName)
-  std::string operation_name;
+class SpanStartOption {
+public:
+  SpanStartOption(const SpanStartOption&) = delete;
 
-  // parent may specify Span instance that caused the new (child) Span to be
-  // created.
-  //
-  // If null, start a "root" span (i.e., start a new trace).
-  Span parent;
+  virtual ~SpanStartOption() { }
 
-  // start_time overrides the Span's start time, or implicitly becomes
-  // time.Now() if StartTime.IsZero().
-  TimeStamp start_time;
+  virtual void Apply(SpanImpl* span) const = 0;
 
-  // Tags may have zero or more entries; the restrictions on map
-  // values are identical to those for Span.SetTag(). May be nil.
-  //
-  // If specified, the caller hands off ownership of Tags at
-  // StartSpanWithOptions() invocation time.
-  Dictionary tags;
-
-  // Builder methods
-  StartSpanOptions& SetOperationName(const std::string& operation_name) {
-    this->operation_name = operation_name;
-    return *this;
-  }
-  StartSpanOptions& SetParent(Span parent) {
-    this->parent = parent;
-    return *this;
-  }
-  StartSpanOptions& SetTag(const std::string& key,
-			   const Value& value) {
-    this->tags.insert(std::make_pair(key, value));
-    return *this;
-  }
-  StartSpanOptions& SetStartTime(TimeStamp start_time) {
-    this->start_time = start_time;
-    return *this;
-  }
+protected:
+  SpanStartOption() { }
 };
 
-struct FinishSpanOptions {
-  // finish_time specifies the Span's finish time, otherwise
-  // system_clock::now() will be used if FinishTime is the default.
-  //
-  // finish_time must resolve to a timestamp that's >= the Span's
-  // start_time (per StartSpanOptions).
-  TimeStamp finish_time;
+class StartTimestamp : public SpanStartOption {
+public:
+  StartTimestamp(TimeStamp when) : when_(when) { }
+  StartTimestamp(const StartTimestamp& o) : when_(o.when_) { }
 
-  // TODO bulk_log_data
+  virtual void Apply(SpanImpl *span) const override;
+
+private:
+  TimeStamp when_;
 };
+
+class SetTag : public SpanStartOption {
+public:
+  SetTag(const std::string& key, const Value& value)
+    : key_(key), value_(value) { }
+  SetTag(const SetTag& o) : key_(o.key_), value_(o.value_) { }
+
+  virtual void Apply(SpanImpl *span) const override;
+
+private:
+  const std::string &key_;
+  const Value &value_;
+};
+
+class SpanFinishOption {
+public:
+  SpanFinishOption(const SpanFinishOption&) = delete;
+  virtual ~SpanFinishOption() { }
+
+  virtual void Apply(lightstep_net::SpanRecord *span) const = 0;
+
+protected:
+  SpanFinishOption() { };
+};
+
+class FinishTimestamp : public SpanFinishOption {
+public:
+  FinishTimestamp(TimeStamp when) : when_(when) { }
+  FinishTimestamp(const FinishTimestamp &o) : when_(o.when_) { }
+
+  virtual void Apply(lightstep_net::SpanRecord *span) const override;
+
+private:
+  TimeStamp when_;
+};
+
+// This is unsafe to do. Need to consult with a C++11 stylist.
+//
+// This is like an unsafe std::reference_wrapper<> that allows taking
+// references to temporaries.
+template <typename T>
+class option_wrapper {
+public:
+  option_wrapper(const T &opt) : ptr_(&opt) { }
+
+  // This will dangle unless it is only used for short-lived initializer lists.
+  const T& get() const { return *ptr_; }
+
+private:
+  const T *ptr_;
+};
+
+typedef std::initializer_list<option_wrapper<SpanStartOption>> SpanStartOptions;
+typedef std::initializer_list<option_wrapper<SpanFinishOption>> SpanFinishOptions;
 
 }  // namespace lightstep
 

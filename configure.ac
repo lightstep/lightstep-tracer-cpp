@@ -1,15 +1,9 @@
 # -*- Autoconf -*-
 #
-# TODO On Mac OS X building against "keg-only" libraries (e.g., the
-# Thrift you built depends on a keg-only openssl) you'll have to
-# ammend your pkg-config path:
-#
-#   export PKG_CONFIG_PATH=$(brew --prefix)/opt/openssl/lib/pkgconfig
-#
 AC_PREREQ([2.69])
 AC_INIT([LightStep C++ Tracer], [0.9],
         [https://github.com/lightstep/lightstep-tracer-cpp/issues])
-LT_INIT
+LT_INIT([disable-shared])
 AM_INIT_AUTOMAKE([1.14 foreign subdir-objects])
 AC_CONFIG_SRCDIR([src/c++11])
 AC_CONFIG_HEADERS([src/c++11/config.h])
@@ -33,14 +27,11 @@ AS_IF([test "$enable_cpp_netlib" != "no"],
        AC_SUBST(openssl_CFLAGS)
 
        AC_DEFINE(BOOST_NETWORK_ENABLE_HTTPS, [], [With HTTPS support])
-       AX_BOOST_BASE([1.55], [:], [AC_MSG_ERROR([cpp-netlib requires boost, but not found.])])
+       AC_DEFINE(HAVE_CPP_NETLIB,[],[Defined if cpp-netlib is available])
        enable_cpp_netlib=yes])
 
 AM_CONDITIONAL([ENABLE_CPP_NETLIB], [test "$enable_cpp_netlib" = "yes"])
 AM_CONDITIONAL([ENABLE_OPENSSL], [test "$enable_cpp_netlib" = "yes"])
-
-AS_IF([test "$enable_cpp_netlib" == "yes"],
-      [AC_DEFINE(HAVE_CPP_NETLIB,[],[Defined if cpp-netlib is available.])])
 
 AC_LANG_POP([C++])
 

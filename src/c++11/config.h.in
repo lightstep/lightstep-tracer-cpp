@@ -3,10 +3,7 @@
 /* With HTTPS support */
 #undef BOOST_NETWORK_ENABLE_HTTPS
 
-/* define if the Boost library is available */
-#undef HAVE_BOOST
-
-/* Defined if cpp-netlib is available. */
+/* Defined if cpp-netlib is available */
 #undef HAVE_CPP_NETLIB
 
 /* define if the compiler supports basic C++11 syntax */

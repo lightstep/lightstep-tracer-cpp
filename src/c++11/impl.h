@@ -2,14 +2,13 @@
 #ifndef __LIGHTSTEP_IMPL_H__
 #define __LIGHTSTEP_IMPL_H__
 
-// TODO some comments, please
-
 #include <chrono>
 #include <memory>
 #include <mutex>
 #include <random>
 
 #include "options.h"
+#include "propagation.h"
 #include "value.h"
 
 namespace lightstep_net {
@@ -22,18 +21,47 @@ typedef std::lock_guard<std::mutex> MutexLock;
 
 class Recorder;
 class SpanImpl;
-struct TracerOptions;
-struct StartSpanOptions;
-struct FinishSpanOptions;
 
 typedef std::unordered_map<std::string, std::string> Baggage;
 
-struct Context {
+class ContextImpl {
+public:
+  ContextImpl() : trace_id(0), span_id(0), parent_span_id(0), sampled(false) { }
+
+  void setBaggageItem(std::pair<std::string, std::string>&& item) {
+    MutexLock l(baggage_mutex_);
+    baggage_.emplace(item);
+  }
+
+  std::string baggageItem(const std::string& key) {
+    MutexLock l(baggage_mutex_);
+    auto lookup = baggage_.find(key);
+    if (lookup != baggage_.end()) {
+      return lookup->second;
+    }
+    return "";
+  }
+
+  void foreachBaggageItem(std::function<bool(const std::string& key,
+					     const std::string& value)> f) const {
+    MutexLock l(baggage_mutex_);
+    for (const auto& bi : baggage_) {
+      if (!f(bi.first, bi.second)) {
+	return;
+      }
+    }
+  }
+  
+  // These are modified during constructors (StartSpan and Extract),
+  // but would require extra work/copying to make them const.
   uint64_t trace_id;
   uint64_t span_id;
   uint64_t parent_span_id;
   bool     sampled;
-  Baggage  baggage;
+
+private:
+  mutable std::mutex baggage_mutex_;
+  Baggage baggage_;
 };
 
 class TracerImpl {
@@ -41,15 +69,16 @@ class TracerImpl {
   explicit TracerImpl(const TracerOptions& options);
 
   std::unique_ptr<SpanImpl> StartSpan(std::shared_ptr<TracerImpl> selfptr,
-				      const StartSpanOptions& options);
-
+				      const std::string& op_name,
+				      SpanStartOptions opts = {});
+  
   const TracerOptions& options() const { return options_; }
 
   const std::string& component_name() const { return component_name_; }
   const std::string& runtime_guid() const { return runtime_guid_; }
   const std::string& access_token() const { return options_.access_token; }
   uint64_t           runtime_start_micros() const { return runtime_micros_; }
-  const Attributes&  runtime_attributes() const { return options_.tags; }
+  const Attributes&  runtime_attributes() const { return options_.runtime_attributes; }
 
   void RecordSpan(lightstep_net::SpanRecord&& span);
 
@@ -72,6 +101,12 @@ class TracerImpl {
   void set_recorder(std::unique_ptr<Recorder> recorder);
 
  private:
+  friend class Tracer;
+  friend class SpanReference;
+
+  bool inject(SpanContext sc, const CarrierFormat &format, const CarrierWriter &writer);
+  SpanContext extract(const CarrierFormat& format, const CarrierReader& reader);
+  
   void GetTwoIds(uint64_t *a, uint64_t *b);
   uint64_t GetOneId();
 
@@ -94,13 +129,13 @@ class TracerImpl {
 
   // Start time of this runtime process, in microseconds.
   uint64_t runtime_micros_;
-
-  // Runtime attributes.
-  std::vector<std::pair<std::string, std::string>> runtime_attributes_;
 };
 
 class SpanImpl {
 public:
+  explicit SpanImpl(ImplPtr tracer)
+    : start_micros_(0), tracer_(tracer) { }
+
   void SetOperationName(const std::string& name) {
     MutexLock l(mutex_);
     operation_name_ = name;
@@ -109,37 +144,33 @@ public:
   void SetTag(const std::string& key, const Value& value) {
     MutexLock l(mutex_);
     tags_[key] = value;
-
   }
 
-  void SetBaggageItem(const std::string& restricted_key,
+  void SetBaggageItem(const std::string& key,
 		      const std::string& value) {
-    MutexLock l(mutex_);
-    context_.baggage.insert(std::make_pair(restricted_key, value));
+    context_.setBaggageItem(std::make_pair(key, value));
   }
 
-  std::string BaggageItem(const std::string& restricted_key) {
-    MutexLock l(mutex_);
-    auto lookup = context_.baggage.find(restricted_key);
-    if (lookup != context_.baggage.end()) {
-      return lookup->second;
-    }
-    return "";
+  std::string BaggageItem(const std::string& key) {
+    return context_.baggageItem(key);
   }
 
-  void FinishSpan(const FinishSpanOptions& options);
+  void FinishSpan(SpanFinishOptions opts = {});
 
 private:
-  friend class TracerImpl;
   friend class Span;
+  friend class SpanContext;
+  friend class SpanReference;
+  friend class SetTag;
+  friend class StartTimestamp;
+  friend class TracerImpl;
 
-  // Protects Baggage and Tags.
-  std::mutex  mutex_;
+  ImplPtr     tracer_;
+  std::mutex  mutex_;  // Protects Baggage and Tags.
   std::string operation_name_;
   uint64_t    start_micros_;
-  Context     context_;
+  ContextImpl context_;
   Dictionary  tags_;
-  std::shared_ptr<TracerImpl> tracer_;
 };
 
 } // namespace lightstep
