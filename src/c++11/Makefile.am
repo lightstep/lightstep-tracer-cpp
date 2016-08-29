@@ -32,7 +32,9 @@ liblightstep_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) \
 liblightstep_cxx11_la_LDFLAGS  = -L$(top_srcdir)/vendor/cpp-netlib/build/libs/network/src \
 				-L$(top_srcdir)/vendor/boost_1_60_0/build/lib \
 				-lboost_system \
-				-lcppnetlib-uri
+				-lboost_thread \
+				-lcppnetlib-uri \
+				-lpthread
 
 lib_LTLIBRARIES += liblightstep_cxx11.la
 

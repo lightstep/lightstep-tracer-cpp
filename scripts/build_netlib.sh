@@ -7,6 +7,7 @@ BUILD_DIR=`pwd` # i.e., <repo>/vendor
 DOWNLOADS="/tmp/lightstep_downloads"
 
 CPP_NETLIB_DIR=${BUILD_DIR}/cpp-netlib
+CPP_NETLIB_GITHUB="https://github.com/cpp-netlib/cpp-netlib.git"
 CPP_NETLIB_BRANCH="origin/0.13-release"
 
 BOOST_SITE="http://sourceforge.net/projects/boost/files/boost/1.60.0"
@@ -36,13 +37,16 @@ function build_boost()
 
     BOOST_CPPFLAGS="-I/${BOOST_ROOT}/include"
     BOOST_LDFLAGS="-I/${BOOST_ROOT}/lib"
+
+    cd ..
 }
 
 function build_netlib()
 {
     if [ ! -d ${CPP_NETLIB_DIR} ]; then
+	cd ${BUILD_DIR}
 	rm -rf cpp-netlib
-	git clone git@github.com:cpp-netlib/cpp-netlib.git    
+	git clone ${CPP_NETLIB_GITHUB}
     fi
 
     cd ${CPP_NETLIB_DIR}
