@@ -6,6 +6,7 @@
 // Spans.
 
 #include <chrono>
+#include <memory>
 
 #include "util.h"
 #include "value.h"
