@@ -162,7 +162,7 @@ private:
   friend class FinishTimestamp;
   friend class TracerImpl;
 
-  // Fields set in StartSpan() are not protected by a mutexed.
+  // Fields set in StartSpan() are not protected by a mutex.
   ImplPtr       tracer_;
   TimeStamp     start_timestamp_;
   TimeStamp     finish_timestamp_;

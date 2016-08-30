@@ -80,13 +80,17 @@ public:
   }
 };
 
+// ReportBuilder helps construct lightstep::collector::ReportRequest
+// messages.  Not thread-safe, thread compatible.
 class ReportBuilder {
 public:
   ReportBuilder(const TracerImpl &tracer);
 
+  // addSpan adds the span to the currently-building ReportRequest.
   void addSpan(collector::Span&& span) {
     *report_.mutable_spans()->Add() = span;
   }
+  // clear resets spans, to begin building a new report.
   void clear() {
     report_.clear_spans();
   }

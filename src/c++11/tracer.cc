@@ -71,7 +71,8 @@ ReportBuilder::ReportBuilder(const TracerImpl &impl) {
   }
   report_.mutable_auth()->set_access_token(impl.access_token());
 
-  // TODO Not setting timestamp_offset_micros or internal_data.
+  // TODO Not setting timestamp_offset_micros or internal_data. These
+  // will be the recorder's responsibility when using gRPC transport.
 }
 
 }  // namespace lightstep
