@@ -13,7 +13,6 @@ typedef Clock::duration Duration;
 
 namespace util {
 
-//std::string id_to_string(uint64_t);
 std::string program_name();
 
 google::protobuf::Timestamp to_timestamp(TimeStamp t);

@@ -26,6 +26,16 @@ std::string program_name() {
   return path;
 }
 
+google::protobuf::Timestamp to_timestamp(TimeStamp t) {
+  using namespace std::chrono;
+  auto nanos = duration_cast<nanoseconds>(t.time_since_epoch()).count();
+  google::protobuf::Timestamp ts;
+  const uint64_t nanosPerSec = 1000000000;
+  ts.set_seconds(nanos / nanosPerSec);
+  ts.set_nanos(nanos % nanosPerSec);
+  return ts;
+}
+
 template <>
 collector::KeyValue make_kv(const std::string& key, const uint64_t& value) {
   collector::KeyValue kv;

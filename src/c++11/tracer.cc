@@ -70,10 +70,8 @@ ReportBuilder::ReportBuilder(const TracerImpl &impl) {
     *tags->Add() = util::make_kv(tt.first, tt.second);
   }
   report_.mutable_auth()->set_access_token(impl.access_token());
-}
 
-void ReportBuilder::addSpan(collector::Span&& span) {
-  *report_.mutable_spans()->Add() = span;
+  // TODO Not setting timestamp_offset_micros or internal_data.
 }
 
 }  // namespace lightstep

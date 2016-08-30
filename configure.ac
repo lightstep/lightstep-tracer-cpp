@@ -1,13 +1,7 @@
 # -*- Autoconf -*-
 #
-# TODO On Mac OS X building against "keg-only" libraries (e.g., gRPC)
-# you'll have to ammend your pkg-config path:
-#
-# export PKG_CONFIG_PATH=$(brew --prefix)/opt/grpc/lib/pkgconfig
-#
-# But, note that gRPC has distributed .pc files with invalid characters
-# (grpc++.pc) which breaks the PKG_CHECK_MODULES logic anyway. So, we
-# do not use the macros.
+# TODO On Mac OS X building against "keg-only" libraries installed
+# by homebrew, see the commands to set PKG_CONFIG_PATH in build.sh.
 
 AC_PREREQ([2.69])
 AC_INIT([LightStep CPP Tracer], [0.10],

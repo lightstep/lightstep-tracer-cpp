@@ -84,7 +84,12 @@ class ReportBuilder {
 public:
   ReportBuilder(const TracerImpl &tracer);
 
-  void addSpan(collector::Span&& span);
+  void addSpan(collector::Span&& span) {
+    *report_.mutable_spans()->Add() = span;
+  }
+  void clear() {
+    report_.clear_spans();
+  }
 
   const collector::ReportRequest& report() const { return report_; }
 

@@ -236,6 +236,7 @@ void SpanImpl::FinishSpan(SpanFinishOptions opts) {
 
   auto duration = finish_timestamp_ - start_timestamp_;
   span.set_duration_micros(std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
+  *span.mutable_start_timestamp() = util::to_timestamp(start_timestamp_);
 
   tracer_->RecordSpan(std::move(span));
 }
