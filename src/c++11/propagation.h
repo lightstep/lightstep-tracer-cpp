@@ -19,9 +19,10 @@ public:
 
   uint64_t trace_id() const;
   uint64_t span_id() const;
-  uint64_t parent_span_id() const;
-  bool sampled() const;
 
+  // ForeachBaggageItem calls a function for each baggage item in the
+  // context.  If the function returns false, it will not be called
+  // again and ForeachBaggageItem will return.
   void ForeachBaggageItem(std::function<bool(const std::string& key,
 					     const std::string& value)> f) const;
 
@@ -47,6 +48,9 @@ private:
 };
 
 enum SpanReferenceType {
+  // NoRef is the type of an uninitialized reference.
+  NoRef = 0,
+
   // ChildOfRef refers to a parent Span that caused *and* somehow depends
   // upon the new child Span. Often (but not always), the parent Span cannot
   // finish unitl the child Span does.
@@ -95,6 +99,12 @@ public:
       referenced_(referenced) { }
   SpanReference(const SpanReference& o)
     : type_(o.type_), referenced_(o.referenced_) { }
+  SpanReference() : type_(NoRef) { }
+
+  // Returns true iff this is a valid reference.
+  bool valid() const { return type_ != NoRef && referenced_.valid(); }
+
+  SpanContext referenced() const { return referenced_; }
 
   // This is a no-op if the referenced context is not valid.
   virtual void Apply(SpanImpl *span) const override;

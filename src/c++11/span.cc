@@ -75,18 +75,6 @@ uint64_t SpanContext::span_id() const {
   }
   return 0;
 }
-uint64_t SpanContext::parent_span_id() const {
-  if (const ContextImpl* impl = ctx()) {
-    return impl->parent_span_id;
-  }
-  return 0;
-}
-bool SpanContext::sampled() const {
-  if (const ContextImpl* impl = ctx()) {
-    return impl->sampled;
-  }
-  return false;
-}
 
 void SpanContext::ForeachBaggageItem(std::function<bool(const std::string& key,
 							const std::string& value)> f) const {

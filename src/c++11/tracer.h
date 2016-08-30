@@ -3,7 +3,6 @@
 #include "options.h"
 #include "propagation.h"
 #include "span.h"
-#include "types.h"
 #include "value.h"
 
 #include <memory>
@@ -11,15 +10,6 @@
 
 #ifndef __LIGHTSTEP_TRACER_H__
 #define __LIGHTSTEP_TRACER_H__
-
-namespace json11 {
-class Json;
-}
-
-namespace lightstep_net {
-class KeyValue;
-class TraceJoinId;
-}
 
 namespace lightstep {
 
@@ -73,7 +63,7 @@ public:
 
   // RecordSpan is called by TracerImpl when a new Span is finished.
   // An rvalue-reference is taken to avoid copying the Span contents.
-  virtual void RecordSpan(lightstep_net::SpanRecord&& span) = 0;
+  virtual void RecordSpan(collector::Span&& span) = 0;
 
   // Flush is called by the user, indicating for some reason that
   // buffered spans should be flushed.  Returns true if the flush
@@ -90,37 +80,16 @@ public:
   }
 };
 
-// JsonEncoder is used as the base class for the DefaultRecorder.
-class JsonEncoder {
+class ReportBuilder {
 public:
-  explicit JsonEncoder(const TracerImpl& tracer);
+  ReportBuilder(const TracerImpl &tracer);
 
-  void recordSpan(lightstep_net::SpanRecord&& span);
+  void addSpan(collector::Span&& span);
 
-  size_t pendingSize() const {
-    if (assembled_ < 0) {
-      return 0;
-    }
-    return assembly_.size() + 3;  // 3 == strlen("] }")
-  }
-
-  // the caller can swap() the value, otherwise it stays valid until
-  // the next call to recordSpan().
-  std::string& jsonString();
+  const collector::ReportRequest& report() const { return report_; }
 
 private:
-  json11::Json keyValueArray(const std::vector<lightstep_net::KeyValue>& v);
-  json11::Json keyValueArray(const std::unordered_map<std::string, std::string>& v);
-  json11::Json traceJoinArray(const std::vector<lightstep_net::TraceJoinId>& v);
-  void setJsonPrefix();
-  void addReportFields();
-  void addJsonSuffix();
-
-  const TracerImpl& tracer_;
- 
-  std::mutex mutex_;
-  std::string assembly_;
-  int assembled_;
+  collector::ReportRequest report_;
 };
 
 // Create a tracer with user-defined transport.

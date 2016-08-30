@@ -21,8 +21,6 @@
 
 namespace lightstep {
 
-using namespace lightstep_net;
-
 const char CollectorJsonRpcPath[] = "/api/v0/reports";
 
 std::string urlOf(const TracerOptions& options) {
@@ -45,7 +43,7 @@ public:
     writer_.join();
   }
 
-  void RecordSpan(lightstep_net::SpanRecord&& span) override {
+  void RecordSpan(collector::Span&& span) override {
     MutexLock lock(write_mutex_);
     if (encoder_.pendingSize() >= options_.size_limit) {
       dropped_spans_++;

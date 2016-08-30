@@ -10,9 +10,7 @@
 namespace lightstep {
 namespace util {
 
-using namespace lightstep_net;
-
-// TODO This works only on UNIX, and is not tested.
+// TODO This only works on Linux.
 std::string program_name() {
   constexpr int path_max = 1024;
   std::unique_ptr<char[]> exe_path(new char[path_max]);
@@ -28,72 +26,67 @@ std::string program_name() {
   return path;
 }
 
-std::string id_to_string(uint64_t id) {
-  const char hex[] = "0123456789abcdef";
-  char buf[16];
-  for (int i = 0; i < 16; i++) {
-    buf[i] = hex[(id >> (i * 4)) & 0xf];
-  }
-  return std::string(buf, 16);
-}
-
-uint64_t to_micros(TimeStamp t) {
-  using namespace std::chrono;
-  return duration_cast<microseconds>(t.time_since_epoch()).count();
-}
-
-KeyValue make_kv(const std::string& key, const std::string& value) {
-  KeyValue kv;
-  kv.Key = key;
-  kv.Value = value;
+template <>
+collector::KeyValue make_kv(const std::string& key, const uint64_t& value) {
+  collector::KeyValue kv;
+  kv.set_key(key);
+  kv.set_int_value(value);  // NOTE: Sign conversion.
   return kv;
 }
 
-TraceJoinId make_join(const std::string& key, const std::string& value) {
-  TraceJoinId kv;
-  kv.TraceKey = key;
-  kv.Value = value;
+template <>
+collector::KeyValue make_kv(const std::string& key, const std::string& value) {
+  collector::KeyValue kv;
+  kv.set_key(key);
+  kv.set_string_value(value);
   return kv;
 }
-
-} // namespace util
 
 namespace {
 
-// TODO could generate a JSON encoding
-struct ValueVisitor {
-  explicit ValueVisitor(std::string *str) : str(str) { }
-  std::string* str;
+struct KeyValueVisitor {
+  explicit KeyValueVisitor(collector::KeyValue *kv) : kv(kv) { }
+  collector::KeyValue* kv;
 
-  // The numeric types
   template <typename T>
-  void operator()(const T& val) const {
-    str->append(std::to_string(val));
+  void operator()(const T& val) const;
+
+  void operator()(int32_t x) const { kv->set_int_value(x); }
+  void operator()(int64_t x) const { kv->set_int_value(x); }
+
+  // Note: Sign conversion.
+  void operator()(uint32_t x) const { kv->set_int_value(x); }
+  void operator()(uint64_t x) const { kv->set_int_value(x); }
+
+  void operator()(float f) const { kv->set_double_value(f); }
+  void operator()(double f) const { kv->set_double_value(f); }
+
+  void operator()(bool b) const { kv->set_bool_value(b); }
+
+  void operator()(const std::string &s) const { kv->set_string_value(s); }
+
+  // More-or-less unsupported types:
+  void operator()(std::nullptr_t) const { kv->set_string_value("null"); }
+
+  void operator()(const Values &v) const {
+    kv->set_string_value("TODO: Values-to-string");
   }
 
-  void operator()(bool b) const {
-    str->append(b ? "true" : "false");
-  }
-  void operator()(std::nullptr_t) const {
-    str->append("null");
-  }
-  void operator()(const std::string &s) const {
-    str->append(s);
-  }
-  void operator()(const Values &v) const {
-    str->append("TODO: Values-to-string");
-  }
   void operator()(const Dictionary &v) const {
-    str->append("TODO: Dictionary-to-string");
+    kv->set_string_value("TODO: Dictionary-to-string");
   }
 };
 
 } // namespace
 
-std::string Value::to_string() const {
-  std::string s;
-  mapbox::util::apply_visitor(ValueVisitor(&s), *this);
-  return s;
+template <>
+collector::KeyValue make_kv(const std::string& key, const Value& value) {
+  collector::KeyValue kv;
+  kv.set_key(key);
+  mapbox::util::apply_visitor(KeyValueVisitor(&kv), value);
+  return kv;
 }
+
+} // namespace util
 
 } // namespace lightstep

@@ -7,13 +7,14 @@
 #include "impl.h"
 #include "options.h"
 #include "tracer.h"
-#include "types.h"
 #include "util.h"
+
+// NOTE that protobuf doesn't have C++11 move constructors. The code
+// below does somewhat more allocation and copying than neccesary as a
+// result.
 
 namespace lightstep {
 namespace {
-
-using namespace lightstep_net;
 
 const char TraceKeyPrefix[] = "join:";
 const char ParentSpanGUIDKey[] = "parent_span_guid";
@@ -30,6 +31,9 @@ const char FieldCount = 3;
 const char FieldNameTraceID[] = PREFIX_TRACER_STATE "traceid";
 const char FieldNameSpanID[] = PREFIX_TRACER_STATE "spanid";
 const char FieldNameSampled[] = PREFIX_TRACER_STATE "sampled";
+#undef PREFIX_TRACER_STATE
+
+typedef google::protobuf::Map< ::std::string, ::std::string > StringMap;
 
 std::string uint64ToHex(uint64_t u) {
   std::stringstream ss;
@@ -50,15 +54,15 @@ uint64_t stringToUint64(const std::string& s) {
 TracerImpl::TracerImpl(const TracerOptions& options_in)
   : options_(options_in),
     rand_source_(std::random_device()()),
-    runtime_guid_(util::id_to_string(GetOneId())),
-    runtime_micros_(util::to_micros(Clock::now())) {
+    tracer_id_(GetOneId()),
+    tracer_start_time_(Clock::now()) {
 
-  if (options_.runtime_attributes.find(ComponentNameKey) == options_.runtime_attributes.end()) {
-    options_.runtime_attributes.emplace(std::make_pair(ComponentNameKey, util::program_name()));
+  if (options_.tracer_attributes.find(ComponentNameKey) == options_.tracer_attributes.end()) {
+    options_.tracer_attributes.emplace(std::make_pair(ComponentNameKey, util::program_name()));
   }
 
-  options_.runtime_attributes.emplace(std::make_pair(PlatformNameKey, "C++11"));
-  options_.runtime_attributes.emplace(std::make_pair(VersionNameKey, PACKAGE_VERSION));
+  options_.tracer_attributes.emplace(std::make_pair(PlatformNameKey, "C++11"));
+  options_.tracer_attributes.emplace(std::make_pair(VersionNameKey, PACKAGE_VERSION));
 }
 
 void TracerImpl::GetTwoIds(uint64_t *a, uint64_t *b) {
@@ -85,20 +89,26 @@ std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> self
     o.get().Apply(span.get());
   }
 
-  if (span->start_micros_ == 0) {
-    span->start_micros_ = util::to_micros(Clock::now());
+  if (span->start_timestamp_ == TimeStamp()) {
+    span->start_timestamp_ = Clock::now();
   }
-  span->operation_name_ = operation_name;
-  if (span->operation_name_.empty()) {
+  if (!operation_name.empty()) {
+    span->operation_name_ = operation_name;
+  } else {    
     span->operation_name_ = UndefinedSpanName;
   }
 
-  if (span->context_.trace_id == 0) {
-    GetTwoIds(&span->context_.trace_id, &span->context_.span_id);
+  if (span->ref_.valid()) {
+    // NOTE: Treating the ref as a ChildOf relation
+    span->context_.span_id = span->tracer_->GetOneId();
+    span->context_.trace_id = span->ref_.referenced().trace_id();
 
-    span->context_.sampled = (options_.should_sample == nullptr ?
-   			      true :
-   			      options_.should_sample(span->context_.trace_id));
+    span->ref_.referenced().ForeachBaggageItem([&span](const std::string& key, const std::string& value) {
+	span->context_.setBaggageItem(std::make_pair(key, value));
+	return true;
+      });
+  } else {
+    GetTwoIds(&span->context_.trace_id, &span->context_.span_id);
   }
 
   return span;
@@ -123,12 +133,12 @@ bool TracerImpl::inject(SpanContext sc, const CarrierFormat& format, const Carri
   }
   carrier->Set(FieldNameTraceID, uint64ToHex(sc.trace_id()));
   carrier->Set(FieldNameSpanID, uint64ToHex(sc.span_id()));
-  carrier->Set(FieldNameSampled, sc.sampled() ? "true" : "false");
+  carrier->Set(FieldNameSampled, "true");
 
   sc.ForeachBaggageItem([carrier](const std::string& key,
 				  const std::string& value) {
 			  carrier->Set(std::string(PrefixBaggage) + key, value);
-			  return false;
+			  return true;
 			});
   return true;
 }
@@ -155,7 +165,7 @@ SpanContext TracerImpl::extract(const CarrierFormat& format, const CarrierReader
   std::shared_ptr<ContextImpl> ctx(new ContextImpl);
   int count = 0;
   carrier->ForeachKey([carrier, &ctx, &count](const std::string& key,
-				const std::string& value) {
+					      const std::string& value) {
 			if (key == FieldNameTraceID) {
 			  ctx->trace_id = stringToUint64(value);
 			  count++;
@@ -163,7 +173,7 @@ SpanContext TracerImpl::extract(const CarrierFormat& format, const CarrierReader
 			  ctx->span_id = stringToUint64(value);
 			  count++;
 			} else if (key == FieldNameSampled) {
-			  ctx->sampled = (value == "true");
+			  // Ignored
 			  count++;
 			} else if (key.size() > strlen(PrefixBaggage) &&
 				   memcmp(key.data(), PrefixBaggage, strlen(PrefixBaggage)) == 0) {
@@ -177,7 +187,7 @@ SpanContext TracerImpl::extract(const CarrierFormat& format, const CarrierReader
 }
 
 void StartTimestamp::Apply(SpanImpl *span) const {
-  span->start_micros_ = util::to_micros(when_);
+  span->start_timestamp_ = when_;
 }
 
 void SetTag::Apply(SpanImpl *span) const {
@@ -188,62 +198,53 @@ void SpanReference::Apply(SpanImpl *span) const {
   if (!referenced_.valid()) {
     return;
   }
-  span->context_.span_id = span->tracer_->GetOneId();
-  span->context_.trace_id = referenced_.trace_id();
-  span->context_.parent_span_id = referenced_.span_id();
-
-  referenced_.ForeachBaggageItem([span](const std::string& key, const std::string& value) {
-      span->context_.setBaggageItem(std::make_pair(key, value));
-      return true;
-    });
-  
-  span->context_.sampled = referenced_.sampled();
+  span->ref_ = *this;
 }
 
 void SpanImpl::FinishSpan(SpanFinishOptions opts) {
-  SpanRecord span;
-
   for (const auto& o : opts) {
-    o.get().Apply(&span);
+    o.get().Apply(this);
   }
 
-  if (span.youngest_micros == 0) {
-    span.youngest_micros = util::to_micros(Clock::now());
+  if (finish_timestamp_ == TimeStamp()) {
+    finish_timestamp_ = Clock::now();
   }
 
-  MutexLock l(mutex_);
+  collector::Span span;
+  auto tags = span.mutable_tags();
 
-  std::vector<KeyValue> attrs{
-    util::make_kv(ParentSpanGUIDKey, util::id_to_string(context_.parent_span_id)),
-  };
-  std::vector<TraceJoinId> joins;
+  if (ref_.valid()) {
+    *tags->Add() = util::make_kv(ParentSpanGUIDKey, ref_.referenced().span_id());
+  }
 
   for (auto it = tags_.begin(); it != tags_.end(); ++it) {
-    const std::string& key = it->first;
-    if (key.compare(0, strlen(TraceKeyPrefix), TraceKeyPrefix) == 0) {
-      joins.emplace_back(util::make_join(key, it->second.to_string()));
-    } else {
-      attrs.emplace_back(util::make_kv(key, it->second.to_string()));
-    }
+    *tags->Add() = util::make_kv(it->first, it->second);
   }
 
-  span.trace_guid = util::id_to_string(context_.trace_id);
-  span.span_guid = util::id_to_string(context_.span_id);
-  span.runtime_guid = tracer_->runtime_guid();
-  span.span_name = operation_name_;
-  span.oldest_micros = start_micros_;
+  auto context = span.mutable_span_context();
+  context->set_trace_id(context_.trace_id);
+  context->set_span_id(context_.span_id);
+  auto baggage = context->mutable_baggage();
 
-  span.join_ids = std::move(joins);
-  span.attributes = std::move(attrs);
+  context_.foreachBaggageItem([baggage](const std::string& key,
+					const std::string& value) {
+				baggage->insert(StringMap::value_type(key, value));
+				return true;
+			      });
+
+  span.set_operation_name(operation_name_);
+
+  auto duration = finish_timestamp_ - start_timestamp_;
+  span.set_duration_micros(std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
 
   tracer_->RecordSpan(std::move(span));
 }
 
-void FinishTimestamp::Apply(lightstep_net::SpanRecord *span) const {
-  span->youngest_micros = util::to_micros(when_);
+void FinishTimestamp::Apply(SpanImpl *span) const {
+  span->finish_timestamp_ = when_;
 }
 
-void TracerImpl::RecordSpan(lightstep_net::SpanRecord&& span) {
+void TracerImpl::RecordSpan(collector::Span&& span) {
   auto r = recorder();
   if (r) {
     r->RecordSpan(std::move(span));

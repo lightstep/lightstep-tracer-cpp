@@ -9,11 +9,8 @@
 
 #include "options.h"
 #include "propagation.h"
+#include "proto/collector.pb.h"
 #include "value.h"
-
-namespace lightstep_net {
-class SpanRecord;
-} // namespace lightstep_net
 
 namespace lightstep {
 
@@ -26,7 +23,7 @@ typedef std::unordered_map<std::string, std::string> Baggage;
 
 class ContextImpl {
 public:
-  ContextImpl() : trace_id(0), span_id(0), parent_span_id(0), sampled(false) { }
+  ContextImpl() : trace_id(0), span_id(0) { }
 
   void setBaggageItem(std::pair<std::string, std::string>&& item) {
     MutexLock l(baggage_mutex_);
@@ -56,8 +53,6 @@ public:
   // but would require extra work/copying to make them const.
   uint64_t trace_id;
   uint64_t span_id;
-  uint64_t parent_span_id;
-  bool     sampled;
 
 private:
   mutable std::mutex baggage_mutex_;
@@ -75,12 +70,13 @@ class TracerImpl {
   const TracerOptions& options() const { return options_; }
 
   const std::string& component_name() const { return component_name_; }
-  const std::string& runtime_guid() const { return runtime_guid_; }
+  const uint64_t tracer_id() const { return tracer_id_; }
   const std::string& access_token() const { return options_.access_token; }
-  uint64_t           runtime_start_micros() const { return runtime_micros_; }
-  const Attributes&  runtime_attributes() const { return options_.runtime_attributes; }
 
-  void RecordSpan(lightstep_net::SpanRecord&& span);
+  TimeStamp tracer_start_time() const { return tracer_start_time_; }
+  const Attributes& tracer_attributes() const { return options_.tracer_attributes; }
+
+  void RecordSpan(collector::Span&& span);
 
   void Flush();
 
@@ -122,19 +118,19 @@ class TracerImpl {
   std::mt19937_64 rand_source_;
 
   // Computed from rand_source_, hexified.
-  std::string runtime_guid_;
+  uint64_t tracer_id_;
 
   // Either from TracerOptions.component_name or set by default logic.
   std::string component_name_;
 
-  // Start time of this runtime process, in microseconds.
-  uint64_t runtime_micros_;
+  // Start time of this process.
+  TimeStamp tracer_start_time_;
 };
 
 class SpanImpl {
 public:
   explicit SpanImpl(ImplPtr tracer)
-    : start_micros_(0), tracer_(tracer) { }
+    : tracer_(tracer) { }
 
   void SetOperationName(const std::string& name) {
     MutexLock l(mutex_);
@@ -163,14 +159,17 @@ private:
   friend class SpanReference;
   friend class SetTag;
   friend class StartTimestamp;
+  friend class FinishTimestamp;
   friend class TracerImpl;
 
-  ImplPtr     tracer_;
-  std::mutex  mutex_;  // Protects Baggage and Tags.
-  std::string operation_name_;
-  uint64_t    start_micros_;
-  ContextImpl context_;
-  Dictionary  tags_;
+  ImplPtr       tracer_;
+  std::mutex    mutex_;  // Protects Baggage and Tags. @@@ <--- Check Baggage claim TODO it's evidently not true
+  std::string   operation_name_;
+  TimeStamp     start_timestamp_;
+  TimeStamp     finish_timestamp_;
+  ContextImpl   context_;
+  SpanReference ref_;
+  Dictionary    tags_;
 };
 
 } // namespace lightstep
