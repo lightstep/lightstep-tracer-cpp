@@ -162,13 +162,16 @@ private:
   friend class FinishTimestamp;
   friend class TracerImpl;
 
+  // Fields set in StartSpan() are not protected by a mutexed.
   ImplPtr       tracer_;
-  std::mutex    mutex_;  // Protects Baggage and Tags. @@@ <--- Check Baggage claim TODO it's evidently not true
-  std::string   operation_name_;
   TimeStamp     start_timestamp_;
   TimeStamp     finish_timestamp_;
-  ContextImpl   context_;
   SpanReference ref_;
+  ContextImpl   context_;
+
+  // Mutex protects tags_ and operation_name_.
+  std::mutex    mutex_;
+  std::string   operation_name_;
   Dictionary    tags_;
 };
 

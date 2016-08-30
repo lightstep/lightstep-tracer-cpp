@@ -243,7 +243,6 @@ public:
   explicit OrderedStringPairsWriter(T* data) : data_(data) { }
 
   virtual void Set(const std::string& key, const std::string& value) const override {
-    // TODO could have a Set(..., std::string&& value) method too, use emplace().
     data_->push_back(typename T::value_type(key, value));
   }
 

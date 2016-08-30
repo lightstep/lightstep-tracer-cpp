@@ -80,10 +80,10 @@ void TracerImpl::set_recorder(std::unique_ptr<Recorder> recorder) {
   recorder_ = std::shared_ptr<Recorder>(std::move(recorder));
 }
 
-std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> selfptr,
+std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> tracer,
 						const std::string& operation_name,
 						SpanStartOptions opts) {
-  std::unique_ptr<SpanImpl> span(new SpanImpl(selfptr));
+  std::unique_ptr<SpanImpl> span(new SpanImpl(tracer));
 
   for (const auto& o : opts) {
     o.get().Apply(span.get());
@@ -99,8 +99,9 @@ std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> self
   }
 
   if (span->ref_.valid()) {
-    // NOTE: Treating the ref as a ChildOf relation
-    span->context_.span_id = span->tracer_->GetOneId();
+    // Note: Treating the ref as a ChildOf relation
+    // Note: No locking required for context_ in StartSpan
+    span->context_.span_id = tracer->GetOneId();
     span->context_.trace_id = span->ref_.referenced().trace_id();
 
     span->ref_.referenced().ForeachBaggageItem([&span](const std::string& key, const std::string& value) {
@@ -108,7 +109,7 @@ std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> self
 	return true;
       });
   } else {
-    GetTwoIds(&span->context_.trace_id, &span->context_.span_id);
+    tracer->GetTwoIds(&span->context_.trace_id, &span->context_.span_id);
   }
 
   return span;
@@ -187,14 +188,17 @@ SpanContext TracerImpl::extract(const CarrierFormat& format, const CarrierReader
 }
 
 void StartTimestamp::Apply(SpanImpl *span) const {
+  // Note: no locking, only called from StartSpan
   span->start_timestamp_ = when_;
 }
 
 void SetTag::Apply(SpanImpl *span) const {
+  // Note: no locking, only called from StartSpan
   span->tags_.emplace(std::make_pair(key_, value_));
 }
 
 void SpanReference::Apply(SpanImpl *span) const {
+  // Note: no locking, only called from StartSpan
   if (!referenced_.valid()) {
     return;
   }
@@ -217,11 +221,17 @@ void SpanImpl::FinishSpan(SpanFinishOptions opts) {
     *tags->Add() = util::make_kv(ParentSpanGUIDKey, ref_.referenced().span_id());
   }
 
-  for (auto it = tags_.begin(); it != tags_.end(); ++it) {
-    *tags->Add() = util::make_kv(it->first, it->second);
+  {
+    MutexLock lock(mutex_);
+    for (auto it = tags_.begin(); it != tags_.end(); ++it) {
+      *tags->Add() = util::make_kv(it->first, it->second);
+    }
+    span.set_operation_name(operation_name_);
   }
 
   auto context = span.mutable_span_context();
+
+  // Note: context_ trace_id and span_id fields do not require a lock.
   context->set_trace_id(context_.trace_id);
   context->set_span_id(context_.span_id);
   auto baggage = context->mutable_baggage();
@@ -231,8 +241,6 @@ void SpanImpl::FinishSpan(SpanFinishOptions opts) {
 				baggage->insert(StringMap::value_type(key, value));
 				return true;
 			      });
-
-  span.set_operation_name(operation_name_);
 
   auto duration = finish_timestamp_ - start_timestamp_;
   span.set_duration_micros(std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
