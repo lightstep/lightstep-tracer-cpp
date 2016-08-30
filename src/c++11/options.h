@@ -26,11 +26,8 @@ public:
   uint32_t    collector_port;
   std::string collector_encryption;
 
-  // Runtime attributes
-  Attributes runtime_attributes;
-
-  // Indicates whether to collect this span.
-  std::function<bool(uint64_t)> should_sample;
+  // Tracer attributes
+  Attributes tracer_attributes;
 };
 
 class SpanStartOption {
@@ -74,7 +71,7 @@ public:
   SpanFinishOption(const SpanFinishOption&) = delete;
   virtual ~SpanFinishOption() { }
 
-  virtual void Apply(lightstep_net::SpanRecord *span) const = 0;
+  virtual void Apply(SpanImpl *span) const = 0;
 
 protected:
   SpanFinishOption() { };
@@ -85,16 +82,17 @@ public:
   FinishTimestamp(TimeStamp when) : when_(when) { }
   FinishTimestamp(const FinishTimestamp &o) : when_(o.when_) { }
 
-  virtual void Apply(lightstep_net::SpanRecord *span) const override;
+  virtual void Apply(SpanImpl *span) const override;
 
 private:
   TimeStamp when_;
 };
 
-// This is unsafe to do. Need to consult with a C++11 stylist.
+// This is unsafe to do.
 //
 // This is like an unsafe std::reference_wrapper<> that allows taking
-// references to temporaries.
+// references to temporaries.  It must only be used for temporary
+// SpanStartOption and SpanFinishOption objects.
 template <typename T>
 class option_wrapper {
 public:
