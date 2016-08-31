@@ -15,7 +15,7 @@ public:
   BasicRecorderOptions();
 
   Duration   time_limit; // Default is 1s
-  size_t     size_limit; // Default is 1Mb
+  size_t     span_limit; // Default is 1000 spans
 };
 
 Tracer NewLightStepTracer(const TracerOptions& topts,

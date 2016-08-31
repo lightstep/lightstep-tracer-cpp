@@ -23,7 +23,7 @@ public:
     builder_.addSpan(std::move(span));
   }
   virtual bool FlushWithTimeout(lightstep::Duration timeout) override {
-    std::cerr << builder_.report().DebugString() << std::endl;
+    std::cerr << builder_.pending().DebugString() << std::endl;
     return true;
   }
 
