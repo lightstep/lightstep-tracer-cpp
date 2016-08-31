@@ -3,6 +3,7 @@
 #include <exception>
 #include <thread>
 #include <iostream>
+#include <sstream>
 #include <mutex>
 #include <utility>
 #include <vector>
@@ -10,8 +11,6 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
-#include <boost/network/protocol/http/client.hpp>
 
 #include "impl.h"
 #include "recorder.h"
@@ -32,7 +31,7 @@ std::string urlOf(const TracerOptions& options) {
 
 BasicRecorderOptions::BasicRecorderOptions()
   : time_limit(std::chrono::seconds(1)),
-    size_limit(1<<20) { }
+    span_limit(1000) { }
 
 class BasicRecorder : public Recorder {
 public:
@@ -45,12 +44,12 @@ public:
 
   void RecordSpan(collector::Span&& span) override {
     MutexLock lock(write_mutex_);
-    if (encoder_.pendingSize() >= options_.size_limit) {
+    if (builder_.pendingSpans() >= options_.span_limit) {
       dropped_spans_++;
       return;
     }
-    encoder_.recordSpan(std::move(span));
-    if (encoder_.pendingSize() >= options_.size_limit) {
+    builder_.addSpan(std::move(span));
+    if (builder_.pendingSpans() >= options_.span_limit) {
       write_cond_.notify_all();
     }
   }
@@ -59,7 +58,7 @@ public:
 
 private:
   void write();
-  void write_report(const std::string&);
+  void write_report(const collector::ReportRequest&);
   void flush_one();
 
   // Forces the writer thread to exit immediately.
@@ -76,7 +75,7 @@ private:
     std::unique_lock<std::mutex> lock(write_mutex_);
     write_cond_.wait_until(lock, next, [this]() {
   	return this->write_exit_ ||
-	       this->encoder_.pendingSize() >= options_.size_limit;
+	       this->builder_.pendingSpans() >= options_.span_limit;
       });
     return !write_exit_;
   }
@@ -91,17 +90,13 @@ private:
   std::thread writer_;
 
   // Buffer state (protected by write_mutex_).
-  JsonEncoder encoder_;
-  std::string inflight_;
+  ReportBuilder builder_;
+  collector::ReportRequest inflight_;
   size_t flushed_seqno_;
   size_t encoding_seqno_;
   size_t dropped_spans_;
 
-  // Network connection
-  boost::network::http::client client_;
-  // TODO uncertainties around connection request. supposedly connections are
-  // persistent by default, so maybe I can reuse this.
-  boost::network::http::client::request request_;
+  // @@@ GRPC
 };
 
 BasicRecorder::BasicRecorder(const TracerImpl& tracer, const BasicRecorderOptions& options)
@@ -109,14 +104,10 @@ BasicRecorder::BasicRecorder(const TracerImpl& tracer, const BasicRecorderOption
     options_(options),
     write_exit_(false),
     writer_(std::thread(&BasicRecorder::write, this)),
-    encoder_(tracer),
+    builder_(tracer),
     flushed_seqno_(0),
     encoding_seqno_(1),
-    dropped_spans_(0),
-    client_(boost::network::http::client::options().timeout(30)),
-    request_(urlOf(tracer.options())) {
-  request_ << boost::network::header("LightStep-Access-Token", tracer.options().access_token);
-}
+    dropped_spans_(0) {}
 
 void BasicRecorder::write() {
   auto next = Clock::now() + options_.time_limit;
@@ -142,10 +133,12 @@ void BasicRecorder::flush_one() {
     // inflight without a lock. Assumption is that this thread is the
     // only place inflight_ is used.
     MutexLock lock(write_mutex_);
-    if (encoder_.pendingSize() == 0) {
+    if (builder_.pendingSpans() == 0) {
       return;
     }
-    std::swap(encoder_.jsonString(), inflight_);
+    // TODO Fill in any internal_metrics.
+    // TODO Compute and set timestamp_offset_micros
+    std::swap(builder_.pending(), inflight_);
     ++encoding_seqno_;
   }
   write_report(inflight_);
@@ -153,18 +146,20 @@ void BasicRecorder::flush_one() {
     MutexLock lock(write_mutex_);
     ++flushed_seqno_;
     write_cond_.notify_all();
-  }  
+    inflight_.Clear();
+  }
 }
 
-void BasicRecorder::write_report(const std::string& report) {
-  try {
-    boost::network::http::client::response response = client_.post(request_, report, std::string("application/json"));
-    if (status(response) != 200) {
-      std::cerr << "HTTP Status: " << status(response) << " " << status_message(response) << std::endl;
-    }
-  } catch (std::exception &e) {
-    std::cerr << "HTTP Exception: " << e.what() << std::endl;
-  }
+void BasicRecorder::write_report(const collector::ReportRequest& report) {
+  // request_ << boost::network::header("LightStep-Access-Token", tracer.options().access_token);
+  // try {
+  //   boost::network::http::client::response response = client_.post(request_, report, std::string("application/json"));
+  //   if (status(response) != 200) {
+  //     std::cerr << "HTTP Status: " << status(response) << " " << status_message(response) << std::endl;
+  //   }
+  // } catch (std::exception &e) {
+  //   std::cerr << "HTTP Exception: " << e.what() << std::endl;
+  // }
 }
 
 bool BasicRecorder::FlushWithTimeout(Duration timeout) {
@@ -173,7 +168,7 @@ bool BasicRecorder::FlushWithTimeout(Duration timeout) {
   // operations to clear out all the presently pending data.
   std::unique_lock<std::mutex> lock(write_mutex_);
 
-  bool has_encoded = encoder_.pendingSize() != 0;
+  bool has_encoded = builder_.pendingSpans() != 0;
 
   if (!has_encoded && encoding_seqno_ == 1 + flushed_seqno_) {
     return true;

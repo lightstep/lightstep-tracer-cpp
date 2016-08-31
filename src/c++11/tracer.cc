@@ -62,17 +62,16 @@ Tracer NewUserDefinedTransportLightStepTracer(const TracerOptions& topts, Record
   return Tracer(impl);
 }
 
-ReportBuilder::ReportBuilder(const TracerImpl &impl) {
-  auto tracer = report_.mutable_tracer();
+ReportBuilder::ReportBuilder(const TracerImpl &impl)
+  : reset_next_(true) {
+  // TODO Fill in any core internal_metrics.
+  auto tracer = preamble_.mutable_tracer();
   tracer->set_tracer_id(impl.tracer_id());
   auto tags = tracer->mutable_tags();
   for (const auto& tt : impl.options().tracer_attributes) {
     *tags->Add() = util::make_kv(tt.first, tt.second);
   }
-  report_.mutable_auth()->set_access_token(impl.access_token());
-
-  // TODO Not setting timestamp_offset_micros or internal_data. These
-  // will be the recorder's responsibility when using gRPC transport.
+  preamble_.mutable_auth()->set_access_token(impl.access_token());
 }
 
 }  // namespace lightstep

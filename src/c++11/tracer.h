@@ -88,17 +88,30 @@ public:
 
   // addSpan adds the span to the currently-building ReportRequest.
   void addSpan(collector::Span&& span) {
-    *report_.mutable_spans()->Add() = span;
-  }
-  // clear resets spans, to begin building a new report.
-  void clear() {
-    report_.clear_spans();
+    if (reset_next_) {
+      pending_.Clear();
+      pending_.CopyFrom(preamble_);
+      reset_next_ = false;
+    }
+    *pending_.mutable_spans()->Add() = span;
   }
 
-  const collector::ReportRequest& report() const { return report_; }
+  // pendingSpans() is the number of pending spans.
+  size_t pendingSpans() const {
+    return pending_.spans_size();
+  }
+
+  // pending() returns a mutable object, appropriate for swapping with
+  // another ReportRequest object.
+  collector::ReportRequest& pending() {
+    reset_next_ = true;
+    return pending_;
+  }
 
 private:
-  collector::ReportRequest report_;
+  bool reset_next_;
+  collector::ReportRequest preamble_;
+  collector::ReportRequest pending_;
 };
 
 // Create a tracer with user-defined transport.

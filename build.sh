@@ -10,6 +10,5 @@ if [ `uname` = "Darwin" ]; then
 fi
 
 ./bootstrap.sh 1> /dev/null 2> /dev/null
-# TODO enable gRPC by default, when it's functional
-./configure --disable-grpc
+./configure --disable-shared --enable-static
 make

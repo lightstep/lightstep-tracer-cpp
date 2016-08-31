@@ -99,23 +99,6 @@ class SpanContext : public ::google::protobuf::Message /* @@protoc_insertion_poi
   inline SpanContext* New() const { return New(NULL); }
 
   SpanContext* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const SpanContext& from);
-  void MergeFrom(const SpanContext& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -217,23 +200,6 @@ class KeyValue : public ::google::protobuf::Message /* @@protoc_insertion_point(
   inline KeyValue* New() const { return New(NULL); }
 
   KeyValue* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const KeyValue& from);
-  void MergeFrom(const KeyValue& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -363,23 +329,6 @@ class Log : public ::google::protobuf::Message /* @@protoc_insertion_point(class
   inline Log* New() const { return New(NULL); }
 
   Log* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const Log& from);
-  void MergeFrom(const Log& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -461,23 +410,6 @@ class Reference : public ::google::protobuf::Message /* @@protoc_insertion_point
   inline Reference* New() const { return New(NULL); }
 
   Reference* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const Reference& from);
-  void MergeFrom(const Reference& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -579,23 +511,6 @@ class Span : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
   inline Span* New() const { return New(NULL); }
 
   Span* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const Span& from);
-  void MergeFrom(const Span& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -732,23 +647,6 @@ class Tracer : public ::google::protobuf::Message /* @@protoc_insertion_point(cl
   inline Tracer* New() const { return New(NULL); }
 
   Tracer* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const Tracer& from);
-  void MergeFrom(const Tracer& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -833,23 +731,6 @@ class MetricsSample : public ::google::protobuf::Message /* @@protoc_insertion_p
   inline MetricsSample* New() const { return New(NULL); }
 
   MetricsSample* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const MetricsSample& from);
-  void MergeFrom(const MetricsSample& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -952,23 +833,6 @@ class InternalMetrics : public ::google::protobuf::Message /* @@protoc_insertion
   inline InternalMetrics* New() const { return New(NULL); }
 
   InternalMetrics* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const InternalMetrics& from);
-  void MergeFrom(const InternalMetrics& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -1083,23 +947,6 @@ class Auth : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
   inline Auth* New() const { return New(NULL); }
 
   Auth* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const Auth& from);
-  void MergeFrom(const Auth& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -1170,23 +1017,6 @@ class ReportRequest : public ::google::protobuf::Message /* @@protoc_insertion_p
   inline ReportRequest* New() const { return New(NULL); }
 
   ReportRequest* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ReportRequest& from);
-  void MergeFrom(const ReportRequest& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -1244,14 +1074,14 @@ class ReportRequest : public ::google::protobuf::Message /* @@protoc_insertion_p
   ::google::protobuf::uint32 timestamp_offset_micros() const;
   void set_timestamp_offset_micros(::google::protobuf::uint32 value);
 
-  // optional .lightstep.collector.InternalMetrics internal_data = 6;
-  bool has_internal_data() const;
-  void clear_internal_data();
-  static const int kInternalDataFieldNumber = 6;
-  const ::lightstep::collector::InternalMetrics& internal_data() const;
-  ::lightstep::collector::InternalMetrics* mutable_internal_data();
-  ::lightstep::collector::InternalMetrics* release_internal_data();
-  void set_allocated_internal_data(::lightstep::collector::InternalMetrics* internal_data);
+  // optional .lightstep.collector.InternalMetrics internal_metrics = 6;
+  bool has_internal_metrics() const;
+  void clear_internal_metrics();
+  static const int kInternalMetricsFieldNumber = 6;
+  const ::lightstep::collector::InternalMetrics& internal_metrics() const;
+  ::lightstep::collector::InternalMetrics* mutable_internal_metrics();
+  ::lightstep::collector::InternalMetrics* release_internal_metrics();
+  void set_allocated_internal_metrics(::lightstep::collector::InternalMetrics* internal_metrics);
 
   // @@protoc_insertion_point(class_scope:lightstep.collector.ReportRequest)
  private:
@@ -1261,7 +1091,7 @@ class ReportRequest : public ::google::protobuf::Message /* @@protoc_insertion_p
   ::lightstep::collector::Tracer* tracer_;
   ::lightstep::collector::Auth* auth_;
   ::google::protobuf::RepeatedPtrField< ::lightstep::collector::Span > spans_;
-  ::lightstep::collector::InternalMetrics* internal_data_;
+  ::lightstep::collector::InternalMetrics* internal_metrics_;
   ::google::protobuf::uint32 timestamp_offset_micros_;
   mutable int _cached_size_;
   friend void  protobuf_AddDesc_collector_2eproto();
@@ -1295,23 +1125,6 @@ class Command : public ::google::protobuf::Message /* @@protoc_insertion_point(c
   inline Command* New() const { return New(NULL); }
 
   Command* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const Command& from);
-  void MergeFrom(const Command& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -1377,23 +1190,6 @@ class ReportResponse : public ::google::protobuf::Message /* @@protoc_insertion_
   inline ReportResponse* New() const { return New(NULL); }
 
   ReportResponse* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ReportResponse& from);
-  void MergeFrom(const ReportResponse& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -2609,42 +2405,42 @@ inline void ReportRequest::set_timestamp_offset_micros(::google::protobuf::uint3
   // @@protoc_insertion_point(field_set:lightstep.collector.ReportRequest.timestamp_offset_micros)
 }
 
-// optional .lightstep.collector.InternalMetrics internal_data = 6;
-inline bool ReportRequest::has_internal_data() const {
-  return !_is_default_instance_ && internal_data_ != NULL;
+// optional .lightstep.collector.InternalMetrics internal_metrics = 6;
+inline bool ReportRequest::has_internal_metrics() const {
+  return !_is_default_instance_ && internal_metrics_ != NULL;
 }
-inline void ReportRequest::clear_internal_data() {
-  if (GetArenaNoVirtual() == NULL && internal_data_ != NULL) delete internal_data_;
-  internal_data_ = NULL;
+inline void ReportRequest::clear_internal_metrics() {
+  if (GetArenaNoVirtual() == NULL && internal_metrics_ != NULL) delete internal_metrics_;
+  internal_metrics_ = NULL;
 }
-inline const ::lightstep::collector::InternalMetrics& ReportRequest::internal_data() const {
-  // @@protoc_insertion_point(field_get:lightstep.collector.ReportRequest.internal_data)
-  return internal_data_ != NULL ? *internal_data_ : *default_instance_->internal_data_;
+inline const ::lightstep::collector::InternalMetrics& ReportRequest::internal_metrics() const {
+  // @@protoc_insertion_point(field_get:lightstep.collector.ReportRequest.internal_metrics)
+  return internal_metrics_ != NULL ? *internal_metrics_ : *default_instance_->internal_metrics_;
 }
-inline ::lightstep::collector::InternalMetrics* ReportRequest::mutable_internal_data() {
+inline ::lightstep::collector::InternalMetrics* ReportRequest::mutable_internal_metrics() {
   
-  if (internal_data_ == NULL) {
-    internal_data_ = new ::lightstep::collector::InternalMetrics;
+  if (internal_metrics_ == NULL) {
+    internal_metrics_ = new ::lightstep::collector::InternalMetrics;
   }
-  // @@protoc_insertion_point(field_mutable:lightstep.collector.ReportRequest.internal_data)
-  return internal_data_;
+  // @@protoc_insertion_point(field_mutable:lightstep.collector.ReportRequest.internal_metrics)
+  return internal_metrics_;
 }
-inline ::lightstep::collector::InternalMetrics* ReportRequest::release_internal_data() {
-  // @@protoc_insertion_point(field_release:lightstep.collector.ReportRequest.internal_data)
+inline ::lightstep::collector::InternalMetrics* ReportRequest::release_internal_metrics() {
+  // @@protoc_insertion_point(field_release:lightstep.collector.ReportRequest.internal_metrics)
   
-  ::lightstep::collector::InternalMetrics* temp = internal_data_;
-  internal_data_ = NULL;
+  ::lightstep::collector::InternalMetrics* temp = internal_metrics_;
+  internal_metrics_ = NULL;
   return temp;
 }
-inline void ReportRequest::set_allocated_internal_data(::lightstep::collector::InternalMetrics* internal_data) {
-  delete internal_data_;
-  internal_data_ = internal_data;
-  if (internal_data) {
+inline void ReportRequest::set_allocated_internal_metrics(::lightstep::collector::InternalMetrics* internal_metrics) {
+  delete internal_metrics_;
+  internal_metrics_ = internal_metrics;
+  if (internal_metrics) {
     
   } else {
     
   }
-  // @@protoc_insertion_point(field_set_allocated:lightstep.collector.ReportRequest.internal_data)
+  // @@protoc_insertion_point(field_set_allocated:lightstep.collector.ReportRequest.internal_metrics)
 }
 
 // -------------------------------------------------------------------
