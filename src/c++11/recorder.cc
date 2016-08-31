@@ -18,14 +18,15 @@
 #include "tracer.h"
 #include "util.h"
 
-namespace lightstep {
+#include "proto/collector.grpc.pb.h"
+#include <grpc++/create_channel.h>
 
-const char CollectorJsonRpcPath[] = "/api/v0/reports";
+namespace lightstep {
 
 std::string urlOf(const TracerOptions& options) {
   std::ostringstream os;
   os << (options.collector_encryption == "tls" ? "https" : "http") << "://"
-     << options.collector_host << ":" << options.collector_port << CollectorJsonRpcPath;
+     << options.collector_host << ":" << options.collector_port;
   return os.str();
 }
 
@@ -96,7 +97,8 @@ private:
   size_t encoding_seqno_;
   size_t dropped_spans_;
 
-  // @@@ GRPC
+  // Collector service stub.
+  collector::CollectorService::Stub client_;
 };
 
 BasicRecorder::BasicRecorder(const TracerImpl& tracer, const BasicRecorderOptions& options)
@@ -107,7 +109,9 @@ BasicRecorder::BasicRecorder(const TracerImpl& tracer, const BasicRecorderOption
     builder_(tracer),
     flushed_seqno_(0),
     encoding_seqno_(1),
-    dropped_spans_(0) {}
+    dropped_spans_(0),
+    client_(grpc::CreateChannel(urlOf(tracer.options()),
+				grpc::InsecureChannelCredentials())) {}
 
 void BasicRecorder::write() {
   auto next = Clock::now() + options_.time_limit;
@@ -151,15 +155,15 @@ void BasicRecorder::flush_one() {
 }
 
 void BasicRecorder::write_report(const collector::ReportRequest& report) {
-  // request_ << boost::network::header("LightStep-Access-Token", tracer.options().access_token);
-  // try {
-  //   boost::network::http::client::response response = client_.post(request_, report, std::string("application/json"));
-  //   if (status(response) != 200) {
-  //     std::cerr << "HTTP Status: " << status(response) << " " << status_message(response) << std::endl;
-  //   }
-  // } catch (std::exception &e) {
-  //   std::cerr << "HTTP Exception: " << e.what() << std::endl;
-  // }
+  grpc::ClientContext context;
+  collector::ReportResponse resp;
+  grpc::Status status = client_.Report(&context, report, &resp);
+  if (!status.ok()) {
+    std::cout << "Report RPC failed: " << status.error_message();
+    // TODO Put these (or some of these) back into a buffer, etc.
+    // TODO Record dropped spans.
+  }
+  // TODO Use response.
 }
 
 bool BasicRecorder::FlushWithTimeout(Duration timeout) {
