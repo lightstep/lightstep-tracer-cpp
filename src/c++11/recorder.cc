@@ -19,6 +19,7 @@
 #include "util.h"
 
 #include "proto/collector.grpc.pb.h"
+
 #include <grpc++/create_channel.h>
 
 namespace lightstep {
