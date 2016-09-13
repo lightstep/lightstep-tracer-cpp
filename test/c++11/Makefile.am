@@ -6,6 +6,13 @@ flushproto_test_CXXFLAGS = -I ../../src/c++11 $(protobuf_CFLAGS)
 flushproto_test_LDADD = ../../src/c++11/liblightstep_core_cxx11.la
 flushproto_test_LDFLAGS = $(protobuf_LIBS)
 
+EXTRA_DIST = \
+	dropbox_json/LICENSE.txt
+
+noinst_HEADERS = \
+	dropbox_json/json11.hpp \
+	zintinio_happyhttp/happyhttp.h
+
 if ENABLE_GRPC
 
 noinst_PROGRAMS += tracer_test

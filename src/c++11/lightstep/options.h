@@ -8,8 +8,8 @@
 #include <chrono>
 #include <memory>
 
-#include "util.h"
-#include "value.h"
+#include "lightstep/util.h"
+#include "lightstep/value.h"
 
 namespace lightstep {
 

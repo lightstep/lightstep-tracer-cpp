@@ -12,13 +12,12 @@
 #include "config.h"
 #endif
 
-#include "impl.h"
-#include "recorder.h"
-#include "options.h"
-#include "tracer.h"
-#include "util.h"
-
-#include "proto/collector.grpc.pb.h"
+#include "lightstep/collector.grpc.pb.h"
+#include "lightstep/impl.h"
+#include "lightstep/options.h"
+#include "lightstep/recorder.h"
+#include "lightstep/tracer.h"
+#include "lightstep/util.h"
 
 #include <grpc++/create_channel.h>
 

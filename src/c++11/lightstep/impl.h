@@ -7,10 +7,10 @@
 #include <mutex>
 #include <random>
 
-#include "options.h"
-#include "propagation.h"
-#include "proto/collector.pb.h"
-#include "value.h"
+#include "lightstep/collector.pb.h"
+#include "lightstep/options.h"
+#include "lightstep/propagation.h"
+#include "lightstep/value.h"
 
 namespace lightstep {
 

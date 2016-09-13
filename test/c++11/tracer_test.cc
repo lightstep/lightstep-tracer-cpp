@@ -3,9 +3,9 @@
 #include <thread>
 #include <exception>
 
-#include "impl.h"
-#include "recorder.h"
-#include "tracer.h"
+#include "lightstep/impl.h"
+#include "lightstep/recorder.h"
+#include "lightstep/tracer.h"
 
 using namespace lightstep;
 

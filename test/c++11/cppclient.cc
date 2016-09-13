@@ -3,9 +3,9 @@
 #include <thread>
 #include <chrono>
 
-#include "impl.h"
-#include "recorder.h"
-#include "tracer.h"
+#include "lightstep/impl.h"
+#include "lightstep/recorder.h"
+#include "lightstep/tracer.h"
 
 #include "dropbox_json/json11.hpp"
 #include "zintinio_happyhttp/happyhttp.h"

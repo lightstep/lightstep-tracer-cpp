@@ -2,8 +2,8 @@
 #include <iostream>
 #include <memory>
 
-#include "impl.h"
-#include "tracer.h"
+#include "lightstep/impl.h"
+#include "lightstep/tracer.h"
 
 namespace lightstep {
 namespace {

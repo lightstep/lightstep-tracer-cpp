@@ -5,7 +5,7 @@
 // Defines the Recorder interface which supports encoding and
 // transporting LightStep requests to the collector.
 
-#include "tracer.h"
+#include "lightstep/tracer.h"
 
 namespace lightstep {
 

@@ -3,7 +3,7 @@
 #define __LIGHTSTEP_UTIL_H__
 
 #include <string>
-#include "proto/collector.pb.h"
+#include "lightstep/collector.pb.h"
 
 namespace lightstep {
 

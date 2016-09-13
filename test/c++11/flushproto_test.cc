@@ -2,8 +2,8 @@
 #include <iostream>
 #include <mutex>
 
-#include "tracer.h"
-#include "impl.h"
+#include "lightstep/tracer.h"
+#include "lightstep/impl.h"
 
 class error : public std::exception {
 public:
