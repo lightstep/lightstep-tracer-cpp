@@ -1,7 +1,7 @@
-#include "impl.h"
-#include "options.h"
-#include "span.h"
-#include "tracer.h"
+#include "lightstep/impl.h"
+#include "lightstep/options.h"
+#include "lightstep/span.h"
+#include "lightstep/tracer.h"
 
 namespace lightstep {
 

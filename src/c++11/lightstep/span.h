@@ -2,9 +2,9 @@
 #ifndef __LIGHTSTEP_SPAN_H__
 #define __LIGHTSTEP_SPAN_H__
 
-#include "options.h"
-#include "propagation.h"
-#include "value.h"
+#include "lightstep/options.h"
+#include "lightstep/propagation.h"
+#include "lightstep/value.h"
 
 #include <memory>
 

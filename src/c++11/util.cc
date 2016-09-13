@@ -3,9 +3,9 @@
 #include <memory>
 #include <string>
 
-#include "impl.h"
-#include "util.h"
-#include "value.h"
+#include "lightstep/impl.h"
+#include "lightstep/util.h"
+#include "lightstep/value.h"
 
 namespace lightstep {
 namespace util {

@@ -1,9 +1,9 @@
 // -*- Mode: C++ -*-
 
-#include "options.h"
-#include "propagation.h"
-#include "span.h"
-#include "value.h"
+#include "lightstep/options.h"
+#include "lightstep/propagation.h"
+#include "lightstep/span.h"
+#include "lightstep/value.h"
 
 #include <memory>
 #include <functional>

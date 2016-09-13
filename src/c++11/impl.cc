@@ -3,11 +3,13 @@
 #include <random>
 #include <sstream>
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
-#include "impl.h"
-#include "options.h"
-#include "tracer.h"
-#include "util.h"
+#endif
+#include "lightstep/impl.h"
+#include "lightstep/options.h"
+#include "lightstep/tracer.h"
+#include "lightstep/util.h"
 
 // NOTE that protobuf doesn't have C++11 move constructors. The code
 // below does somewhat more allocation and copying than neccesary as a
