@@ -4,7 +4,7 @@
 # by homebrew, see the commands to set PKG_CONFIG_PATH in build.sh.
 
 AC_PREREQ([2.69])
-AC_INIT([lightstep-tracer-cpp], [0.11],
+AC_INIT([lightstep-tracer-cpp], [0.13],
         [https://github.com/lightstep/lightstep-tracer-cpp/issues])
 LT_INIT([disable-shared])
 AM_INIT_AUTOMAKE([1.14 foreign subdir-objects])
@@ -16,10 +16,11 @@ AC_LANG_PUSH([C++])
 AC_PROG_CXX
 AX_CXX_COMPILE_STDCXX([11])
 
-SAVE_CPPFLAGS="${CPPFLAGS}"
-CPPFLAGS="${CPPFLAGS} ${protobuf_CFLAGS}"
 AS_IF([test -z "${protobuf_LIBS}"],
       [PKG_CHECK_MODULES(protobuf, protobuf >= 3.0.0)])
+
+SAVE_CPPFLAGS="${CPPFLAGS}"
+CPPFLAGS="${CPPFLAGS} ${protobuf_CFLAGS}"
 
 AC_CHECK_HEADER(google/protobuf/message.h)
 
