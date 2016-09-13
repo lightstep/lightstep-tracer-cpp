@@ -16,7 +16,15 @@ AC_LANG_PUSH([C++])
 AC_PROG_CXX
 AX_CXX_COMPILE_STDCXX([11])
 
-PKG_CHECK_MODULES(protobuf, protobuf >= 3.0.0)
+SAVE_CPPFLAGS="${CPPFLAGS}"
+CPPFLAGS="${CPPFLAGS} ${protobuf_CFLAGS}"
+AS_IF([test -z "${protobuf_LIBS}"],
+      [PKG_CHECK_MODULES(protobuf, protobuf >= 3.0.0)])
+
+AC_CHECK_HEADER(google/protobuf/message.h)
+
+CPPFLAGS="${SAVE_CPPFLAGS}"
+
 AC_SUBST(protobuf_LIBS)
 AC_SUBST(protobuf_CFLAGS)
 
@@ -26,8 +34,9 @@ AC_ARG_ENABLE([grpc],
   [:],
   [enable_grpc=check])
 
-AS_IF([test "$enable_grpc" != "no"],
-      [PKG_CHECK_MODULES(grpc, grpc >= 1.0.0)
+AS_IF([test "${enable_grpc}" != "no"],
+      [AS_IF([test -z "${grpc_LIBS}"],
+	  [PKG_CHECK_MODULES(grpc, grpc >= 1.0.0)])
        AC_SUBST(grpc_LIBS)
        AC_SUBST(grpc_CFLAGS)
        ])
