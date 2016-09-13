@@ -1,6 +1,6 @@
 # TODO(jmacd): Replace the proto-generation rule with one using the protoc docker image.
 PROTOC = protoc
-PROTO_SRC = ../../lightstep-tracer-common
+PROTO_SRC = $(top_srcdir)/lightstep-tracer-common
 PROTO_OUT = proto
 
 .PHONY: proto
@@ -23,9 +23,7 @@ nobase_include_HEADERS = \
 	lightstep/span.h \
 	lightstep/tracer.h \
 	lightstep/util.h \
-	lightstep/value.h
-
-noinst_HEADERS = \
+	lightstep/value.h \
 	mapbox_variant/recursive_wrapper.hpp \
 	mapbox_variant/variant.hpp
 
@@ -40,7 +38,7 @@ liblightstep_core_cxx11_la_SOURCES = \
 	proto/collector.pb.cc
 
 liblightstep_core_cxx11_la_LIBADD   =
-liblightstep_core_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) $(protobuf_CFLAGS) -Ilightstep
+liblightstep_core_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) $(protobuf_CFLAGS) -I$(srcdir)/lightstep
 liblightstep_core_cxx11_la_LDFLAGS  = $(protobuf_LIBS)
 
 if ENABLE_GRPC
@@ -54,6 +52,6 @@ liblightstep_grpc_cxx11_la_SOURCES = \
 # characters that are invalid to autoconf, so we can't find it.  Instead, we locate
 # the C library and tack on a '++'.
 liblightstep_grpc_cxx11_la_LIBADD   = liblightstep_core_cxx11.la
-liblightstep_grpc_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) $(grpc_CFLAGS) $(protobuf_CFLAGS) -Ilightstep
+liblightstep_grpc_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) $(grpc_CFLAGS) $(protobuf_CFLAGS) -I$(srcdir)/lightstep
 liblightstep_grpc_cxx11_la_LDFLAGS  = $(protobuf_LIBS) $(grpc_LIBS)++
 endif
