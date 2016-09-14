@@ -36,6 +36,9 @@ public:
   // Tracer attributes.  To define the LightStep Tracer ID manually
   // set TracerIDKey here.
   Attributes tracer_attributes;
+
+  // Optional: a user-defined guid generator to use.
+  std::function<uint64_t()> guid_generator;
 };
 
 class SpanStartOption {
