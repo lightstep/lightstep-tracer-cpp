@@ -60,19 +60,28 @@ TracerImpl::TracerImpl(const TracerOptions& options_in)
     options_.tracer_attributes.emplace(std::make_pair(TracerIDKey, uint64ToHex(GetOneId())));
   }
 
-  options_.tracer_attributes.emplace(std::make_pair(PlatformNameKey, "C++11"));
+  options_.tracer_attributes.emplace(std::make_pair(PlatformNameKey, "c++11"));
   options_.tracer_attributes.emplace(std::make_pair(VersionNameKey, PACKAGE_VERSION));
 }
 
 void TracerImpl::GetTwoIds(uint64_t *a, uint64_t *b) {
-  MutexLock l(mutex_);
-  *a = rand_source_();  
-  *b = rand_source_();
+  if (options_.guid_generator != nullptr) {
+    *a = options_.guid_generator();
+    *b = options_.guid_generator();
+  } else {
+    MutexLock l(mutex_);
+    *a = rand_source_();  
+    *b = rand_source_();
+  }
 }
 
 uint64_t TracerImpl::GetOneId() {
-  MutexLock l(mutex_);
-  return rand_source_();
+  if (options_.guid_generator != nullptr) {
+    return options_.guid_generator();
+  } else {
+    MutexLock l(mutex_);
+    return rand_source_();
+  }
 }
 
 void TracerImpl::set_recorder(std::unique_ptr<Recorder> recorder) {

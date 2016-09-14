@@ -31,6 +31,11 @@ public:
   lightstep::ReportBuilder builder_;
 };
 
+uint64_t my_guids() {
+  static uint64_t unsafe = 100;
+  return unsafe++;
+}
+
 int main() {
   try {
     lightstep::TracerOptions topts;
@@ -39,6 +44,7 @@ int main() {
     topts.collector_host = "";
     topts.collector_port = 9998;
     topts.collector_encryption = "";
+    topts.guid_generator = my_guids;
     
     lightstep::Tracer::InitGlobal(NewUserDefinedTransportLightStepTracer(topts, [](const lightstep::TracerImpl& impl) {
 	  return std::unique_ptr<lightstep::Recorder>(new TestRecorder(impl));
