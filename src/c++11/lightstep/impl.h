@@ -70,7 +70,6 @@ class TracerImpl {
   const TracerOptions& options() const { return options_; }
 
   const std::string& component_name() const { return component_name_; }
-  const uint64_t tracer_id() const { return tracer_id_; }
   const std::string& access_token() const { return options_.access_token; }
 
   TimeStamp tracer_start_time() const { return tracer_start_time_; }
@@ -117,13 +116,12 @@ class TracerImpl {
   // source.
   std::mt19937_64 rand_source_;
 
-  // Computed from rand_source_, hexified.
-  uint64_t tracer_id_;
-
   // Either from TracerOptions.component_name or set by default logic.
+  // TODO remove this, it's set in options_.attributes.
   std::string component_name_;
 
   // Start time of this process.
+  // TODO remove this, it's no longer part of the protocol.
   TimeStamp tracer_start_time_;
 };
 

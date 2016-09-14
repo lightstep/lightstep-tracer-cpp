@@ -16,6 +16,9 @@
 // result.
 
 namespace lightstep {
+
+const char TracerIDKey[] = "lightstep.guid";
+
 namespace {
 
 const char TraceKeyPrefix[] = "join:";
@@ -43,24 +46,18 @@ std::string uint64ToHex(uint64_t u) {
   return ss.str();
 }
 
-uint64_t stringToUint64(const std::string& s) {
-  // TODO error handling
-  std::stringstream ss(s);
-  uint64_t x;
-  ss >> x;
-  return x;
-}
-
 } // namespace
 
 TracerImpl::TracerImpl(const TracerOptions& options_in)
   : options_(options_in),
     rand_source_(std::random_device()()),
-    tracer_id_(GetOneId()),
     tracer_start_time_(Clock::now()) {
 
   if (options_.tracer_attributes.find(ComponentNameKey) == options_.tracer_attributes.end()) {
     options_.tracer_attributes.emplace(std::make_pair(ComponentNameKey, util::program_name()));
+  }
+  if (options_.tracer_attributes.find(TracerIDKey) == options_.tracer_attributes.end()) {
+    options_.tracer_attributes.emplace(std::make_pair(TracerIDKey, uint64ToHex(GetOneId())));
   }
 
   options_.tracer_attributes.emplace(std::make_pair(PlatformNameKey, "C++11"));
@@ -170,10 +167,10 @@ SpanContext TracerImpl::extract(const CarrierFormat& format, const CarrierReader
   carrier->ForeachKey([carrier, &ctx, &count](const std::string& key,
 					      const std::string& value) {
 			if (key == FieldNameTraceID) {
-			  ctx->trace_id = stringToUint64(value);
+			  ctx->trace_id = util::stringToUint64(value);
 			  count++;
 			} else if (key == FieldNameSpanID) {
-			  ctx->span_id = stringToUint64(value);
+			  ctx->span_id = util::stringToUint64(value);
 			  count++;
 			} else if (key == FieldNameSampled) {
 			  // Ignored

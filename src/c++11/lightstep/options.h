@@ -19,14 +19,22 @@ class TracerImpl;
 typedef std::unordered_map<std::string, std::string> Attributes;
 typedef std::shared_ptr<TracerImpl> ImplPtr;
 
+// TracerIDKey can be used as the key in TracerOptions.tracer_attributes
+// to encode the LightStep tracer ID.
+extern const char TracerIDKey[];
+
 class TracerOptions {
 public:
+  // Required (for all recorders)
   std::string access_token;
+
+  // Common fields (must be set to use default recorder)
   std::string collector_host;
   uint32_t    collector_port;
   std::string collector_encryption;
 
-  // Tracer attributes
+  // Tracer attributes.  To define the LightStep Tracer ID manually
+  // set TracerIDKey here.
   Attributes tracer_attributes;
 };
 

@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <sstream>
 
 #include "lightstep/impl.h"
 #include "lightstep/util.h"
@@ -9,6 +10,14 @@
 
 namespace lightstep {
 namespace util {
+
+uint64_t stringToUint64(const std::string& s) {
+  // TODO error handling
+  std::stringstream ss(s);
+  uint64_t x;
+  ss >> x;
+  return x;
+}
 
 // TODO This only works on Linux.
 std::string program_name() {
