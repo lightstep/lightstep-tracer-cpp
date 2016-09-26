@@ -119,6 +119,10 @@ typedef std::function<std::unique_ptr<Recorder>(const TracerImpl&)> RecorderFact
 
 Tracer NewUserDefinedTransportLightStepTracer(const TracerOptions& topts, RecorderFactory rf);
 
+// For use routing ReportRequests via generic gRPC endpoints, use these names:
+const std::string& CollectorServiceFullName();
+const std::string& CollectorMethodName();
+
 }  // namespace lightstep
 
 #endif // __LIGHTSTEP_TRACER_H__

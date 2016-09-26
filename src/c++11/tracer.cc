@@ -10,6 +10,11 @@ namespace {
 
 std::atomic<ImplPtr*> global_tracer;
 
+// Note: These must be kept up-to-date with the collector endpoint
+// gRPC service and method names.
+const char collectorServiceFullName[] = "lightstep.collector.CollectorService";
+const char collectorMethodName[] = "Report";
+
 }  // namespace
 
 BuiltinCarrierFormat BuiltinCarrierFormat::BinaryCarrier{BuiltinCarrierFormat::Binary};
@@ -74,6 +79,16 @@ ReportBuilder::ReportBuilder(const TracerImpl &impl)
     }
   }
   preamble_.mutable_auth()->set_access_token(impl.access_token());
+}
+
+const std::string& CollectorServiceFullName() {
+  static std::string name = collectorServiceFullName;
+  return name;
+}
+
+const std::string& CollectorMethodName() {
+  static std::string name = collectorMethodName;
+  return name;
 }
 
 }  // namespace lightstep
