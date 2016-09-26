@@ -1,6 +1,7 @@
 #include <vector>
 #include <iostream>
 #include <mutex>
+#include <sstream>
 
 #include "lightstep/tracer.h"
 #include "lightstep/impl.h"
@@ -36,8 +37,20 @@ uint64_t my_guids() {
   return unsafe++;
 }
 
+void check_tracer_names() throw(error) {
+  // The official value is not exported from gRPC, so hard-code it again:
+  const char grpc_path[] = "/lightstep.collector.CollectorService/Report";
+  std::stringstream assembled;
+  assembled << "/" << lightstep::CollectorServiceFullName() << "/" << lightstep::CollectorMethodName();
+  if (assembled.str() != grpc_path) {
+    throw error("Incorrect gRPC service and method names hard-coded");
+  }
+}
+
 int main() {
   try {
+    check_tracer_names();
+
     lightstep::TracerOptions topts;
 
     topts.access_token = "i_am_an_access_token";

@@ -38,6 +38,7 @@ public:
   Attributes tracer_attributes;
 
   // Optional: a user-defined guid generator to use.
+  // TODO remove this in favor of thread-local PRNGs?
   std::function<uint64_t()> guid_generator;
 };
 
