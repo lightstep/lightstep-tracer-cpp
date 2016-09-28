@@ -1,6 +1,6 @@
 # lightstep-tracer-cpp
 
-The LightStep implementation of [the OpenTracing API](http://opentracing.io/) for C++. 
+The LightStep distributed tracing library for C++.
 
 ## Status 
 
