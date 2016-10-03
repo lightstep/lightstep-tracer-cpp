@@ -53,11 +53,15 @@ TracerImpl::TracerImpl(const TracerOptions& options_in)
     rand_source_(std::random_device()()),
     tracer_start_time_(Clock::now()) {
 
+  tracer_id_ = GetOneId();
+
   if (options_.tracer_attributes.find(ComponentNameKey) == options_.tracer_attributes.end()) {
     options_.tracer_attributes.emplace(std::make_pair(ComponentNameKey, util::program_name()));
   }
-  if (options_.tracer_attributes.find(TracerIDKey) == options_.tracer_attributes.end()) {
-    options_.tracer_attributes.emplace(std::make_pair(TracerIDKey, uint64ToHex(GetOneId())));
+  // Note: drop the TracerIDKey, this is copied from tracer_id_.
+  auto guid_lookup = options_.tracer_attributes.find(TracerIDKey);
+  if (guid_lookup != options_.tracer_attributes.end()) {
+    options_.tracer_attributes.erase(guid_lookup);
   }
 
   options_.tracer_attributes.emplace(std::make_pair(PlatformNameKey, "c++11"));

@@ -57,6 +57,7 @@ int main() {
     topts.collector_host = "";
     topts.collector_port = 9998;
     topts.collector_encryption = "";
+    topts.tracer_attributes["lightstep.guid"] = "invalid";
     topts.guid_generator = my_guids;
     
     lightstep::Tracer::InitGlobal(NewUserDefinedTransportLightStepTracer(topts, [](const lightstep::TracerImpl& impl) {
