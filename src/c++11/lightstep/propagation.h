@@ -120,18 +120,12 @@ SpanReference ChildOf(const SpanContext& ctx);
 // Create a FollowsFrom-referencing StartSpan option.
 SpanReference FollowsFrom(const SpanContext& ctx);
 
-// Base class for implementation-provided or builtin carrier formats.
+// Carrier format values.
 class CarrierFormat {
-public:
-  virtual ~CarrierFormat() { }
-};
-
-// Builtin carrier format values.
-class BuiltinCarrierFormat : public CarrierFormat {
 public:
   enum FormatType {
     // Binary encodes the SpanContext for propagation as opaque binary data.
-    Binary = 1,  // NOT IMPLEMENTED
+    Binary = 1,  // RESERVED, NOT IMPLEMENTED
     
     // HTTPHeaders represents SpanContexts as HTTP header string pairs.
     //
@@ -147,7 +141,7 @@ public:
     // For example, Inject():
     //
     //   std::vector<std::pair<std::string, std::string>> *headers = ...;
-    //   if (!span.tracer().Inject(span, BuiltinCarrierFormat::HTTPHeadersCarrier,
+    //   if (!span.tracer().Inject(span, CarrierFormat::HTTPHeadersCarrier,
     // 	  			   make_ordered_string_pairs_writer(headers))) {
     //     throw error("inject failed");
     //   }
@@ -155,7 +149,7 @@ public:
     // Or Extract():
     //
     //   SpanContext extracted;
-    //   extracted = Tracer::Global().Extract(BuiltinCarrierFormat::HTTPHeadersCarrier,
+    //   extracted = Tracer::Global().Extract(CarrierFormat::HTTPHeadersCarrier,
     //                                        make_ordered_string_pairs_reader(*headers));
     //   auto span = Tracer::Global().StartSpan("op", { ChildOf(extracted) });
     //
@@ -172,13 +166,16 @@ public:
     //
     // See the HTTPHeaders examples.
     TextMap = 3,
+
+    // EnvoyProto carriers use a serialized protocol message.
+    EnvoyProto = 4,
   };
 
-  static BuiltinCarrierFormat BinaryCarrier;
-  static BuiltinCarrierFormat TextMapCarrier;
-  static BuiltinCarrierFormat HTTPHeadersCarrier;
+  static CarrierFormat TextMapCarrier;
+  static CarrierFormat HTTPHeadersCarrier;
+  static CarrierFormat EnvoyProtoCarrier;
 
-  BuiltinCarrierFormat(FormatType type) : type_(type) { }
+  CarrierFormat(FormatType type) : type_(type) { }
 
   FormatType type() const { return type_; }
 
@@ -192,23 +189,33 @@ public:
   virtual ~CarrierReader() { }
 };
 
+// Basic foundation for OpenTracing basictracer-compatible carrier readers.
+class BasicCarrierReader : public CarrierReader {
+public:
+  virtual void ForeachKey(std::function<void(const std::string& key,
+					     const std::string& value)> f) const = 0;
+};
+
 // Base class for implementation-dependent Tracer::Extract carrier-type adapter.
 class CarrierWriter {
 public:
   virtual ~CarrierWriter() { }
 };
 
-// Base class for injecting into TextMap and HTTPHeaders carriers.
-class TextMapReader : public CarrierReader {
+// Basic foundation for OpenTracing basictracer-compatible carrier writers.
+class BasicCarrierWriter : public CarrierWriter {
 public:
-  virtual void ForeachKey(std::function<void(const std::string& key,
-					     const std::string& value)> f) const = 0;
+  virtual void Set(const std::string& key, const std::string& value) const = 0;
+};
+
+// Base class for injecting into TextMap and HTTPHeaders carriers.
+class TextMapReader : public BasicCarrierReader {
+  // TODO distinguish TextMap and HTTPHeaders behavior.
 };
 
 // Base class for extracting from TextMap and HTTPHeaders carriers.
-class TextMapWriter : public CarrierWriter {
-public:
-  virtual void Set(const std::string& key, const std::string& value) const = 0;
+class TextMapWriter : public BasicCarrierWriter {
+  // TODO distinguish TextMap and HTTPHeaders behavior.
 };
 
 // OrderedStringPairsReader is a TextMapReader for any container

@@ -37,8 +37,8 @@ void protobuf_AddDesc_envoy_5fcarrier_2eproto();
 void protobuf_AssignDesc_envoy_5fcarrier_2eproto();
 void protobuf_ShutdownFile_envoy_5fcarrier_2eproto();
 
-class CarrierFormat;
 class CarrierPair;
+class CarrierStruct;
 
 // ===================================================================
 
@@ -141,32 +141,32 @@ class CarrierPair : public ::google::protobuf::Message /* @@protoc_insertion_poi
 };
 // -------------------------------------------------------------------
 
-class CarrierFormat : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:lightstep.envoy.CarrierFormat) */ {
+class CarrierStruct : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:lightstep.envoy.CarrierStruct) */ {
  public:
-  CarrierFormat();
-  virtual ~CarrierFormat();
+  CarrierStruct();
+  virtual ~CarrierStruct();
 
-  CarrierFormat(const CarrierFormat& from);
+  CarrierStruct(const CarrierStruct& from);
 
-  inline CarrierFormat& operator=(const CarrierFormat& from) {
+  inline CarrierStruct& operator=(const CarrierStruct& from) {
     CopyFrom(from);
     return *this;
   }
 
   static const ::google::protobuf::Descriptor* descriptor();
-  static const CarrierFormat& default_instance();
+  static const CarrierStruct& default_instance();
 
-  void Swap(CarrierFormat* other);
+  void Swap(CarrierStruct* other);
 
   // implements Message ----------------------------------------------
 
-  inline CarrierFormat* New() const { return New(NULL); }
+  inline CarrierStruct* New() const { return New(NULL); }
 
-  CarrierFormat* New(::google::protobuf::Arena* arena) const;
+  CarrierStruct* New(::google::protobuf::Arena* arena) const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const CarrierFormat& from);
-  void MergeFrom(const CarrierFormat& from);
+  void CopyFrom(const CarrierStruct& from);
+  void MergeFrom(const CarrierStruct& from);
   void Clear();
   bool IsInitialized() const;
 
@@ -185,7 +185,7 @@ class CarrierFormat : public ::google::protobuf::Message /* @@protoc_insertion_p
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const;
-  void InternalSwap(CarrierFormat* other);
+  void InternalSwap(CarrierStruct* other);
   private:
   inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
     return _internal_metadata_.arena();
@@ -213,7 +213,7 @@ class CarrierFormat : public ::google::protobuf::Message /* @@protoc_insertion_p
   const ::google::protobuf::RepeatedPtrField< ::lightstep::envoy::CarrierPair >&
       context() const;
 
-  // @@protoc_insertion_point(class_scope:lightstep.envoy.CarrierFormat)
+  // @@protoc_insertion_point(class_scope:lightstep.envoy.CarrierStruct)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
@@ -225,7 +225,7 @@ class CarrierFormat : public ::google::protobuf::Message /* @@protoc_insertion_p
   friend void protobuf_ShutdownFile_envoy_5fcarrier_2eproto();
 
   void InitAsDefaultInstance();
-  static CarrierFormat* default_instance_;
+  static CarrierStruct* default_instance_;
 };
 // ===================================================================
 
@@ -325,35 +325,35 @@ inline void CarrierPair::set_allocated_value(::std::string* value) {
 
 // -------------------------------------------------------------------
 
-// CarrierFormat
+// CarrierStruct
 
 // repeated .lightstep.envoy.CarrierPair context = 1;
-inline int CarrierFormat::context_size() const {
+inline int CarrierStruct::context_size() const {
   return context_.size();
 }
-inline void CarrierFormat::clear_context() {
+inline void CarrierStruct::clear_context() {
   context_.Clear();
 }
-inline const ::lightstep::envoy::CarrierPair& CarrierFormat::context(int index) const {
-  // @@protoc_insertion_point(field_get:lightstep.envoy.CarrierFormat.context)
+inline const ::lightstep::envoy::CarrierPair& CarrierStruct::context(int index) const {
+  // @@protoc_insertion_point(field_get:lightstep.envoy.CarrierStruct.context)
   return context_.Get(index);
 }
-inline ::lightstep::envoy::CarrierPair* CarrierFormat::mutable_context(int index) {
-  // @@protoc_insertion_point(field_mutable:lightstep.envoy.CarrierFormat.context)
+inline ::lightstep::envoy::CarrierPair* CarrierStruct::mutable_context(int index) {
+  // @@protoc_insertion_point(field_mutable:lightstep.envoy.CarrierStruct.context)
   return context_.Mutable(index);
 }
-inline ::lightstep::envoy::CarrierPair* CarrierFormat::add_context() {
-  // @@protoc_insertion_point(field_add:lightstep.envoy.CarrierFormat.context)
+inline ::lightstep::envoy::CarrierPair* CarrierStruct::add_context() {
+  // @@protoc_insertion_point(field_add:lightstep.envoy.CarrierStruct.context)
   return context_.Add();
 }
 inline ::google::protobuf::RepeatedPtrField< ::lightstep::envoy::CarrierPair >*
-CarrierFormat::mutable_context() {
-  // @@protoc_insertion_point(field_mutable_list:lightstep.envoy.CarrierFormat.context)
+CarrierStruct::mutable_context() {
+  // @@protoc_insertion_point(field_mutable_list:lightstep.envoy.CarrierStruct.context)
   return &context_;
 }
 inline const ::google::protobuf::RepeatedPtrField< ::lightstep::envoy::CarrierPair >&
-CarrierFormat::context() const {
-  // @@protoc_insertion_point(field_list:lightstep.envoy.CarrierFormat.context)
+CarrierStruct::context() const {
+  // @@protoc_insertion_point(field_list:lightstep.envoy.CarrierStruct.context)
   return context_;
 }
 

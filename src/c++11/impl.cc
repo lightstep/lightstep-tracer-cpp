@@ -6,6 +6,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include "lightstep/envoy.h"
 #include "lightstep/impl.h"
 #include "lightstep/options.h"
 #include "lightstep/tracer.h"
@@ -29,6 +30,7 @@ const char PlatformNameKey[] = "lightstep.tracer_platform";
 const char VersionNameKey[] = "lightstep.tracer_version";
 
 #define PREFIX_TRACER_STATE "ot-tracer-"
+// Note: these constants are a convention of the OpenTracing basictracers.
 const char PrefixTracerState[] = PREFIX_TRACER_STATE;
 const char PrefixBaggage[] = "ot-baggage-";
 
@@ -127,20 +129,20 @@ std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> trac
   return span;
 }
 
-bool TracerImpl::inject(SpanContext sc, const CarrierFormat& format, const CarrierWriter& opaque) {
-  const BuiltinCarrierFormat *bcf = dynamic_cast<const BuiltinCarrierFormat*>(&format);
-  if (bcf == nullptr) {
-    return false;
-  }
-  switch (bcf->type()) {
-  case BuiltinCarrierFormat::HTTPHeaders:
-  case BuiltinCarrierFormat::TextMap:
+bool TracerImpl::inject(SpanContext sc, CarrierFormat format, const CarrierWriter& opaque) {
+  switch (format.type()) {
+  case CarrierFormat::HTTPHeaders:
+  case CarrierFormat::TextMap:
+  case CarrierFormat::EnvoyProto:
+    return inject_basic_carrier(sc, opaque);
+  case CarrierFormat::Binary:
     break;
-  default:
-    return false;
   }
+  return false;
+}
 
-  const TextMapWriter* carrier = dynamic_cast<const TextMapWriter*>(&opaque);
+bool TracerImpl::inject_basic_carrier(SpanContext sc, const CarrierWriter& opaque) {
+  const BasicCarrierWriter* carrier = dynamic_cast<const BasicCarrierWriter*>(&opaque);
   if (carrier == nullptr) {
     return false;
   }
@@ -156,21 +158,19 @@ bool TracerImpl::inject(SpanContext sc, const CarrierFormat& format, const Carri
   return true;
 }
 
-SpanContext TracerImpl::extract(const CarrierFormat& format, const CarrierReader& opaque) {
-  const BuiltinCarrierFormat *bcf = dynamic_cast<const BuiltinCarrierFormat*>(&format);
-  // TODO a way to log errors here
-  if (bcf == nullptr) {
-    return SpanContext();
-  }
-  switch (bcf->type()) {
-  case BuiltinCarrierFormat::HTTPHeaders:
-  case BuiltinCarrierFormat::TextMap:
-    break;
+SpanContext TracerImpl::extract(CarrierFormat format, const CarrierReader& opaque) {
+  switch (format.type()) {
+  case CarrierFormat::HTTPHeaders:
+  case CarrierFormat::TextMap:
+  case CarrierFormat::EnvoyProto:
+    return extract_basic_carrier(opaque);
   default:
     return SpanContext();
   }
+}
 
-  const TextMapReader* carrier = dynamic_cast<const TextMapReader*>(&opaque);
+SpanContext TracerImpl::extract_basic_carrier(const CarrierReader& opaque) {
+  const BasicCarrierReader* carrier = dynamic_cast<const BasicCarrierReader*>(&opaque);
   if (carrier == nullptr) {
     return SpanContext();
   }

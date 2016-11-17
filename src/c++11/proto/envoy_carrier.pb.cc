@@ -25,9 +25,9 @@ namespace {
 const ::google::protobuf::Descriptor* CarrierPair_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   CarrierPair_reflection_ = NULL;
-const ::google::protobuf::Descriptor* CarrierFormat_descriptor_ = NULL;
+const ::google::protobuf::Descriptor* CarrierStruct_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
-  CarrierFormat_reflection_ = NULL;
+  CarrierStruct_reflection_ = NULL;
 
 }  // namespace
 
@@ -55,21 +55,21 @@ void protobuf_AssignDesc_envoy_5fcarrier_2eproto() {
       sizeof(CarrierPair),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CarrierPair, _internal_metadata_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CarrierPair, _is_default_instance_));
-  CarrierFormat_descriptor_ = file->message_type(1);
-  static const int CarrierFormat_offsets_[1] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CarrierFormat, context_),
+  CarrierStruct_descriptor_ = file->message_type(1);
+  static const int CarrierStruct_offsets_[1] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CarrierStruct, context_),
   };
-  CarrierFormat_reflection_ =
+  CarrierStruct_reflection_ =
     ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
-      CarrierFormat_descriptor_,
-      CarrierFormat::default_instance_,
-      CarrierFormat_offsets_,
+      CarrierStruct_descriptor_,
+      CarrierStruct::default_instance_,
+      CarrierStruct_offsets_,
       -1,
       -1,
       -1,
-      sizeof(CarrierFormat),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CarrierFormat, _internal_metadata_),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CarrierFormat, _is_default_instance_));
+      sizeof(CarrierStruct),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CarrierStruct, _internal_metadata_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CarrierStruct, _is_default_instance_));
 }
 
 namespace {
@@ -86,7 +86,7 @@ void protobuf_RegisterTypes(const ::std::string&) {
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
       CarrierPair_descriptor_, &CarrierPair::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-      CarrierFormat_descriptor_, &CarrierFormat::default_instance());
+      CarrierStruct_descriptor_, &CarrierStruct::default_instance());
 }
 
 }  // namespace
@@ -94,8 +94,8 @@ void protobuf_RegisterTypes(const ::std::string&) {
 void protobuf_ShutdownFile_envoy_5fcarrier_2eproto() {
   delete CarrierPair::default_instance_;
   delete CarrierPair_reflection_;
-  delete CarrierFormat::default_instance_;
-  delete CarrierFormat_reflection_;
+  delete CarrierStruct::default_instance_;
+  delete CarrierStruct_reflection_;
 }
 
 void protobuf_AddDesc_envoy_5fcarrier_2eproto() GOOGLE_ATTRIBUTE_COLD;
@@ -108,14 +108,14 @@ void protobuf_AddDesc_envoy_5fcarrier_2eproto() {
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\023envoy_carrier.proto\022\017lightstep.envoy\")"
     "\n\013CarrierPair\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001("
-    "\t\">\n\rCarrierFormat\022-\n\007context\030\001 \003(\0132\034.li"
+    "\t\">\n\rCarrierStruct\022-\n\007context\030\001 \003(\0132\034.li"
     "ghtstep.envoy.CarrierPairb\006proto3", 153);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "envoy_carrier.proto", &protobuf_RegisterTypes);
   CarrierPair::default_instance_ = new CarrierPair();
-  CarrierFormat::default_instance_ = new CarrierFormat();
+  CarrierStruct::default_instance_ = new CarrierStruct();
   CarrierPair::default_instance_->InitAsDefaultInstance();
-  CarrierFormat::default_instance_->InitAsDefaultInstance();
+  CarrierStruct::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_envoy_5fcarrier_2eproto);
 }
 
@@ -511,77 +511,77 @@ void CarrierPair::clear_value() {
 // ===================================================================
 
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int CarrierFormat::kContextFieldNumber;
+const int CarrierStruct::kContextFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
-CarrierFormat::CarrierFormat()
+CarrierStruct::CarrierStruct()
   : ::google::protobuf::Message(), _internal_metadata_(NULL) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:lightstep.envoy.CarrierFormat)
+  // @@protoc_insertion_point(constructor:lightstep.envoy.CarrierStruct)
 }
 
-void CarrierFormat::InitAsDefaultInstance() {
+void CarrierStruct::InitAsDefaultInstance() {
   _is_default_instance_ = true;
 }
 
-CarrierFormat::CarrierFormat(const CarrierFormat& from)
+CarrierStruct::CarrierStruct(const CarrierStruct& from)
   : ::google::protobuf::Message(),
     _internal_metadata_(NULL) {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:lightstep.envoy.CarrierFormat)
+  // @@protoc_insertion_point(copy_constructor:lightstep.envoy.CarrierStruct)
 }
 
-void CarrierFormat::SharedCtor() {
+void CarrierStruct::SharedCtor() {
     _is_default_instance_ = false;
   _cached_size_ = 0;
 }
 
-CarrierFormat::~CarrierFormat() {
-  // @@protoc_insertion_point(destructor:lightstep.envoy.CarrierFormat)
+CarrierStruct::~CarrierStruct() {
+  // @@protoc_insertion_point(destructor:lightstep.envoy.CarrierStruct)
   SharedDtor();
 }
 
-void CarrierFormat::SharedDtor() {
+void CarrierStruct::SharedDtor() {
   if (this != default_instance_) {
   }
 }
 
-void CarrierFormat::SetCachedSize(int size) const {
+void CarrierStruct::SetCachedSize(int size) const {
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = size;
   GOOGLE_SAFE_CONCURRENT_WRITES_END();
 }
-const ::google::protobuf::Descriptor* CarrierFormat::descriptor() {
+const ::google::protobuf::Descriptor* CarrierStruct::descriptor() {
   protobuf_AssignDescriptorsOnce();
-  return CarrierFormat_descriptor_;
+  return CarrierStruct_descriptor_;
 }
 
-const CarrierFormat& CarrierFormat::default_instance() {
+const CarrierStruct& CarrierStruct::default_instance() {
   if (default_instance_ == NULL) protobuf_AddDesc_envoy_5fcarrier_2eproto();
   return *default_instance_;
 }
 
-CarrierFormat* CarrierFormat::default_instance_ = NULL;
+CarrierStruct* CarrierStruct::default_instance_ = NULL;
 
-CarrierFormat* CarrierFormat::New(::google::protobuf::Arena* arena) const {
-  CarrierFormat* n = new CarrierFormat;
+CarrierStruct* CarrierStruct::New(::google::protobuf::Arena* arena) const {
+  CarrierStruct* n = new CarrierStruct;
   if (arena != NULL) {
     arena->Own(n);
   }
   return n;
 }
 
-void CarrierFormat::Clear() {
-// @@protoc_insertion_point(message_clear_start:lightstep.envoy.CarrierFormat)
+void CarrierStruct::Clear() {
+// @@protoc_insertion_point(message_clear_start:lightstep.envoy.CarrierStruct)
   context_.Clear();
 }
 
-bool CarrierFormat::MergePartialFromCodedStream(
+bool CarrierStruct::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:lightstep.envoy.CarrierFormat)
+  // @@protoc_insertion_point(parse_start:lightstep.envoy.CarrierStruct)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
     tag = p.first;
@@ -616,29 +616,29 @@ bool CarrierFormat::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:lightstep.envoy.CarrierFormat)
+  // @@protoc_insertion_point(parse_success:lightstep.envoy.CarrierStruct)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:lightstep.envoy.CarrierFormat)
+  // @@protoc_insertion_point(parse_failure:lightstep.envoy.CarrierStruct)
   return false;
 #undef DO_
 }
 
-void CarrierFormat::SerializeWithCachedSizes(
+void CarrierStruct::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:lightstep.envoy.CarrierFormat)
+  // @@protoc_insertion_point(serialize_start:lightstep.envoy.CarrierStruct)
   // repeated .lightstep.envoy.CarrierPair context = 1;
   for (unsigned int i = 0, n = this->context_size(); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
       1, this->context(i), output);
   }
 
-  // @@protoc_insertion_point(serialize_end:lightstep.envoy.CarrierFormat)
+  // @@protoc_insertion_point(serialize_end:lightstep.envoy.CarrierStruct)
 }
 
-::google::protobuf::uint8* CarrierFormat::InternalSerializeWithCachedSizesToArray(
+::google::protobuf::uint8* CarrierStruct::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:lightstep.envoy.CarrierFormat)
+  // @@protoc_insertion_point(serialize_to_array_start:lightstep.envoy.CarrierStruct)
   // repeated .lightstep.envoy.CarrierPair context = 1;
   for (unsigned int i = 0, n = this->context_size(); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
@@ -646,12 +646,12 @@ void CarrierFormat::SerializeWithCachedSizes(
         1, this->context(i), false, target);
   }
 
-  // @@protoc_insertion_point(serialize_to_array_end:lightstep.envoy.CarrierFormat)
+  // @@protoc_insertion_point(serialize_to_array_end:lightstep.envoy.CarrierStruct)
   return target;
 }
 
-int CarrierFormat::ByteSize() const {
-// @@protoc_insertion_point(message_byte_size_start:lightstep.envoy.CarrierFormat)
+int CarrierStruct::ByteSize() const {
+// @@protoc_insertion_point(message_byte_size_start:lightstep.envoy.CarrierStruct)
   int total_size = 0;
 
   // repeated .lightstep.envoy.CarrierPair context = 1;
@@ -668,98 +668,98 @@ int CarrierFormat::ByteSize() const {
   return total_size;
 }
 
-void CarrierFormat::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:lightstep.envoy.CarrierFormat)
+void CarrierStruct::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:lightstep.envoy.CarrierStruct)
   if (GOOGLE_PREDICT_FALSE(&from == this)) {
     ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
   }
-  const CarrierFormat* source = 
-      ::google::protobuf::internal::DynamicCastToGenerated<const CarrierFormat>(
+  const CarrierStruct* source = 
+      ::google::protobuf::internal::DynamicCastToGenerated<const CarrierStruct>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:lightstep.envoy.CarrierFormat)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:lightstep.envoy.CarrierStruct)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:lightstep.envoy.CarrierFormat)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:lightstep.envoy.CarrierStruct)
     MergeFrom(*source);
   }
 }
 
-void CarrierFormat::MergeFrom(const CarrierFormat& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:lightstep.envoy.CarrierFormat)
+void CarrierStruct::MergeFrom(const CarrierStruct& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:lightstep.envoy.CarrierStruct)
   if (GOOGLE_PREDICT_FALSE(&from == this)) {
     ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
   }
   context_.MergeFrom(from.context_);
 }
 
-void CarrierFormat::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:lightstep.envoy.CarrierFormat)
+void CarrierStruct::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:lightstep.envoy.CarrierStruct)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void CarrierFormat::CopyFrom(const CarrierFormat& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:lightstep.envoy.CarrierFormat)
+void CarrierStruct::CopyFrom(const CarrierStruct& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:lightstep.envoy.CarrierStruct)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool CarrierFormat::IsInitialized() const {
+bool CarrierStruct::IsInitialized() const {
 
   return true;
 }
 
-void CarrierFormat::Swap(CarrierFormat* other) {
+void CarrierStruct::Swap(CarrierStruct* other) {
   if (other == this) return;
   InternalSwap(other);
 }
-void CarrierFormat::InternalSwap(CarrierFormat* other) {
+void CarrierStruct::InternalSwap(CarrierStruct* other) {
   context_.UnsafeArenaSwap(&other->context_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   std::swap(_cached_size_, other->_cached_size_);
 }
 
-::google::protobuf::Metadata CarrierFormat::GetMetadata() const {
+::google::protobuf::Metadata CarrierStruct::GetMetadata() const {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::Metadata metadata;
-  metadata.descriptor = CarrierFormat_descriptor_;
-  metadata.reflection = CarrierFormat_reflection_;
+  metadata.descriptor = CarrierStruct_descriptor_;
+  metadata.reflection = CarrierStruct_reflection_;
   return metadata;
 }
 
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
-// CarrierFormat
+// CarrierStruct
 
 // repeated .lightstep.envoy.CarrierPair context = 1;
-int CarrierFormat::context_size() const {
+int CarrierStruct::context_size() const {
   return context_.size();
 }
-void CarrierFormat::clear_context() {
+void CarrierStruct::clear_context() {
   context_.Clear();
 }
-const ::lightstep::envoy::CarrierPair& CarrierFormat::context(int index) const {
-  // @@protoc_insertion_point(field_get:lightstep.envoy.CarrierFormat.context)
+const ::lightstep::envoy::CarrierPair& CarrierStruct::context(int index) const {
+  // @@protoc_insertion_point(field_get:lightstep.envoy.CarrierStruct.context)
   return context_.Get(index);
 }
-::lightstep::envoy::CarrierPair* CarrierFormat::mutable_context(int index) {
-  // @@protoc_insertion_point(field_mutable:lightstep.envoy.CarrierFormat.context)
+::lightstep::envoy::CarrierPair* CarrierStruct::mutable_context(int index) {
+  // @@protoc_insertion_point(field_mutable:lightstep.envoy.CarrierStruct.context)
   return context_.Mutable(index);
 }
-::lightstep::envoy::CarrierPair* CarrierFormat::add_context() {
-  // @@protoc_insertion_point(field_add:lightstep.envoy.CarrierFormat.context)
+::lightstep::envoy::CarrierPair* CarrierStruct::add_context() {
+  // @@protoc_insertion_point(field_add:lightstep.envoy.CarrierStruct.context)
   return context_.Add();
 }
 ::google::protobuf::RepeatedPtrField< ::lightstep::envoy::CarrierPair >*
-CarrierFormat::mutable_context() {
-  // @@protoc_insertion_point(field_mutable_list:lightstep.envoy.CarrierFormat.context)
+CarrierStruct::mutable_context() {
+  // @@protoc_insertion_point(field_mutable_list:lightstep.envoy.CarrierStruct.context)
   return &context_;
 }
 const ::google::protobuf::RepeatedPtrField< ::lightstep::envoy::CarrierPair >&
-CarrierFormat::context() const {
-  // @@protoc_insertion_point(field_list:lightstep.envoy.CarrierFormat.context)
+CarrierStruct::context() const {
+  // @@protoc_insertion_point(field_list:lightstep.envoy.CarrierStruct.context)
   return context_;
 }
 

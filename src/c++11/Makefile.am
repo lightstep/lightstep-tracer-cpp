@@ -6,6 +6,8 @@ PROTO_OUT = proto
 
 .PHONY: proto
 
+AM_CXXFLAGS = -Wno-deprecated-declarations
+
 proto:
 	mkdir -p $(PROTO_OUT)
 	$(PROTOC) --proto_path=$(PROTO_SRC) --grpc_out=$(PROTO_OUT) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` $(PROTO_SRC)/collector.proto

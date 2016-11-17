@@ -41,7 +41,7 @@ class Tracer {
   // and each has an expected carrier type.
   //
   // Returns true on success.
-  bool Inject(SpanContext sc, const CarrierFormat& format, const CarrierWriter& writer);
+  bool Inject(SpanContext sc, CarrierFormat format, const CarrierWriter& writer);
 
   // Extract() returns a SpanContext instance given `format` and `carrier`.
   //
@@ -49,7 +49,7 @@ class Tracer {
   // and each has an expected carrier type.
   //
   // Returns a `SpanContext` that is `valid()` on success.
-  SpanContext Extract(const CarrierFormat& format, const CarrierReader& reader);
+  SpanContext Extract(CarrierFormat format, const CarrierReader& reader);
 
  private:
   ImplPtr impl_;
