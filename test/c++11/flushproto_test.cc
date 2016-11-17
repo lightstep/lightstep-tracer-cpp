@@ -69,6 +69,9 @@ int main() {
     auto recorder = tracer.impl()->recorder();
 
     auto span = lightstep::Tracer::Global().StartSpan("span/parent");
+    const char *v = "value";
+    span.SetTag("test1", v);
+    span.SetTag("test2", "value");
     span.SetBaggageItem("test", "baggage");
     auto parent = span.context();
     span.Finish();
