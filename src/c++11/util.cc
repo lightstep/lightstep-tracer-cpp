@@ -82,6 +82,8 @@ struct KeyValueVisitor {
 
   void operator()(bool b) const { kv->set_bool_value(b); }
 
+  void operator()(const char* s) const { kv->set_string_value(s); }
+
   void operator()(const std::string &s) const { kv->set_string_value(s); }
 
   // More-or-less unsupported types:

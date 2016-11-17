@@ -23,6 +23,7 @@ typedef mapbox::util::variant<bool,
 			      uint64_t,
 			      std::string,
 			      std::nullptr_t,
+			      const char*,
 			      mapbox::util::recursive_wrapper<Values>,
 			      mapbox::util::recursive_wrapper<Dictionary>> variant_type;
 
@@ -33,6 +34,9 @@ public:
 
   template <typename T>
   Value(T&& t) : variant_type(t) { }
+
+  template <int N>
+  Value(const char (&cstr)[N]) : variant_type(std::string(cstr)) { }
 };
 
 } // namespace lighstep
