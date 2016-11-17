@@ -190,6 +190,7 @@ class KeyValue : public ::google::protobuf::Message /* @@protoc_insertion_point(
     kIntValue = 3,
     kDoubleValue = 4,
     kBoolValue = 5,
+    kJsonValue = 6,
     VALUE_NOT_SET = 0,
   };
 
@@ -273,6 +274,20 @@ class KeyValue : public ::google::protobuf::Message /* @@protoc_insertion_point(
   bool bool_value() const;
   void set_bool_value(bool value);
 
+  // optional string json_value = 6;
+  private:
+  bool has_json_value() const;
+  public:
+  void clear_json_value();
+  static const int kJsonValueFieldNumber = 6;
+  const ::std::string& json_value() const;
+  void set_json_value(const ::std::string& value);
+  void set_json_value(const char* value);
+  void set_json_value(const char* value, size_t size);
+  ::std::string* mutable_json_value();
+  ::std::string* release_json_value();
+  void set_allocated_json_value(::std::string* json_value);
+
   ValueCase value_case() const;
   // @@protoc_insertion_point(class_scope:lightstep.collector.KeyValue)
  private:
@@ -280,6 +295,7 @@ class KeyValue : public ::google::protobuf::Message /* @@protoc_insertion_point(
   inline void set_has_int_value();
   inline void set_has_double_value();
   inline void set_has_bool_value();
+  inline void set_has_json_value();
 
   inline bool has_value() const;
   void clear_value();
@@ -294,6 +310,7 @@ class KeyValue : public ::google::protobuf::Message /* @@protoc_insertion_point(
     ::google::protobuf::int64 int_value_;
     double double_value_;
     bool bool_value_;
+    ::google::protobuf::internal::ArenaStringPtr json_value_;
   } value_;
   mutable int _cached_size_;
   ::google::protobuf::uint32 _oneof_case_[1];
@@ -863,11 +880,11 @@ class InternalMetrics : public ::google::protobuf::Message /* @@protoc_insertion
   ::google::protobuf::Timestamp* release_start_timestamp();
   void set_allocated_start_timestamp(::google::protobuf::Timestamp* start_timestamp);
 
-  // optional uint32 duration_micros = 2;
+  // optional uint64 duration_micros = 2;
   void clear_duration_micros();
   static const int kDurationMicrosFieldNumber = 2;
-  ::google::protobuf::uint32 duration_micros() const;
-  void set_duration_micros(::google::protobuf::uint32 value);
+  ::google::protobuf::uint64 duration_micros() const;
+  void set_duration_micros(::google::protobuf::uint64 value);
 
   // repeated .lightstep.collector.Log logs = 3;
   int logs_size() const;
@@ -911,10 +928,10 @@ class InternalMetrics : public ::google::protobuf::Message /* @@protoc_insertion
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   bool _is_default_instance_;
   ::google::protobuf::Timestamp* start_timestamp_;
+  ::google::protobuf::uint64 duration_micros_;
   ::google::protobuf::RepeatedPtrField< ::lightstep::collector::Log > logs_;
   ::google::protobuf::RepeatedPtrField< ::lightstep::collector::MetricsSample > counts_;
   ::google::protobuf::RepeatedPtrField< ::lightstep::collector::MetricsSample > gauges_;
-  ::google::protobuf::uint32 duration_micros_;
   mutable int _cached_size_;
   friend void  protobuf_AddDesc_collector_2eproto();
   friend void protobuf_AssignDesc_collector_2eproto();
@@ -1544,6 +1561,87 @@ inline void KeyValue::set_bool_value(bool value) {
   // @@protoc_insertion_point(field_set:lightstep.collector.KeyValue.bool_value)
 }
 
+// optional string json_value = 6;
+inline bool KeyValue::has_json_value() const {
+  return value_case() == kJsonValue;
+}
+inline void KeyValue::set_has_json_value() {
+  _oneof_case_[0] = kJsonValue;
+}
+inline void KeyValue::clear_json_value() {
+  if (has_json_value()) {
+    value_.json_value_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    clear_has_value();
+  }
+}
+inline const ::std::string& KeyValue::json_value() const {
+  // @@protoc_insertion_point(field_get:lightstep.collector.KeyValue.json_value)
+  if (has_json_value()) {
+    return value_.json_value_.GetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  return *&::google::protobuf::internal::GetEmptyStringAlreadyInited();
+}
+inline void KeyValue::set_json_value(const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:lightstep.collector.KeyValue.json_value)
+  if (!has_json_value()) {
+    clear_value();
+    set_has_json_value();
+    value_.json_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  value_.json_value_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:lightstep.collector.KeyValue.json_value)
+}
+inline void KeyValue::set_json_value(const char* value) {
+  if (!has_json_value()) {
+    clear_value();
+    set_has_json_value();
+    value_.json_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  value_.json_value_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:lightstep.collector.KeyValue.json_value)
+}
+inline void KeyValue::set_json_value(const char* value, size_t size) {
+  if (!has_json_value()) {
+    clear_value();
+    set_has_json_value();
+    value_.json_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  value_.json_value_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(
+      reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:lightstep.collector.KeyValue.json_value)
+}
+inline ::std::string* KeyValue::mutable_json_value() {
+  if (!has_json_value()) {
+    clear_value();
+    set_has_json_value();
+    value_.json_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_mutable:lightstep.collector.KeyValue.json_value)
+  return value_.json_value_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* KeyValue::release_json_value() {
+  // @@protoc_insertion_point(field_release:lightstep.collector.KeyValue.json_value)
+  if (has_json_value()) {
+    clear_has_value();
+    return value_.json_value_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  } else {
+    return NULL;
+  }
+}
+inline void KeyValue::set_allocated_json_value(::std::string* json_value) {
+  if (!has_json_value()) {
+    value_.json_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  clear_value();
+  if (json_value != NULL) {
+    set_has_json_value();
+    value_.json_value_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+        json_value);
+  }
+  // @@protoc_insertion_point(field_set_allocated:lightstep.collector.KeyValue.json_value)
+}
+
 inline bool KeyValue::has_value() const {
   return value_case() != VALUE_NOT_SET;
 }
@@ -2129,15 +2227,15 @@ inline void InternalMetrics::set_allocated_start_timestamp(::google::protobuf::T
   // @@protoc_insertion_point(field_set_allocated:lightstep.collector.InternalMetrics.start_timestamp)
 }
 
-// optional uint32 duration_micros = 2;
+// optional uint64 duration_micros = 2;
 inline void InternalMetrics::clear_duration_micros() {
-  duration_micros_ = 0u;
+  duration_micros_ = GOOGLE_ULONGLONG(0);
 }
-inline ::google::protobuf::uint32 InternalMetrics::duration_micros() const {
+inline ::google::protobuf::uint64 InternalMetrics::duration_micros() const {
   // @@protoc_insertion_point(field_get:lightstep.collector.InternalMetrics.duration_micros)
   return duration_micros_;
 }
-inline void InternalMetrics::set_duration_micros(::google::protobuf::uint32 value) {
+inline void InternalMetrics::set_duration_micros(::google::protobuf::uint64 value) {
   
   duration_micros_ = value;
   // @@protoc_insertion_point(field_set:lightstep.collector.InternalMetrics.duration_micros)

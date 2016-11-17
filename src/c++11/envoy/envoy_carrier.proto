@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package lightstep.envoy;
+
+message CarrierPair {
+  string key = 1;
+  string value = 2;
+}
+
+message CarrierFormat {
+  repeated CarrierPair context = 1;
+}
