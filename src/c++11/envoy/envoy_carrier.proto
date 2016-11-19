@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package lightstep.envoy;
+
+// CarrierStruct stores a set of key-values containing an OpenTracing span
+// context, as carried by Envoy, suitably encoded as a serialized protocol
+// buffer for transport via an HTTP header.
+message CarrierStruct {
+  repeated CarrierPair context = 1;
+}
+
+message CarrierPair {
+  string key = 1;
+  string value = 2;
+}

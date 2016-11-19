@@ -101,8 +101,11 @@ class TracerImpl {
   friend class Tracer;
   friend class SpanReference;
 
-  bool inject(SpanContext sc, const CarrierFormat &format, const CarrierWriter &writer);
-  SpanContext extract(const CarrierFormat& format, const CarrierReader& reader);
+  bool inject(SpanContext sc, CarrierFormat format, const CarrierWriter &writer);
+  bool inject_basic_carrier(SpanContext sc, const CarrierWriter& opaque);
+
+  SpanContext extract(CarrierFormat format, const CarrierReader& reader);
+  SpanContext extract_basic_carrier(const CarrierReader& reader);
   
   void GetTwoIds(uint64_t *a, uint64_t *b);
   uint64_t GetOneId();

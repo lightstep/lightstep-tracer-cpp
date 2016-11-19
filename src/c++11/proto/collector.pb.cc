@@ -34,6 +34,7 @@ struct KeyValueOneofInstance {
   ::google::protobuf::int64 int_value_;
   double double_value_;
   bool bool_value_;
+  ::google::protobuf::internal::ArenaStringPtr json_value_;
 }* KeyValue_default_oneof_instance_ = NULL;
 const ::google::protobuf::Descriptor* Log_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
@@ -100,12 +101,13 @@ void protobuf_AssignDesc_collector_2eproto() {
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SpanContext, _is_default_instance_));
   SpanContext_BaggageEntry_descriptor_ = SpanContext_descriptor_->nested_type(0);
   KeyValue_descriptor_ = file->message_type(1);
-  static const int KeyValue_offsets_[6] = {
+  static const int KeyValue_offsets_[7] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(KeyValue, key_),
     PROTO2_GENERATED_DEFAULT_ONEOF_FIELD_OFFSET(KeyValue_default_oneof_instance_, string_value_),
     PROTO2_GENERATED_DEFAULT_ONEOF_FIELD_OFFSET(KeyValue_default_oneof_instance_, int_value_),
     PROTO2_GENERATED_DEFAULT_ONEOF_FIELD_OFFSET(KeyValue_default_oneof_instance_, double_value_),
     PROTO2_GENERATED_DEFAULT_ONEOF_FIELD_OFFSET(KeyValue_default_oneof_instance_, bool_value_),
+    PROTO2_GENERATED_DEFAULT_ONEOF_FIELD_OFFSET(KeyValue_default_oneof_instance_, json_value_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(KeyValue, value_),
   };
   KeyValue_reflection_ =
@@ -390,51 +392,52 @@ void protobuf_AddDesc_collector_2eproto() {
     "Context\022\020\n\010trace_id\030\001 \001(\004\022\017\n\007span_id\030\002 \001"
     "(\004\022>\n\007baggage\030\003 \003(\0132-.lightstep.collecto"
     "r.SpanContext.BaggageEntry\032.\n\014BaggageEnt"
-    "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"{\n\010Ke"
-    "yValue\022\013\n\003key\030\001 \001(\t\022\026\n\014string_value\030\002 \001("
-    "\tH\000\022\023\n\tint_value\030\003 \001(\003H\000\022\026\n\014double_value"
-    "\030\004 \001(\001H\000\022\024\n\nbool_value\030\005 \001(\010H\000B\007\n\005value\""
-    "f\n\003Log\022-\n\ttimestamp\030\001 \001(\0132\032.google.proto"
-    "buf.Timestamp\0220\n\tkeyvalues\030\002 \003(\0132\035.light"
-    "step.collector.KeyValue\"\266\001\n\tReference\022A\n"
-    "\014relationship\030\001 \001(\0162+.lightstep.collecto"
-    "r.Reference.Relationship\0226\n\014span_context"
-    "\030\002 \001(\0132 .lightstep.collector.SpanContext"
-    "\".\n\014Relationship\022\014\n\010CHILD_OF\020\000\022\020\n\014FOLLOW"
-    "S_FROM\020\001\"\255\002\n\004Span\0226\n\014span_context\030\001 \001(\0132"
-    " .lightstep.collector.SpanContext\022\026\n\016ope"
-    "ration_name\030\002 \001(\t\0222\n\nreferences\030\003 \003(\0132\036."
-    "lightstep.collector.Reference\0223\n\017start_t"
-    "imestamp\030\004 \001(\0132\032.google.protobuf.Timesta"
-    "mp\022\027\n\017duration_micros\030\005 \001(\004\022+\n\004tags\030\006 \003("
-    "\0132\035.lightstep.collector.KeyValue\022&\n\004logs"
-    "\030\007 \003(\0132\030.lightstep.collector.Log\"H\n\006Trac"
-    "er\022\021\n\ttracer_id\030\001 \001(\004\022+\n\004tags\030\004 \003(\0132\035.li"
-    "ghtstep.collector.KeyValue\"S\n\rMetricsSam"
-    "ple\022\014\n\004name\030\001 \001(\t\022\023\n\tint_value\030\002 \001(\003H\000\022\026"
-    "\n\014double_value\030\003 \001(\001H\000B\007\n\005value\"\357\001\n\017Inte"
-    "rnalMetrics\0223\n\017start_timestamp\030\001 \001(\0132\032.g"
-    "oogle.protobuf.Timestamp\022\027\n\017duration_mic"
-    "ros\030\002 \001(\r\022&\n\004logs\030\003 \003(\0132\030.lightstep.coll"
-    "ector.Log\0222\n\006counts\030\004 \003(\0132\".lightstep.co"
-    "llector.MetricsSample\0222\n\006gauges\030\005 \003(\0132\"."
-    "lightstep.collector.MetricsSample\"\034\n\004Aut"
-    "h\022\024\n\014access_token\030\001 \001(\t\"\360\001\n\rReportReques"
-    "t\022+\n\006tracer\030\001 \001(\0132\033.lightstep.collector."
-    "Tracer\022\'\n\004auth\030\002 \001(\0132\031.lightstep.collect"
-    "or.Auth\022(\n\005spans\030\003 \003(\0132\031.lightstep.colle"
-    "ctor.Span\022\037\n\027timestamp_offset_micros\030\005 \001"
-    "(\r\022>\n\020internal_metrics\030\006 \001(\0132$.lightstep"
-    ".collector.InternalMetrics\"\032\n\007Command\022\017\n"
-    "\007disable\030\001 \001(\010\"\277\001\n\016ReportResponse\022.\n\010com"
-    "mands\030\001 \003(\0132\034.lightstep.collector.Comman"
-    "d\0225\n\021receive_timestamp\030\002 \001(\0132\032.google.pr"
-    "otobuf.Timestamp\0226\n\022transmit_timestamp\030\003"
-    " \001(\0132\032.google.protobuf.Timestamp\022\016\n\006erro"
-    "rs\030\004 \003(\t2e\n\020CollectorService\022Q\n\006Report\022\""
-    ".lightstep.collector.ReportRequest\032#.lig"
-    "htstep.collector.ReportResponseB\017H\002Z\013col"
-    "lectorpbb\006proto3", 1976);
+    "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\221\001\n\010K"
+    "eyValue\022\013\n\003key\030\001 \001(\t\022\026\n\014string_value\030\002 \001"
+    "(\tH\000\022\023\n\tint_value\030\003 \001(\003H\000\022\026\n\014double_valu"
+    "e\030\004 \001(\001H\000\022\024\n\nbool_value\030\005 \001(\010H\000\022\024\n\njson_"
+    "value\030\006 \001(\tH\000B\007\n\005value\"f\n\003Log\022-\n\ttimesta"
+    "mp\030\001 \001(\0132\032.google.protobuf.Timestamp\0220\n\t"
+    "keyvalues\030\002 \003(\0132\035.lightstep.collector.Ke"
+    "yValue\"\266\001\n\tReference\022A\n\014relationship\030\001 \001"
+    "(\0162+.lightstep.collector.Reference.Relat"
+    "ionship\0226\n\014span_context\030\002 \001(\0132 .lightste"
+    "p.collector.SpanContext\".\n\014Relationship\022"
+    "\014\n\010CHILD_OF\020\000\022\020\n\014FOLLOWS_FROM\020\001\"\255\002\n\004Span"
+    "\0226\n\014span_context\030\001 \001(\0132 .lightstep.colle"
+    "ctor.SpanContext\022\026\n\016operation_name\030\002 \001(\t"
+    "\0222\n\nreferences\030\003 \003(\0132\036.lightstep.collect"
+    "or.Reference\0223\n\017start_timestamp\030\004 \001(\0132\032."
+    "google.protobuf.Timestamp\022\027\n\017duration_mi"
+    "cros\030\005 \001(\004\022+\n\004tags\030\006 \003(\0132\035.lightstep.col"
+    "lector.KeyValue\022&\n\004logs\030\007 \003(\0132\030.lightste"
+    "p.collector.Log\"H\n\006Tracer\022\021\n\ttracer_id\030\001"
+    " \001(\004\022+\n\004tags\030\004 \003(\0132\035.lightstep.collector"
+    ".KeyValue\"S\n\rMetricsSample\022\014\n\004name\030\001 \001(\t"
+    "\022\023\n\tint_value\030\002 \001(\003H\000\022\026\n\014double_value\030\003 "
+    "\001(\001H\000B\007\n\005value\"\357\001\n\017InternalMetrics\0223\n\017st"
+    "art_timestamp\030\001 \001(\0132\032.google.protobuf.Ti"
+    "mestamp\022\027\n\017duration_micros\030\002 \001(\004\022&\n\004logs"
+    "\030\003 \003(\0132\030.lightstep.collector.Log\0222\n\006coun"
+    "ts\030\004 \003(\0132\".lightstep.collector.MetricsSa"
+    "mple\0222\n\006gauges\030\005 \003(\0132\".lightstep.collect"
+    "or.MetricsSample\"\034\n\004Auth\022\024\n\014access_token"
+    "\030\001 \001(\t\"\360\001\n\rReportRequest\022+\n\006tracer\030\001 \001(\013"
+    "2\033.lightstep.collector.Tracer\022\'\n\004auth\030\002 "
+    "\001(\0132\031.lightstep.collector.Auth\022(\n\005spans\030"
+    "\003 \003(\0132\031.lightstep.collector.Span\022\037\n\027time"
+    "stamp_offset_micros\030\005 \001(\r\022>\n\020internal_me"
+    "trics\030\006 \001(\0132$.lightstep.collector.Intern"
+    "alMetrics\"\032\n\007Command\022\017\n\007disable\030\001 \001(\010\"\277\001"
+    "\n\016ReportResponse\022.\n\010commands\030\001 \003(\0132\034.lig"
+    "htstep.collector.Command\0225\n\021receive_time"
+    "stamp\030\002 \001(\0132\032.google.protobuf.Timestamp\022"
+    "6\n\022transmit_timestamp\030\003 \001(\0132\032.google.pro"
+    "tobuf.Timestamp\022\016\n\006errors\030\004 \003(\t2e\n\020Colle"
+    "ctorService\022Q\n\006Report\022\".lightstep.collec"
+    "tor.ReportRequest\032#.lightstep.collector."
+    "ReportResponseB\026H\002Z\013collectorpb\242\002\004LSPBb\006"
+    "proto3", 2006);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "collector.proto", &protobuf_RegisterTypes);
   SpanContext::default_instance_ = new SpanContext();
@@ -620,6 +623,7 @@ const int KeyValue::kStringValueFieldNumber;
 const int KeyValue::kIntValueFieldNumber;
 const int KeyValue::kDoubleValueFieldNumber;
 const int KeyValue::kBoolValueFieldNumber;
+const int KeyValue::kJsonValueFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 KeyValue::KeyValue()
@@ -634,6 +638,7 @@ void KeyValue::InitAsDefaultInstance() {
   KeyValue_default_oneof_instance_->int_value_ = GOOGLE_LONGLONG(0);
   KeyValue_default_oneof_instance_->double_value_ = 0;
   KeyValue_default_oneof_instance_->bool_value_ = false;
+  KeyValue_default_oneof_instance_->json_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 
 KeyValue::KeyValue(const KeyValue& from)
@@ -708,6 +713,10 @@ void KeyValue::clear_value() {
     }
     case kBoolValue: {
       // No need to clear
+      break;
+    }
+    case kJsonValue: {
+      value_.json_value_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
       break;
     }
     case VALUE_NOT_SET: {
@@ -946,6 +955,87 @@ void KeyValue::clear_bool_value() {
   }
   value_.bool_value_ = value;
   // @@protoc_insertion_point(field_set:lightstep.collector.KeyValue.bool_value)
+}
+
+// optional string json_value = 6;
+bool KeyValue::has_json_value() const {
+  return value_case() == kJsonValue;
+}
+void KeyValue::set_has_json_value() {
+  _oneof_case_[0] = kJsonValue;
+}
+void KeyValue::clear_json_value() {
+  if (has_json_value()) {
+    value_.json_value_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    clear_has_value();
+  }
+}
+ const ::std::string& KeyValue::json_value() const {
+  // @@protoc_insertion_point(field_get:lightstep.collector.KeyValue.json_value)
+  if (has_json_value()) {
+    return value_.json_value_.GetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  return *&::google::protobuf::internal::GetEmptyStringAlreadyInited();
+}
+ void KeyValue::set_json_value(const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:lightstep.collector.KeyValue.json_value)
+  if (!has_json_value()) {
+    clear_value();
+    set_has_json_value();
+    value_.json_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  value_.json_value_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:lightstep.collector.KeyValue.json_value)
+}
+ void KeyValue::set_json_value(const char* value) {
+  if (!has_json_value()) {
+    clear_value();
+    set_has_json_value();
+    value_.json_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  value_.json_value_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:lightstep.collector.KeyValue.json_value)
+}
+ void KeyValue::set_json_value(const char* value, size_t size) {
+  if (!has_json_value()) {
+    clear_value();
+    set_has_json_value();
+    value_.json_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  value_.json_value_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(
+      reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:lightstep.collector.KeyValue.json_value)
+}
+ ::std::string* KeyValue::mutable_json_value() {
+  if (!has_json_value()) {
+    clear_value();
+    set_has_json_value();
+    value_.json_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_mutable:lightstep.collector.KeyValue.json_value)
+  return value_.json_value_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+ ::std::string* KeyValue::release_json_value() {
+  // @@protoc_insertion_point(field_release:lightstep.collector.KeyValue.json_value)
+  if (has_json_value()) {
+    clear_has_value();
+    return value_.json_value_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  } else {
+    return NULL;
+  }
+}
+ void KeyValue::set_allocated_json_value(::std::string* json_value) {
+  if (!has_json_value()) {
+    value_.json_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  clear_value();
+  if (json_value != NULL) {
+    set_has_json_value();
+    value_.json_value_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+        json_value);
+  }
+  // @@protoc_insertion_point(field_set_allocated:lightstep.collector.KeyValue.json_value)
 }
 
 bool KeyValue::has_value() const {
@@ -1999,7 +2089,7 @@ void InternalMetrics::SharedCtor() {
     _is_default_instance_ = false;
   _cached_size_ = 0;
   start_timestamp_ = NULL;
-  duration_micros_ = 0u;
+  duration_micros_ = GOOGLE_ULONGLONG(0);
 }
 
 InternalMetrics::~InternalMetrics() {
@@ -2099,15 +2189,15 @@ void InternalMetrics::set_allocated_start_timestamp(::google::protobuf::Timestam
   // @@protoc_insertion_point(field_set_allocated:lightstep.collector.InternalMetrics.start_timestamp)
 }
 
-// optional uint32 duration_micros = 2;
+// optional uint64 duration_micros = 2;
 void InternalMetrics::clear_duration_micros() {
-  duration_micros_ = 0u;
+  duration_micros_ = GOOGLE_ULONGLONG(0);
 }
- ::google::protobuf::uint32 InternalMetrics::duration_micros() const {
+ ::google::protobuf::uint64 InternalMetrics::duration_micros() const {
   // @@protoc_insertion_point(field_get:lightstep.collector.InternalMetrics.duration_micros)
   return duration_micros_;
 }
- void InternalMetrics::set_duration_micros(::google::protobuf::uint32 value) {
+ void InternalMetrics::set_duration_micros(::google::protobuf::uint64 value) {
   
   duration_micros_ = value;
   // @@protoc_insertion_point(field_set:lightstep.collector.InternalMetrics.duration_micros)
