@@ -21,6 +21,7 @@ nobase_include_HEADERS = \
 	lightstep/collector.grpc.pb.h \
 	lightstep/collector.pb.h \
 	lightstep/envoy_carrier.pb.h \
+	lightstep/envoy.h \
 	lightstep/impl.h \
 	lightstep/options.h \
 	lightstep/propagation.h \
