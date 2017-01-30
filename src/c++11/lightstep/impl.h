@@ -72,7 +72,7 @@ class TracerImpl {
   const std::string& component_name() const { return component_name_; }
   const std::string& access_token() const { return options_.access_token; }
 
-  uint64_t tracer_id() const { return tracer_id_; }
+  uint64_t reporter_id() const { return reporter_id_; }
 
   TimeStamp tracer_start_time() const { return tracer_start_time_; }
   const Attributes& tracer_attributes() const { return options_.tracer_attributes; }
@@ -111,7 +111,7 @@ class TracerImpl {
   uint64_t GetOneId();
 
   TracerOptions options_;
-  uint64_t tracer_id_;
+  uint64_t reporter_id_;
   std::shared_ptr<Recorder> recorder_;
 
   // Protects rand_source_, recorder_.
