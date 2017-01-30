@@ -29,6 +29,9 @@ CPPFLAGS="${SAVE_CPPFLAGS}"
 AC_SUBST(protobuf_LIBS)
 AC_SUBST(protobuf_CFLAGS)
 
+AC_CACHE_VAL(protobuf_cv_PREFIX, [protobuf_cv_PREFIX=`$PKG_CONFIG --variable=prefix protobuf`])
+AC_SUBST(PROTOC, $protobuf_cv_PREFIX/bin/protoc)
+
 AC_ARG_ENABLE([grpc],
   [AS_HELP_STRING([--disable-grpc],
   [Enable gRPC networking @<:@yes@:>@])],

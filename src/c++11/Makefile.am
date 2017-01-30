@@ -1,18 +1,30 @@
 # TODO(jmacd): Replace the proto-generation rule with one using the protoc docker image.
-PROTOC = protoc
-PROTO_SRC = $(top_srcdir)/lightstep-tracer-common
+PROTOC = @PROTOC@
+COLLECTOR_SRC = $(top_srcdir)/lightstep-tracer-common
 ENVOY_SRC = ./envoy
-PROTO_OUT = proto
+PROTO_DIR = proto
+
+PROTO_SRC = \
+	$(COLLECTOR_SRC)/collector.proto \
+	$(ENVOY_SRC)/envoy_carrier.proto
+
+PROTO_GEN = \
+	lightstep/collector.grpc.pb.h \
+	lightstep/collector.pb.h \
+	lightstep/envoy_carrier.pb.h \
+	proto/collector.grpc.pb.cc \
+	proto/collector.pb.cc \
+	proto/envoy_carrier.pb.cc
 
 .PHONY: proto
 
 AM_CXXFLAGS = -Wno-deprecated-declarations
 
-proto:
-	mkdir -p $(PROTO_OUT)
-	$(PROTOC) --proto_path=$(PROTO_SRC) --grpc_out=$(PROTO_OUT) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` $(PROTO_SRC)/collector.proto
-	$(PROTOC) --proto_path=$(PROTO_SRC) --cpp_out=$(PROTO_OUT) $(PROTO_SRC)/collector.proto
-	$(PROTOC) --proto_path=$(ENVOY_SRC) --cpp_out=$(PROTO_OUT) $(ENVOY_SRC)/envoy_carrier.proto
+$(PROTO_GEN): $(PROTO_SRC) $(PROTOC)
+	mkdir -p $(PROTO_DIR)
+	$(PROTOC) --proto_path=$(COLLECTOR_SRC) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` $(COLLECTOR_SRC)/collector.proto
+	$(PROTOC) --proto_path=$(COLLECTOR_SRC) --cpp_out=$(PROTO_DIR) $(COLLECTOR_SRC)/collector.proto
+	$(PROTOC) --proto_path=$(ENVOY_SRC) --cpp_out=$(PROTO_DIR) $(ENVOY_SRC)/envoy_carrier.proto
 	mv proto/*.h lightstep
 
 lib_LTLIBRARIES = liblightstep_core_cxx11.la
