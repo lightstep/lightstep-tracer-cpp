@@ -16,6 +16,8 @@ PROTO_GEN = \
 	proto/collector.pb.cc \
 	proto/envoy_carrier.pb.cc
 
+CLEANFILES = $(PROTO_GEN)
+
 .PHONY: proto
 
 AM_CXXFLAGS = -Wno-deprecated-declarations
