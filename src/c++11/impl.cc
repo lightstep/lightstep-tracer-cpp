@@ -18,7 +18,7 @@
 
 namespace lightstep {
 
-const char TracerIDKey[] = "lightstep.guid";
+const char ReporterIDKey[] = "lightstep.guid";
 
 namespace {
 
@@ -55,13 +55,13 @@ TracerImpl::TracerImpl(const TracerOptions& options_in)
     rand_source_(std::random_device()()),
     tracer_start_time_(Clock::now()) {
 
-  tracer_id_ = GetOneId();
+  reporter_id_ = GetOneId();
 
   if (options_.tracer_attributes.find(ComponentNameKey) == options_.tracer_attributes.end()) {
     options_.tracer_attributes.emplace(std::make_pair(ComponentNameKey, util::program_name()));
   }
-  // Note: drop the TracerIDKey, this is copied from tracer_id_.
-  auto guid_lookup = options_.tracer_attributes.find(TracerIDKey);
+  // Note: drop the ReporterIDKey, this is copied from reporter_id_.
+  auto guid_lookup = options_.tracer_attributes.find(ReporterIDKey);
   if (guid_lookup != options_.tracer_attributes.end()) {
     options_.tracer_attributes.erase(guid_lookup);
   }

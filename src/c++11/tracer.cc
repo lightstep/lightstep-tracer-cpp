@@ -70,11 +70,11 @@ Tracer NewUserDefinedTransportLightStepTracer(const TracerOptions& topts, Record
 ReportBuilder::ReportBuilder(const TracerImpl &impl)
   : reset_next_(true) {
   // TODO Fill in any core internal_metrics.
-  collector::Tracer *tracer = preamble_.mutable_tracer();
+  collector::Reporter *reporter = preamble_.mutable_reporter();
   for (const auto& tt : impl.options().tracer_attributes) {
-    *tracer->mutable_tags()->Add() = util::make_kv(tt.first, tt.second);
+    *reporter->mutable_tags()->Add() = util::make_kv(tt.first, tt.second);
 
-    tracer->set_tracer_id(impl.tracer_id());
+    reporter->set_reporter_id(impl.reporter_id());
   }
   preamble_.mutable_auth()->set_access_token(impl.access_token());
 }
