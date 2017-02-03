@@ -101,6 +101,12 @@ public:
     return pending_.spans_size();
   }
 
+  void setPendingClientDroppedSpans(uint64_t spans) {
+    auto count = pending_.mutable_internal_metrics()->add_counts();
+    count->set_name("spans.dropped");
+    count->set_int_value(spans);
+  }
+
   // pending() returns a mutable object, appropriate for swapping with
   // another ReportRequest object.
   collector::ReportRequest& pending() {
