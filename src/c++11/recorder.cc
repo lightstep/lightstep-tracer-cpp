@@ -23,16 +23,16 @@
 
 namespace lightstep {
 
-std::string urlOf(const TracerOptions& options) {
+std::string hostPortOf(const TracerOptions& options) {
   std::ostringstream os;
-  os << (options.collector_encryption == "tls" ? "https" : "http") << "://"
-     << options.collector_host << ":" << options.collector_port;
+  os << options.collector_host << ":" << options.collector_port;
   return os.str();
 }
 
 BasicRecorderOptions::BasicRecorderOptions()
   : time_limit(std::chrono::seconds(1)),
-    span_limit(1000) { }
+    span_limit(1000),
+    report_timeout(std::chrono::seconds(5)) { }
 
 class BasicRecorder : public Recorder {
 public:
@@ -110,7 +110,9 @@ BasicRecorder::BasicRecorder(const TracerImpl& tracer, const BasicRecorderOption
     flushed_seqno_(0),
     encoding_seqno_(1),
     dropped_spans_(0),
-    client_(grpc::CreateChannel(urlOf(tracer.options()),
+    client_(grpc::CreateChannel(hostPortOf(tracer.options()),
+				(tracer.options().collector_encryption == "tls") ?
+				grpc::SslCredentials(grpc::SslCredentialsOptions()) :
 				grpc::InsecureChannelCredentials())) {}
 
 void BasicRecorder::write() {
@@ -157,6 +159,8 @@ void BasicRecorder::flush_one() {
 void BasicRecorder::write_report(const collector::ReportRequest& report) {
   grpc::ClientContext context;
   collector::ReportResponse resp;
+  context.set_fail_fast(true);
+  context.set_deadline(Clock::now() + options_.report_timeout);
   grpc::Status status = client_.Report(&context, report, &resp);
   if (!status.ok()) {
     std::cout << "Report RPC failed: " << status.error_message();
