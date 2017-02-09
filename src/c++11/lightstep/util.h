@@ -23,7 +23,7 @@ collector::KeyValue make_kv(const std::string& key, const T& value);
 template <>
 collector::KeyValue make_kv(const std::string& key, const uint64_t& value);
 
-uint64_t stringToUint64(const std::string& s);
+uint64_t hexToUint64(const std::string& s);
 
 }  // namespace util 
 }  // namespace lightstep

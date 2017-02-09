@@ -2,6 +2,7 @@
 #include <functional>
 #include <random>
 #include <sstream>
+#include <iomanip>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -44,7 +45,7 @@ typedef google::protobuf::Map< ::std::string, ::std::string > StringMap;
 
 std::string uint64ToHex(uint64_t u) {
   std::stringstream ss;
-  ss << u;
+  ss << std::setfill('0') << std::setw(16) << std::hex << u;
   return ss.str();
 }
 
@@ -180,10 +181,10 @@ SpanContext TracerImpl::extract_basic_carrier(const CarrierReader& opaque) {
   carrier->ForeachKey([carrier, &ctx, &count](const std::string& key,
 					      const std::string& value) {
 			if (key == FieldNameTraceID) {
-			  ctx->trace_id = util::stringToUint64(value);
+			  ctx->trace_id = util::hexToUint64(value);
 			  count++;
 			} else if (key == FieldNameSpanID) {
-			  ctx->span_id = util::stringToUint64(value);
+			  ctx->span_id = util::hexToUint64(value);
 			  count++;
 			} else if (key == FieldNameSampled) {
 			  // Ignored
@@ -230,7 +231,11 @@ void SpanImpl::FinishSpan(SpanFinishOptions opts) {
   auto tags = span.mutable_tags();
 
   if (ref_.valid()) {
-    *tags->Add() = util::make_kv(ParentSpanGUIDKey, ref_.referenced().span_id());
+    // Note: Converting span_id to a hex string here is necessary
+    // because the Proto->Thrift conversion does not know to format
+    // int-valued tags as hex-valued, yet the string value for
+    // parent_span_guid is interpreted as a hex value downstream.
+    *tags->Add() = util::make_kv(ParentSpanGUIDKey, uint64ToHex(ref_.referenced().span_id()));
   }
 
   {
