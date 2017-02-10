@@ -14,6 +14,7 @@ namespace {
 
 const char hostName[] = "localhost";
 const int  hostPort = 8000;
+const int  grpcPort = 8001;
 const char controlPath[] = "/control";
 const char resultPath[] = "/result";
 const double nanosPerSecond = 1e9;
@@ -27,7 +28,7 @@ lightstep::Tracer NewTracer() {
   lightstep::TracerOptions topts;
   topts.access_token = "ignored";
   topts.collector_host = hostName;
-  topts.collector_port = hostPort;
+  topts.collector_port = grpcPort;
   topts.collector_encryption = "none";
   lightstep::BasicRecorderOptions bopts;
   return lightstep::NewLightStepTracer(topts, bopts);
@@ -182,7 +183,7 @@ void Test::run_benchmark() {
 	  << "&s=" << (double(sleep_nanos) / nanosPerSecond)
 	  << "&a=" << answer;
 
-      get(rpath.str());
+    get(rpath.str());
   }
   test_tracer_.impl()->Stop();
 }

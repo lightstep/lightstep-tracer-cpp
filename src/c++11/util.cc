@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 #include "lightstep/impl.h"
 #include "lightstep/util.h"
@@ -11,11 +12,10 @@
 namespace lightstep {
 namespace util {
 
-uint64_t stringToUint64(const std::string& s) {
-  // TODO error handling
+uint64_t hexToUint64(const std::string& s) {
   std::stringstream ss(s);
   uint64_t x;
-  ss >> x;
+  ss >> std::setw(16) >> std::hex >> x;
   return x;
 }
 

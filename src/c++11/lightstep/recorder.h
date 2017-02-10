@@ -14,8 +14,10 @@ class BasicRecorderOptions {
 public:
   BasicRecorderOptions();
 
-  Duration   time_limit; // Default is 1s
-  size_t     span_limit; // Default is 1000 spans
+  Duration   time_limit; // Flush timeout: default is 1s
+  size_t     span_limit; // Flush bufsize: default is 1000 spans
+
+  Duration   report_timeout;  // To set Report() deadline
 };
 
 Tracer NewLightStepTracer(const TracerOptions& topts,
