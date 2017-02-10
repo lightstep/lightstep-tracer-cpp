@@ -59,7 +59,7 @@ public:
 
 private:
   void write();
-  void write_report(const collector::ReportRequest&);
+  bool write_report(const collector::ReportRequest&);
   void flush_one();
 
   // Forces the writer thread to exit immediately.
@@ -134,29 +134,38 @@ void BasicRecorder::write() {
 
 void BasicRecorder::flush_one() {
   size_t seq;
+  size_t save_dropped;
+  size_t save_pending;
   {
     // Swap the pending encoder with the inflight encoder, then use
     // inflight without a lock. Assumption is that this thread is the
     // only place inflight_ is used.
     MutexLock lock(write_mutex_);
-    if (builder_.pendingSpans() == 0) {
+    save_pending = builder_.pendingSpans();
+    if (save_pending == 0) {
       return;
     }
-    // TODO Fill in any internal_metrics.
     // TODO Compute and set timestamp_offset_micros
+    save_dropped = dropped_spans_;
+    builder_.setPendingClientDroppedSpans(save_dropped);
+    dropped_spans_ = 0;
     std::swap(builder_.pending(), inflight_);
     ++encoding_seqno_;
   }
-  write_report(inflight_);
+  bool success = write_report(inflight_);
   {
     MutexLock lock(write_mutex_);
     ++flushed_seqno_;
     write_cond_.notify_all();
     inflight_.Clear();
+
+    if (!success) {
+      dropped_spans_ += save_dropped + save_pending;
+    }
   }
 }
 
-void BasicRecorder::write_report(const collector::ReportRequest& report) {
+bool BasicRecorder::write_report(const collector::ReportRequest& report) {
   grpc::ClientContext context;
   collector::ReportResponse resp;
   context.set_fail_fast(true);
@@ -164,10 +173,11 @@ void BasicRecorder::write_report(const collector::ReportRequest& report) {
   grpc::Status status = client_.Report(&context, report, &resp);
   if (!status.ok()) {
     std::cout << "Report RPC failed: " << status.error_message();
-    // TODO Put these (or some of these) back into a buffer, etc.
-    // TODO Record dropped spans.
+    // TODO Put some of these back into a buffer, etc. (Presently they all drop.)
+    return true;
   }
   // TODO Use response.
+  return false;
 }
 
 bool BasicRecorder::FlushWithTimeout(Duration timeout) {
