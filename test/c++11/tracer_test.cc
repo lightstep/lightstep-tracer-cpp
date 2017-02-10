@@ -34,9 +34,9 @@ int main() {
 
     TracerOptions topts;
 
-    topts.access_token = "DEVELOPMENT_TOKEN_jmacd";
+    topts.access_token = "3e5170e56cc4f4b2c94695a13ddf23d1";
     topts.collector_host = "localhost";
-    topts.collector_port = 9998;
+    topts.collector_port = 9997;
     topts.collector_encryption = "";
 
     BasicRecorderOptions bopts;
@@ -56,13 +56,6 @@ int main() {
     auto cspan = Tracer::Global().StartSpan("span/child", { ChildOf(parent) });
     cspan.Finish();
 
-    auto child = cspan.context();
-
-    // if (child.parent_span_id() == 0 ||
-    // 	child.parent_span_id() != parent.span_id()) {
-    //   throw error("parent/child span_id mismatch");
-    // }
-	
     Tracer::Global().impl()->Flush();
   } catch (std::exception &e) {
     std::cerr << "Exception! " << e.what() << std::endl;

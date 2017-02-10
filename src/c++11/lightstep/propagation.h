@@ -109,6 +109,9 @@ public:
   // This is a no-op if the referenced context is not valid.
   virtual void Apply(SpanImpl *span) const override;
 
+  // Return the relationship type of this reference.
+  SpanReferenceType type() const { return type_; }
+
 private:
   SpanReferenceType type_;
   SpanContext referenced_;
