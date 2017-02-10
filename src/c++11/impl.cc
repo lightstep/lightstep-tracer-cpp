@@ -235,6 +235,10 @@ void SpanImpl::FinishSpan(SpanFinishOptions opts) {
     // because the Proto->Thrift conversion does not know to format
     // int-valued tags as hex-valued, yet the string value for
     // parent_span_guid is interpreted as a hex value downstream.
+    //
+    // TODO: The protocol supports encoding relationships directly.
+    // switch to the native representation after validating the
+    // feature in the collector.
     *tags->Add() = util::make_kv(ParentSpanGUIDKey, uint64ToHex(ref_.referenced().span_id()));
   }
 
