@@ -174,10 +174,10 @@ bool BasicRecorder::write_report(const collector::ReportRequest& report) {
   if (!status.ok()) {
     std::cout << "Report RPC failed: " << status.error_message();
     // TODO Put some of these back into a buffer, etc. (Presently they all drop.)
-    return true;
+    return false;
   }
   // TODO Use response.
-  return false;
+  return true;
 }
 
 bool BasicRecorder::FlushWithTimeout(Duration timeout) {
