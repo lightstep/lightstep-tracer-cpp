@@ -1,6 +1,29 @@
+machine:
+  environment:
+    GOPATH: ${HOME}/go
+    BUILD_DIR: ${GOPATH}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+
+dependencies:
+  pre:
+    # Pull scripts from a shared repo
+    - cd ${HOME} && git clone git@github.com:lightstep/prod.git
+    # Do this before the build so it can be cached
+    - ${HOME}/prod/scripts/circleci-init.sh
+    # Move the build target into its proper Go place
+    - mkdir -p ${GOPATH}/src/github.com/${CIRCLE_PROJECT_USERNAME}
+    - mv ${HOME}/${CIRCLE_PROJECT_REPONAME} ${BUILD_DIR}
+    # Symlink back to make CircleCI tools happier
+    - ln -s ${BUILD_DIR} ${HOME}/${CIRCLE_PROJECT_REPONAME}
+  override:
+    - make -C ${BUILD_DIR} all
+  cache_directories:
+    - /opt/google-cloud-sdk
+    - ~/bin
+    - ~/.helm
+
 test:
   override:
-    - make -C ${BUILD_DIR} check
+    - make -C ${BUILD_DIR} test
 
 experimental:
   notify:
