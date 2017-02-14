@@ -121,7 +121,7 @@ void Test::test_body(const lightstep::Tracer& tracer,
   auto logn      = static_cast<uint64_t>(control["NumLogs"].number_value());
   auto logsz     = static_cast<uint64_t>(control["BytesPerLog"].number_value());
 
-  uint64_t sleep_debt = 0;
+  int64_t sleep_debt = 0;
 
   for (uint64_t i = 0; i < repeat; i++) {
     lightstep::Span span = tracer.StartSpan("span/test");
@@ -164,7 +164,7 @@ void Test::run_benchmark() {
     }
     lightstep::TimeStamp start = lightstep::Clock::now();
 
-    uint64_t sleep_nanos;
+    uint64_t sleep_nanos = 0;
     uint64_t answer;
     // TODO concurrency test
     test_body(tracer, control, &sleep_nanos, &answer);
