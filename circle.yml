@@ -6,8 +6,6 @@ machine:
     BUILD_DIR: ${GOPATH}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
     GOOGLE_APPLICATION_CREDENTIALS: ${HOME}/gcloud-service-key.json
     HELM_INSTALL_DIR: ${HOME}/bin
-    CC: clang-3.8
-    CXX: clang++-3.8
 
 dependencies:
   pre:
@@ -25,7 +23,7 @@ dependencies:
     - ln -s ${BUILD_DIR} ${HOME}/${CIRCLE_PROJECT_REPONAME}
 
     # Note the similarities with lightstep-benchmarks/scripts/docker/Dockerfile.build_cpp
-    - sudo apt-get update; sudo apt-get install autoconf cmake automake git-core libtool pkg-config clang-3.8 lldb-3.8 wget curl unzip
+    - sudo apt-get update; sudo apt-get install autoconf cmake automake git-core libtool pkg-config wget curl unzip
 
     - git clone -b 3.0.x https://github.com/google/protobuf && cd protobuf && ./autogen.sh && ./configure --prefix=/usr/local && make && make check && make install
 
