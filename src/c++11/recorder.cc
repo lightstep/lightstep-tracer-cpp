@@ -30,8 +30,8 @@ std::string hostPortOf(const TracerOptions& options) {
 }
 
 BasicRecorderOptions::BasicRecorderOptions()
-  : time_limit(std::chrono::seconds(1)),
-    span_limit(1000),
+  : time_limit(std::chrono::seconds(0.5)),
+    span_limit(2000),
     report_timeout(std::chrono::seconds(5)) { }
 
 class BasicRecorder : public Recorder {
