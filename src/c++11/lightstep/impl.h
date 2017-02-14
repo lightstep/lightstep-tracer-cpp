@@ -7,7 +7,7 @@
 #include <mutex>
 #include <random>
 
-#include "lightstep/collector.pb.h"
+#include "collector.pb.h"
 #include "lightstep/options.h"
 #include "lightstep/propagation.h"
 #include "lightstep/value.h"

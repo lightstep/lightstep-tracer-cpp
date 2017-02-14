@@ -12,7 +12,7 @@
 #include "config.h"
 #endif
 
-#include "lightstep/collector.grpc.pb.h"
+#include "collector.grpc.pb.h"
 #include "lightstep/impl.h"
 #include "lightstep/options.h"
 #include "lightstep/recorder.h"

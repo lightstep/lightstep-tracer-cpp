@@ -2,7 +2,7 @@
 #ifndef __LIGHTSTEP_ENVOY_H__
 #define __LIGHTSTEP_ENVOY_H__
 
-#include "lightstep/envoy_carrier.pb.h"
+#include "envoy_carrier.pb.h"
 #include "lightstep/propagation.h"
 
 namespace lightstep {
