@@ -21,9 +21,7 @@ GRPC_PROTO_GEN = \
 	lightstep/collector.grpc.pb.h \
 	proto/collector.grpc.pb.cc
 
-CLEANFILES = $(PROTO_GEN) $(GRPC_PROTO_GEN)
-
-.PHONY: proto
+.PHONY: $(PROTOC)
 
 AM_CXXFLAGS = -Wno-deprecated-declarations
 
@@ -38,9 +36,15 @@ $(GRPC_PROTO_GEN): $(GRPC_PROTO_SRC) $(PROTOC)
 	$(PROTOC) --proto_path=$(COLLECTOR_SRC) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` $(COLLECTOR_SRC)/collector.proto
 	mv proto/*.h lightstep
 
-BUILT_SOURCES = $(PROTO_GEN) $(GRPC_PROTO_GEN)
-
 lib_LTLIBRARIES = liblightstep_core_cxx11.la
+
+BUILT_SOURCES = $(PROTO_GEN)
+CLEANFILES    = $(PROTO_GEN)
+
+if ENABLE_GRPC
+BUILT_SOURCES += $(GRPC_PROTO_GEN)
+CLEANFILES    += $(GRPC_PROTO_GEN)
+endif
 
 nobase_include_HEADERS = \
 	lightstep/envoy.h \
