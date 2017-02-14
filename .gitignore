@@ -38,3 +38,4 @@ collector.pb.h
 envoy_carrier.pb.h
 proto.grpc.stamp
 proto.stamp
+test-driver
