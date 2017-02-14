@@ -37,7 +37,7 @@ int main() {
     topts.access_token = "3e5170e56cc4f4b2c94695a13ddf23d1";
     topts.collector_host = "localhost";
     topts.collector_port = 9997;
-    topts.collector_encryption = "";
+    topts.collector_encryption = "none";
 
     BasicRecorderOptions bopts;
 
@@ -57,10 +57,10 @@ int main() {
     cspan.Finish();
 
     Tracer::Global().impl()->Flush();
+    std::cerr << "Success!" << std::endl;
   } catch (std::exception &e) {
     std::cerr << "Exception! " << e.what() << std::endl;
     return 1;
   }
-  std::cerr << "Success!" << std::endl;
   return 0;
 }
