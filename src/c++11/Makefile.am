@@ -9,7 +9,7 @@ PROTOC = @PROTOC@
 # Lightstep Collector reporting:
 COLLECTOR_SRC = $(top_srcdir)/lightstep-tracer-common
 ENVOY_SRC = ./envoy
-PROTO_DIR = ./proto
+PROTO_DIR = .
 
 PROTO_SRC = \
 	$(COLLECTOR_SRC)/collector.proto \
@@ -18,17 +18,16 @@ PROTO_SRC = \
 PROTO_GEN = \
 	lightstep/collector.pb.h \
 	lightstep/envoy_carrier.pb.h \
-	$(PROTO_DIR)/collector.pb.cc \
-	$(PROTO_DIR)/envoy_carrier.pb.cc
+	collector.pb.cc \
+	envoy_carrier.pb.cc
 
-$(PROTO_DIR).stamp: $(PROTO_SRC)
-	mkdir -p $(PROTO_DIR)
+proto.stamp: $(PROTO_SRC)
 	$(PROTOC) --proto_path=$(COLLECTOR_SRC) --cpp_out=$(PROTO_DIR) $(COLLECTOR_SRC)/collector.proto
 	$(PROTOC) --proto_path=$(ENVOY_SRC) --cpp_out=$(PROTO_DIR) $(ENVOY_SRC)/envoy_carrier.proto
-	mv $(PROTO_DIR)/*.h lightstep
-	touch $(PROTO_DIR).stamp
+	mv collector.pb.h envoy_carrier.pb.h lightstep
+	touch proto.stamp
 
-$(PROTO_GEN): $(PROTO_DIR).stamp
+$(PROTO_GEN): proto.stamp
 
 # Tell Automake that these files have to be generated first (also cleaned)
 BUILT_SOURCES = $(PROTO_GEN)
@@ -61,8 +60,8 @@ nobase_nodist_include_HEADERS = \
 	lightstep/envoy_carrier.pb.h
 
 nodist_liblightstep_core_cxx11_la_SOURCES = \
-	$(PROTO_DIR)/collector.pb.cc \
-	$(PROTO_DIR)/envoy_carrier.pb.cc
+	collector.pb.cc \
+	envoy_carrier.pb.cc
 
 # Note: To set the protobuf library include and library flags, e.g.,
 #
@@ -89,20 +88,21 @@ GRPC_PROTO_SRC = \
 
 GRPC_PROTO_GEN = \
 	lightstep/collector.grpc.pb.h \
-	$(PROTO_DIR)/collector.grpc.pb.cc
+	collector.grpc.pb.cc
 
 BUILT_SOURCES += $(GRPC_PROTO_GEN)
 CLEANFILES    += $(GRPC_PROTO_GEN)
 
 # TODO make grpc_cpp_plugin a configure option
 #
-$(PROTO_DIR).grpc.stamp: $(GRPC_PROTO_SRC)
-	mkdir -p $(PROTO_DIR)
-	$(PROTOC) --proto_path=$(COLLECTOR_SRC) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` $(COLLECTOR_SRC)/collector.proto
-	mv $(PROTO_DIR)/*.h lightstep
-	touch $(PROTO_DIR).grpc.stamp
+proto.grpc.stamp: $(GRPC_PROTO_SRC)
+	$(PROTOC) --proto_path=$(COLLECTOR_SRC) --grpc_out=$(PROTO_DIR) \
+		--plugin=protoc-gen-grpc=`which grpc_cpp_plugin` \
+		$(COLLECTOR_SRC)/collector.proto
+	mv collector.grpc.pb.h lightstep
+	touch proto.grpc.stamp
 
-$(GRPC_PROTO_GEN): $(PROTO_DIR).grpc.stamp
+$(GRPC_PROTO_GEN): proto.grpc.stamp
 
 # LightStep gRPC recorder library
 lib_LTLIBRARIES += liblightstep_grpc_cxx11.la
@@ -114,7 +114,7 @@ nobase_nodist_include_HEADERS += \
 	lightstep/collector.grpc.pb.h
 
 nodist_liblightstep_grpc_cxx11_la_SOURCES = \
-	$(PROTO_DIR)/collector.grpc.pb.cc
+	collector.grpc.pb.cc
 
 # Note $(grpc_LIBS)++ shenanigans. The grpc C++ pkg-config input (grpc++.pc) uses
 # characters that are invalid to autoconf, so we can't find it.  Instead, we locate
