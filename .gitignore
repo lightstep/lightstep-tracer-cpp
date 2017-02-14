@@ -30,3 +30,11 @@ stamp-h1
 tracer_test
 cppclient
 flushproto_test
+collector.grpc.pb.cc
+collector.pb.cc
+envoy_carrier.pb.cc
+collector.grpc.pb.h
+collector.pb.h
+envoy_carrier.pb.h
+proto.grpc.stamp
+proto.stamp
