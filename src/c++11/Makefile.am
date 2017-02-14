@@ -1,5 +1,12 @@
-# TODO(jmacd): Replace the proto-generation rule with one using the protoc docker image.
+# Lightstep C++ Tracer core and gRPC recorder libraries
+#
+# To set the protocol compiler binary, use e.g., PROTOC
+#
+#   ./configure PROTOC=/usr/local/bin/protoc-3.0.1
 PROTOC = @PROTOC@
+.PHONY: $(PROTOC)
+
+# Lightstep Collector reporting:
 COLLECTOR_SRC = $(top_srcdir)/lightstep-tracer-common
 ENVOY_SRC = ./envoy
 PROTO_DIR = proto
@@ -8,22 +15,11 @@ PROTO_SRC = \
 	$(COLLECTOR_SRC)/collector.proto \
 	$(ENVOY_SRC)/envoy_carrier.proto
 
-GRPC_PROTO_SRC = \
-	$(COLLECTOR_SRC)/collector.proto
-
 PROTO_GEN = \
 	lightstep/collector.pb.h \
 	lightstep/envoy_carrier.pb.h \
 	proto/collector.pb.cc \
 	proto/envoy_carrier.pb.cc
-
-GRPC_PROTO_GEN = \
-	lightstep/collector.grpc.pb.h \
-	proto/collector.grpc.pb.cc
-
-.PHONY: $(PROTOC)
-
-AM_CXXFLAGS = -Wno-deprecated-declarations
 
 $(PROTO_GEN): $(PROTO_SRC) $(PROTOC)
 	mkdir -p $(PROTO_DIR)
@@ -31,20 +27,12 @@ $(PROTO_GEN): $(PROTO_SRC) $(PROTOC)
 	$(PROTOC) --proto_path=$(ENVOY_SRC) --cpp_out=$(PROTO_DIR) $(ENVOY_SRC)/envoy_carrier.proto
 	mv proto/*.h lightstep
 
-$(GRPC_PROTO_GEN): $(GRPC_PROTO_SRC) $(PROTOC)
-	mkdir -p $(PROTO_DIR)
-	$(PROTOC) --proto_path=$(COLLECTOR_SRC) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` $(COLLECTOR_SRC)/collector.proto
-	mv proto/*.h lightstep
-
-lib_LTLIBRARIES = liblightstep_core_cxx11.la
-
+# Tell Automake that these files have to be generated first (also cleaned)
 BUILT_SOURCES = $(PROTO_GEN)
 CLEANFILES    = $(PROTO_GEN)
 
-if ENABLE_GRPC
-BUILT_SOURCES += $(GRPC_PROTO_GEN)
-CLEANFILES    += $(GRPC_PROTO_GEN)
-endif
+# Lightstep Tracer core library
+lib_LTLIBRARIES = liblightstep_core_cxx11.la
 
 nobase_include_HEADERS = \
 	lightstep/envoy.h \
@@ -59,34 +47,63 @@ nobase_include_HEADERS = \
 	mapbox_variant/recursive_wrapper.hpp \
 	mapbox_variant/variant.hpp
 
-nobase_nodist_include_HEADERS = \
-	lightstep/collector.grpc.pb.h \
-	lightstep/collector.pb.h \
-	lightstep/envoy_carrier.pb.h
-
-EXTRA_DIST = \
-	mapbox_variant/LICENSE \
-	envoy/envoy_carrier.proto
-
 liblightstep_core_cxx11_la_SOURCES = \
 	impl.cc \
 	span.cc \
 	tracer.cc \
 	util.cc
 
+nobase_nodist_include_HEADERS = \
+	lightstep/collector.pb.h \
+	lightstep/envoy_carrier.pb.h
+
 nodist_liblightstep_core_cxx11_la_SOURCES = \
 	proto/collector.pb.cc \
 	proto/envoy_carrier.pb.cc
 
+# Note: To set the protobuf library include and library flags, e.g.,
+#
+#   ./configure protobuf_CFLAGS="..." protobuf_LIBS="..."
 liblightstep_core_cxx11_la_LIBADD   =
 liblightstep_core_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) $(protobuf_CFLAGS) -I$(srcdir)/lightstep
 liblightstep_core_cxx11_la_LDFLAGS  = $(protobuf_LIBS)
 
+# Options
+AM_CXXFLAGS = -Wno-deprecated-declarations
+
+EXTRA_DIST = \
+	mapbox_variant/LICENSE \
+	envoy/envoy_carrier.proto
+
+# The builtin gRPC transport is built by default.  When supplying your
+# own gRPC transport, you can disable the built-in recorder:
+#
+#   ./configure --disable-grpc
 if ENABLE_GRPC
+
+BUILT_SOURCES += $(GRPC_PROTO_GEN)
+CLEANFILES    += $(GRPC_PROTO_GEN)
+
+GRPC_PROTO_SRC = \
+	$(COLLECTOR_SRC)/collector.proto
+
+GRPC_PROTO_GEN = \
+	lightstep/collector.grpc.pb.h \
+	proto/collector.grpc.pb.cc
+
+$(GRPC_PROTO_GEN): $(GRPC_PROTO_SRC) $(PROTOC)
+	mkdir -p $(PROTO_DIR)
+	$(PROTOC) --proto_path=$(COLLECTOR_SRC) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` $(COLLECTOR_SRC)/collector.proto
+	mv proto/*.h lightstep
+
+# LightStep gRPC recorder library
 lib_LTLIBRARIES += liblightstep_grpc_cxx11.la
 
 liblightstep_grpc_cxx11_la_SOURCES = \
 	recorder.cc
+
+nobase_nodist_include_HEADERS += \
+	lightstep/collector.grpc.pb.h
 
 nodist_liblightstep_grpc_cxx11_la_SOURCES = \
 	proto/collector.grpc.pb.cc
