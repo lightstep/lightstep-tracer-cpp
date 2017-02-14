@@ -6,6 +6,8 @@ machine:
     BUILD_DIR: ${GOPATH}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
     GOOGLE_APPLICATION_CREDENTIALS: ${HOME}/gcloud-service-key.json
     HELM_INSTALL_DIR: ${HOME}/bin
+    CC: clang-3.8
+    CXX: clang++-3.8
 
 dependencies:
   pre:
@@ -21,8 +23,14 @@ dependencies:
     - mv ${HOME}/${CIRCLE_PROJECT_REPONAME} ${BUILD_DIR}
     # Symlink back to make CircleCI tools happier
     - ln -s ${BUILD_DIR} ${HOME}/${CIRCLE_PROJECT_REPONAME}
-    # Install autotools
-    - sudo apt-get update; sudo apt-get install autoconf automake libtool pkg-config
+
+    # Note the similarities with lightstep-benchmarks/scripts/docker/Dockerfile.build_cpp
+    - sudo apt-get update; sudo apt-get install autoconf cmake automake git-core libtool pkg-config clang-3.8 lldb-3.8 wget curl unzip
+
+    - git clone -b 3.0.x https://github.com/google/protobuf && cd protobuf && ./autogen.sh && ./configure --prefix=/usr/local && make && make check && make install
+
+    - git clone -b v1.0.1 https://github.com/grpc/grpc && cd grpc && git submodule update --init && make && make install prefix=/usr/local
+
   override:
     - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure && make distcheck
     - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --disable-grpc && make distcheck
