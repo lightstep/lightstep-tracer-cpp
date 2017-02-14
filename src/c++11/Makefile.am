@@ -31,7 +31,7 @@ $(PROTO_GEN): proto.stamp
 
 # Tell Automake that these files have to be generated first (also cleaned)
 BUILT_SOURCES = $(PROTO_GEN)
-CLEANFILES    = $(PROTO_GEN)
+CLEANFILES    = $(PROTO_GEN) proto.stamp
 
 # Lightstep Tracer core library
 lib_LTLIBRARIES = liblightstep_core_cxx11.la
@@ -91,7 +91,7 @@ GRPC_PROTO_GEN = \
 	collector.grpc.pb.cc
 
 BUILT_SOURCES += $(GRPC_PROTO_GEN)
-CLEANFILES    += $(GRPC_PROTO_GEN)
+CLEANFILES    += $(GRPC_PROTO_GEN) proto.grpc.stamp
 
 # TODO make grpc_cpp_plugin a configure option
 #
