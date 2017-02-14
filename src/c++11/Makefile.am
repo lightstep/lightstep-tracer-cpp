@@ -8,15 +8,20 @@ PROTO_SRC = \
 	$(COLLECTOR_SRC)/collector.proto \
 	$(ENVOY_SRC)/envoy_carrier.proto
 
+GRPC_PROTO_SRC = \
+	$(COLLECTOR_SRC)/collector.proto
+
 PROTO_GEN = \
-	lightstep/collector.grpc.pb.h \
 	lightstep/collector.pb.h \
 	lightstep/envoy_carrier.pb.h \
-	proto/collector.grpc.pb.cc \
 	proto/collector.pb.cc \
 	proto/envoy_carrier.pb.cc
 
-CLEANFILES = $(PROTO_GEN)
+GRPC_PROTO_GEN = \
+	lightstep/collector.grpc.pb.h \
+	proto/collector.grpc.pb.cc
+
+CLEANFILES = $(PROTO_GEN) $(GRPC_PROTO_GEN)
 
 .PHONY: proto
 
@@ -24,12 +29,16 @@ AM_CXXFLAGS = -Wno-deprecated-declarations
 
 $(PROTO_GEN): $(PROTO_SRC) $(PROTOC)
 	mkdir -p $(PROTO_DIR)
-	$(PROTOC) --proto_path=$(COLLECTOR_SRC) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` $(COLLECTOR_SRC)/collector.proto
 	$(PROTOC) --proto_path=$(COLLECTOR_SRC) --cpp_out=$(PROTO_DIR) $(COLLECTOR_SRC)/collector.proto
 	$(PROTOC) --proto_path=$(ENVOY_SRC) --cpp_out=$(PROTO_DIR) $(ENVOY_SRC)/envoy_carrier.proto
 	mv proto/*.h lightstep
 
-BUILT_SOURCES = $(PROTO_GEN)
+$(GRPC_PROTO_GEN): $(GRPC_PROTO_SRC) $(PROTOC)
+	mkdir -p $(PROTO_DIR)
+	$(PROTOC) --proto_path=$(COLLECTOR_SRC) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` $(COLLECTOR_SRC)/collector.proto
+	mv proto/*.h lightstep
+
+BUILT_SOURCES = $(PROTO_GEN) $(GRPC_PROTO_GEN)
 
 lib_LTLIBRARIES = liblightstep_core_cxx11.la
 
