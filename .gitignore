@@ -30,3 +30,9 @@ stamp-h1
 tracer_test
 cppclient
 flushproto_test
+*.pb.h
+*.pb.cc
+*.stamp
+test-driver
+*.log
+*.trs

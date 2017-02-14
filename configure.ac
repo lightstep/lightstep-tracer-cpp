@@ -4,7 +4,7 @@
 # by homebrew, see the commands to set PKG_CONFIG_PATH in build.sh.
 
 AC_PREREQ([2.69])
-AC_INIT([lightstep-tracer-cpp], [0.34],
+AC_INIT([lightstep-tracer-cpp], [0.35],
         [https://github.com/lightstep/lightstep-tracer-cpp/issues])
 LT_INIT([disable-shared])
 AM_INIT_AUTOMAKE([1.14 foreign subdir-objects])

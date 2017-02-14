@@ -3,7 +3,6 @@
 # In case this source is being cross-compiled.
 make maintainer-clean 2> /dev/null
 rm -rf autom4te.cache 2> /dev/null
-rm -rf vendor/cpp-netlib/build
 
 LIBTOOLIZE=libtoolize
 if [ `uname` = 'Darwin' ]; then
