@@ -4,7 +4,7 @@
 # by homebrew, see the commands to set PKG_CONFIG_PATH in build.sh.
 
 AC_PREREQ([2.69])
-AC_INIT([lightstep-tracer-cpp], [0.31],
+AC_INIT([lightstep-tracer-cpp], [0.32],
         [https://github.com/lightstep/lightstep-tracer-cpp/issues])
 LT_INIT([disable-shared])
 AM_INIT_AUTOMAKE([1.14 foreign subdir-objects])
@@ -30,7 +30,11 @@ AC_SUBST(protobuf_LIBS)
 AC_SUBST(protobuf_CFLAGS)
 
 AC_CACHE_VAL(protobuf_cv_PREFIX, [protobuf_cv_PREFIX=`$PKG_CONFIG --variable=prefix protobuf`])
-AC_SUBST(PROTOC, $protobuf_cv_PREFIX/bin/protoc)
+
+AS_IF([test -z "${PROTOC}"],
+      [PROTOC="$protobuf_cv_PREFIX/bin/protoc"])
+
+AC_ARG_VAR(PROTOC, "Location of the protocol compiler")
 
 AC_ARG_ENABLE([grpc],
   [AS_HELP_STRING([--disable-grpc],
