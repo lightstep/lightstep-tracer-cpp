@@ -7,24 +7,21 @@ PROTOC = @PROTOC@
 .PHONY: $(PROTOC)
 
 # Lightstep Collector reporting:
-COLLECTOR_SRC = $(top_srcdir)/lightstep-tracer-common
-ENVOY_SRC = ./envoy
-PROTO_DIR = .
+collector_srcdir = $(top_srcdir)/lightstep-tracer-common
 
 PROTO_SRC = \
-	$(COLLECTOR_SRC)/collector.proto \
-	$(ENVOY_SRC)/envoy_carrier.proto
+	$(collector_srcdir)/collector.proto \
+	$(srcdir)/envoy_carrier.proto
 
 PROTO_GEN = \
-	lightstep/collector.pb.h \
-	lightstep/envoy_carrier.pb.h \
+	collector.pb.h \
 	collector.pb.cc \
+	envoy_carrier.pb.h \
 	envoy_carrier.pb.cc
 
 proto.stamp: $(PROTO_SRC)
-	$(PROTOC) --proto_path=$(COLLECTOR_SRC) --cpp_out=$(PROTO_DIR) $(COLLECTOR_SRC)/collector.proto
-	$(PROTOC) --proto_path=$(ENVOY_SRC) --cpp_out=$(PROTO_DIR) $(ENVOY_SRC)/envoy_carrier.proto
-	mv collector.pb.h envoy_carrier.pb.h lightstep
+	$(PROTOC) --proto_path=$(collector_srcdir) --cpp_out=$(builddir) $(collector_srcdir)/collector.proto
+	$(PROTOC) --proto_path=$(srcdir) --cpp_out=$(builddir) $(srcdir)/envoy_carrier.proto
 	touch proto.stamp
 
 $(PROTO_GEN): proto.stamp
@@ -56,8 +53,8 @@ liblightstep_core_cxx11_la_SOURCES = \
 	util.cc
 
 nobase_nodist_include_HEADERS = \
-	lightstep/collector.pb.h \
-	lightstep/envoy_carrier.pb.h
+	collector.pb.h \
+	envoy_carrier.pb.h
 
 nodist_liblightstep_core_cxx11_la_SOURCES = \
 	collector.pb.cc \
@@ -67,7 +64,7 @@ nodist_liblightstep_core_cxx11_la_SOURCES = \
 #
 #   ./configure protobuf_CFLAGS="..." protobuf_LIBS="..."
 liblightstep_core_cxx11_la_LIBADD   =
-liblightstep_core_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) $(protobuf_CFLAGS) -I$(srcdir)/lightstep
+liblightstep_core_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) $(protobuf_CFLAGS) -I$(builddir)
 liblightstep_core_cxx11_la_LDFLAGS  = $(protobuf_LIBS)
 
 # Options
@@ -75,7 +72,7 @@ AM_CXXFLAGS = -Wno-deprecated-declarations
 
 EXTRA_DIST = \
 	mapbox_variant/LICENSE \
-	envoy/envoy_carrier.proto
+	envoy_carrier.proto
 
 # The builtin gRPC transport is built by default.  When supplying your
 # own gRPC transport, you can disable the built-in recorder:
@@ -84,10 +81,10 @@ EXTRA_DIST = \
 if ENABLE_GRPC
 
 GRPC_PROTO_SRC = \
-	$(COLLECTOR_SRC)/collector.proto
+	$(collector_srcdir)/collector.proto
 
 GRPC_PROTO_GEN = \
-	lightstep/collector.grpc.pb.h \
+	collector.grpc.pb.h \
 	collector.grpc.pb.cc
 
 BUILT_SOURCES += $(GRPC_PROTO_GEN)
@@ -96,10 +93,9 @@ CLEANFILES    += $(GRPC_PROTO_GEN) proto.grpc.stamp
 # TODO make grpc_cpp_plugin a configure option
 #
 proto.grpc.stamp: $(GRPC_PROTO_SRC)
-	$(PROTOC) --proto_path=$(COLLECTOR_SRC) --grpc_out=$(PROTO_DIR) \
+	$(PROTOC) --proto_path=$(collector_srcdir) --grpc_out=$(builddir) \
 		--plugin=protoc-gen-grpc=`which grpc_cpp_plugin` \
-		$(COLLECTOR_SRC)/collector.proto
-	mv collector.grpc.pb.h lightstep
+		$(collector_srcdir)/collector.proto
 	touch proto.grpc.stamp
 
 $(GRPC_PROTO_GEN): proto.grpc.stamp
@@ -111,7 +107,7 @@ liblightstep_grpc_cxx11_la_SOURCES = \
 	recorder.cc
 
 nobase_nodist_include_HEADERS += \
-	lightstep/collector.grpc.pb.h
+	collector.grpc.pb.h
 
 nodist_liblightstep_grpc_cxx11_la_SOURCES = \
 	collector.grpc.pb.cc
@@ -120,6 +116,6 @@ nodist_liblightstep_grpc_cxx11_la_SOURCES = \
 # characters that are invalid to autoconf, so we can't find it.  Instead, we locate
 # the C library and tack on a '++'.
 liblightstep_grpc_cxx11_la_LIBADD   = liblightstep_core_cxx11.la
-liblightstep_grpc_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) $(grpc_CFLAGS) $(protobuf_CFLAGS) -I$(srcdir)/lightstep
+liblightstep_grpc_cxx11_la_CXXFLAGS = $(AM_CXXFLAGS) $(grpc_CFLAGS) $(protobuf_CFLAGS) -I$(builddir)
 liblightstep_grpc_cxx11_la_LDFLAGS  = $(protobuf_LIBS) $(grpc_LIBS)++
 endif
