@@ -1,7 +1,11 @@
 machine:
+  services:
+    - docker
   environment:
     GOPATH: ${HOME}/go
     BUILD_DIR: ${GOPATH}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+    GOOGLE_APPLICATION_CREDENTIALS: ${HOME}/gcloud-service-key.json
+    HELM_INSTALL_DIR: ${HOME}/bin
 
 dependencies:
   pre:
@@ -15,7 +19,7 @@ dependencies:
     # Symlink back to make CircleCI tools happier
     - ln -s ${BUILD_DIR} ${HOME}/${CIRCLE_PROJECT_REPONAME}
   override:
-    - make -C ${BUILD_DIR} all
+    - make -C ${BUILD_DIR}
   cache_directories:
     - /opt/google-cloud-sdk
     - ~/bin
