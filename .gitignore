@@ -36,3 +36,4 @@ flushproto_test
 test-driver
 *.log
 *.trs
+linux

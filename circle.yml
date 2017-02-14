@@ -1,0 +1,9 @@
+test:
+  override:
+    - make -C ${BUILD_DIR} check
+
+experimental:
+  notify:
+    # Reduce slack noise from failed WIP branch builds
+    branches:
+      only: [master]
