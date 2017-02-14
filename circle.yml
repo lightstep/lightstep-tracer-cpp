@@ -19,15 +19,12 @@ dependencies:
     # Symlink back to make CircleCI tools happier
     - ln -s ${BUILD_DIR} ${HOME}/${CIRCLE_PROJECT_REPONAME}
   override:
-    - make -C ${BUILD_DIR}
+    - cd ${BUILD_DIR} && sh boostrap.sh && sh configure && make distcheck
+    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --disable-grpc && make distcheck
   cache_directories:
     - /opt/google-cloud-sdk
     - ~/bin
     - ~/.helm
-
-test:
-  override:
-    - make -C ${BUILD_DIR} test
 
 experimental:
   notify:
