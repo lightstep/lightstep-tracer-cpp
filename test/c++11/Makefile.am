@@ -15,6 +15,9 @@ noinst_HEADERS = \
 	dropbox_json/json11.hpp \
 	zintinio_happyhttp/happyhttp.h
 
+
+TESTS = flushproto_test
+
 if ENABLE_GRPC
 
 noinst_PROGRAMS += tracer_test
@@ -26,6 +29,7 @@ tracer_test_LDFLAGS = $(protobuf_LIBS) $(grpc_LIBS)++
 
 noinst_PROGRAMS += cppclient
 
+# Note: See github.com/lightstep-benchmarks to execute this test program.
 cppclient_SOURCES = \
 	cppclient.cc \
 	dropbox_json/json11.cpp \
@@ -35,4 +39,5 @@ cppclient_CXXFLAGS = $(AM_CXXFLAGS) -I $(top_srcdir)/src/c++11 -I $(top_srcdir)/
 cppclient_LDADD = ../../src/c++11/liblightstep_grpc_cxx11.la
 cppclient_LDFLAGS = $(protobuf_LIBS) $(grpc_LIBS)++
 
+TESTS += tracer_test
 endif
