@@ -8,6 +8,7 @@ machine:
     HELM_INSTALL_DIR: ${HOME}/bin
     LDFLAGS: -L${HOME}/lib
     CXXFLAGS: -I${HOME}/include
+    PKG_CONFIG_PATH: ${HOME}/lib/pkgconfig
 
 dependencies:
   pre:
