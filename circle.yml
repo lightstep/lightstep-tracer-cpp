@@ -30,8 +30,8 @@ dependencies:
     - git clone -b v1.0.1 https://github.com/grpc/grpc && cd grpc && git submodule update --init && make && make install prefix=/usr/local
 
   override:
-    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure && make distcheck
-    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --disable-grpc && make distcheck
+    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure && make install && make distcheck
+    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --disable-grpc && make install && make distcheck
   cache_directories:
     - /opt/google-cloud-sdk
     - ~/bin
