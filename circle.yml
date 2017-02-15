@@ -13,6 +13,10 @@ machine:
 
 dependencies:
   pre:
+    # For debugging
+    - env
+    # Pull submodules
+    - git submodule init && git submodule update
     # Pull scripts from a shared repo
     - cd ${HOME} && git clone git@github.com:lightstep/prod.git
     # Do this before the build so it can be cached
@@ -23,18 +27,18 @@ dependencies:
     # Symlink back to make CircleCI tools happier
     - ln -s ${BUILD_DIR} ${HOME}/${CIRCLE_PROJECT_REPONAME}
 
-    # For debugging
-    - env
-
     # Note the similarities with lightstep-benchmarks/scripts/docker/Dockerfile.build_cpp
     # TODO publish a single build_cpp image (w/ prebuilt protobuf / gRPC) and use it here
     - sudo apt-get update; sudo apt-get install autoconf cmake automake git-core libtool pkg-config wget curl unzip
 
-    - git submodule init && git submodule update
-
+    # Protobuf
     - git clone -b 3.0.x https://github.com/google/protobuf && cd protobuf && ./autogen.sh && ./configure --enable-shared --prefix=${HOME} && make && make install
 
+    # gRPC
     - git clone -b v1.0.1 https://github.com/grpc/grpc && cd grpc && git submodule update --init && make && make install prefix=${HOME}
+
+    - ldconfig
+    - ls -l ${HOME}/lib
 
   override:
     - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --prefix=${HOME} protobuf_CFLAGS="-I${HOME}/include" protobuf_LIBS="-L${HOME}/lib" grpc_CFLAGS="-I${HOME}/include" grpc_LIBS="-L${HOME}/lib" && make install && make distcheck
