@@ -43,7 +43,7 @@ dependencies:
   override:
     # See the comment about "Note $(grpc_LIBS)++ shenanigans." in src/c++11/Makefile.am,
     # to explain the "-lgrpc" below.
-    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --prefix=${HOME} protobuf_CFLAGS="-I${HOME}/include" protobuf_LIBS="-L${HOME}/lib -lprotobuf" grpc_CFLAGS="-I${HOME}/include" grpc_LIBS="-L${HOME}/lib -lgrpc" && make install && make distcheck
+    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --prefix=${HOME} protobuf_CFLAGS="-I${HOME}/include" protobuf_LIBS="-L${HOME}/lib -lprotobuf" grpc_CFLAGS="-I${HOME}/include" grpc_LIBS="-L${HOME}/lib -lgrpc" && make install && make check
   cache_directories:
     - /opt/google-cloud-sdk
     - ~/bin
