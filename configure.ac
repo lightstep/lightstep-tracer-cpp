@@ -26,8 +26,8 @@ AC_CHECK_HEADER(google/protobuf/message.h)
 
 CPPFLAGS="${SAVE_CPPFLAGS}"
 
-AC_SUBST(protobuf_LIBS)
-AC_SUBST(protobuf_CFLAGS)
+AC_ARG_VAR(protobuf_LIBS, "Libs for protobuf")
+AC_ARG_VAR(protobuf_CFLAGS, "CFLAGS for protobuf")
 
 AC_CACHE_VAL(protobuf_cv_PREFIX, [protobuf_cv_PREFIX=`$PKG_CONFIG --variable=prefix protobuf`])
 
@@ -45,8 +45,8 @@ AC_ARG_ENABLE([grpc],
 AS_IF([test "${enable_grpc}" != "no"],
       [AS_IF([test -z "${grpc_LIBS}"],
 	  [PKG_CHECK_MODULES(grpc, grpc >= 1.0.0)])
-       AC_SUBST(grpc_LIBS)
-       AC_SUBST(grpc_CFLAGS)
+       AC_ARG_VAR(grpc_LIBS, "LIBS for gRPC")
+       AC_ARG_VAR(grpc_CFLAGS, "CFLAGS for gRPC")
        ])
 
 SAVE_CPPFLAGS="${CPPFLAGS}"

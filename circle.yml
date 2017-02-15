@@ -1,0 +1,57 @@
+machine:
+  services:
+    - docker
+  environment:
+    GOPATH: ${HOME}/go
+    BUILD_DIR: ${GOPATH}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+    GOOGLE_APPLICATION_CREDENTIALS: ${HOME}/gcloud-service-key.json
+    HELM_INSTALL_DIR: ${HOME}/bin
+    LDFLAGS: -L${HOME}/lib
+    CXXFLAGS: -I${HOME}/include
+    PKG_CONFIG_PATH: ${HOME}/lib/pkgconfig
+    LD_LIBRARY_PATH: ${HOME}/lib
+
+dependencies:
+  pre:
+    # Pull submodules
+    - git submodule init && git submodule update
+    # Pull scripts from a shared repo
+    - cd ${HOME} && git clone git@github.com:lightstep/prod.git
+    # Do this before the build so it can be cached
+    - ${HOME}/prod/scripts/circleci-init.sh
+    # Move the build target into its proper Go place
+    - mkdir -p ${GOPATH}/src/github.com/${CIRCLE_PROJECT_USERNAME}
+    - mv ${HOME}/${CIRCLE_PROJECT_REPONAME} ${BUILD_DIR}
+    # Symlink back to make CircleCI tools happier
+    - ln -s ${BUILD_DIR} ${HOME}/${CIRCLE_PROJECT_REPONAME}
+
+    # Note the similarities with lightstep-benchmarks/scripts/docker/Dockerfile.build_cpp
+    # TODO publish a single build_cpp image (w/ prebuilt protobuf / gRPC) and use it here
+    - sudo apt-get update; sudo apt-get install autoconf cmake automake git-core libtool pkg-config wget curl unzip
+
+    # Protobuf
+    - git clone -b 3.0.x https://github.com/google/protobuf && cd protobuf && ./autogen.sh && ./configure --enable-shared --prefix=${HOME} && make && make install
+
+    # gRPC
+    - git clone -b v1.0.1 https://github.com/grpc/grpc && cd grpc && git submodule update --init && make && make install prefix=${HOME}
+
+  override:
+    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --prefix=${HOME}
+
+  cache_directories:
+    - /opt/google-cloud-sdk
+    - ~/bin
+    - ~/.helm
+
+test:
+  override:
+    # See the comment about "Note $(grpc_LIBS)++ shenanigans." in src/c++11/Makefile.am,
+    # to explain the "-lgrpc" below.
+    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --prefix=${HOME} protobuf_CFLAGS="-I${HOME}/include" protobuf_LIBS="-L${HOME}/lib -lprotobuf" grpc_CFLAGS="-I${HOME}/include" grpc_LIBS="-L${HOME}/lib -lgrpc" && make install && make check
+    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --prefix=${HOME} --disable-grpc protobuf_CFLAGS="-I${HOME}/include" protobuf_LIBS="-L${HOME}/lib -lprotobuf" && make install && make check
+
+experimental:
+  notify:
+    # Reduce slack noise from failed WIP branch builds
+    branches:
+      only: [master]
