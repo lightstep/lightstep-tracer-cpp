@@ -13,8 +13,6 @@ machine:
 
 dependencies:
   pre:
-    # For debugging
-    - env
     # Pull submodules
     - git submodule init && git submodule update
     # Pull scripts from a shared repo
@@ -36,9 +34,6 @@ dependencies:
 
     # gRPC
     - git clone -b v1.0.1 https://github.com/grpc/grpc && cd grpc && git submodule update --init && make && make install prefix=${HOME}
-
-    - ls -l ${HOME}/lib
-    - sudo ldconfig
 
   override:
     - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --prefix=${HOME}
