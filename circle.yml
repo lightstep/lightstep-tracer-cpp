@@ -6,6 +6,8 @@ machine:
     BUILD_DIR: ${GOPATH}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
     GOOGLE_APPLICATION_CREDENTIALS: ${HOME}/gcloud-service-key.json
     HELM_INSTALL_DIR: ${HOME}/bin
+    LDFLAGS: -L${HOME}/lib
+    CXXFLAGS: -I${HOME}/include
 
 dependencies:
   pre:
@@ -25,13 +27,13 @@ dependencies:
     # Note the similarities with lightstep-benchmarks/scripts/docker/Dockerfile.build_cpp
     - sudo apt-get update; sudo apt-get install autoconf cmake automake git-core libtool pkg-config wget curl unzip
 
-    - git clone -b 3.0.x https://github.com/google/protobuf && cd protobuf && ./autogen.sh && ./configure --prefix=/usr/local && make && make check && make install
+    - git clone -b 3.0.x https://github.com/google/protobuf && cd protobuf && ./autogen.sh && ./configure --prefix=${HOME} && make && make check && make install
 
-    - git clone -b v1.0.1 https://github.com/grpc/grpc && cd grpc && git submodule update --init && make && make install prefix=/usr/local
+    - git clone -b v1.0.1 https://github.com/grpc/grpc && cd grpc && git submodule update --init && make && make install prefix=${HOME}
 
   override:
-    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure && make install && make distcheck
-    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --disable-grpc && make install && make distcheck
+    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --prefix=${HOME} && make install && make distcheck
+    - cd ${BUILD_DIR} && sh bootstrap.sh && sh configure --prefix=${HOME} --disable-grpc && make install && make distcheck
   cache_directories:
     - /opt/google-cloud-sdk
     - ~/bin
