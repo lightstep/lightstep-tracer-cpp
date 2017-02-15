@@ -9,6 +9,7 @@ machine:
     LDFLAGS: -L${HOME}/lib
     CXXFLAGS: -I${HOME}/include
     PKG_CONFIG_PATH: ${HOME}/lib/pkgconfig
+    LD_LIBRARY_PATH: ${HOME}/lib
 
 dependencies:
   pre:
