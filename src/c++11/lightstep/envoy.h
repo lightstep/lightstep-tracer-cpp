@@ -8,35 +8,60 @@
 namespace lightstep {
 namespace envoy {
 
-// ProtoReader reads an Envoy CarrierStruct for extracting Envoy-carried SpanContext.
-class ProtoReader : public BasicCarrierReader {
+// ProtoReader reads an EnvoyCarrier for extracting Envoy-carried
+// SpanContext.  Note! Most client libraries support
+// injecting/extracting EnvoyCarrier from a string and handle base64
+// encoding/decoding themselves. This library does not, it is up to
+// the caller to serialize / deserialize EnvoyCarrier then base64
+// encode / decode manually.
+
+class ProtoReader : public CarrierReader {
 public:
-  explicit ProtoReader(const CarrierStruct& data) : data_(data) { }
+  explicit ProtoReader(const EnvoyCarrier& data) : data_(data) { }
+
+private:
+  friend class lightstep::TracerImpl;
+  const EnvoyCarrier& data_;
+};
+
+// ProtoReader writes an EnvoyCarrier for injecting Envoy-carried SpanContext.
+class ProtoWriter : public CarrierWriter {
+public:
+  explicit ProtoWriter(EnvoyCarrier *output) : output_(output) { }
+
+private:
+  friend class lightstep::TracerImpl;
+  EnvoyCarrier *const output_;
+};
+
+// Legacy Reader/Writer handle reading and writing the legacy format.
+class LegacyProtoReader : public BasicCarrierReader {
+public:
+  explicit LegacyProtoReader(const EnvoyCarrier& data) : data_(data) { }
 
   void ForeachKey(std::function<void(const std::string& key,
-				     const std::string& value)> f) const override {
-    for (const auto& c : data_.context()) {
+  				     const std::string& value)> f) const override {
+    for (const auto& c : data_.deprecated_context()) {
       f(c.key(), c.value());
     }
   }
 
 private:
-  const CarrierStruct& data_;
+  const EnvoyCarrier& data_;
 };
 
-// ProtoReader writes an Envoy CarrierStruct for injecting Envoy-carried SpanContext.
-class ProtoWriter : public BasicCarrierWriter {
+class LegacyProtoWriter : public BasicCarrierWriter {
 public:
-  explicit ProtoWriter(CarrierStruct *output) : output_(output) { }
+  explicit LegacyProtoWriter(EnvoyCarrier *output) : output_(output) { }
 
   void Set(const std::string &key, const std::string &value) const override {
-    CarrierPair *kv = output_->add_context();
+    LegacyCarrierPair *kv = output_->add_deprecated_context();
     kv->set_key(key);
     kv->set_value(value);
   }
 
 private:
-  CarrierStruct *const output_;
+  EnvoyCarrier *const output_;
 };
 
 }  // namespace envoy

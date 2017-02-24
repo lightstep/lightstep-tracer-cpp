@@ -134,12 +134,12 @@ bool TracerImpl::inject(SpanContext sc, CarrierFormat format, const CarrierWrite
   switch (format.type()) {
   case CarrierFormat::HTTPHeaders:
   case CarrierFormat::TextMap:
-  case CarrierFormat::EnvoyProto:
     return inject_basic_carrier(sc, opaque);
-  case CarrierFormat::Binary:
-    break;
+  case CarrierFormat::EnvoyProto:
+    return inject_envoy_carrier(sc, opaque);
+  default:
+    return false;
   }
-  return false;
 }
 
 bool TracerImpl::inject_basic_carrier(SpanContext sc, const CarrierWriter& opaque) {
@@ -159,12 +159,33 @@ bool TracerImpl::inject_basic_carrier(SpanContext sc, const CarrierWriter& opaqu
   return true;
 }
 
+bool TracerImpl::inject_envoy_carrier(SpanContext sc, const CarrierWriter& opaque) {
+  const envoy::ProtoWriter* carrier = dynamic_cast<const envoy::ProtoWriter*>(&opaque);
+  if (carrier == nullptr) {
+    return false;
+  }
+  envoy::EnvoyCarrier *const output = carrier->output_;
+  output->set_span_id(sc.span_id());
+  output->set_trace_id(sc.trace_id());
+
+  sc.ForeachBaggageItem([output](const std::string& key,
+				  const std::string& value) {
+			  (*output->mutable_baggage_items())[key] = value;
+			  return true;
+			});
+
+  envoy::LegacyProtoWriter legacy_writer(output);
+  inject_basic_carrier(sc, legacy_writer);
+  return true;
+}
+
 SpanContext TracerImpl::extract(CarrierFormat format, const CarrierReader& opaque) {
   switch (format.type()) {
   case CarrierFormat::HTTPHeaders:
   case CarrierFormat::TextMap:
-  case CarrierFormat::EnvoyProto:
     return extract_basic_carrier(opaque);
+  case CarrierFormat::EnvoyProto:
+    return extract_envoy_carrier(opaque);
   default:
     return SpanContext();
   }
@@ -197,6 +218,30 @@ SpanContext TracerImpl::extract_basic_carrier(const CarrierReader& opaque) {
   if (count != FieldCount) {
     return SpanContext();
   }
+  return SpanContext(ctx);
+}
+
+SpanContext TracerImpl::extract_envoy_carrier(const CarrierReader& opaque) {
+  const envoy::ProtoReader* carrier = dynamic_cast<const envoy::ProtoReader*>(&opaque);
+  if (carrier == nullptr) {
+    return SpanContext();
+  }
+
+  const envoy::EnvoyCarrier& proto = carrier->data_;
+  if (proto.deprecated_context_size() != 0) {
+    envoy::LegacyProtoReader legacy_reader(proto);
+    return extract_basic_carrier(legacy_reader);
+  }
+
+  std::shared_ptr<ContextImpl> ctx(new ContextImpl);
+
+  ctx->trace_id = proto.trace_id();
+  ctx->span_id = proto.span_id();
+
+  for (const auto& entry : proto.baggage_items()) {
+    ctx->setBaggageItem(entry);
+  }
+
   return SpanContext(ctx);
 }
 
