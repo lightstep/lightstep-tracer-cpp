@@ -168,6 +168,7 @@ bool TracerImpl::inject_lightstep_carrier(SpanContext sc, const CarrierWriter& o
   BasicTracerCarrier *const basic = output->mutable_basic_ctx();
   basic->set_span_id(sc.span_id());
   basic->set_trace_id(sc.trace_id());
+  basic->set_sampled(true);
 
   auto baggage = basic->mutable_baggage_items();
 

@@ -3,39 +3,13 @@
 #include <mutex>
 #include <sstream>
 
+#include "test.h"
+
 #include "lightstep/carrier.h"
 #include "lightstep/impl.h"
 #include "lightstep/tracer.h"
 
 // TODO turn this into a GUnit test.
-
-class error : public std::exception {
-public:
-  error(const char *what) : what_(what) { }
-  error(const std::string& what) : what_(what) { }
-
-  const char* what() const noexcept override { return what_.c_str(); }
-private:
-  const std::string what_;
-};
-
-class TestRecorder : public lightstep::Recorder {
-public:
-  explicit TestRecorder(const lightstep::TracerImpl& impl) : builder_(impl) { }
-
-  virtual void RecordSpan(lightstep::collector::Span&& span) override {
-    std::lock_guard<std::mutex> lock(mutex_);
-    builder_.addSpan(std::move(span));
-  }
-  virtual bool FlushWithTimeout(lightstep::Duration timeout) override {
-    request_ = builder_.pending();
-    return true;
-  }
-
-  std::mutex mutex_;
-  lightstep::ReportBuilder builder_;
-  lightstep::collector::ReportRequest request_;
-};
 
 uint64_t my_guids() {
   static uint64_t unsafe = 100;
@@ -120,20 +94,20 @@ int main() {
       throw error("inject (text) failed");
     }
     if (!lightstep::Tracer::Global().Inject(parent,
-					    lightstep::CarrierFormat::EnvoyProtoCarrier,
-					    lightstep::envoy::ProtoWriter(&binary))) {
-      throw error("inject (envoy) failed");
+					    lightstep::CarrierFormat::LightStepBinaryCarrier,
+					    lightstep::ProtoWriter(&binary))) {
+      throw error("inject (binary) failed");
     }
 
     lightstep::SpanContext extracted_text =
       lightstep::Tracer::Global().Extract(lightstep::CarrierFormat::HTTPHeadersCarrier,
 					  lightstep::make_ordered_string_pairs_reader(headers));
-    lightstep::SpanContext extracted_envoy =
-      lightstep::Tracer::Global().Extract(lightstep::CarrierFormat::EnvoyProtoCarrier,
-					  lightstep::envoy::ProtoReader(binary));
+    lightstep::SpanContext extracted_binary =
+      lightstep::Tracer::Global().Extract(lightstep::CarrierFormat::LightStepBinaryCarrier,
+					  lightstep::ProtoReader(binary));
 
     check_test_context_against(extracted_text, parent);
-    check_test_context_against(extracted_envoy, parent);
+    check_test_context_against(extracted_binary, parent);
 
     lightstep::Tracer::Global().impl()->Flush();
   } catch (std::exception &e) {

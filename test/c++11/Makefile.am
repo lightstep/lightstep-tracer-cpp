@@ -17,6 +17,7 @@ EXTRA_DIST = \
 	dropbox_json/LICENSE.txt
 
 noinst_HEADERS = \
+	test.h \
 	dropbox_json/json11.hpp \
 	zintinio_happyhttp/happyhttp.h
 
