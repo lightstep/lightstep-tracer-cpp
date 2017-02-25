@@ -127,8 +127,9 @@ SpanReference FollowsFrom(const SpanContext& ctx);
 class CarrierFormat {
 public:
   enum FormatType {
-    // Binary encodes the SpanContext for propagation as opaque binary data.
-    Binary = 1,  // RESERVED, NOT IMPLEMENTED
+    // OpenTracingBinary encodes the SpanContext for propagation as opaque
+    // binary data.
+    OpenTracingBinary = 1,  // RESERVED, NOT IMPLEMENTED
     
     // HTTPHeaders represents SpanContexts as HTTP header string pairs.
     //
@@ -170,13 +171,14 @@ public:
     // See the HTTPHeaders examples.
     TextMap = 3,
 
-    // EnvoyProto carriers use a serialized protocol message.
-    EnvoyProto = 4,
+    // LightStepBinary carriers read/write a lightstep::BinaryCarrier
+    // protobuf message.
+    LightStepBinary = 4,
   };
 
   static CarrierFormat TextMapCarrier;
   static CarrierFormat HTTPHeadersCarrier;
-  static CarrierFormat EnvoyProtoCarrier;
+  static CarrierFormat LightStepBinaryCarrier;
 
   CarrierFormat(FormatType type) : type_(type) { }
 

@@ -11,17 +11,17 @@ proto_srcdir = $(top_srcdir)/lightstep-tracer-common
 
 PROTO_SRC = \
 	$(proto_srcdir)/collector.proto \
-	$(proto_srcdir)/envoy_carrier.proto
+	$(proto_srcdir)/lightstep_carrier.proto
 
 PROTO_GEN = \
 	collector.pb.h \
 	collector.pb.cc \
-	envoy_carrier.pb.h \
-	envoy_carrier.pb.cc
+	lightstep_carrier.pb.h \
+	lightstep_carrier.pb.cc
 
 proto.stamp: $(PROTO_SRC)
 	$(PROTOC) --proto_path=$(proto_srcdir) --cpp_out=$(builddir) $(proto_srcdir)/collector.proto
-	$(PROTOC) --proto_path=$(proto_srcdir) --cpp_out=$(builddir) $(proto_srcdir)/envoy_carrier.proto
+	$(PROTOC) --proto_path=$(proto_srcdir) --cpp_out=$(builddir) $(proto_srcdir)/lightstep_carrier.proto
 	touch proto.stamp
 
 $(PROTO_GEN): proto.stamp
@@ -34,7 +34,7 @@ CLEANFILES    = $(PROTO_GEN) proto.stamp
 lib_LTLIBRARIES = liblightstep_core_cxx11.la
 
 nobase_include_HEADERS = \
-	lightstep/envoy.h \
+	lightstep/carrier.h \
 	lightstep/impl.h \
 	lightstep/options.h \
 	lightstep/propagation.h \
@@ -54,11 +54,11 @@ liblightstep_core_cxx11_la_SOURCES = \
 
 nobase_nodist_include_HEADERS = \
 	collector.pb.h \
-	envoy_carrier.pb.h
+	lightstep_carrier.pb.h
 
 nodist_liblightstep_core_cxx11_la_SOURCES = \
 	collector.pb.cc \
-	envoy_carrier.pb.cc
+	lightstep_carrier.pb.cc
 
 # Note: To set the protobuf library include and library flags, e.g.,
 #

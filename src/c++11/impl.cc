@@ -7,7 +7,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-#include "lightstep/envoy.h"
+#include "lightstep/carrier.h"
 #include "lightstep/impl.h"
 #include "lightstep/options.h"
 #include "lightstep/tracer.h"
@@ -134,15 +134,15 @@ bool TracerImpl::inject(SpanContext sc, CarrierFormat format, const CarrierWrite
   switch (format.type()) {
   case CarrierFormat::HTTPHeaders:
   case CarrierFormat::TextMap:
-    return inject_basic_carrier(sc, opaque);
-  case CarrierFormat::EnvoyProto:
-    return inject_envoy_carrier(sc, opaque);
+    return inject_text_carrier(sc, opaque);
+  case CarrierFormat::LightStepBinary:
+    return inject_lightstep_carrier(sc, opaque);
   default:
     return false;
   }
 }
 
-bool TracerImpl::inject_basic_carrier(SpanContext sc, const CarrierWriter& opaque) {
+bool TracerImpl::inject_text_carrier(SpanContext sc, const CarrierWriter& opaque) {
   const BasicCarrierWriter* carrier = dynamic_cast<const BasicCarrierWriter*>(&opaque);
   if (carrier == nullptr) {
     return false;
@@ -159,23 +159,27 @@ bool TracerImpl::inject_basic_carrier(SpanContext sc, const CarrierWriter& opaqu
   return true;
 }
 
-bool TracerImpl::inject_envoy_carrier(SpanContext sc, const CarrierWriter& opaque) {
-  const envoy::ProtoWriter* carrier = dynamic_cast<const envoy::ProtoWriter*>(&opaque);
+bool TracerImpl::inject_lightstep_carrier(SpanContext sc, const CarrierWriter& opaque) {
+  const ProtoWriter* carrier = dynamic_cast<const ProtoWriter*>(&opaque);
   if (carrier == nullptr) {
     return false;
   }
-  envoy::EnvoyCarrier *const output = carrier->output_;
-  output->set_span_id(sc.span_id());
-  output->set_trace_id(sc.trace_id());
+  BinaryCarrier *const output = carrier->output_;
+  BasicTracerCarrier *const basic = output->mutable_basic_ctx();
+  basic->set_span_id(sc.span_id());
+  basic->set_trace_id(sc.trace_id());
 
-  sc.ForeachBaggageItem([output](const std::string& key,
+  auto baggage = basic->mutable_baggage_items();
+
+  sc.ForeachBaggageItem([baggage](const std::string& key,
 				  const std::string& value) {
-			  (*output->mutable_baggage_items())[key] = value;
+			  (*baggage)[key] = value;
 			  return true;
 			});
 
-  envoy::LegacyProtoWriter legacy_writer(output);
-  inject_basic_carrier(sc, legacy_writer);
+  // TODO Remove the text encoding after [...] has upgraded globally.
+  TextProtoWriter legacy_writer(output);
+  inject_text_carrier(sc, legacy_writer);
   return true;
 }
 
@@ -183,15 +187,15 @@ SpanContext TracerImpl::extract(CarrierFormat format, const CarrierReader& opaqu
   switch (format.type()) {
   case CarrierFormat::HTTPHeaders:
   case CarrierFormat::TextMap:
-    return extract_basic_carrier(opaque);
-  case CarrierFormat::EnvoyProto:
-    return extract_envoy_carrier(opaque);
+    return extract_text_carrier(opaque);
+  case CarrierFormat::LightStepBinary:
+    return extract_lightstep_carrier(opaque);
   default:
     return SpanContext();
   }
 }
 
-SpanContext TracerImpl::extract_basic_carrier(const CarrierReader& opaque) {
+SpanContext TracerImpl::extract_text_carrier(const CarrierReader& opaque) {
   const BasicCarrierReader* carrier = dynamic_cast<const BasicCarrierReader*>(&opaque);
   if (carrier == nullptr) {
     return SpanContext();
@@ -221,24 +225,23 @@ SpanContext TracerImpl::extract_basic_carrier(const CarrierReader& opaque) {
   return SpanContext(ctx);
 }
 
-SpanContext TracerImpl::extract_envoy_carrier(const CarrierReader& opaque) {
-  const envoy::ProtoReader* carrier = dynamic_cast<const envoy::ProtoReader*>(&opaque);
+SpanContext TracerImpl::extract_lightstep_carrier(const CarrierReader& opaque) {
+  const ProtoReader* carrier = dynamic_cast<const ProtoReader*>(&opaque);
   if (carrier == nullptr) {
     return SpanContext();
   }
 
-  const envoy::EnvoyCarrier& proto = carrier->data_;
-  if (proto.trace_id() == 0 && proto.span_id() == 0) {
-    envoy::LegacyProtoReader legacy_reader(proto);
-    return extract_basic_carrier(legacy_reader);
+  const BinaryCarrier& proto = carrier->data_;
+  const BasicTracerCarrier& basic = proto.basic_ctx();
+  if (basic.trace_id() == 0 && basic.span_id() == 0) {
+    return extract_text_carrier(TextProtoReader(proto));
   }
 
   std::shared_ptr<ContextImpl> ctx(new ContextImpl);
+  ctx->trace_id = basic.trace_id();
+  ctx->span_id = basic.span_id();
 
-  ctx->trace_id = proto.trace_id();
-  ctx->span_id = proto.span_id();
-
-  for (const auto& entry : proto.baggage_items()) {
+  for (const auto& entry : basic.baggage_items()) {
     ctx->setBaggageItem(entry);
   }
 
