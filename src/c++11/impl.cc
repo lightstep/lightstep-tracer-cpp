@@ -228,7 +228,7 @@ SpanContext TracerImpl::extract_envoy_carrier(const CarrierReader& opaque) {
   }
 
   const envoy::EnvoyCarrier& proto = carrier->data_;
-  if (proto.deprecated_context_size() != 0) {
+  if (proto.trace_id() == 0 && proto.span_id() == 0) {
     envoy::LegacyProtoReader legacy_reader(proto);
     return extract_basic_carrier(legacy_reader);
   }
