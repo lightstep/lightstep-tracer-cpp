@@ -1,5 +1,5 @@
 
-noinst_PROGRAMS = flushproto_test
+noinst_PROGRAMS = flushproto_test carrier_test
 
 AM_CXXFLAGS = -Wno-deprecated-declarations
 
@@ -7,6 +7,11 @@ flushproto_test_SOURCES = flushproto_test.cc
 flushproto_test_CXXFLAGS = $(AM_CXXFLAGS) -I $(top_srcdir)/src/c++11 -I $(top_srcdir)/src/c++11/lightstep $(protobuf_CFLAGS)
 flushproto_test_LDADD = ../../src/c++11/liblightstep_core_cxx11.la
 flushproto_test_LDFLAGS = $(protobuf_LIBS)
+
+carrier_test_SOURCES = carrier_test.cc
+carrier_test_CXXFLAGS = $(AM_CXXFLAGS) -I $(top_srcdir)/src/c++11 -I $(top_srcdir)/src/c++11/lightstep $(protobuf_CFLAGS)
+carrier_test_LDADD = ../../src/c++11/liblightstep_core_cxx11.la
+carrier_test_LDFLAGS = $(protobuf_LIBS)
 
 EXTRA_DIST = \
 	dropbox_json/LICENSE.txt
@@ -16,7 +21,7 @@ noinst_HEADERS = \
 	zintinio_happyhttp/happyhttp.h
 
 
-TESTS = flushproto_test
+TESTS = flushproto_test carrier_test
 
 if ENABLE_GRPC
 
