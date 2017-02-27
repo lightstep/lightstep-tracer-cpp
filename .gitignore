@@ -28,6 +28,7 @@ config.h
 .dirstamp
 stamp-h1
 tracer_test
+carrier_test
 cppclient
 flushproto_test
 *.pb.h

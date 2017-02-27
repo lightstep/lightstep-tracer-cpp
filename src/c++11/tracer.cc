@@ -19,7 +19,7 @@ const char collectorMethodName[] = "Report";
 
 CarrierFormat CarrierFormat::TextMapCarrier{CarrierFormat::TextMap};
 CarrierFormat CarrierFormat::HTTPHeadersCarrier{CarrierFormat::HTTPHeaders};
-CarrierFormat CarrierFormat::EnvoyProtoCarrier{CarrierFormat::EnvoyProto};
+CarrierFormat CarrierFormat::LightStepBinaryCarrier{CarrierFormat::LightStepBinary};
 
 Tracer Tracer::Global() {
   ImplPtr *ptr = global_tracer.load();

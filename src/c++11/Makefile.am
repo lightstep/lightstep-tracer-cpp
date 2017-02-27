@@ -7,21 +7,21 @@ PROTOC = @PROTOC@
 .PHONY: $(PROTOC)
 
 # Lightstep Collector reporting:
-collector_srcdir = $(top_srcdir)/lightstep-tracer-common
+proto_srcdir = $(top_srcdir)/lightstep-tracer-common
 
 PROTO_SRC = \
-	$(collector_srcdir)/collector.proto \
-	$(srcdir)/envoy_carrier.proto
+	$(proto_srcdir)/collector.proto \
+	$(proto_srcdir)/lightstep_carrier.proto
 
 PROTO_GEN = \
 	collector.pb.h \
 	collector.pb.cc \
-	envoy_carrier.pb.h \
-	envoy_carrier.pb.cc
+	lightstep_carrier.pb.h \
+	lightstep_carrier.pb.cc
 
 proto.stamp: $(PROTO_SRC)
-	$(PROTOC) --proto_path=$(collector_srcdir) --cpp_out=$(builddir) $(collector_srcdir)/collector.proto
-	$(PROTOC) --proto_path=$(srcdir) --cpp_out=$(builddir) $(srcdir)/envoy_carrier.proto
+	$(PROTOC) --proto_path=$(proto_srcdir) --cpp_out=$(builddir) $(proto_srcdir)/collector.proto
+	$(PROTOC) --proto_path=$(proto_srcdir) --cpp_out=$(builddir) $(proto_srcdir)/lightstep_carrier.proto
 	touch proto.stamp
 
 $(PROTO_GEN): proto.stamp
@@ -34,7 +34,7 @@ CLEANFILES    = $(PROTO_GEN) proto.stamp
 lib_LTLIBRARIES = liblightstep_core_cxx11.la
 
 nobase_include_HEADERS = \
-	lightstep/envoy.h \
+	lightstep/carrier.h \
 	lightstep/impl.h \
 	lightstep/options.h \
 	lightstep/propagation.h \
@@ -54,11 +54,11 @@ liblightstep_core_cxx11_la_SOURCES = \
 
 nobase_nodist_include_HEADERS = \
 	collector.pb.h \
-	envoy_carrier.pb.h
+	lightstep_carrier.pb.h
 
 nodist_liblightstep_core_cxx11_la_SOURCES = \
 	collector.pb.cc \
-	envoy_carrier.pb.cc
+	lightstep_carrier.pb.cc
 
 # Note: To set the protobuf library include and library flags, e.g.,
 #
@@ -71,8 +71,7 @@ liblightstep_core_cxx11_la_LDFLAGS  = $(protobuf_LIBS)
 AM_CXXFLAGS = -Wno-deprecated-declarations
 
 EXTRA_DIST = \
-	mapbox_variant/LICENSE \
-	envoy_carrier.proto
+	mapbox_variant/LICENSE
 
 # The builtin gRPC transport is built by default.  When supplying your
 # own gRPC transport, you can disable the built-in recorder:
@@ -81,7 +80,7 @@ EXTRA_DIST = \
 if ENABLE_GRPC
 
 GRPC_PROTO_SRC = \
-	$(collector_srcdir)/collector.proto
+	$(proto_srcdir)/collector.proto
 
 GRPC_PROTO_GEN = \
 	collector.grpc.pb.h \
@@ -93,9 +92,9 @@ CLEANFILES    += $(GRPC_PROTO_GEN) proto.grpc.stamp
 # TODO make grpc_cpp_plugin a configure option
 #
 proto.grpc.stamp: $(GRPC_PROTO_SRC)
-	$(PROTOC) --proto_path=$(collector_srcdir) --grpc_out=$(builddir) \
+	$(PROTOC) --proto_path=$(proto_srcdir) --grpc_out=$(builddir) \
 		--plugin=protoc-gen-grpc=`which grpc_cpp_plugin` \
-		$(collector_srcdir)/collector.proto
+		$(proto_srcdir)/collector.proto
 	touch proto.grpc.stamp
 
 $(GRPC_PROTO_GEN): proto.grpc.stamp
