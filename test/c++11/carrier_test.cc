@@ -30,6 +30,23 @@ std::string base64_decode(const std::string &in) {
     return out;
 }
 
+std::string base64_encode(const std::string &in) {
+    std::string out;
+
+    int val=0, valb=-6;
+    for (unsigned char c : in) {
+        val = (val<<8) + c;
+        valb += 8;
+        while (valb>=0) {
+            out.push_back(base64bytes[(val>>valb)&0x3F]);
+            valb-=6;
+        }
+    }
+    if (valb>-6) out.push_back(base64bytes[((val<<8)>>(valb+8))&0x3F]);
+    while (out.size()%4) out.push_back('=');
+    return out;
+}
+
 } // namespace
 
 int main() {
@@ -67,9 +84,6 @@ int main() {
     std::string data_orig = binary_orig.SerializeAsString();
     std::string data_basic = binary_basic.SerializeAsString();
 
-    std::cerr << binary_basic.DebugString() << std::endl;
-    std::cerr << base64_encode(binary_basic.SerializeAsString()) << std::endl;
-
     // TODO Use gUNIT for testing proto equivalence, as proto-encoding
     // is not required to be pass an equals test (it's safe here,
     // since we use a single baggage item and the protolib always
@@ -101,13 +115,15 @@ int main() {
     const char same_data64[] = "EigJOjioEaYHBgcRNmifUO7/xlgYASISCgdjaGVja2VkEgdiYWdnYWdl";
     std::string same_data = base64_decode(same_data64);
 
-    // TODO Again, use gUNIT
+    // The "same" data was generated in this code, so this test only
+    // identifies a change of behavior.
     if (same_data != data_basic) {
       throw error("well-known data mismatch");
     }
 
     lightstep::BinaryCarrier same_basic;
     same_basic.ParseFromString(same_data);
+
     if (same_basic.basic_ctx().trace_id() != 506100417967962170L) {
       throw error("incorrect trace_id");
     }
@@ -121,6 +137,28 @@ int main() {
 	same_basic.basic_ctx().baggage_items().at("checked") != "baggage") {
       throw error("incorrect baggage");
     }
+
+    // Now again with some data from the Python library:
+    std::string py_data64 = "EigJEX+FpwZ/EmYR2gfYQbxCMskYASISCgdjaGVja2VkEgdiYWdnYWdl";
+    std::string py_data = base64_decode(py_data64);
+    
+    lightstep::BinaryCarrier py_carrier;
+    py_carrier.ParseFromString(py_data);
+
+    if (py_carrier.basic_ctx().trace_id() != 7355080808006516497L) {
+      throw error("incorrect trace_id");
+    }
+    if (py_carrier.basic_ctx().span_id() != 14497723526785009626UL) {
+      throw error("incorrect trace_id");
+    }
+    if (py_carrier.basic_ctx().sampled() != true) {
+      throw error("incorrect trace_id");
+    }
+    if (py_carrier.basic_ctx().baggage_items_size() != 1 ||
+	py_carrier.basic_ctx().baggage_items().at("checked") != "baggage") {
+      throw error("incorrect baggage");
+    }
+
     
   } catch (std::exception &e) {
     std::cerr << "Exception! " << e.what() << std::endl;
