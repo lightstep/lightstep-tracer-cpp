@@ -67,6 +67,9 @@ int main() {
     std::string data_orig = binary_orig.SerializeAsString();
     std::string data_basic = binary_basic.SerializeAsString();
 
+    std::cerr << binary_basic.DebugString() << std::endl;
+    std::cerr << base64_encode(binary_basic.SerializeAsString()) << std::endl;
+
     // TODO Use gUNIT for testing proto equivalence, as proto-encoding
     // is not required to be pass an equals test (it's safe here,
     // since we use a single baggage item and the protolib always
