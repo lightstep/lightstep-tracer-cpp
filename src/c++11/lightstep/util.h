@@ -2,6 +2,7 @@
 #ifndef __LIGHTSTEP_UTIL_H__
 #define __LIGHTSTEP_UTIL_H__
 
+#include <chrono>
 #include <string>
 #include "collector.pb.h"
 
