@@ -177,10 +177,6 @@ bool TracerImpl::inject_lightstep_carrier(SpanContext sc, const CarrierWriter& o
 			  (*baggage)[key] = value;
 			  return true;
 			});
-
-  // TODO Remove the text encoding after [...] has upgraded globally.
-  TextProtoWriter legacy_writer(output);
-  inject_text_carrier(sc, legacy_writer);
   return true;
 }
 
@@ -234,9 +230,6 @@ SpanContext TracerImpl::extract_lightstep_carrier(const CarrierReader& opaque) {
 
   const BinaryCarrier& proto = carrier->data_;
   const BasicTracerCarrier& basic = proto.basic_ctx();
-  if (basic.trace_id() == 0 && basic.span_id() == 0) {
-    return extract_text_carrier(TextProtoReader(proto));
-  }
 
   std::shared_ptr<ContextImpl> ctx(new ContextImpl);
   ctx->trace_id = basic.trace_id();
