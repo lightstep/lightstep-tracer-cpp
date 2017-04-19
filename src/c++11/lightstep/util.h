@@ -8,15 +8,17 @@
 
 namespace lightstep {
 
-typedef std::chrono::system_clock Clock;
-typedef Clock::time_point TimeStamp;
-typedef Clock::duration Duration;
+typedef std::chrono::system_clock SystemClock;
+typedef std::chrono::steady_clock SteadyClock;
+typedef SystemClock::time_point SystemTime;
+typedef SteadyClock::time_point SteadyTime;
+typedef SteadyClock::duration Duration;
 
 namespace util {
 
 std::string program_name();
 
-google::protobuf::Timestamp to_timestamp(TimeStamp t);
+google::protobuf::Timestamp to_timestamp(SystemTime t);
 
 template <typename T>
 collector::KeyValue make_kv(const std::string& key, const T& value);

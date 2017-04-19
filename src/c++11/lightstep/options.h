@@ -56,13 +56,16 @@ protected:
 
 class StartTimestamp : public SpanStartOption {
 public:
-  StartTimestamp(TimeStamp when) : when_(when) { }
-  StartTimestamp(const StartTimestamp& o) : when_(o.when_) { }
+  StartTimestamp(SystemTime when, SteadyTime steady_when)
+    : when_(when), steady_when_(steady_when) { }
+  StartTimestamp(const StartTimestamp& o)
+    : when_(o.when_), steady_when_(o.steady_when_) { }
 
   virtual void Apply(SpanImpl *span) const override;
 
 private:
-  TimeStamp when_;
+  SystemTime when_;
+  SteadyTime steady_when_;
 };
 
 class SetTag : public SpanStartOption {
@@ -91,13 +94,13 @@ protected:
 
 class FinishTimestamp : public SpanFinishOption {
 public:
-  FinishTimestamp(TimeStamp when) : when_(when) { }
+  FinishTimestamp(SteadyTime when) : when_(when) { }
   FinishTimestamp(const FinishTimestamp &o) : when_(o.when_) { }
 
   virtual void Apply(SpanImpl *span) const override;
 
 private:
-  TimeStamp when_;
+  SteadyTime when_;
 };
 
 // This is unsafe to do.

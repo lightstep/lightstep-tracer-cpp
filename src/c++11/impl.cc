@@ -54,7 +54,7 @@ std::string uint64ToHex(uint64_t u) {
 TracerImpl::TracerImpl(const TracerOptions& options_in)
   : options_(options_in),
     rand_source_(std::random_device()()),
-    tracer_start_time_(Clock::now()) {
+    tracer_start_time_(SystemClock::now()) {
 
   reporter_id_ = GetOneId();
 
@@ -104,8 +104,11 @@ std::unique_ptr<SpanImpl> TracerImpl::StartSpan(std::shared_ptr<TracerImpl> trac
     o.get().Apply(span.get());
   }
 
-  if (span->start_timestamp_ == TimeStamp()) {
-    span->start_timestamp_ = Clock::now();
+  if (span->start_timestamp_ == SystemTime()) {
+    span->start_timestamp_ = SystemClock::now();
+  }
+  if (span->start_steady_ == SteadyTime()) {
+    span->start_steady_ = SteadyClock::now();
   }
   if (!operation_name.empty()) {
     span->operation_name_ = operation_name;
@@ -245,6 +248,7 @@ SpanContext TracerImpl::extract_lightstep_carrier(const CarrierReader& opaque) {
 void StartTimestamp::Apply(SpanImpl *span) const {
   // Note: no locking, only called from StartSpan
   span->start_timestamp_ = when_;
+  span->start_steady_ = steady_when_;
 }
 
 void SetTag::Apply(SpanImpl *span) const {
@@ -265,8 +269,8 @@ void SpanImpl::FinishSpan(SpanFinishOptions opts) {
     o.get().Apply(this);
   }
 
-  if (finish_timestamp_ == TimeStamp()) {
-    finish_timestamp_ = Clock::now();
+  if (finish_timestamp_ == SteadyTime()) {
+    finish_timestamp_ = SteadyClock::now();
   }
 
   collector::Span span;
@@ -307,7 +311,7 @@ void SpanImpl::FinishSpan(SpanFinishOptions opts) {
 				return true;
 			      });
 
-  auto duration = finish_timestamp_ - start_timestamp_;
+  auto duration = finish_timestamp_ - start_steady_;
   span.set_duration_micros(std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
   *span.mutable_start_timestamp() = util::to_timestamp(start_timestamp_);
 
