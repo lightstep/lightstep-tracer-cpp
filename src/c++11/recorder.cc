@@ -72,7 +72,7 @@ private:
   // Waits until either the timeout or the writer thread is forced to
   // exit.  Returns true if it should continue writing, false if it
   // should exit.
-  bool wait_for_next_write(const Clock::time_point &next) {
+  bool wait_for_next_write(const SteadyClock::time_point &next) {
     std::unique_lock<std::mutex> lock(write_mutex_);
     write_cond_.wait_until(lock, next, [this]() {
   	return this->write_exit_ ||
@@ -116,12 +116,12 @@ BasicRecorder::BasicRecorder(const TracerImpl& tracer, const BasicRecorderOption
 				grpc::InsecureChannelCredentials())) {}
 
 void BasicRecorder::write() {
-  auto next = Clock::now() + options_.time_limit;
+  auto next = SteadyClock::now() + options_.time_limit;
 
   while (wait_for_next_write(next)) {
     flush_one();
 
-    auto end = Clock::now();
+    auto end = SteadyClock::now();
     auto elapsed = end - next;
 
     if (elapsed > options_.time_limit) {
@@ -169,7 +169,7 @@ bool BasicRecorder::write_report(const collector::ReportRequest& report) {
   grpc::ClientContext context;
   collector::ReportResponse resp;
   context.set_fail_fast(true);
-  context.set_deadline(Clock::now() + options_.report_timeout);
+  context.set_deadline(SteadyClock::now() + options_.report_timeout);
   grpc::Status status = client_.Report(&context, report, &resp);
   if (!status.ok()) {
     std::cout << "Report RPC failed: " << status.error_message();
