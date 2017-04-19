@@ -12,7 +12,8 @@ typedef std::chrono::system_clock SystemClock;
 typedef std::chrono::steady_clock SteadyClock;
 typedef SystemClock::time_point SystemTime;
 typedef SteadyClock::time_point SteadyTime;
-typedef SteadyClock::duration Duration;
+typedef SteadyClock::duration SteadyDuration;
+typedef SystemClock::duration SystemDuration;
 
 namespace util {
 

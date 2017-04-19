@@ -68,7 +68,7 @@ public:
   // Flush is called by the user, indicating for some reason that
   // buffered spans should be flushed.  Returns true if the flush
   // succeeded, false if it timed out.
-  virtual bool FlushWithTimeout(Duration timeout) = 0;
+  virtual bool FlushWithTimeout(SystemDuration timeout) = 0;
 
   // Flush with an indefinite timeout.
   virtual void Flush() {

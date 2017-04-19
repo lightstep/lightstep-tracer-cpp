@@ -55,7 +55,7 @@ public:
     }
   }
 
-  bool FlushWithTimeout(Duration timeout) override;
+  bool FlushWithTimeout(SystemDuration timeout) override;
 
 private:
   void write();
@@ -169,7 +169,7 @@ bool BasicRecorder::write_report(const collector::ReportRequest& report) {
   grpc::ClientContext context;
   collector::ReportResponse resp;
   context.set_fail_fast(true);
-  context.set_deadline(SteadyClock::now() + options_.report_timeout);
+  context.set_deadline(SystemClock::now() + options_.report_timeout);
   grpc::Status status = client_.Report(&context, report, &resp);
   if (!status.ok()) {
     std::cout << "Report RPC failed: " << status.error_message();
@@ -180,7 +180,7 @@ bool BasicRecorder::write_report(const collector::ReportRequest& report) {
   return true;
 }
 
-bool BasicRecorder::FlushWithTimeout(Duration timeout) {
+bool BasicRecorder::FlushWithTimeout(SystemDuration timeout) {
   // Note: there is no effort made to speed up the flush when
   // requested, it simply waits for the regularly scheduled flush
   // operations to clear out all the presently pending data.

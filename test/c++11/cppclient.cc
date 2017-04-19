@@ -34,7 +34,7 @@ lightstep::Tracer NewTracer() {
   return lightstep::NewLightStepTracer(topts, bopts);
 }
 
-double to_seconds(lightstep::Duration d) {
+double to_seconds(lightstep::SteadyDuration d) {
   using namespace std::chrono;
   return static_cast<double>(
       duration_cast<nanoseconds>(d).count()) / nanosPerSecond;
@@ -140,9 +140,9 @@ void Test::test_body(const lightstep::Tracer& tracer,
     }
 
     using namespace std::chrono;
-    lightstep::TimeStamp sleep = lightstep::Clock::now();
+    lightstep::SteadyTime sleep = lightstep::SteadyClock::now();
     std::this_thread::sleep_for(nanoseconds(sleep_debt));
-    lightstep::TimeStamp awake = lightstep::Clock::now();
+    lightstep::SteadyTime awake = lightstep::SteadyClock::now();
     uint64_t elapsed_nanos = duration_cast<nanoseconds>(awake - sleep).count();
     sleep_debt -= elapsed_nanos;
     *sleep_nanos += elapsed_nanos;
@@ -162,19 +162,19 @@ void Test::run_benchmark() {
     } else {
       tracer = noop_tracer_;
     }
-    lightstep::TimeStamp start = lightstep::Clock::now();
+    lightstep::SteadyTime start = lightstep::SteadyClock::now();
 
     uint64_t sleep_nanos = 0;
     uint64_t answer;
     // TODO concurrency test
     test_body(tracer, control, &sleep_nanos, &answer);
 
-    lightstep::TimeStamp finish = lightstep::Clock::now();
-    lightstep::TimeStamp flushed = finish;
+    lightstep::SteadyTime finish = lightstep::SteadyClock::now();
+    lightstep::SteadyTime flushed = finish;
 
     if (control["Trace"].bool_value()) {
       tracer.impl()->Flush();
-      flushed = lightstep::Clock::now();
+      flushed = lightstep::SteadyClock::now();
     }
 
     std::stringstream rpath;
