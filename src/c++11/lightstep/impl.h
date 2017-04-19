@@ -74,7 +74,7 @@ class TracerImpl {
 
   uint64_t reporter_id() const { return reporter_id_; }
 
-  TimeStamp tracer_start_time() const { return tracer_start_time_; }
+  SystemTime tracer_start_time() const { return tracer_start_time_; }
   const Attributes& tracer_attributes() const { return options_.tracer_attributes; }
 
   void RecordSpan(collector::Span&& span);
@@ -129,8 +129,8 @@ class TracerImpl {
   std::string component_name_;
 
   // Start time of this process.
-  // TODO remove this, it's no longer part of the protocol.
-  TimeStamp tracer_start_time_;
+  SystemTime tracer_start_time_;
+  SteadyTime duration_start_time_;
 };
 
 class SpanImpl {
@@ -170,8 +170,9 @@ private:
 
   // Fields set in StartSpan() are not protected by a mutex.
   ImplPtr       tracer_;
-  TimeStamp     start_timestamp_;
-  TimeStamp     finish_timestamp_;
+  SystemTime    start_timestamp_;
+  SteadyTime    start_steady_;
+  SteadyTime    finish_timestamp_;
   SpanReference ref_;
   ContextImpl   context_;
 

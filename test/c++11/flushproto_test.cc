@@ -7,9 +7,29 @@
 
 #include "lightstep/carrier.h"
 #include "lightstep/impl.h"
+#include "lightstep/options.h"
 #include "lightstep/tracer.h"
 
 // TODO turn this into a GUnit test.
+
+uint64_t to_epoch_nanos(google::protobuf::Timestamp t) {
+  return t.seconds() * 1e9 + t.nanos();
+}
+
+uint64_t to_epoch_nanos(lightstep::SystemTime t) {
+  using namespace std::chrono;
+  return duration_cast<nanoseconds>(t.time_since_epoch()).count();
+}
+
+lightstep::SystemTime to_system_timestamp(int64_t nanos) {
+  using namespace std::chrono;
+  return lightstep::SystemTime(duration_cast<lightstep::SystemClock::duration>(nanoseconds(nanos)));
+}
+
+lightstep::SteadyTime to_steady_timestamp(int64_t nanos) {
+  using namespace std::chrono;
+  return lightstep::SteadyTime(duration_cast<lightstep::SteadyClock::duration>(nanoseconds(nanos)));
+}
 
 uint64_t my_guids() {
   static uint64_t unsafe = 100;
@@ -51,6 +71,8 @@ void check_test_context_against(const lightstep::SpanContext& got, const lightst
 }
 
 int main() {
+  lightstep::SystemTime sys_before = lightstep::SystemClock::now();
+
   try {
     check_tracer_names();
 
@@ -75,8 +97,11 @@ int main() {
     auto parent = span.context();
     span.Finish();
 
-    auto cspan = lightstep::Tracer::Global().StartSpan("span/child", { ChildOf(parent) });
-    cspan.Finish();
+    auto cspan = lightstep::Tracer::Global().StartSpan("span/child", {
+	lightstep::ChildOf(parent),
+	lightstep::StartTimestamp(to_system_timestamp(27e9), to_steady_timestamp(28e9)) });
+    cspan.Finish({
+	lightstep::FinishTimestamp(to_steady_timestamp(29e9)) });
 
     auto child = cspan.context();
 
@@ -115,6 +140,8 @@ int main() {
     return 1;
   }
 
+  lightstep::SystemTime sys_after = lightstep::SystemClock::now();
+
   try {
     auto tracer = lightstep::Tracer::Global();
     auto recorder = dynamic_cast<TestRecorder*>(tracer.impl()->recorder().get());
@@ -124,6 +151,15 @@ int main() {
       throw error("wrong span count");
     }
     auto parent = report.spans(0);
+    if (parent.duration_micros() > 1000) {
+      // Suppose it takes no more than 1 millisec to run this test
+      throw error("unexpected (real steady-clock) duration");
+    }
+    if (to_epoch_nanos(parent.start_timestamp()) <= to_epoch_nanos(sys_before) ||
+	to_epoch_nanos(parent.start_timestamp()) >= to_epoch_nanos(sys_after)) {
+      throw error("unexpected (real system-clock) start time");
+    }
+	
     for (const auto& tag : parent.tags()) {
       if (tag.key().substr(0, 4) != "test") {
 	throw error("incorrect tag key");
@@ -134,6 +170,15 @@ int main() {
     }
 
     std::cerr << "LGTM! " << report.DebugString() << std::endl;    
+
+    auto child = report.spans(1);
+    if (child.duration_micros() != 1e6) {
+      throw error("unexpected (user-provided steady-clock) duration");
+    }
+    if (to_epoch_nanos(child.start_timestamp()) != 27e9) {
+      throw error("unexpected (real system-clock) start time");
+    }
+
   } catch (std::exception &e) {
     std::cerr << "Exception! " << e.what() << std::endl;
     return 1;

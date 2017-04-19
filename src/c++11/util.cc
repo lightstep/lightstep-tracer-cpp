@@ -35,7 +35,7 @@ std::string program_name() {
   return path;
 }
 
-google::protobuf::Timestamp to_timestamp(TimeStamp t) {
+google::protobuf::Timestamp to_timestamp(SystemTime t) {
   using namespace std::chrono;
   auto nanos = duration_cast<nanoseconds>(t.time_since_epoch()).count();
   google::protobuf::Timestamp ts;

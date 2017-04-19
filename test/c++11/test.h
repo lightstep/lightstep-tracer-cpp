@@ -24,7 +24,7 @@ public:
     std::lock_guard<std::mutex> lock(mutex_);
     builder_.addSpan(std::move(span));
   }
-  virtual bool FlushWithTimeout(lightstep::Duration timeout) override {
+  virtual bool FlushWithTimeout(lightstep::SystemDuration timeout) override {
     request_ = builder_.pending();
     return true;
   }
