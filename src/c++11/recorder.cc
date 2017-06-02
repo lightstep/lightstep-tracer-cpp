@@ -105,7 +105,6 @@ BasicRecorder::BasicRecorder(const TracerImpl& tracer, const BasicRecorderOption
   : tracer_(tracer),
     options_(options),
     write_exit_(false),
-    writer_(std::thread(&BasicRecorder::write, this)),
     builder_(tracer),
     flushed_seqno_(0),
     encoding_seqno_(1),
@@ -113,7 +112,9 @@ BasicRecorder::BasicRecorder(const TracerImpl& tracer, const BasicRecorderOption
     client_(grpc::CreateChannel(hostPortOf(tracer.options()),
 				(tracer.options().collector_encryption == "tls") ?
 				grpc::SslCredentials(grpc::SslCredentialsOptions()) :
-				grpc::InsecureChannelCredentials())) {}
+				grpc::InsecureChannelCredentials())) {
+      writer_ = std::thread(&BasicRecorder::write, this);
+    }
 
 void BasicRecorder::write() {
   auto next = SteadyClock::now() + options_.time_limit;
