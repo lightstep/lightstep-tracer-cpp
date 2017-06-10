@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <mutex>
 #include <vector>
+#include <iostream>
+#include <tuple>
 using namespace opentracing;
 
 namespace lightstep {
@@ -55,6 +57,60 @@ private:
 } // anonymous namespace
 
 //------------------------------------------------------------------------------
+// set_span_reference
+//------------------------------------------------------------------------------
+static bool set_span_reference(
+    const std::pair<SpanReferenceType, const SpanContext*>& reference,
+    collector::Reference& collector_reference) {
+  switch (reference.first) {
+    case SpanReferenceType::ChildOfRef:
+      collector_reference.set_relationship(collector::Reference::CHILD_OF);
+      break;
+    case SpanReferenceType::FollowsFromRef:
+      collector_reference.set_relationship(collector::Reference::FOLLOWS_FROM);
+      break;
+  }
+  if (!reference.second) {
+    std::cerr
+        << "LightStep: passed in null span reference.\n";
+    return false;
+  }
+  auto referenced_context =
+      dynamic_cast<const LightStepSpanContext*>(reference.second);
+  if (!referenced_context) {
+    std::cerr
+        << "LightStep: passed in span reference of unexpected type.\n";
+    return false;
+  }
+  collector_reference.mutable_span_context()->set_trace_id(
+      referenced_context->trace_id);
+  collector_reference.mutable_span_context()->set_span_id(
+      referenced_context->span_id);
+  return true;
+}
+
+//------------------------------------------------------------------------------
+// compute_start_timestamps
+//------------------------------------------------------------------------------
+std::tuple<SystemTime, SteadyTime> compute_start_timestamps(
+    const SystemTime& start_system_timestamp,
+    const SteadyTime& start_steady_timestamp) {
+  // If neither the system nor steady timestamps are set, get the tme from the
+  // respetive clocks; otherwise, use the set timestamp to initialize the other
+  if (start_system_timestamp == SystemTime() &&
+      start_steady_timestamp == SteadyTime())
+    return {SystemClock::now(), SteadyClock::now()};
+  else if (start_system_timestamp == SystemTime())
+    return {SystemTime(std::chrono::duration_cast<SystemClock::duration>(
+                start_steady_timestamp.time_since_epoch())),
+            start_steady_timestamp};
+  else
+    return {start_system_timestamp,
+            SteadyTime(std::chrono::duration_cast<SteadyClock::duration>(
+                start_system_timestamp.time_since_epoch()))};
+}
+
+//------------------------------------------------------------------------------
 // LightStepSpan
 //------------------------------------------------------------------------------
 namespace {
@@ -63,28 +119,22 @@ class LightStepSpan : public Span {
   LightStepSpan(std::shared_ptr<const Tracer>&& tracer,
                 const StartSpanOptions& options)
       : tracer_(std::move(tracer)), span_context_(0, 0) {
-    references_.resize(options.references.size());
+    if (options.start_system_timestamp == SystemTime() &&
+        options.start_steady_timestamp == SteadyTime()) {
+      start_timestamp_ = SystemClock::now();
+      start_steady_ = SteadyClock::now();
+    }
+    std::tie(start_timestamp_, start_steady_) = compute_start_timestamps(
+        options.start_system_timestamp, options.start_steady_timestamp);
+    references_.reserve(options.references.size());
+    collector::Reference collector_reference;
     for (auto& reference : options.references) {
       auto span_reference_type = reference.first;
-      collector::Reference collector_reference;
-      switch (reference.first) {
-        case SpanReferenceType::ChildOfRef:
-          collector_reference.set_relationship(collector::Reference::CHILD_OF);
-          break;
-        case SpanReferenceType::FollowsFromRef:
-          collector_reference.set_relationship(
-              collector::Reference::FOLLOWS_FROM);
-          break;
-      }
-      if (!reference.second) continue;
-      auto& referenced_context =
-          dynamic_cast<const LightStepSpanContext&>(*reference.second);
-      collector_reference.mutable_span_context()->set_trace_id(
-          referenced_context.trace_id);
-      collector_reference.mutable_span_context()->set_span_id(
-          referenced_context.span_id);
+      if (!set_span_reference(reference, collector_reference)) continue;
       references_.push_back(collector_reference);
     }
+    for (auto& tag : options.tags)
+      tags_[tag.first] = tag.second;
   }
 
   void FinishWithOptions(
@@ -153,8 +203,8 @@ class LightStepTracer : public Tracer,
       noexcept override try {
     return std::unique_ptr<Span>(
         new LightStepSpan(shared_from_this(), options));
-  } catch (const std::exception&) {
-    // Don't create a span if either std::bad_alloc or std::bad_cast are thrown.
+  } catch (const std::bad_alloc&) {
+    // Don't create a span if std::bad_alloc is thrown.
     return nullptr;
   }
 
