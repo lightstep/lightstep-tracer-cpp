@@ -7,6 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <tuple>
+#include <random>
 using namespace opentracing;
 
 namespace lightstep {
@@ -16,8 +17,12 @@ namespace lightstep {
 namespace {
 class LightStepSpanContext : public SpanContext {
  public:
-  LightStepSpanContext(uint64_t trace_id, uint64_t span_id) noexcept
-      : trace_id(trace_id), span_id(span_id) {}
+  LightStepSpanContext() noexcept : trace_id(0), span_id(0) {}
+
+  LightStepSpanContext(
+      uint64_t trace_id, uint64_t span_id,
+      std::unordered_map<std::string, std::string>&& baggage) noexcept
+      : trace_id(trace_id), span_id(span_id), baggage_(std::move(baggage)) {}
 
   void setBaggageItem(StringRef key, StringRef value) noexcept try {
     std::lock_guard<std::mutex> l(baggage_mutex_);
@@ -61,6 +66,7 @@ private:
 //------------------------------------------------------------------------------
 static bool set_span_reference(
     const std::pair<SpanReferenceType, const SpanContext*>& reference,
+    std::unordered_map<std::string, std::string>& baggage,
     collector::Reference& collector_reference) {
   switch (reference.first) {
     case SpanReferenceType::ChildOfRef:
@@ -86,6 +92,12 @@ static bool set_span_reference(
       referenced_context->trace_id);
   collector_reference.mutable_span_context()->set_span_id(
       referenced_context->span_id);
+
+  referenced_context->ForeachBaggageItem(
+      [&baggage](const std::string& key, const std::string& value) {
+        baggage[key] = value;
+        return true;
+      });
   return true;
 }
 
@@ -118,23 +130,29 @@ class LightStepSpan : public Span {
  public:
   LightStepSpan(std::shared_ptr<const Tracer>&& tracer,
                 const StartSpanOptions& options)
-      : tracer_(std::move(tracer)), span_context_(0, 0) {
-    if (options.start_system_timestamp == SystemTime() &&
-        options.start_steady_timestamp == SteadyTime()) {
-      start_timestamp_ = SystemClock::now();
-      start_steady_ = SteadyClock::now();
-    }
+      : tracer_(std::move(tracer)) {
+    // Set the start timestamps.
     std::tie(start_timestamp_, start_steady_) = compute_start_timestamps(
         options.start_system_timestamp, options.start_steady_timestamp);
+
+    // Set any span references.
+    std::unordered_map<std::string, std::string> baggage;
     references_.reserve(options.references.size());
     collector::Reference collector_reference;
     for (auto& reference : options.references) {
       auto span_reference_type = reference.first;
-      if (!set_span_reference(reference, collector_reference)) continue;
+      if (!set_span_reference(reference, baggage, collector_reference))
+        continue;
       references_.push_back(collector_reference);
     }
+
+
+    // Set tags.
     for (auto& tag : options.tags)
       tags_[tag.first] = tag.second;
+
+    // Set SpanContext.
+
   }
 
   void FinishWithOptions(
@@ -198,6 +216,8 @@ namespace {
 class LightStepTracer : public Tracer,
                         public std::enable_shared_from_this<LightStepTracer> {
  public:
+  LightStepTracer() : rand_source_(std::random_device()()) {}
+
   std::unique_ptr<Span> StartSpanWithOptions(
       StringRef operation_name, const StartSpanOptions& options) const
       noexcept override try {
@@ -219,7 +239,25 @@ class LightStepTracer : public Tracer,
     return nullptr;
   }
 
+  void GetTwoIds(uint64_t* a, uint64_t* b) {
+    std::lock_guard<std::mutex> l(mutex_);
+    *a = rand_source_();
+    *b = rand_source_();
+  }
+
+  uint64_t GetOneId() {
+    std::lock_guard<std::mutex> l(mutex_);
+    return rand_source_();
+  }
+
  private:
+  // Protects rand_source_, recorder_.
+  std::mutex mutex_;
+
+  // N.B. This may become a source of contention, if and when it does,
+  // it may be converted to use a thread-local cache or thread-local
+  // source.
+  std::mt19937_64 rand_source_;
 };
 } // anonymous namespace
 
