@@ -5,7 +5,7 @@
 #include <memory>
 
 namespace lightstep {
-std::shared_ptr<opentracing::Tracer> make_lightstep_tracer();
+std::shared_ptr<opentracing::Tracer> make_lightstep_tracer() noexcept;
 } // namespace lightstep
 
 #endif // LIGHTSTEP_TRACER_H
