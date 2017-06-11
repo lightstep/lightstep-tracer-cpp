@@ -8,9 +8,18 @@
 #include <iostream>
 #include <tuple>
 #include <random>
+#include <atomic>
 using namespace opentracing;
 
 namespace lightstep {
+//------------------------------------------------------------------------------
+// generate_id
+//------------------------------------------------------------------------------
+static uint64_t generate_id() {
+  static thread_local std::mt19937_64 rand_source{std::random_device()()};
+  return rand_source();
+}
+
 //------------------------------------------------------------------------------
 // LightStepSpanContext
 //------------------------------------------------------------------------------
@@ -48,6 +57,13 @@ class LightStepSpanContext : public SpanContext {
         return;
       }
     }
+  }
+
+  LightStepSpanContext& operator=(LightStepSpanContext&& other) noexcept {
+    trace_id = other.trace_id;
+    span_id = other.span_id;
+    baggage_ = std::move(other.baggage_);
+    return *this;
   }
 
   // These are modified during constructors (StartSpan and Extract),
@@ -98,6 +114,7 @@ static bool set_span_reference(
         baggage[key] = value;
         return true;
       });
+
   return true;
 }
 
@@ -152,11 +169,18 @@ class LightStepSpan : public Span {
       tags_[tag.first] = tag.second;
 
     // Set SpanContext.
-
+    auto trace_id = references_.empty()
+                        ? generate_id()
+                        : references_[0].span_context().trace_id();
+    auto span_id = generate_id();
+    span_context_ = LightStepSpanContext(trace_id, span_id, std::move(baggage));
   }
 
   void FinishWithOptions(
       const FinishSpanOptions& options) noexcept override {
+    // If the spans already finished, don't do anything.
+    if (is_finished_.exchange(true)) return;
+
     auto finish_timestamp = options.finish_steady_timestamp;
     if (finish_timestamp == SteadyTime())
       finish_timestamp = SteadyClock::now();
@@ -203,7 +227,8 @@ class LightStepSpan : public Span {
   LightStepSpanContext span_context_;
 
   // Mutex protects tags_ and operation_name_.
-  std::mutex    mutex_;
+  std::atomic<bool> is_finished_{false};
+  std::mutex mutex_;
   std::string   operation_name_;
   std::unordered_map<std::string, Value> tags_;
 };
@@ -216,7 +241,7 @@ namespace {
 class LightStepTracer : public Tracer,
                         public std::enable_shared_from_this<LightStepTracer> {
  public:
-  LightStepTracer() : rand_source_(std::random_device()()) {}
+  LightStepTracer() {}
 
   std::unique_ptr<Span> StartSpanWithOptions(
       StringRef operation_name, const StartSpanOptions& options) const
@@ -238,26 +263,6 @@ class LightStepTracer : public Tracer,
       CarrierFormat format, const CarrierReader& reader) const override {
     return nullptr;
   }
-
-  void GetTwoIds(uint64_t* a, uint64_t* b) {
-    std::lock_guard<std::mutex> l(mutex_);
-    *a = rand_source_();
-    *b = rand_source_();
-  }
-
-  uint64_t GetOneId() {
-    std::lock_guard<std::mutex> l(mutex_);
-    return rand_source_();
-  }
-
- private:
-  // Protects rand_source_, recorder_.
-  std::mutex mutex_;
-
-  // N.B. This may become a source of contention, if and when it does,
-  // it may be converted to use a thread-local cache or thread-local
-  // source.
-  std::mt19937_64 rand_source_;
 };
 } // anonymous namespace
 
