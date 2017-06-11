@@ -21,6 +21,19 @@ static uint64_t generate_id() {
 }
 
 //------------------------------------------------------------------------------
+// to_timestamp
+//------------------------------------------------------------------------------
+google::protobuf::Timestamp to_timestamp(SystemTime t) {
+  using namespace std::chrono;
+  auto nanos = duration_cast<nanoseconds>(t.time_since_epoch()).count();
+  google::protobuf::Timestamp ts;
+  const uint64_t nanosPerSec = 1000000000;
+  ts.set_seconds(nanos / nanosPerSec);
+  ts.set_nanos(nanos % nanosPerSec);
+  return ts;
+}
+
+//------------------------------------------------------------------------------
 // LightStepSpanContext
 //------------------------------------------------------------------------------
 namespace {
@@ -125,7 +138,7 @@ std::tuple<SystemTime, SteadyTime> compute_start_timestamps(
     const SystemTime& start_system_timestamp,
     const SteadyTime& start_steady_timestamp) {
   // If neither the system nor steady timestamps are set, get the tme from the
-  // respetive clocks; otherwise, use the set timestamp to initialize the other
+  // respective clocks; otherwise, use the set timestamp to initialize the other
   if (start_system_timestamp == SystemTime() &&
       start_steady_timestamp == SteadyTime())
     return {SystemClock::now(), SteadyClock::now()};
@@ -178,7 +191,7 @@ class LightStepSpan : public Span {
 
   void FinishWithOptions(
       const FinishSpanOptions& options) noexcept override {
-    // If the spans already finished, don't do anything.
+    // Ensure the span is only finished once.
     if (is_finished_.exchange(true)) return;
 
     auto finish_timestamp = options.finish_steady_timestamp;
@@ -186,7 +199,27 @@ class LightStepSpan : public Span {
       finish_timestamp = SteadyClock::now();
 
     collector::Span span;
-    auto tags = span.mutable_tags();
+
+    // Set timing information.
+    auto duration = finish_timestamp - start_steady_;
+    span.set_duration_micros(
+        std::chrono::duration_cast<std::chrono::microseconds>(duration)
+            .count());
+    *span.mutable_start_timestamp() = to_timestamp(start_timestamp_);
+
+    // Set references.
+    auto references = span.mutable_references();
+    references->Reserve(references_.size());
+    for (const auto& reference : references_)
+      *references->Add() = reference;
+
+    // Set tags and operation name.
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      span.set_operation_name(std::move(operation_name_));
+      auto tags = span.mutable_tags();
+      tags->Reserve(tags_.size());
+    }
   }
 
   void SetOperationName(StringRef name) noexcept override try {
