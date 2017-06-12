@@ -191,8 +191,8 @@ class LightStepSpan : public Span {
     span_context_ = LightStepSpanContext(trace_id, span_id, std::move(baggage));
   }
 
-  void FinishWithOptions(
-      const FinishSpanOptions& options) noexcept override {
+  void FinishWithOptions(const FinishSpanOptions& options) noexcept override
+      try {
     // Ensure the span is only finished once.
     if (is_finished_.exchange(true)) return;
 
@@ -224,6 +224,20 @@ class LightStepSpan : public Span {
       for (const auto& tag : tags_)
         *tags->Add() = to_key_value(tag.first, tag.second);
     }
+
+    // Set the span context.
+    auto span_context = span.mutable_span_context();
+    span_context->set_trace_id(span_context_.trace_id);
+    span_context->set_span_id(span_context_.span_id);
+    auto baggage = span_context->mutable_baggage();
+    span_context_.ForeachBaggageItem(
+        [baggage](const std::string& key, const std::string& value) {
+          using StringMap = google::protobuf::Map<std::string, std::string>;
+          baggage->insert(StringMap::value_type(key, value));
+          return true;
+        });
+  } catch (const std::bad_alloc&) {
+    // Do nothing if memory allocation fails.
   }
 
   void SetOperationName(StringRef name) noexcept override try {
@@ -306,7 +320,8 @@ class LightStepTracer : public Tracer,
 //------------------------------------------------------------------------------
 // make_lightstep_tracer
 //------------------------------------------------------------------------------
-std::shared_ptr<opentracing::Tracer> make_lightstep_tracer() noexcept {
+std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
+    const TracerOptions& options) noexcept {
   return std::shared_ptr<opentracing::Tracer>(new (std::nothrow)
                                                   LightStepTracer());
 }
