@@ -12,6 +12,8 @@
 using namespace opentracing;
 
 namespace lightstep {
+collector::KeyValue to_key_value(StringRef key, const Value& value);
+
 //------------------------------------------------------------------------------
 // generate_id
 //------------------------------------------------------------------------------
@@ -219,6 +221,8 @@ class LightStepSpan : public Span {
       span.set_operation_name(std::move(operation_name_));
       auto tags = span.mutable_tags();
       tags->Reserve(tags_.size());
+      for (const auto& tag : tags_)
+        *tags->Add() = to_key_value(tag.first, tag.second);
     }
   }
 

@@ -1,5 +1,6 @@
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+include_directories(SYSTEM 3rd_party/include)
 include_directories(include)
 
 set(COLLECTOR_PROTO ${PROTO_PATH}/collector.proto)
@@ -38,4 +39,5 @@ include_directories(${GENERATED_PROTOBUF_PATH})
 add_library(lightstep_tracer ${COLLECTOR_PB_CPP_FILE}
                              ${COLLECTOR_GRPC_PB_CPP_FILE}
                              ${COLLECTOR_CARRIER_PB_CPP_FILE}
-                             src/tracer.cpp)
+                             src/tracer.cpp
+                             src/key_value.cpp)
