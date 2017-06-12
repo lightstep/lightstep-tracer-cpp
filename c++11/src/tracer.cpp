@@ -143,7 +143,8 @@ std::tuple<SystemTime, SteadyTime> compute_start_timestamps(
     const SystemTime& start_system_timestamp,
     const SteadyTime& start_steady_timestamp) {
   // If neither the system nor steady timestamps are set, get the tme from the
-  // respective clocks; otherwise, use the set timestamp to initialize the other
+  // respective clocks; otherwise, use the set timestamp to initialize the
+  // other.
   if (start_system_timestamp == SystemTime() &&
       start_steady_timestamp == SteadyTime())
     return {SystemClock::now(), SteadyClock::now()};
@@ -163,9 +164,11 @@ std::tuple<SystemTime, SteadyTime> compute_start_timestamps(
 namespace {
 class LightStepSpan : public Span {
  public:
-  LightStepSpan(std::shared_ptr<const Tracer>&& tracer,
-                Recorder& recorder, const StartSpanOptions& options)
-      : tracer_(std::move(tracer)), recorder_(recorder) {
+  LightStepSpan(std::shared_ptr<const Tracer>&& tracer, Recorder& recorder,
+                StringRef operation_name, const StartSpanOptions& options)
+      : tracer_(std::move(tracer)),
+        recorder_(recorder),
+        operation_name_(operation_name) {
     // Set the start timestamps.
     std::tie(start_timestamp_, start_steady_) = compute_start_timestamps(
         options.start_system_timestamp, options.start_steady_timestamp);
@@ -305,8 +308,8 @@ class LightStepTracer : public Tracer,
   std::unique_ptr<Span> StartSpanWithOptions(
       StringRef operation_name, const StartSpanOptions& options) const
       noexcept override try {
-    return std::unique_ptr<Span>(
-        new LightStepSpan(shared_from_this(), *recorder_, options));
+    return std::unique_ptr<Span>(new LightStepSpan(
+        shared_from_this(), *recorder_, operation_name, options));
   } catch (const std::bad_alloc&) {
     // Don't create a span if std::bad_alloc is thrown.
     return nullptr;

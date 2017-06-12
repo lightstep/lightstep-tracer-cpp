@@ -16,5 +16,6 @@ Please run git submodule update --init --recursive")
 endif()
 
 include_directories(SYSTEM ${OPENTRACING_INCLUDE_DIR})
+include_directories(SYSTEM ${PROTOBUF_INCLUDE_DIRS})
 
 add_subdirectory(c++11)
