@@ -1,6 +1,8 @@
+#include "recorder.h"
 #include <collector.pb.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
+#include <opentracing/stringref.h>
 #include <memory>
 #include <cstdint>
 #include <mutex>
@@ -13,6 +15,7 @@ using namespace opentracing;
 
 namespace lightstep {
 collector::KeyValue to_key_value(StringRef key, const Value& value);
+std::unique_ptr<Recorder> make_lightstep_recorder(const TracerOptions& options);
 
 //------------------------------------------------------------------------------
 // generate_id
@@ -161,8 +164,8 @@ namespace {
 class LightStepSpan : public Span {
  public:
   LightStepSpan(std::shared_ptr<const Tracer>&& tracer,
-                const StartSpanOptions& options)
-      : tracer_(std::move(tracer)) {
+                Recorder& recorder, const StartSpanOptions& options)
+      : tracer_(std::move(tracer)), recorder_(recorder) {
     // Set the start timestamps.
     std::tie(start_timestamp_, start_steady_) = compute_start_timestamps(
         options.start_system_timestamp, options.start_steady_timestamp);
@@ -236,6 +239,9 @@ class LightStepSpan : public Span {
           baggage->insert(StringMap::value_type(key, value));
           return true;
         });
+
+    // Record the span
+    recorder_.RecordSpan(std::move(span));
   } catch (const std::bad_alloc&) {
     // Do nothing if memory allocation fails.
   }
@@ -272,6 +278,7 @@ class LightStepSpan : public Span {
  private:
   // Fields set in StartSpan() are not protected by a mutex.
   std::shared_ptr<const Tracer> tracer_;
+  Recorder& recorder_;
   std::vector<collector::Reference> references_;
   SystemTime    start_timestamp_;
   SteadyTime    start_steady_;
@@ -292,13 +299,14 @@ namespace {
 class LightStepTracer : public Tracer,
                         public std::enable_shared_from_this<LightStepTracer> {
  public:
-  LightStepTracer() {}
+  LightStepTracer(std::unique_ptr<Recorder>&& recorder)
+      : recorder_(std::move(recorder)) {}
 
   std::unique_ptr<Span> StartSpanWithOptions(
       StringRef operation_name, const StartSpanOptions& options) const
       noexcept override try {
     return std::unique_ptr<Span>(
-        new LightStepSpan(shared_from_this(), options));
+        new LightStepSpan(shared_from_this(), *recorder_, options));
   } catch (const std::bad_alloc&) {
     // Don't create a span if std::bad_alloc is thrown.
     return nullptr;
@@ -314,6 +322,8 @@ class LightStepTracer : public Tracer,
       CarrierFormat format, const CarrierReader& reader) const override {
     return nullptr;
   }
+ private:
+  std::unique_ptr<Recorder> recorder_;
 };
 } // anonymous namespace
 
@@ -321,8 +331,16 @@ class LightStepTracer : public Tracer,
 // make_lightstep_tracer
 //------------------------------------------------------------------------------
 std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
-    const TracerOptions& options) noexcept {
-  return std::shared_ptr<opentracing::Tracer>(new (std::nothrow)
-                                                  LightStepTracer());
+    std::unique_ptr<Recorder>&& recorder) {
+  if (!recorder)
+    return make_noop_tracer();
+  else
+    return std::shared_ptr<opentracing::Tracer>(
+        new (std::nothrow) LightStepTracer(std::move(recorder)));
+}
+
+std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
+    const TracerOptions& options) {
+  return make_lightstep_tracer(make_lightstep_recorder(options));
 }
 } // namespace lightstep

@@ -35,7 +35,7 @@ struct TracerOptions {
 };
 
 std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
-    const TracerOptions& options) noexcept;
+    const TracerOptions& options);
 }  // namespace lightstep
 
 #endif // LIGHTSTEP_TRACER_H
