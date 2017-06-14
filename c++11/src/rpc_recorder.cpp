@@ -7,7 +7,7 @@
 #include <iostream>
 #include <thread>
 #include <sstream>
-#include "default_tags.h"
+#include "tags.h"
 #include "recorder.h"
 using namespace opentracing;
 
@@ -241,7 +241,7 @@ std::unique_ptr<Recorder> make_lightstep_recorder(
   // Copy over default tags.
   for (const auto& tag : default_tags) options_new.tags[tag.first] = tag.second;
 
-  // Determine the component name if one isn't provided.
+  // Set the component name if provided or default it to the program name.
   if (!options.component_name.empty())
     options_new.tags[component_name_key] = options.component_name;
   else
