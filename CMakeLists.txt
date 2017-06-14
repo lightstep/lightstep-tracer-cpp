@@ -21,8 +21,8 @@ find_library(OPENTRACING_LIB opentracing)
 set(PROTO_PATH "${CMAKE_SOURCE_DIR}/lightstep-tracer-common")
 
 if( NOT EXISTS "${PROTO_PATH}/.git" )
-  message(SEND_ERROR "The git submodules are not available. \
-Please run git submodule update --init --recursive")
+  execute_process(COMMAND git submodule update --init --recursive
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
 include_directories(SYSTEM ${OPENTRACING_INCLUDE_DIR})
