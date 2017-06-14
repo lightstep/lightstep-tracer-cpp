@@ -72,7 +72,52 @@ TEST_CASE("in_memory_tracer") {
     CHECK(has_tag(span, "xyz", true));
   }
 
-  SECTION("calling Finish a second time does nothing.") {
+  SECTION("You can set a single child-of reference when starting a span") {
+    auto span_a = tracer->StartSpan("a");
+    CHECK(span_a);
+    span_a->Finish();
+    auto span_b = tracer->StartSpan("b", {ChildOf(&span_a->context())});
+    CHECK(span_b);
+    span_b->Finish();
+    auto spans = recorder->spans();
+    CHECK(spans.at(0).span_context().trace_id() ==
+          spans.at(1).span_context().trace_id());
+    CHECK(has_relationship(SpanReferenceType::ChildOfRef, spans.at(1),
+                           spans.at(0)));
+  }
+
+  SECTION("You can set a single follows-from reference when starting a span") {
+    auto span_a = tracer->StartSpan("a");
+    CHECK(span_a);
+    span_a->Finish();
+    auto span_b = tracer->StartSpan("b", {FollowsFrom(&span_a->context())});
+    CHECK(span_b);
+    span_b->Finish();
+    auto spans = recorder->spans();
+    CHECK(spans.at(0).span_context().trace_id() ==
+          spans.at(1).span_context().trace_id());
+    CHECK(has_relationship(SpanReferenceType::FollowsFromRef, spans.at(1),
+                           spans.at(0)));
+  }
+
+  SECTION("Multiple references are supported when starting a span") {
+    auto span_a = tracer->StartSpan("a");
+    CHECK(span_a);
+    auto span_b = tracer->StartSpan("b");
+    CHECK(span_b);
+    auto span_c = tracer->StartSpan(
+        "c", {ChildOf(&span_a->context()), FollowsFrom(&span_b->context())});
+    span_a->Finish();
+    span_b->Finish();
+    span_c->Finish();
+    auto spans = recorder->spans();
+    CHECK(has_relationship(SpanReferenceType::ChildOfRef, spans.at(2),
+                           spans.at(0)));
+    CHECK(has_relationship(SpanReferenceType::FollowsFromRef, spans.at(2),
+                           spans.at(1)));
+  }
+
+  SECTION("Calling Finish a second time does nothing.") {
     auto span = tracer->StartSpan("a");
     CHECK(span);
     span->Finish();
@@ -81,11 +126,19 @@ TEST_CASE("in_memory_tracer") {
     CHECK(recorder->size() == 1);
   }
 
-  SECTION("the operation name can be set after the span is started.") {
+  SECTION("The operation name can be changed after the span is started.") {
     auto span = tracer->StartSpan("a");
     CHECK(span);
     span->SetOperationName("b");
     span->Finish();
     CHECK(recorder->top().operation_name() == "b");
+  }
+
+  SECTION("Tags can be specified.") {
+    auto span = tracer->StartSpan("a");
+    CHECK(span);
+    span->SetTag("abc", 123);
+    span->Finish();
+    CHECK(has_tag(recorder->top(), "abc", 123));
   }
 }
