@@ -8,7 +8,13 @@
 
 namespace lightstep {
 struct TracerOptions {
-	// AccessToken is the unique API key for your LightStep project.  It is
+  // `component_name` is the human-readable identity of the instrumented
+  // process. I.e., if one drew a block diagram of the distributed system,
+  // the component_name would be the name inside the box that includes this
+  // process.
+  std::string component_name;
+
+	// `access_token` is the unique API key for your LightStep project. It is
 	// available on your account page at https://app.lightstep.com/account
   std::string access_token;
 

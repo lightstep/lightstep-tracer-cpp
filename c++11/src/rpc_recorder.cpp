@@ -14,6 +14,7 @@ using namespace opentracing;
 namespace lightstep {
 collector::KeyValue to_key_value(StringRef key, const Value& value);
 uint64_t generate_id();
+std::string get_program_name();
 
 //------------------------------------------------------------------------------
 // hostPortOf
@@ -236,10 +237,19 @@ bool RpcRecorder::write_report(const collector::ReportRequest& report) {
 std::unique_ptr<Recorder> make_lightstep_recorder(
     const TracerOptions& options) noexcept try {
   auto options_new = options;
+
+  // Copy over default tags.
   for (const auto& tag : default_tags) options_new.tags[tag.first] = tag.second;
+
+  // Determine the component name if one isn't provided.
+  if (!options.component_name.empty())
+    options_new.tags[component_name_key] = options.component_name;
+  else
+    options_new.tags.emplace(component_name_key, get_program_name());
+
   return std::unique_ptr<Recorder>(new RpcRecorder(std::move(options_new)));
 } catch (const std::exception& e) {
-  std::cerr << "Failed to initialize LightStep recorder: " << e.what();
+  std::cerr << "Failed to initialize LightStep's recorder: " << e.what();
   return nullptr;
 }
 } // namespace lightstep
