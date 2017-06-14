@@ -16,14 +16,7 @@ using namespace opentracing;
 namespace lightstep {
 collector::KeyValue to_key_value(StringRef key, const Value& value);
 std::unique_ptr<Recorder> make_lightstep_recorder(const TracerOptions& options);
-
-//------------------------------------------------------------------------------
-// generate_id
-//------------------------------------------------------------------------------
-static uint64_t generate_id() {
-  static thread_local std::mt19937_64 rand_source{std::random_device()()};
-  return rand_source();
-}
+uint64_t generate_id();
 
 //------------------------------------------------------------------------------
 // to_timestamp

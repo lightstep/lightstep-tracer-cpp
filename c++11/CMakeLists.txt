@@ -39,7 +39,7 @@ include_directories(${GENERATED_PROTOBUF_PATH})
 add_library(lightstep_tracer ${COLLECTOR_PB_CPP_FILE}
                              ${COLLECTOR_GRPC_PB_CPP_FILE}
                              ${COLLECTOR_CARRIER_PB_CPP_FILE}
-                             src/key_value.cpp
+                             src/utility.cpp
                              src/tracer.cpp
                              src/rpc_recorder.cpp)
 

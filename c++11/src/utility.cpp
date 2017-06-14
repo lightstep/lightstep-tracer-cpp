@@ -12,6 +12,14 @@ using JsonWriter = rapidjson::Writer<rapidjson::StringBuffer>;
 }  // end anonymous namesapce
 
 //------------------------------------------------------------------------------
+// generate_id
+//------------------------------------------------------------------------------
+uint64_t generate_id() {
+  static thread_local std::mt19937_64 rand_source{std::random_device()()};
+  return rand_source();
+}
+
+//------------------------------------------------------------------------------
 // to_json
 //------------------------------------------------------------------------------
 static bool to_json(JsonWriter& writer, const Value& value);
