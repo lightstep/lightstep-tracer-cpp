@@ -1,0 +1,8 @@
+#ifndef LIGHTSTEP_VERSION_H
+#define LIGHTSTEP_VERSION_H
+
+#define LIGHTSTEP_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}." \
+                          "${CPACK_PACKAGE_VERSION_MINOR}." \
+                          "${CPACK_PACKAGE_VERSION_PATCH}"
+
+#endif // LIGHTSTEP_VERSION_H

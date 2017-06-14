@@ -1,5 +1,10 @@
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+configure_file(version.h.in include/lightstep/version.h)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lightstep 
+        DESTINATION include)
+
 include_directories(SYSTEM 3rd_party/include)
 include_directories(include)
 
