@@ -17,7 +17,8 @@ collector::KeyValue to_key_value(StringRef key, const Value& value);
 //------------------------------------------------------------------------------
 // has_tag
 //------------------------------------------------------------------------------
-static bool has_tag(const collector::Span& span, StringRef key, const Value& value) {
+static bool has_tag(const collector::Span& span, StringRef key,
+                    const Value& value) {
   auto key_value = to_key_value(key, value);
   return std::find_if(
              std::begin(span.tags()), std::end(span.tags()),
@@ -31,8 +32,24 @@ static bool has_tag(const collector::Span& span, StringRef key, const Value& val
 // has_relationship
 //------------------------------------------------------------------------------
 static bool has_relationship(SpanReferenceType relationship,
-    const collector::Span& span_a, const collector::Span& span_b) {
-  return false;
+                             const collector::Span& span_a,
+                             const collector::Span& span_b) {
+  collector::Reference reference;
+  switch (relationship) {
+    case SpanReferenceType::ChildOfRef:
+      reference.set_relationship(collector::Reference::CHILD_OF);
+      break;
+    case SpanReferenceType::FollowsFromRef:
+      reference.set_relationship(collector::Reference::FOLLOWS_FROM);
+      break;
+  }
+  *reference.mutable_span_context() = span_b.span_context();
+  return std::find_if(
+             std::begin(span_a.references()), std::end(span_a.references()),
+             [&](const collector::Reference& other) {
+               return google::protobuf::util::MessageDifferencer::Equals(
+                   reference, other);
+             }) != std::end(span_a.references());
 }
 
 //------------------------------------------------------------------------------

@@ -315,15 +315,14 @@ class LightStepTracer : public Tracer,
     return nullptr;
   }
 
-  Expected<void, std::string> Inject(
-      const SpanContext& sc, CarrierFormat format,
-      const CarrierWriter& writer) const override {
+  Expected<void> Inject(const SpanContext& sc, CarrierFormat format,
+                        const CarrierWriter& writer) const override {
     return {};
   }
 
-  std::unique_ptr<SpanContext> Extract(
+  Expected<std::unique_ptr<SpanContext>> Extract(
       CarrierFormat format, const CarrierReader& reader) const override {
-    return nullptr;
+    return std::unique_ptr<SpanContext>();
   }
  private:
   std::unique_ptr<Recorder> recorder_;
