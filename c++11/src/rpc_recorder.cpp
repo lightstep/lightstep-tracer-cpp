@@ -101,6 +101,7 @@ class RpcRecorder : public Recorder {
   }
 
   void RecordSpan(collector::Span&& span) noexcept override {
+    std::cout << "arf\n";
     std::lock_guard<std::mutex> lock(write_mutex_);
     if (builder_.pendingSpans() >= options_.max_buffered_spans) {
       dropped_spans_++;
@@ -127,12 +128,12 @@ class RpcRecorder : public Recorder {
   // Waits until either the timeout or the writer thread is forced to
   // exit.  Returns true if it should continue writing, false if it
   // should exit.
-  bool wait_for_next_write(const SteadyClock::time_point &next) {
+  bool wait_for_next_write(const SteadyClock::time_point& next) {
     std::unique_lock<std::mutex> lock(write_mutex_);
     write_cond_.wait_until(lock, next, [this]() {
-  	return this->write_exit_ ||
-	       this->builder_.pendingSpans() >= options_.max_buffered_spans;
-      });
+      return this->write_exit_ ||
+             this->builder_.pendingSpans() >= options_.max_buffered_spans;
+    });
     return !write_exit_;
   }
 
@@ -181,6 +182,7 @@ void RpcRecorder::write() {
 // flush_one
 //------------------------------------------------------------------------------
 void RpcRecorder::flush_one() {
+  std::cout << "yip\n";
   size_t seq;
   size_t save_dropped;
   size_t save_pending;
@@ -217,13 +219,14 @@ void RpcRecorder::flush_one() {
 // write_report
 //------------------------------------------------------------------------------
 bool RpcRecorder::write_report(const collector::ReportRequest& report) {
+  std::cout << "Reporting...\n";
   grpc::ClientContext context;
   collector::ReportResponse resp;
   context.set_fail_fast(true);
   context.set_deadline(SystemClock::now() + options_.report_timeout);
   grpc::Status status = client_.Report(&context, report, &resp);
   if (!status.ok()) {
-    std::cout << "Report RPC failed: " << status.error_message();
+    std::cerr << "Report RPC failed: " << status.error_message();
     // TODO Put some of these back into a buffer, etc. (Presently they all drop.)
     return false;
   }

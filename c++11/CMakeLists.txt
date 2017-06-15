@@ -7,6 +7,7 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lightstep
 
 include_directories(SYSTEM 3rd_party/include)
 include_directories(include)
+install(DIRECTORY include/lightstep DESTINATION include)
 
 set(COLLECTOR_PROTO ${PROTO_PATH}/collector.proto)
 set(LIGHTSTEP_CARRIER_PROTO ${PROTO_PATH}/lightstep_carrier.proto)
@@ -47,6 +48,10 @@ add_library(lightstep_tracer ${COLLECTOR_PB_CPP_FILE}
                              src/utility.cpp
                              src/tracer.cpp
                              src/rpc_recorder.cpp)
+
+install(TARGETS lightstep_tracer
+        LIBRARY DESTINATION lib 
+        ARCHIVE DESTINATION lib)
 
 target_link_libraries(lightstep_tracer ${GRPC_LIBRARIES}
                                        ${GRPCPP_LIBRARIES})

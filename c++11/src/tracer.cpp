@@ -143,13 +143,13 @@ std::tuple<SystemTime, SteadyTime> compute_start_timestamps(
       start_steady_timestamp == SteadyTime())
     return {SystemClock::now(), SteadyClock::now()};
   else if (start_system_timestamp == SystemTime())
-    return {SystemTime(std::chrono::duration_cast<SystemClock::duration>(
-                start_steady_timestamp.time_since_epoch())),
+    return {convert_time_point<SystemClock>(start_steady_timestamp),
             start_steady_timestamp};
-  else
+  else if (start_steady_timestamp == SteadyTime())
     return {start_system_timestamp,
-            SteadyTime(std::chrono::duration_cast<SteadyClock::duration>(
-                start_system_timestamp.time_since_epoch()))};
+            convert_time_point<SteadyClock>(start_system_timestamp)};
+  else
+    return {start_system_timestamp, start_steady_timestamp};
 }
 
 //------------------------------------------------------------------------------
@@ -164,6 +164,9 @@ class LightStepSpan : public Span {
         recorder_(recorder),
         operation_name_(operation_name) {
     // Set the start timestamps.
+    std::cout << "start  = "
+              << options.start_steady_timestamp.time_since_epoch().count()
+              << "\n";
     std::tie(start_timestamp_, start_steady_) = compute_start_timestamps(
         options.start_system_timestamp, options.start_steady_timestamp);
 
@@ -204,6 +207,10 @@ class LightStepSpan : public Span {
 
     // Set timing information.
     auto duration = finish_timestamp - start_steady_;
+    std::cout << "start  = " << start_timestamp_.time_since_epoch().count() << "\n";
+    std::cout << "start  = " << start_steady_.time_since_epoch().count() << "\n";
+    std::cout << "finish = " << finish_timestamp.time_since_epoch().count() << "\n";
+    std::cout << "finish = " << SteadyClock::now().time_since_epoch().count() << "\n";
     span.set_duration_micros(
         std::chrono::duration_cast<std::chrono::microseconds>(duration)
             .count());
