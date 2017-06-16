@@ -9,10 +9,10 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 class Recorder {
  public:
-   virtual ~Recorder() = default;
+  virtual ~Recorder() = default;
 
-   virtual void RecordSpan(collector::Span&& span) noexcept = 0;
+  virtual void RecordSpan(collector::Span&& span) noexcept = 0;
 };
-} // namespace lightstep
+}  // namespace lightstep
 
-#endif // RECORDER_H
+#endif  // RECORDER_H

@@ -1,10 +1,10 @@
 #include "propagation.h"
-#include <sstream>
-#include <cstdint>
-#include <iomanip>
 #include <algorithm>
-#include <functional>
 #include <cctype>
+#include <cstdint>
+#include <functional>
+#include <iomanip>
+#include <sstream>
 using namespace opentracing;
 
 namespace lightstep {
@@ -107,8 +107,7 @@ static Expected<void> extract_span_context(
 }
 
 Expected<void> extract_span_context(
-    const TextMapReader& carrier,
-    uint64_t& trace_id, uint64_t& span_id,
+    const TextMapReader& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) {
   return extract_span_context(carrier, trace_id, span_id, baggage,
                               std::equal_to<StringRef>());
@@ -130,4 +129,4 @@ Expected<void> extract_span_context(
   };
   return extract_span_context(carrier, trace_id, span_id, baggage, iequals);
 }
-} // namespace lightstep
+}  // namespace lightstep

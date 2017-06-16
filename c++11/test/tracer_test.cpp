@@ -1,9 +1,9 @@
-#include "in_memory_tracer.h"
 #include <lightstep/tracer.h>
+#include "in_memory_tracer.h"
 
 #define CATCH_CONFIG_MAIN
-#include <lightstep/catch/catch.hpp>
 #include <google/protobuf/util/message_differencer.h>
+#include <lightstep/catch/catch.hpp>
 using namespace lightstep;
 using namespace opentracing;
 

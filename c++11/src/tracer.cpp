@@ -1,17 +1,17 @@
-#include "recorder.h"
-#include "propagation.h"
 #include <collector.pb.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
 #include <opentracing/stringref.h>
-#include <memory>
-#include <cstdint>
-#include <mutex>
-#include <vector>
-#include <iostream>
-#include <tuple>
-#include <random>
 #include <atomic>
+#include <cstdint>
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <random>
+#include <tuple>
+#include <vector>
+#include "propagation.h"
+#include "recorder.h"
 using namespace opentracing;
 
 namespace lightstep {
@@ -49,7 +49,7 @@ class LightStepSpanContext : public SpanContext {
   void setBaggageItem(StringRef key, StringRef value) noexcept try {
     std::lock_guard<std::mutex> l(baggage_mutex_);
     baggage_.emplace(key, value);
-  } catch(const std::bad_alloc&) {
+  } catch (const std::bad_alloc&) {
   }
 
   std::string baggageItem(const std::string& key) const {
@@ -102,8 +102,7 @@ class LightStepSpanContext : public SpanContext {
     }
   }
 
-  Expected<void> Extract(
-      CarrierFormat format, const CarrierReader& reader) {
+  Expected<void> Extract(CarrierFormat format, const CarrierReader& reader) {
     std::lock_guard<std::mutex> l(baggage_mutex_);
     switch (format) {
       case CarrierFormat::OpenTracingBinary:
@@ -129,11 +128,11 @@ class LightStepSpanContext : public SpanContext {
   uint64_t trace_id;
   uint64_t span_id;
 
-private:
+ private:
   mutable std::mutex baggage_mutex_;
   std::unordered_map<std::string, std::string> baggage_;
 };
-} // anonymous namespace
+}  // anonymous namespace
 
 //------------------------------------------------------------------------------
 // set_span_reference
@@ -151,15 +150,13 @@ static bool set_span_reference(
       break;
   }
   if (!reference.second) {
-    std::cerr
-        << "LightStep: passed in null span reference.\n";
+    std::cerr << "LightStep: passed in null span reference.\n";
     return false;
   }
   auto referenced_context =
       dynamic_cast<const LightStepSpanContext*>(reference.second);
   if (!referenced_context) {
-    std::cerr
-        << "LightStep: passed in span reference of unexpected type.\n";
+    std::cerr << "LightStep: passed in span reference of unexpected type.\n";
     return false;
   }
   collector_reference.mutable_span_context()->set_trace_id(
@@ -224,10 +221,8 @@ class LightStepSpan : public Span {
       references_.push_back(collector_reference);
     }
 
-
     // Set tags.
-    for (auto& tag : options.tags)
-      tags_[tag.first] = tag.second;
+    for (auto& tag : options.tags) tags_[tag.first] = tag.second;
 
     // Set SpanContext.
     auto trace_id = references_.empty()
@@ -243,8 +238,7 @@ class LightStepSpan : public Span {
     if (is_finished_.exchange(true)) return;
 
     auto finish_timestamp = options.finish_steady_timestamp;
-    if (finish_timestamp == SteadyTime())
-      finish_timestamp = SteadyClock::now();
+    if (finish_timestamp == SteadyTime()) finish_timestamp = SteadyClock::now();
 
     collector::Span span;
 
@@ -258,8 +252,7 @@ class LightStepSpan : public Span {
     // Set references.
     auto references = span.mutable_references();
     references->Reserve(references_.size());
-    for (const auto& reference : references_)
-      *references->Add() = reference;
+    for (const auto& reference : references_) *references->Add() = reference;
 
     // Set tags and operation name.
     {
@@ -323,17 +316,17 @@ class LightStepSpan : public Span {
   std::shared_ptr<const Tracer> tracer_;
   Recorder& recorder_;
   std::vector<collector::Reference> references_;
-  SystemTime    start_timestamp_;
-  SteadyTime    start_steady_;
+  SystemTime start_timestamp_;
+  SteadyTime start_steady_;
   LightStepSpanContext span_context_;
 
   // Mutex protects tags_ and operation_name_.
   std::atomic<bool> is_finished_{false};
   std::mutex mutex_;
-  std::string   operation_name_;
+  std::string operation_name_;
   std::unordered_map<std::string, Value> tags_;
 };
-} // namespace anonymous
+}  // namespace anonymous
 
 //------------------------------------------------------------------------------
 // LightStepTracer
@@ -358,7 +351,7 @@ class LightStepTracer : public Tracer,
   Expected<void> Inject(const SpanContext& sc, CarrierFormat format,
                         const CarrierWriter& writer) const override {
     auto lightstep_span_context =
-      dynamic_cast<const LightStepSpanContext*>(&sc);
+        dynamic_cast<const LightStepSpanContext*>(&sc);
     if (!lightstep_span_context)
       return make_unexpected(invalid_span_context_error);
     return lightstep_span_context->Inject(format, writer);
@@ -378,7 +371,7 @@ class LightStepTracer : public Tracer,
  private:
   std::unique_ptr<Recorder> recorder_;
 };
-} // anonymous namespace
+}  // anonymous namespace
 
 //------------------------------------------------------------------------------
 // make_lightstep_tracer
@@ -396,4 +389,4 @@ std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
     const TracerOptions& options) {
   return make_lightstep_tracer(make_lightstep_recorder(options));
 }
-} // namespace lightstep
+}  // namespace lightstep

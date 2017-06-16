@@ -5,10 +5,10 @@
 #include <opentracing/noop.h>
 #include <opentracing/stringref.h>
 #include <iostream>
-#include <thread>
 #include <sstream>
-#include "tags.h"
+#include <thread>
 #include "recorder.h"
+#include "tags.h"
 using namespace opentracing;
 
 namespace lightstep {
@@ -32,30 +32,28 @@ static std::string hostPortOf(const TracerOptions& options) {
 // messages.  Not thread-safe, thread compatible.
 namespace {
 class ReportBuilder {
-public:
- ReportBuilder(const TracerOptions& options) : reset_next_(true) {
-   // TODO Fill in any core internal_metrics.
-   collector::Reporter *reporter = preamble_.mutable_reporter();
-   for (const auto& tag : options.tags)
-     *reporter->mutable_tags()->Add() = to_key_value(tag.first, tag.second);
-   reporter->set_reporter_id(generate_id());
-   preamble_.mutable_auth()->set_access_token(options.access_token);
- }
+ public:
+  ReportBuilder(const TracerOptions& options) : reset_next_(true) {
+    // TODO Fill in any core internal_metrics.
+    collector::Reporter* reporter = preamble_.mutable_reporter();
+    for (const auto& tag : options.tags)
+      *reporter->mutable_tags()->Add() = to_key_value(tag.first, tag.second);
+    reporter->set_reporter_id(generate_id());
+    preamble_.mutable_auth()->set_access_token(options.access_token);
+  }
 
- // addSpan adds the span to the currently-building ReportRequest.
- void addSpan(collector::Span&& span) {
-   if (reset_next_) {
-     pending_.Clear();
-     pending_.CopyFrom(preamble_);
-     reset_next_ = false;
-   }
-   *pending_.mutable_spans()->Add() = span;
+  // addSpan adds the span to the currently-building ReportRequest.
+  void addSpan(collector::Span&& span) {
+    if (reset_next_) {
+      pending_.Clear();
+      pending_.CopyFrom(preamble_);
+      reset_next_ = false;
+    }
+    *pending_.mutable_spans()->Add() = span;
   }
 
   // pendingSpans() is the number of pending spans.
-  size_t pendingSpans() const {
-    return pending_.spans_size();
-  }
+  size_t pendingSpans() const { return pending_.spans_size(); }
 
   void setPendingClientDroppedSpans(uint64_t spans) {
     auto count = pending_.mutable_internal_metrics()->add_counts();
@@ -70,13 +68,12 @@ public:
     return pending_;
   }
 
-private:
+ private:
   bool reset_next_;
   collector::ReportRequest preamble_;
   collector::ReportRequest pending_;
 };
-} // anonymous namespace
-
+}  // anonymous namespace
 
 //------------------------------------------------------------------------------
 // RpcRecorder
@@ -154,7 +151,6 @@ class RpcRecorder : public Recorder {
 
   // Collector service stub.
   collector::CollectorService::Stub client_;
-
 };
 }
 
@@ -227,7 +223,8 @@ bool RpcRecorder::write_report(const collector::ReportRequest& report) {
   grpc::Status status = client_.Report(&context, report, &resp);
   if (!status.ok()) {
     std::cerr << "Report RPC failed: " << status.error_message();
-    // TODO Put some of these back into a buffer, etc. (Presently they all drop.)
+    // TODO Put some of these back into a buffer, etc. (Presently they all
+    // drop.)
     return false;
   }
   // TODO Use response.
@@ -255,4 +252,4 @@ std::unique_ptr<Recorder> make_lightstep_recorder(
   std::cerr << "Failed to initialize LightStep's recorder: " << e.what();
   return nullptr;
 }
-} // namespace lightstep
+}  // namespace lightstep
