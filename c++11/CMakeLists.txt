@@ -58,3 +58,4 @@ target_link_libraries(lightstep_tracer ${GRPC_LIBRARIES}
                                        ${GRPCPP_LIBRARIES})
 
 add_subdirectory(test)
+add_subdirectory(example)

@@ -98,7 +98,6 @@ class RpcRecorder : public Recorder {
   }
 
   void RecordSpan(collector::Span&& span) noexcept override {
-    std::cout << "arf\n";
     std::lock_guard<std::mutex> lock(write_mutex_);
     if (builder_.pendingSpans() >= options_.max_buffered_spans) {
       dropped_spans_++;
@@ -181,7 +180,6 @@ void RpcRecorder::write() {
 // flush_one
 //------------------------------------------------------------------------------
 void RpcRecorder::flush_one() {
-  std::cout << "yip\n";
   size_t seq;
   size_t save_dropped;
   size_t save_pending;
@@ -241,7 +239,6 @@ bool RpcRecorder::FlushWithTimeout(
 // write_report
 //------------------------------------------------------------------------------
 bool RpcRecorder::write_report(const collector::ReportRequest& report) {
-  std::cout << "Reporting...\n";
   grpc::ClientContext context;
   collector::ReportResponse resp;
   context.set_fail_fast(true);

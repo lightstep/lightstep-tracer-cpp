@@ -318,6 +318,7 @@ class LightStepSpan : public Span {
     auto key_values = log.mutable_keyvalues();
     for (const auto& field : fields)
       *key_values->Add() = to_key_value(field.first, field.second);
+    logs_.emplace_back(std::move(log));
   } catch (const std::bad_alloc&) {
     // Do nothing if memory can't be allocted for log records.
   }
