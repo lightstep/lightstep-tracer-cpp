@@ -110,6 +110,9 @@ class RpcRecorder : public Recorder {
     }
   }
 
+  bool FlushWithTimeout(
+      std::chrono::system_clock::duration timeout) noexcept override;
+
  private:
   void write();
   bool write_report(const collector::ReportRequest&);
@@ -209,6 +212,29 @@ void RpcRecorder::flush_one() {
       dropped_spans_ += save_dropped + save_pending;
     }
   }
+}
+
+//------------------------------------------------------------------------------
+// FlushWithTimeout
+//------------------------------------------------------------------------------
+bool RpcRecorder::FlushWithTimeout(
+    std::chrono::system_clock::duration timeout) noexcept {
+  // Note: there is no effort made to speed up the flush when
+  // requested, it simply waits for the regularly scheduled flush
+  // operations to clear out all the presently pending data.
+  std::unique_lock<std::mutex> lock(write_mutex_);
+
+  bool has_encoded = builder_.pendingSpans() != 0;
+
+  if (!has_encoded && encoding_seqno_ == 1 + flushed_seqno_) {
+    return true;
+  }
+
+  size_t wait_seq = encoding_seqno_ - (has_encoded ? 0 : 1);
+
+  return write_cond_.wait_for(lock, timeout, [this, wait_seq]() {
+    return this->flushed_seqno_ >= wait_seq;
+  });
 }
 
 //------------------------------------------------------------------------------

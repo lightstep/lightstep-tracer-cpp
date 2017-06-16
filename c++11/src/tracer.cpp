@@ -386,6 +386,10 @@ class LightStepTracer : public Tracer,
     return span_context;
   }
 
+  void Close() noexcept override {
+    recorder_->FlushWithTimeout(std::chrono::hours(24));
+  }
+
  private:
   std::unique_ptr<Recorder> recorder_;
 };
