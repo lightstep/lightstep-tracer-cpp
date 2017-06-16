@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <iomanip>
 #include <algorithm>
+#include <functional>
+#include <cctype>
 using namespace opentracing;
 
 namespace lightstep {
@@ -70,44 +72,62 @@ Expected<void> inject_span_context(
 //------------------------------------------------------------------------------
 // extract_span_context
 //------------------------------------------------------------------------------
-Expected<void> extract_span_context(
-    const TextMapReader& carrier,
-    uint64_t& trace_id, uint64_t& span_id,
-    std::vector<std::pair<std::string, std::string>>& baggage) {
+template <class KeyCompare>
+static Expected<void> extract_span_context(
+    const TextMapReader& carrier, uint64_t& trace_id, uint64_t& span_id,
+    std::unordered_map<std::string, std::string>& baggage,
+    KeyCompare key_compare) {
   int count = 0;
   auto result = carrier.ForeachKey([&](StringRef key,
                                        StringRef value) -> Expected<void> {
-    if (key == FieldNameTraceID) {
+    if (key_compare(key, FieldNameTraceID)) {
       trace_id = hex_to_uint64(value);
       count++;
-    } else if (key == FieldNameSpanID) {
+    } else if (key_compare(key, FieldNameSpanID)) {
       span_id = hex_to_uint64(value);
       count++;
-    } else if (key == FieldNameSampled) {
+    } else if (key_compare(key, FieldNameSampled)) {
       // Ignored
       count++;
     } else if (key.length() > PrefixBaggage.size() &&
-               std::equal(std::begin(PrefixBaggage), std::end(PrefixBaggage),
-                          std::begin(key)))
+               key_compare(StringRef(key.data(), PrefixBaggage.size()),
+                           PrefixBaggage))
       try {
-        baggage.push_back(std::make_pair(
+        baggage.emplace(
             std::string(std::begin(key) + PrefixBaggage.size(), std::end(key)),
-            value));
+            value);
       } catch (const std::bad_alloc&) {
         return make_unexpected(make_error_code(std::errc::not_enough_memory));
       }
     return {};
   });
   if (!result) return result;
-  if (count != FieldCount)
-    return make_unexpected(span_context_corrupted_error);
+  if (count != FieldCount) return make_unexpected(span_context_corrupted_error);
   return {};
 }
 
 Expected<void> extract_span_context(
-    const HTTPHeadersReader& carrier,
+    const TextMapReader& carrier,
     uint64_t& trace_id, uint64_t& span_id,
-    std::vector<std::pair<std::string, std::string>>& baggage) {
-  return {};
+    std::unordered_map<std::string, std::string>& baggage) {
+  return extract_span_context(carrier, trace_id, span_id, baggage,
+                              std::equal_to<StringRef>());
+}
+
+// HTTP header field names are case insensitive, so we need to ignore case when
+// comparing against the OpenTracing field names.
+//
+// See https://stackoverflow.com/a/5259004/4447365
+Expected<void> extract_span_context(
+    const HTTPHeadersReader& carrier, uint64_t& trace_id, uint64_t& span_id,
+    std::unordered_map<std::string, std::string>& baggage) {
+  auto iequals = [](StringRef lhs, StringRef rhs) {
+    return lhs.length() == rhs.length() &&
+           std::equal(std::begin(lhs), std::end(lhs), std::begin(rhs),
+                      [](char a, char b) {
+                        return std::tolower(a) == std::tolower(b);
+                      });
+  };
+  return extract_span_context(carrier, trace_id, span_id, baggage, iequals);
 }
 } // namespace lightstep

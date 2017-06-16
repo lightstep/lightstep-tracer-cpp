@@ -104,7 +104,24 @@ class LightStepSpanContext : public SpanContext {
 
   Expected<void> Extract(
       CarrierFormat format, const CarrierReader& reader) {
-    return {};
+    std::lock_guard<std::mutex> l(baggage_mutex_);
+    switch (format) {
+      case CarrierFormat::OpenTracingBinary:
+        return make_unexpected(unsupported_format_error);
+      case CarrierFormat::HTTPHeaders: {
+        auto http_headers_reader =
+            dynamic_cast<const HTTPHeadersReader*>(&reader);
+        if (!http_headers_reader) return make_unexpected(invalid_carrier_error);
+        return extract_span_context(*http_headers_reader, trace_id, span_id,
+                                    baggage_);
+      }
+      case CarrierFormat::TextMap: {
+        auto text_map_reader = dynamic_cast<const TextMapReader*>(&reader);
+        if (!text_map_reader) return make_unexpected(invalid_carrier_error);
+        return extract_span_context(*text_map_reader, trace_id, span_id,
+                                    baggage_);
+      }
+    }
   }
 
   // These are modified during constructors (StartSpan and Extract),
