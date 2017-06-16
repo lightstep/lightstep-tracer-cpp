@@ -73,7 +73,7 @@ Expected<void> inject_span_context(
 // extract_span_context
 //------------------------------------------------------------------------------
 template <class KeyCompare>
-static Expected<void> extract_span_context(
+static Expected<bool> extract_span_context(
     const TextMapReader& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage,
     KeyCompare key_compare) {
@@ -101,12 +101,15 @@ static Expected<void> extract_span_context(
       }
     return {};
   });
-  if (!result) return result;
-  if (count != FieldCount) return make_unexpected(span_context_corrupted_error);
-  return {};
+  if (!result) return make_unexpected(result.error());
+  if (count == 0) return false;
+  if (count > 0 && count != FieldCount)
+    return make_unexpected(span_context_corrupted_error);
+  else
+    return true;
 }
 
-Expected<void> extract_span_context(
+Expected<bool> extract_span_context(
     const TextMapReader& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) {
   return extract_span_context(carrier, trace_id, span_id, baggage,
@@ -117,7 +120,7 @@ Expected<void> extract_span_context(
 // comparing against the OpenTracing field names.
 //
 // See https://stackoverflow.com/a/5259004/4447365
-Expected<void> extract_span_context(
+Expected<bool> extract_span_context(
     const HTTPHeadersReader& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) {
   auto iequals = [](StringRef lhs, StringRef rhs) {

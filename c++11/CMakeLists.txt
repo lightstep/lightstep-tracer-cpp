@@ -56,9 +56,5 @@ install(TARGETS lightstep_tracer
 
 target_link_libraries(lightstep_tracer ${GRPC_LIBRARIES}
                                        ${GRPCPP_LIBRARIES})
-target_include_directories(lightstep_tracer PUBLIC ${GRPC_INCLUDE_DIRS}
-                                                   ${GRPCPP_INCLUDE_DIRS})
-target_compile_options(lightstep_tracer PUBLIC ${GRPC_CFLAGS_OTHER}
-                                               ${GRPCPP_CFLAGS_OTHER})
 
 add_subdirectory(test)

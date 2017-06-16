@@ -102,7 +102,7 @@ class LightStepSpanContext : public SpanContext {
     }
   }
 
-  Expected<void> Extract(CarrierFormat format, const CarrierReader& reader) {
+  Expected<bool> Extract(CarrierFormat format, const CarrierReader& reader) {
     std::lock_guard<std::mutex> l(baggage_mutex_);
     switch (format) {
       case CarrierFormat::OpenTracingBinary:
@@ -364,7 +364,10 @@ class LightStepTracer : public Tracer,
     if (!span_context)
       return make_unexpected(make_error_code(std::errc::not_enough_memory));
     auto result = lightstep_span_context->Extract(format, reader);
-    if (result) return make_unexpected(result.error());
+    if (!result)
+      return make_unexpected(result.error());
+    else if (!*result)
+      span_context.reset();
     return span_context;
   }
 

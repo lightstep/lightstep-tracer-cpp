@@ -30,6 +30,10 @@ if( NOT EXISTS "${PROTO_PATH}/.git" )
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  ${GRPC_CFLAGS_OTHER} \
+                     ${GRPCPP_CFLAGS_OTHER}")
+
+include_directories(SYSTEM ${GRPC_INCLUDE_DIRS} ${GRPCPP_INCLUDE_DIRS})
 include_directories(SYSTEM ${OPENTRACING_INCLUDE_DIR})
 include_directories(SYSTEM ${PROTOBUF_INCLUDE_DIRS})
 
