@@ -1,6 +1,6 @@
 #include <lightstep/tracer.h>
-#include <cstdlib> // for std::getenv
 #include <cassert>
+#include <cstdlib>  // for std::getenv
 #include <iostream>
 using namespace lightstep;
 using namespace opentracing;
@@ -32,7 +32,7 @@ int main() {
 
     // Set a complex tag.
     child_span->SetTag("complex tag",
-                 Values{123, Dictionary{{"abc", 123}, {"xyz", 4.0}}});
+                       Values{123, Dictionary{{"abc", 123}, {"xyz", 4.0}}});
 
     // Log simple values.
     child_span->Log({{"event", "simple log"}, {"abc", 123}});
@@ -42,6 +42,25 @@ int main() {
                      {"data", Dictionary{{"a", 1}, {"b", Values{1, 2}}}}});
 
     child_span->Finish();
+  }
+
+  // Create a follows from span.
+  {
+    auto child_span =
+        tracer->StartSpan("childB", {FollowsFrom(&parent_span->context())});
+
+    // child_span's destructor will finish the span if not done so explicitly.
+  }
+
+  // Use custom timestamps.
+  {
+    auto t1 = SystemClock::now();
+    auto t2 = SteadyClock::now();
+    auto span = tracer->StartSpan(
+        "useCustomTimestamps",
+        {ChildOf(&parent_span->context()), StartTimestamp(t1)});
+    assert(span);
+    span->Finish({FinishTimestamp(t2)});
   }
 
   parent_span->Finish();
