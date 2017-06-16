@@ -47,6 +47,7 @@ add_library(lightstep_tracer ${COLLECTOR_PB_CPP_FILE}
                              ${COLLECTOR_CARRIER_PB_CPP_FILE}
                              src/utility.cpp
                              src/tracer.cpp
+                             src/propagation.cpp
                              src/rpc_recorder.cpp)
 
 install(TARGETS lightstep_tracer

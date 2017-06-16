@@ -1,4 +1,5 @@
 #include "recorder.h"
+#include "propagation.h"
 #include <collector.pb.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
@@ -72,10 +73,38 @@ class LightStepSpanContext : public SpanContext {
   }
 
   LightStepSpanContext& operator=(LightStepSpanContext&& other) noexcept {
+    std::lock_guard<std::mutex> l(baggage_mutex_);
     trace_id = other.trace_id;
     span_id = other.span_id;
     baggage_ = std::move(other.baggage_);
     return *this;
+  }
+
+  Expected<void> Inject(CarrierFormat format,
+                        const CarrierWriter& writer) const {
+    std::lock_guard<std::mutex> l(baggage_mutex_);
+    switch (format) {
+      case CarrierFormat::OpenTracingBinary:
+        return make_unexpected(unsupported_format_error);
+      case CarrierFormat::HTTPHeaders: {
+        auto http_headers_writer =
+            dynamic_cast<const HTTPHeadersWriter*>(&writer);
+        if (!http_headers_writer) return make_unexpected(invalid_carrier_error);
+        return inject_span_context(*http_headers_writer, trace_id, span_id,
+                                   baggage_);
+      }
+      case CarrierFormat::TextMap: {
+        auto text_map_writer = dynamic_cast<const TextMapWriter*>(&writer);
+        if (!text_map_writer) return make_unexpected(invalid_carrier_error);
+        return inject_span_context(*text_map_writer, trace_id, span_id,
+                                   baggage_);
+      }
+    }
+  }
+
+  Expected<void> Extract(
+      CarrierFormat format, const CarrierReader& reader) {
+    return {};
   }
 
   // These are modified during constructors (StartSpan and Extract),
@@ -164,9 +193,6 @@ class LightStepSpan : public Span {
         recorder_(recorder),
         operation_name_(operation_name) {
     // Set the start timestamps.
-    std::cout << "start  = "
-              << options.start_steady_timestamp.time_since_epoch().count()
-              << "\n";
     std::tie(start_timestamp_, start_steady_) = compute_start_timestamps(
         options.start_system_timestamp, options.start_steady_timestamp);
 
@@ -207,10 +233,6 @@ class LightStepSpan : public Span {
 
     // Set timing information.
     auto duration = finish_timestamp - start_steady_;
-    std::cout << "start  = " << start_timestamp_.time_since_epoch().count() << "\n";
-    std::cout << "start  = " << start_steady_.time_since_epoch().count() << "\n";
-    std::cout << "finish = " << finish_timestamp.time_since_epoch().count() << "\n";
-    std::cout << "finish = " << SteadyClock::now().time_since_epoch().count() << "\n";
     span.set_duration_micros(
         std::chrono::duration_cast<std::chrono::microseconds>(duration)
             .count());
@@ -318,13 +340,24 @@ class LightStepTracer : public Tracer,
 
   Expected<void> Inject(const SpanContext& sc, CarrierFormat format,
                         const CarrierWriter& writer) const override {
-    return {};
+    auto lightstep_span_context =
+      dynamic_cast<const LightStepSpanContext*>(&sc);
+    if (!lightstep_span_context)
+      return make_unexpected(invalid_span_context_error);
+    return lightstep_span_context->Inject(format, writer);
   }
 
   Expected<std::unique_ptr<SpanContext>> Extract(
       CarrierFormat format, const CarrierReader& reader) const override {
-    return std::unique_ptr<SpanContext>();
+    auto lightstep_span_context = new (std::nothrow) LightStepSpanContext();
+    std::unique_ptr<SpanContext> span_context(lightstep_span_context);
+    if (!span_context)
+      return make_unexpected(make_error_code(std::errc::not_enough_memory));
+    auto result = lightstep_span_context->Extract(format, reader);
+    if (result) return make_unexpected(result.error());
+    return span_context;
   }
+
  private:
   std::unique_ptr<Recorder> recorder_;
 };
