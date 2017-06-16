@@ -254,7 +254,7 @@ class LightStepSpan : public Span {
     references->Reserve(references_.size());
     for (const auto& reference : references_) *references->Add() = reference;
 
-    // Set tags and operation name.
+    // Set tags, logs, and operation name.
     {
       std::lock_guard<std::mutex> lock(mutex_);
       span.set_operation_name(std::move(operation_name_));
@@ -262,6 +262,8 @@ class LightStepSpan : public Span {
       tags->Reserve(tags_.size());
       for (const auto& tag : tags_)
         *tags->Add() = to_key_value(tag.first, tag.second);
+      auto logs = span.mutable_logs();
+      for (auto& log : logs_) *logs->Add() = std::move(log);
     }
 
     // Set the span context.
@@ -308,6 +310,18 @@ class LightStepSpan : public Span {
     return {};
   }
 
+  void Log(std::initializer_list<std::pair<StringRef, Value>>
+               fields) noexcept override try {
+    auto timestamp = SystemClock::now();
+    collector::Log log;
+    *log.mutable_timestamp() = to_timestamp(timestamp);
+    auto key_values = log.mutable_keyvalues();
+    for (const auto& field : fields)
+      *key_values->Add() = to_key_value(field.first, field.second);
+  } catch (const std::bad_alloc&) {
+    // Do nothing if memory can't be allocted for log records.
+  }
+
   const SpanContext& context() const noexcept override { return span_context_; }
   const Tracer& tracer() const noexcept override { return *tracer_; }
 
@@ -325,6 +339,7 @@ class LightStepSpan : public Span {
   std::mutex mutex_;
   std::string operation_name_;
   std::unordered_map<std::string, Value> tags_;
+  std::vector<collector::Log> logs_;
 };
 }  // namespace anonymous
 
