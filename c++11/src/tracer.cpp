@@ -232,6 +232,10 @@ class LightStepSpan : public Span {
     span_context_ = LightStepSpanContext(trace_id, span_id, std::move(baggage));
   }
 
+  ~LightStepSpan() {
+    if (!is_finished_) Finish();
+  }
+
   void FinishWithOptions(const FinishSpanOptions& options) noexcept override
       try {
     // Ensure the span is only finished once.
