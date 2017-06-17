@@ -1,4 +1,5 @@
 #include <lightstep/tracer.h>
+#include <opentracing/noop.h>
 #include "in_memory_tracer.h"
 
 #define CATCH_CONFIG_MAIN
@@ -72,7 +73,7 @@ TEST_CASE("in_memory_tracer") {
     CHECK(has_tag(span, "xyz", true));
   }
 
-  SECTION("You can set a single child-of reference when starting a span") {
+  SECTION("You can set a single child-of reference when starting a span.") {
     auto span_a = tracer->StartSpan("a");
     CHECK(span_a);
     span_a->Finish();
@@ -86,7 +87,7 @@ TEST_CASE("in_memory_tracer") {
                            spans.at(0)));
   }
 
-  SECTION("You can set a single follows-from reference when starting a span") {
+  SECTION("You can set a single follows-from reference when starting a span.") {
     auto span_a = tracer->StartSpan("a");
     CHECK(span_a);
     span_a->Finish();
@@ -100,7 +101,7 @@ TEST_CASE("in_memory_tracer") {
                            spans.at(0)));
   }
 
-  SECTION("Multiple references are supported when starting a span") {
+  SECTION("Multiple references are supported when starting a span.") {
     auto span_a = tracer->StartSpan("a");
     CHECK(span_a);
     auto span_b = tracer->StartSpan("b");
@@ -115,6 +116,21 @@ TEST_CASE("in_memory_tracer") {
                            spans.at(0)));
     CHECK(has_relationship(SpanReferenceType::FollowsFromRef, spans.at(2),
                            spans.at(1)));
+  }
+
+  SECTION("References to non-LightStep spans and null pointers are ignored.") {
+    auto noop_tracer = make_noop_tracer();
+    auto noop_span = noop_tracer->StartSpan("noop");
+    CHECK(noop_span);
+    StartSpanOptions options;
+    options.references.push_back(
+        std::make_pair(SpanReferenceType::ChildOfRef, &noop_span->context()));
+    options.references.push_back(
+        std::make_pair(SpanReferenceType::ChildOfRef, nullptr));
+    auto span = tracer->StartSpanWithOptions("a", options);
+    CHECK(span);
+    span->Finish();
+    CHECK(recorder->top().references_size() == 0);
   }
 
   SECTION("Calling Finish a second time does nothing.") {
