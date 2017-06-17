@@ -2,6 +2,8 @@
 #include <cassert>
 #include <cstdlib>  // for std::getenv
 #include <iostream>
+#include <unordered_map>
+#include "text_map_carrier.h"
 using namespace lightstep;
 using namespace opentracing;
 
@@ -61,6 +63,19 @@ int main() {
         {ChildOf(&parent_span->context()), StartTimestamp(t1)});
     assert(span);
     span->Finish({FinishTimestamp(t2)});
+  }
+
+  // Extract and Inject a span context.
+  {
+    std::unordered_map<std::string, std::string> text_map;
+    TextMapCarrier carrier(text_map);
+    auto err =
+        tracer->Inject(parent_span->context(), CarrierFormat::TextMap, carrier);
+    assert(err);
+    auto span_context_maybe = tracer->Extract(CarrierFormat::TextMap, carrier);
+    assert(span_context_maybe);
+    auto span = tracer->StartSpan("propagationSpan",
+                                  {ChildOf(span_context_maybe->get())});
   }
 
   parent_span->Finish();
