@@ -78,6 +78,18 @@ int main() {
                                   {ChildOf(span_context_maybe->get())});
   }
 
+  // You get an error when trying to extract a corrupt span.
+  {
+    std::unordered_map<std::string, std::string> text_map = {
+        {"ot-tracer-traceid", "123"}};
+    TextMapCarrier carrier(text_map);
+    auto err = tracer->Extract(CarrierFormat::TextMap, carrier);
+    assert(!err);
+    assert(err.error() == span_context_corrupted_error);
+    // How to get a readable message from the error.
+    std::cout << "Example error message: \"" << err.error().message() << "\"\n";
+  }
+
   parent_span->Finish();
   tracer->Close();
 
