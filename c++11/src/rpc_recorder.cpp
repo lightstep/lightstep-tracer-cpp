@@ -19,7 +19,7 @@ std::string get_program_name();
 //------------------------------------------------------------------------------
 // hostPortOf
 //------------------------------------------------------------------------------
-static std::string hostPortOf(const TracerOptions& options) {
+static std::string hostPortOf(const LightStepTracerOptions& options) {
   std::ostringstream os;
   os << options.collector_host << ":" << options.collector_port;
   return os.str();
@@ -33,7 +33,7 @@ static std::string hostPortOf(const TracerOptions& options) {
 namespace {
 class ReportBuilder {
  public:
-  ReportBuilder(const TracerOptions& options) : reset_next_(true) {
+  ReportBuilder(const LightStepTracerOptions& options) : reset_next_(true) {
     // TODO Fill in any core internal_metrics.
     collector::Reporter* reporter = preamble_.mutable_reporter();
     for (const auto& tag : options.tags)
@@ -81,7 +81,7 @@ class ReportBuilder {
 namespace {
 class RpcRecorder : public Recorder {
  public:
-  explicit RpcRecorder(TracerOptions&& options)
+  explicit RpcRecorder(LightStepTracerOptions&& options)
       : options_(std::move(options)),
         builder_(options_),
         client_(grpc::CreateChannel(
@@ -136,7 +136,7 @@ class RpcRecorder : public Recorder {
     return !write_exit_;
   }
 
-  const TracerOptions options_;
+  const LightStepTracerOptions options_;
 
   // Writer state.
   std::mutex write_mutex_;
@@ -258,7 +258,7 @@ bool RpcRecorder::write_report(const collector::ReportRequest& report) {
 // make_lightstep_recorder
 //------------------------------------------------------------------------------
 std::unique_ptr<Recorder> make_lightstep_recorder(
-    const TracerOptions& options) noexcept try {
+    const LightStepTracerOptions& options) noexcept try {
   auto options_new = options;
 
   // Copy over default tags.

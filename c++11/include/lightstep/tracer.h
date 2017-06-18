@@ -7,7 +7,7 @@
 #include <unordered_map>
 
 namespace lightstep {
-struct TracerOptions {
+struct LightStepTracerOptions {
   // `component_name` is the human-readable identity of the instrumented
   // process. I.e., if one drew a block diagram of the distributed system,
   // the component_name would be the name inside the box that includes this
@@ -40,7 +40,7 @@ struct TracerOptions {
 };
 
 std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
-    const TracerOptions& options);
+    const LightStepTracerOptions& options);
 }  // namespace lightstep
 
 #endif  // LIGHTSTEP_TRACER_H

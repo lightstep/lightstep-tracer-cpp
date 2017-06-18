@@ -17,7 +17,7 @@ using namespace opentracing;
 namespace lightstep {
 collector::KeyValue to_key_value(StringRef key, const Value& value);
 std::unique_ptr<Recorder> make_lightstep_recorder(
-    const TracerOptions& options) noexcept;
+    const LightStepTracerOptions& options) noexcept;
 uint64_t generate_id();
 
 //------------------------------------------------------------------------------
@@ -413,7 +413,7 @@ std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
 }
 
 std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
-    const TracerOptions& options) {
+    const LightStepTracerOptions& options) {
   return make_lightstep_tracer(make_lightstep_recorder(options));
 }
 }  // namespace lightstep
