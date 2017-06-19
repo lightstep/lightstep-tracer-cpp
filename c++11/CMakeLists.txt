@@ -1,4 +1,24 @@
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_STANDARD 11)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything \
+    -Wno-c++98-compat \
+    -Wno-c++98-compat-bind-to-temporary-copy \
+    -Wno-weak-vtables \
+    -Wno-exit-time-destructors \
+    -Wno-global-constructors \
+    -Wno-padded")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+endif()
+
+find_program(CLANG_TIDY_EXE NAMES "clang-tidy" 
+                            DOC "Path to clang-tidy executable")
+if(NOT CLANG_TIDY_EXE)
+  message(STATUS "clang-tidy not found.")
+else()
+  message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
+  set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=*,-clang-analyzer-alpha.*")
+endif()
 
 configure_file(version.h.in include/lightstep/version.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
@@ -40,7 +60,7 @@ add_custom_command(
          "--plugin=protoc-gen-grpc=/usr/local/bin/GRPC_CPP_PLUGIN"
          "${COLLECTOR_PROTO}"
     )
-include_directories(${GENERATED_PROTOBUF_PATH})
+include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH})
 
 add_library(lightstep_tracer ${COLLECTOR_PB_CPP_FILE}
                              ${COLLECTOR_GRPC_PB_CPP_FILE}
@@ -49,6 +69,10 @@ add_library(lightstep_tracer ${COLLECTOR_PB_CPP_FILE}
                              src/tracer.cpp
                              src/propagation.cpp
                              src/rpc_recorder.cpp)
+if (CLANG_TIDY_EXE)
+  set_target_properties(lightstep_tracer PROPERTIES
+                                         CXX_CLANG_TIDY "${DO_CLANG_TIDY}")
+endif()
 
 install(TARGETS lightstep_tracer
         LIBRARY DESTINATION lib 
