@@ -39,7 +39,7 @@ google::protobuf::Timestamp to_timestamp(SystemTime t) {
 namespace {
 class LightStepSpanContext : public SpanContext {
  public:
-  LightStepSpanContext() noexcept : trace_id(0), span_id(0) {}
+  LightStepSpanContext() noexcept {}
 
   LightStepSpanContext(
       uint64_t trace_id, uint64_t span_id,
@@ -89,13 +89,17 @@ class LightStepSpanContext : public SpanContext {
       case CarrierFormat::HTTPHeaders: {
         auto http_headers_writer =
             dynamic_cast<const HTTPHeadersWriter*>(&writer);
-        if (!http_headers_writer) return make_unexpected(invalid_carrier_error);
+        if (http_headers_writer == nullptr) {
+          return make_unexpected(invalid_carrier_error);
+        }
         return inject_span_context(*http_headers_writer, trace_id, span_id,
                                    baggage_);
       }
       case CarrierFormat::TextMap: {
         auto text_map_writer = dynamic_cast<const TextMapWriter*>(&writer);
-        if (!text_map_writer) return make_unexpected(invalid_carrier_error);
+        if (text_map_writer == nullptr) {
+          return make_unexpected(invalid_carrier_error);
+        }
         return inject_span_context(*text_map_writer, trace_id, span_id,
                                    baggage_);
       }
@@ -110,13 +114,17 @@ class LightStepSpanContext : public SpanContext {
       case CarrierFormat::HTTPHeaders: {
         auto http_headers_reader =
             dynamic_cast<const HTTPHeadersReader*>(&reader);
-        if (!http_headers_reader) return make_unexpected(invalid_carrier_error);
+        if (http_headers_reader == nullptr) {
+          return make_unexpected(invalid_carrier_error);
+        }
         return extract_span_context(*http_headers_reader, trace_id, span_id,
                                     baggage_);
       }
       case CarrierFormat::TextMap: {
         auto text_map_reader = dynamic_cast<const TextMapReader*>(&reader);
-        if (!text_map_reader) return make_unexpected(invalid_carrier_error);
+        if (text_map_reader == nullptr) {
+          return make_unexpected(invalid_carrier_error);
+        }
         return extract_span_context(*text_map_reader, trace_id, span_id,
                                     baggage_);
       }
@@ -125,8 +133,8 @@ class LightStepSpanContext : public SpanContext {
 
   // These are modified during constructors (StartSpan and Extract),
   // but would require extra work/copying to make them const.
-  uint64_t trace_id;
-  uint64_t span_id;
+  uint64_t trace_id{0};
+  uint64_t span_id{0};
 
  private:
   mutable std::mutex baggage_mutex_;
@@ -149,13 +157,13 @@ static bool set_span_reference(
       collector_reference.set_relationship(collector::Reference::FOLLOWS_FROM);
       break;
   }
-  if (!reference.second) {
+  if (reference.second == nullptr) {
     std::cerr << "LightStep: passed in null span reference.\n";
     return false;
   }
   auto referenced_context =
       dynamic_cast<const LightStepSpanContext*>(reference.second);
-  if (!referenced_context) {
+  if (referenced_context == nullptr) {
     std::cerr << "LightStep: passed in span reference of unexpected type.\n";
     return false;
   }
@@ -183,16 +191,18 @@ std::tuple<SystemTime, SteadyTime> compute_start_timestamps(
   // respective clocks; otherwise, use the set timestamp to initialize the
   // other.
   if (start_system_timestamp == SystemTime() &&
-      start_steady_timestamp == SteadyTime())
+      start_steady_timestamp == SteadyTime()) {
     return {SystemClock::now(), SteadyClock::now()};
-  else if (start_system_timestamp == SystemTime())
+  }
+  if (start_system_timestamp == SystemTime()) {
     return {convert_time_point<SystemClock>(start_steady_timestamp),
             start_steady_timestamp};
-  else if (start_steady_timestamp == SteadyTime())
+  } else if (start_steady_timestamp == SteadyTime()) {
     return {start_system_timestamp,
             convert_time_point<SteadyClock>(start_system_timestamp)};
-  else
+  } else {
     return {start_system_timestamp, start_steady_timestamp};
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -216,13 +226,16 @@ class LightStepSpan : public Span {
     collector::Reference collector_reference;
     for (auto& reference : options.references) {
       auto span_reference_type = reference.first;
-      if (!set_span_reference(reference, baggage, collector_reference))
+      if (!set_span_reference(reference, baggage, collector_reference)) {
         continue;
+      }
       references_.push_back(collector_reference);
     }
 
     // Set tags.
-    for (auto& tag : options.tags) tags_[tag.first] = tag.second;
+    for (auto& tag : options.tags) {
+      tags_[tag.first] = tag.second;
+    }
 
     // Set SpanContext.
     auto trace_id = references_.empty()
@@ -232,17 +245,23 @@ class LightStepSpan : public Span {
     span_context_ = LightStepSpanContext(trace_id, span_id, std::move(baggage));
   }
 
-  ~LightStepSpan() {
-    if (!is_finished_) Finish();
+  ~LightStepSpan() override {
+    if (!is_finished_) {
+      Finish();
+    }
   }
 
   void FinishWithOptions(const FinishSpanOptions& options) noexcept override
       try {
     // Ensure the span is only finished once.
-    if (is_finished_.exchange(true)) return;
+    if (is_finished_.exchange(true)) {
+      return;
+    }
 
     auto finish_timestamp = options.finish_steady_timestamp;
-    if (finish_timestamp == SteadyTime()) finish_timestamp = SteadyClock::now();
+    if (finish_timestamp == SteadyTime()) {
+      finish_timestamp = SteadyClock::now();
+    }
 
     collector::Span span;
 
@@ -256,7 +275,9 @@ class LightStepSpan : public Span {
     // Set references.
     auto references = span.mutable_references();
     references->Reserve(references_.size());
-    for (const auto& reference : references_) *references->Add() = reference;
+    for (const auto& reference : references_) {
+      *references->Add() = reference;
+    }
 
     // Set tags, logs, and operation name.
     {
@@ -264,10 +285,13 @@ class LightStepSpan : public Span {
       span.set_operation_name(std::move(operation_name_));
       auto tags = span.mutable_tags();
       tags->Reserve(tags_.size());
-      for (const auto& tag : tags_)
+      for (const auto& tag : tags_) {
         *tags->Add() = to_key_value(tag.first, tag.second);
+      }
       auto logs = span.mutable_logs();
-      for (auto& log : logs_) *logs->Add() = std::move(log);
+      for (auto& log : logs_) {
+        *logs->Add() = log;
+      }
     }
 
     // Set the span context.
@@ -320,8 +344,9 @@ class LightStepSpan : public Span {
     collector::Log log;
     *log.mutable_timestamp() = to_timestamp(timestamp);
     auto key_values = log.mutable_keyvalues();
-    for (const auto& field : fields)
+    for (const auto& field : fields) {
       *key_values->Add() = to_key_value(field.first, field.second);
+    }
     logs_.emplace_back(std::move(log));
   } catch (const std::bad_alloc&) {
     // Do nothing if memory can't be allocted for log records.
@@ -346,7 +371,7 @@ class LightStepSpan : public Span {
   std::unordered_map<std::string, Value> tags_;
   std::vector<collector::Log> logs_;
 };
-}  // namespace anonymous
+}  // namespace
 
 //------------------------------------------------------------------------------
 // LightStepTracer
@@ -355,7 +380,7 @@ namespace {
 class LightStepTracer : public Tracer,
                         public std::enable_shared_from_this<LightStepTracer> {
  public:
-  LightStepTracer(std::unique_ptr<Recorder>&& recorder)
+  explicit LightStepTracer(std::unique_ptr<Recorder>&& recorder)
       : recorder_(std::move(recorder)) {}
 
   std::unique_ptr<Span> StartSpanWithOptions(
@@ -372,8 +397,9 @@ class LightStepTracer : public Tracer,
                         const CarrierWriter& writer) const override {
     auto lightstep_span_context =
         dynamic_cast<const LightStepSpanContext*>(&sc);
-    if (!lightstep_span_context)
+    if (lightstep_span_context == nullptr) {
       return make_unexpected(invalid_span_context_error);
+    }
     return lightstep_span_context->Inject(format, writer);
   }
 
@@ -381,13 +407,16 @@ class LightStepTracer : public Tracer,
       CarrierFormat format, const CarrierReader& reader) const override {
     auto lightstep_span_context = new (std::nothrow) LightStepSpanContext();
     std::unique_ptr<SpanContext> span_context(lightstep_span_context);
-    if (!span_context)
+    if (!span_context) {
       return make_unexpected(make_error_code(std::errc::not_enough_memory));
+    }
     auto result = lightstep_span_context->Extract(format, reader);
-    if (!result)
+    if (!result) {
       return make_unexpected(result.error());
-    else if (!*result)
+    }
+    if (!*result) {
       span_context.reset();
+    }
     return span_context;
   }
 
@@ -405,11 +434,13 @@ class LightStepTracer : public Tracer,
 //------------------------------------------------------------------------------
 std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
     std::unique_ptr<Recorder>&& recorder) {
-  if (!recorder)
+  if (!recorder) {
     return make_noop_tracer();
-  else
+  }
+  {
     return std::shared_ptr<opentracing::Tracer>(
         new (std::nothrow) LightStepTracer(std::move(recorder)));
+  }
 }
 
 std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(

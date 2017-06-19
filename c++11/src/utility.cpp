@@ -10,7 +10,7 @@ using namespace opentracing;
 namespace lightstep {
 namespace {
 using JsonWriter = rapidjson::Writer<rapidjson::StringBuffer>;
-}  // end anonymous namesapce
+}  // namespace
 
 //------------------------------------------------------------------------------
 // generate_id
@@ -31,7 +31,7 @@ std::string get_program_name() {
     return "c++-program";  // Dunno...
   }
   std::string path(exe_path.get(), size);
-  size_t lslash = path.rfind("/");
+  size_t lslash = path.rfind('/');
   if (lslash != path.npos) {
     return path.substr(lslash + 1);
   }
@@ -65,19 +65,29 @@ struct JsonValueVisitor {
   void operator()(const char* s) { result = writer.String(s); }
 
   void operator()(const Values& values) {
-    if (!(result = writer.StartArray())) return;
-    for (const auto& value : values)
-      if (!(result = to_json(writer, value))) return;
+    if (!(result = writer.StartArray())) {
+      return;
+    }
+    for (const auto& value : values) {
+      if (!(result = to_json(writer, value))) {
+        return;
+      }
+    }
     result = writer.EndArray();
   }
 
   void operator()(const Dictionary& dictionary) {
-    if (!(result = writer.StartObject())) return;
+    if (!(result = writer.StartObject())) {
+      return;
+    }
     for (const auto& key_value : dictionary) {
       if (!(result =
-                writer.Key(key_value.first.data(), key_value.first.size())))
+                writer.Key(key_value.first.data(), key_value.first.size()))) {
         return;
-      if (!(result = to_json(writer, key_value.second))) return;
+      }
+      if (!(result = to_json(writer, key_value.second))) {
+        return;
+      }
     }
     result = writer.EndObject();
   }
@@ -93,7 +103,9 @@ static bool to_json(JsonWriter& writer, const Value& value) {
 static std::string to_json(const Value& value) {
   rapidjson::StringBuffer buffer;
   JsonWriter writer(buffer);
-  if (!to_json(writer, value)) return {};
+  if (!to_json(writer, value)) {
+    return {};
+  }
   return buffer.GetString();
 }
 

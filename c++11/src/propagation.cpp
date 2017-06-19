@@ -51,11 +51,17 @@ Expected<void> inject_span_context(
     return make_unexpected(make_error_code(std::errc::not_enough_memory));
   }
   auto result = carrier.Set(FieldNameTraceID, trace_id_hex);
-  if (!result) return result;
+  if (!result) {
+    return result;
+  }
   result = carrier.Set(FieldNameSpanID, span_id_hex);
-  if (!result) return result;
+  if (!result) {
+    return result;
+  }
   result = carrier.Set(FieldNameSampled, "true");
-  if (!result) return result;
+  if (!result) {
+    return result;
+  }
   for (const auto& baggage_item : baggage) {
     try {
       baggage_key.replace(std::begin(baggage_key) + PrefixBaggage.size(),
@@ -64,7 +70,9 @@ Expected<void> inject_span_context(
       return make_unexpected(make_error_code(std::errc::not_enough_memory));
     }
     result = carrier.Set(baggage_key, baggage_item.second);
-    if (!result) return result;
+    if (!result) {
+      return result;
+    }
   }
   return {};
 }
@@ -91,7 +99,7 @@ static Expected<bool> extract_span_context(
       count++;
     } else if (key.length() > PrefixBaggage.size() &&
                key_compare(StringRef(key.data(), PrefixBaggage.size()),
-                           PrefixBaggage))
+                           PrefixBaggage)) {
       try {
         baggage.emplace(
             std::string(std::begin(key) + PrefixBaggage.size(), std::end(key)),
@@ -99,14 +107,19 @@ static Expected<bool> extract_span_context(
       } catch (const std::bad_alloc&) {
         return make_unexpected(make_error_code(std::errc::not_enough_memory));
       }
+    }
     return {};
   });
-  if (!result) return make_unexpected(result.error());
-  if (count == 0) return false;
-  if (count > 0 && count != FieldCount)
+  if (!result) {
+    return make_unexpected(result.error());
+  }
+  if (count == 0) {
+    return false;
+  }
+  if (count > 0 && count != FieldCount) {
     return make_unexpected(span_context_corrupted_error);
-  else
-    return true;
+  }
+  { return true; }
 }
 
 Expected<bool> extract_span_context(

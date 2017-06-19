@@ -33,11 +33,13 @@ static std::string hostPortOf(const LightStepTracerOptions& options) {
 namespace {
 class ReportBuilder {
  public:
-  ReportBuilder(const LightStepTracerOptions& options) : reset_next_(true) {
-    // TODO Fill in any core internal_metrics.
+  explicit ReportBuilder(const LightStepTracerOptions& options)
+      : reset_next_(true) {
+    // TODO(rnickb): Fill in any core internal_metrics.
     collector::Reporter* reporter = preamble_.mutable_reporter();
-    for (const auto& tag : options.tags)
+    for (const auto& tag : options.tags) {
       *reporter->mutable_tags()->Add() = to_key_value(tag.first, tag.second);
+    }
     reporter->set_reporter_id(generate_id());
     preamble_.mutable_auth()->set_access_token(options.access_token);
   }
@@ -92,7 +94,7 @@ class RpcRecorder : public Recorder {
     writer_ = std::thread(&RpcRecorder::write, this);
   }
 
-  ~RpcRecorder() {
+  ~RpcRecorder() override {
     make_writer_exit();
     writer_.join();
   }
@@ -114,7 +116,7 @@ class RpcRecorder : public Recorder {
 
  private:
   void write();
-  bool write_report(const collector::ReportRequest&);
+  bool write_report(const collector::ReportRequest& /*report*/);
   void flush_one();
 
   // Forces the writer thread to exit immediately.
@@ -154,7 +156,7 @@ class RpcRecorder : public Recorder {
   // Collector service stub.
   collector::CollectorService::Stub client_;
 };
-}
+}  // namespace
 
 //------------------------------------------------------------------------------
 // write
@@ -192,7 +194,7 @@ void RpcRecorder::flush_one() {
     if (save_pending == 0) {
       return;
     }
-    // TODO Compute and set timestamp_offset_micros
+    // TODO(rnickb): Compute and set timestamp_offset_micros
     save_dropped = dropped_spans_;
     builder_.setPendingClientDroppedSpans(save_dropped);
     dropped_spans_ = 0;
@@ -246,11 +248,12 @@ bool RpcRecorder::write_report(const collector::ReportRequest& report) {
   grpc::Status status = client_.Report(&context, report, &resp);
   if (!status.ok()) {
     std::cerr << "Report RPC failed: " << status.error_message();
-    // TODO Put some of these back into a buffer, etc. (Presently they all
+    // TODO(rnickb): Put some of these back into a buffer, etc. (Presently they
+    // all
     // drop.)
     return false;
   }
-  // TODO Use response.
+  // TODO(rnickb): Use response.
   return true;
 }
 
@@ -262,13 +265,16 @@ std::unique_ptr<Recorder> make_lightstep_recorder(
   auto options_new = options;
 
   // Copy over default tags.
-  for (const auto& tag : default_tags) options_new.tags[tag.first] = tag.second;
+  for (const auto& tag : default_tags) {
+    options_new.tags[tag.first] = tag.second;
+  }
 
   // Set the component name if provided or default it to the program name.
-  if (!options.component_name.empty())
+  if (!options.component_name.empty()) {
     options_new.tags[component_name_key] = options.component_name;
-  else
+  } else {
     options_new.tags.emplace(component_name_key, get_program_name());
+  }
 
   return std::unique_ptr<Recorder>(new RpcRecorder(std::move(options_new)));
 } catch (const std::exception& e) {
