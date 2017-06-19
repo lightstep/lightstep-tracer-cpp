@@ -1,4 +1,5 @@
 #include <lightstep/tracer.h>
+#include <opentracing/noop.h>
 #include <string>
 #include <unordered_map>
 #include "in_memory_tracer.h"
@@ -43,6 +44,12 @@ struct TextMapCarrier : TextMapReader, TextMapWriter {
 };
 
 //------------------------------------------------------------------------------
+// InvalidCarrier
+//------------------------------------------------------------------------------
+// A carrier with no implementation for testing errors.
+struct InvalidCarrier : CarrierReader, CarrierWriter {};
+
+//------------------------------------------------------------------------------
 // tests
 //------------------------------------------------------------------------------
 TEST_CASE("propagation") {
@@ -50,6 +57,7 @@ TEST_CASE("propagation") {
   auto tracer = make_lightstep_tracer(std::unique_ptr<Recorder>(recorder));
   std::unordered_map<std::string, std::string> text_map;
   TextMapCarrier carrier(text_map);
+  InvalidCarrier invalid_carrier;
 
   SECTION("Inject, extract, inject yields the same text_map.") {
     auto span = tracer->StartSpan("a");
@@ -65,4 +73,49 @@ TEST_CASE("propagation") {
     CHECK(tracer->Inject(*span_context, CarrierFormat::TextMap, carrier));
     CHECK(injection_map1 == text_map);
   }
+
+  SECTION(
+      "Extracing a context from an empty text-map gives a null span context.") {
+    auto span_context_maybe = tracer->Extract(CarrierFormat::TextMap, carrier);
+    CHECK(span_context_maybe);
+    CHECK(span_context_maybe->get() == nullptr);
+  }
+
+  SECTION(
+      "Injecting a non-LightStep span returns invalid_span_context_error.") {
+    auto noop_tracer = make_noop_tracer();
+    CHECK(noop_tracer);
+    auto span = noop_tracer->StartSpan("a");
+    CHECK(span);
+    auto was_successful =
+        tracer->Inject(span->context(), CarrierFormat::TextMap, carrier);
+    CHECK(!was_successful);
+    CHECK(was_successful.error() == invalid_span_context_error);
+  }
+
+  SECTION(
+      "Extracting a span context with missing fields returns "
+      "span_context_corrupted_error") {
+    auto span = tracer->StartSpan("a");
+    CHECK(span);
+    CHECK(tracer->Inject(span->context(), CarrierFormat::TextMap, carrier));
+
+    // Remove a field to get an invalid span context.
+    text_map.erase(std::begin(text_map));
+    auto span_context_maybe = tracer->Extract(CarrierFormat::TextMap, carrier);
+    CHECK(!span_context_maybe);
+    CHECK(span_context_maybe.error() == span_context_corrupted_error);
+  }
+
+  SECTION(
+      "Injecting into a non-TextMap carrier returns invalid_carrier_error.") {
+    auto span = tracer->StartSpan("a");
+    CHECK(span);
+    auto was_successful = tracer->Inject(
+        span->context(), CarrierFormat::TextMap, invalid_carrier);
+    CHECK(!was_successful);
+    CHECK(was_successful.error() == invalid_carrier_error);
+  }
+
+  // TODO: Test case sensitivity with HTTPHeader fields.
 }

@@ -118,6 +118,22 @@ TEST_CASE("in_memory_tracer") {
                            spans.at(1)));
   }
 
+  SECTION(
+      "Baggage from the span references are copied over to a new span "
+      "context") {
+    auto span_a = tracer->StartSpan("a");
+    CHECK(span_a);
+    span_a->SetBaggageItem("a", "1");
+    auto span_b = tracer->StartSpan("b");
+    CHECK(span_b);
+    span_b->SetBaggageItem("b", "2");
+    auto span_c = tracer->StartSpan(
+        "c", {ChildOf(&span_a->context()), ChildOf(&span_b->context())});
+    CHECK(span_c);
+    CHECK(span_c->BaggageItem("a") == "1");
+    CHECK(span_c->BaggageItem("b") == "2");
+  }
+
   SECTION("References to non-LightStep spans and null pointers are ignored.") {
     auto noop_tracer = make_noop_tracer();
     auto noop_span = noop_tracer->StartSpan("noop");
