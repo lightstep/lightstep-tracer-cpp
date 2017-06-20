@@ -39,7 +39,7 @@ google::protobuf::Timestamp to_timestamp(SystemTime t) {
 namespace {
 class LightStepSpanContext : public SpanContext {
  public:
-  LightStepSpanContext() noexcept {}
+  LightStepSpanContext() noexcept = default;
 
   LightStepSpanContext(
       uint64_t trace_id, uint64_t span_id,
@@ -197,7 +197,8 @@ std::tuple<SystemTime, SteadyTime> compute_start_timestamps(
   if (start_system_timestamp == SystemTime()) {
     return {convert_time_point<SystemClock>(start_steady_timestamp),
             start_steady_timestamp};
-  } else if (start_steady_timestamp == SteadyTime()) {
+  }
+  if (start_steady_timestamp == SteadyTime()) {
     return {start_system_timestamp,
             convert_time_point<SteadyClock>(start_system_timestamp)};
   } else {
