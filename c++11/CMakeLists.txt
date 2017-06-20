@@ -1,14 +1,14 @@
 set(CMAKE_CXX_STANDARD 11)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything \
-    -Wno-c++98-compat \
-    -Wno-c++98-compat-bind-to-temporary-copy \
-    -Wno-weak-vtables \
-    -Wno-exit-time-destructors \
-    -Wno-global-constructors \
-    -Wno-padded")
+  set(WARNING_CXX_FLAGS -Weverything 
+    -Wno-c++98-compat 
+    -Wno-c++98-compat-bind-to-temporary-copy 
+    -Wno-weak-vtables 
+    -Wno-exit-time-destructors 
+    -Wno-global-constructors 
+    -Wno-padded)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+  set(WARNING_CXX_FLAGS -Wall -Wextra)
 endif()
 
 find_program(CLANG_TIDY_EXE NAMES "clang-tidy" 
@@ -62,13 +62,16 @@ add_custom_command(
     )
 include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH})
 
-add_library(lightstep_tracer ${COLLECTOR_PB_CPP_FILE}
-                             ${COLLECTOR_GRPC_PB_CPP_FILE}
-                             ${COLLECTOR_CARRIER_PB_CPP_FILE}
+add_library(lightstep_protobuf OBJECT ${COLLECTOR_PB_CPP_FILE}
+                                      ${COLLECTOR_GRPC_PB_CPP_FILE}
+                                      ${COLLECTOR_CARRIER_PB_CPP_FILE})
+
+add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_protobuf>
                              src/utility.cpp
                              src/tracer.cpp
                              src/propagation.cpp
                              src/rpc_recorder.cpp)
+target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
 if (CLANG_TIDY_EXE)
   set_target_properties(lightstep_tracer PROPERTIES
                                          CXX_CLANG_TIDY "${DO_CLANG_TIDY}")
