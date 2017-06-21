@@ -9,13 +9,10 @@
 #include <thread>
 #include "recorder.h"
 #include "tags.h"
+#include "utility.h"
 using namespace opentracing;
 
 namespace lightstep {
-collector::KeyValue to_key_value(StringRef key, const Value& value);
-uint64_t generate_id();
-std::string get_program_name();
-
 //------------------------------------------------------------------------------
 // hostPortOf
 //------------------------------------------------------------------------------
@@ -93,6 +90,11 @@ class RpcRecorder : public Recorder {
                 : grpc::InsecureChannelCredentials())) {
     writer_ = std::thread(&RpcRecorder::write, this);
   }
+
+  RpcRecorder(const RpcRecorder&) = delete;
+  RpcRecorder(RpcRecorder&&) = delete;
+  RpcRecorder& operator=(const RpcRecorder&) = delete;
+  RpcRecorder& operator=(RpcRecorder&&) = delete;
 
   ~RpcRecorder() override {
     make_writer_exit();
@@ -182,7 +184,6 @@ void RpcRecorder::write() {
 // flush_one
 //------------------------------------------------------------------------------
 void RpcRecorder::flush_one() {
-  size_t seq;
   size_t save_dropped;
   size_t save_pending;
   {

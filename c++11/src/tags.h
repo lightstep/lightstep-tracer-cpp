@@ -4,7 +4,7 @@
 #include <utility>
 
 namespace lightstep {
-const char* component_name_key = "lightstep.component_name";
+const char* const component_name_key = "lightstep.component_name";
 
 const std::pair<const char*, opentracing::Value> default_tags[] = {
     {"lightstep.tracer_platform", "c++"},

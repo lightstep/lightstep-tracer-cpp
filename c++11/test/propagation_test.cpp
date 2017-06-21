@@ -21,8 +21,8 @@ collector::KeyValue to_key_value(StringRef key, const Value& value);
 // TextMapCarrier
 //------------------------------------------------------------------------------
 struct TextMapCarrier : TextMapReader, TextMapWriter {
-  TextMapCarrier(std::unordered_map<std::string, std::string>& text_map)
-      : text_map(text_map) {}
+  TextMapCarrier(std::unordered_map<std::string, std::string>& text_map_)
+      : text_map(text_map_) {}
 
   Expected<void> Set(const std::string& key,
                      const std::string& value) const override {

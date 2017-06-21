@@ -12,18 +12,16 @@
 #include <vector>
 #include "propagation.h"
 #include "recorder.h"
+#include "utility.h"
 using namespace opentracing;
 
 namespace lightstep {
-collector::KeyValue to_key_value(StringRef key, const Value& value);
-std::unique_ptr<Recorder> make_lightstep_recorder(
-    const LightStepTracerOptions& options) noexcept;
-uint64_t generate_id();
-
+std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
+    std::unique_ptr<Recorder>&& recorder);
 //------------------------------------------------------------------------------
 // to_timestamp
 //------------------------------------------------------------------------------
-google::protobuf::Timestamp to_timestamp(SystemTime t) {
+static google::protobuf::Timestamp to_timestamp(SystemTime t) {
   using namespace std::chrono;
   auto nanos = duration_cast<nanoseconds>(t.time_since_epoch()).count();
   google::protobuf::Timestamp ts;
@@ -42,9 +40,21 @@ class LightStepSpanContext : public SpanContext {
   LightStepSpanContext() noexcept = default;
 
   LightStepSpanContext(
-      uint64_t trace_id, uint64_t span_id,
+      uint64_t trace_id_, uint64_t span_id_,
       std::unordered_map<std::string, std::string>&& baggage) noexcept
-      : trace_id(trace_id), span_id(span_id), baggage_(std::move(baggage)) {}
+      : trace_id(trace_id_), span_id(span_id_), baggage_(std::move(baggage)) {}
+
+  LightStepSpanContext(const LightStepSpanContext&) = delete;
+  LightStepSpanContext(LightStepSpanContext&&) = default;
+
+  LightStepSpanContext& operator=(LightStepSpanContext&) = delete;
+  LightStepSpanContext& operator=(LightStepSpanContext&& other) noexcept {
+    std::lock_guard<std::mutex> l(baggage_mutex_);
+    trace_id = other.trace_id;
+    span_id = other.span_id;
+    baggage_ = std::move(other.baggage_);
+    return *this;
+  }
 
   void setBaggageItem(StringRef key, StringRef value) noexcept try {
     std::lock_guard<std::mutex> l(baggage_mutex_);
@@ -70,14 +80,6 @@ class LightStepSpanContext : public SpanContext {
         return;
       }
     }
-  }
-
-  LightStepSpanContext& operator=(LightStepSpanContext&& other) noexcept {
-    std::lock_guard<std::mutex> l(baggage_mutex_);
-    trace_id = other.trace_id;
-    span_id = other.span_id;
-    baggage_ = std::move(other.baggage_);
-    return *this;
   }
 
   Expected<void> Inject(CarrierFormat format,
@@ -149,6 +151,7 @@ static bool set_span_reference(
     const std::pair<SpanReferenceType, const SpanContext*>& reference,
     std::unordered_map<std::string, std::string>& baggage,
     collector::Reference& collector_reference) {
+  collector_reference.Clear();
   switch (reference.first) {
     case SpanReferenceType::ChildOfRef:
       collector_reference.set_relationship(collector::Reference::CHILD_OF);
@@ -184,7 +187,7 @@ static bool set_span_reference(
 //------------------------------------------------------------------------------
 // compute_start_timestamps
 //------------------------------------------------------------------------------
-std::tuple<SystemTime, SteadyTime> compute_start_timestamps(
+static std::tuple<SystemTime, SteadyTime> compute_start_timestamps(
     const SystemTime& start_system_timestamp,
     const SteadyTime& start_steady_timestamp) {
   // If neither the system nor steady timestamps are set, get the tme from the
@@ -201,9 +204,8 @@ std::tuple<SystemTime, SteadyTime> compute_start_timestamps(
   if (start_steady_timestamp == SteadyTime()) {
     return {start_system_timestamp,
             convert_time_point<SteadyClock>(start_system_timestamp)};
-  } else {
-    return {start_system_timestamp, start_steady_timestamp};
   }
+  return {start_system_timestamp, start_steady_timestamp};
 }
 
 //------------------------------------------------------------------------------
@@ -226,7 +228,6 @@ class LightStepSpan : public Span {
     references_.reserve(options.references.size());
     collector::Reference collector_reference;
     for (auto& reference : options.references) {
-      auto span_reference_type = reference.first;
       if (!set_span_reference(reference, baggage, collector_reference)) {
         continue;
       }
@@ -245,6 +246,11 @@ class LightStepSpan : public Span {
     auto span_id = generate_id();
     span_context_ = LightStepSpanContext(trace_id, span_id, std::move(baggage));
   }
+
+  LightStepSpan(const LightStepSpan&) = delete;
+  LightStepSpan(LightStepSpan&&) = delete;
+  LightStepSpan& operator=(const LightStepSpan&) = delete;
+  LightStepSpan& operator=(LightStepSpan&&) = delete;
 
   ~LightStepSpan() override {
     if (!is_finished_) {
@@ -275,7 +281,7 @@ class LightStepSpan : public Span {
 
     // Set references.
     auto references = span.mutable_references();
-    references->Reserve(references_.size());
+    references->Reserve(static_cast<int>(references_.size()));
     for (const auto& reference : references_) {
       *references->Add() = reference;
     }
@@ -285,7 +291,7 @@ class LightStepSpan : public Span {
       std::lock_guard<std::mutex> lock(mutex_);
       span.set_operation_name(std::move(operation_name_));
       auto tags = span.mutable_tags();
-      tags->Reserve(tags_.size());
+      tags->Reserve(static_cast<int>(tags_.size()));
       for (const auto& tag : tags_) {
         *tags->Add() = to_key_value(tag.first, tag.second);
       }
@@ -438,10 +444,8 @@ std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
   if (!recorder) {
     return make_noop_tracer();
   }
-  {
-    return std::shared_ptr<opentracing::Tracer>(
-        new (std::nothrow) LightStepTracer(std::move(recorder)));
-  }
+  return std::shared_ptr<opentracing::Tracer>(
+      new (std::nothrow) LightStepTracer(std::move(recorder)));
 }
 
 std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
