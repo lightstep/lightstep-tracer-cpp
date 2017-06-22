@@ -69,10 +69,9 @@ int main() {
   {
     std::unordered_map<std::string, std::string> text_map;
     TextMapCarrier carrier(text_map);
-    auto err =
-        tracer->Inject(parent_span->context(), CarrierFormat::TextMap, carrier);
+    auto err = tracer->Inject(parent_span->context(), carrier);
     assert(err);
-    auto span_context_maybe = tracer->Extract(CarrierFormat::TextMap, carrier);
+    auto span_context_maybe = tracer->Extract(carrier);
     assert(span_context_maybe);
     auto span = tracer->StartSpan("propagationSpan",
                                   {ChildOf(span_context_maybe->get())});
@@ -83,7 +82,7 @@ int main() {
     std::unordered_map<std::string, std::string> text_map = {
         {"ot-tracer-traceid", "123"}};
     TextMapCarrier carrier(text_map);
-    auto err = tracer->Extract(CarrierFormat::TextMap, carrier);
+    auto err = tracer->Extract(carrier);
     assert(!err);
     assert(err.error() == span_context_corrupted_error);
     // How to get a readable message from the error.

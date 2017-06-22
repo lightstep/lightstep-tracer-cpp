@@ -3,6 +3,8 @@
 
 #include <opentracing/tracer.h>
 #include <opentracing/value.h>
+#include <array>
+#include <cstdint>
 #include <memory>
 #include <unordered_map>
 
@@ -37,6 +39,17 @@ struct LightStepTracerOptions {
       std::chrono::milliseconds(500);
 
   std::chrono::system_clock::duration report_timeout = std::chrono::seconds(5);
+};
+
+class LightStepTracer : public opentracing::Tracer {
+ public:
+  opentracing::Expected<std::array<uint64_t, 2>> GetTraceSpanIds(
+      const opentracing::SpanContext& sc) const noexcept;
+
+  opentracing::Expected<std::unique_ptr<opentracing::SpanContext>>
+  MakeSpanContext(uint64_t trace_id, uint64_t span_id,
+                  std::unordered_map<std::string, std::string>&& baggage) const
+      noexcept;
 };
 
 std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(

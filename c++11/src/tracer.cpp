@@ -82,55 +82,16 @@ class LightStepSpanContext : public SpanContext {
     }
   }
 
-  Expected<void> Inject(CarrierFormat format,
-                        const CarrierWriter& writer) const {
+  template <class Carrier>
+  Expected<void> Inject(const Carrier& writer) const {
     std::lock_guard<std::mutex> l(baggage_mutex_);
-    switch (format) {
-      case CarrierFormat::OpenTracingBinary:
-        return make_unexpected(unsupported_format_error);
-      case CarrierFormat::HTTPHeaders: {
-        auto http_headers_writer =
-            dynamic_cast<const HTTPHeadersWriter*>(&writer);
-        if (http_headers_writer == nullptr) {
-          return make_unexpected(invalid_carrier_error);
-        }
-        return inject_span_context(*http_headers_writer, trace_id, span_id,
-                                   baggage_);
-      }
-      case CarrierFormat::TextMap: {
-        auto text_map_writer = dynamic_cast<const TextMapWriter*>(&writer);
-        if (text_map_writer == nullptr) {
-          return make_unexpected(invalid_carrier_error);
-        }
-        return inject_span_context(*text_map_writer, trace_id, span_id,
-                                   baggage_);
-      }
-    }
+    return inject_span_context(writer, trace_id, span_id, baggage_);
   }
 
-  Expected<bool> Extract(CarrierFormat format, const CarrierReader& reader) {
+  template <class Carrier>
+  Expected<bool> Extract(const Carrier& reader) {
     std::lock_guard<std::mutex> l(baggage_mutex_);
-    switch (format) {
-      case CarrierFormat::OpenTracingBinary:
-        return make_unexpected(unsupported_format_error);
-      case CarrierFormat::HTTPHeaders: {
-        auto http_headers_reader =
-            dynamic_cast<const HTTPHeadersReader*>(&reader);
-        if (http_headers_reader == nullptr) {
-          return make_unexpected(invalid_carrier_error);
-        }
-        return extract_span_context(*http_headers_reader, trace_id, span_id,
-                                    baggage_);
-      }
-      case CarrierFormat::TextMap: {
-        auto text_map_reader = dynamic_cast<const TextMapReader*>(&reader);
-        if (text_map_reader == nullptr) {
-          return make_unexpected(invalid_carrier_error);
-        }
-        return extract_span_context(*text_map_reader, trace_id, span_id,
-                                    baggage_);
-      }
-    }
+    return extract_span_context(reader, trace_id, span_id, baggage_);
   }
 
   // These are modified during constructors (StartSpan and Extract),
@@ -381,13 +342,14 @@ class LightStepSpan : public Span {
 }  // namespace
 
 //------------------------------------------------------------------------------
-// LightStepTracer
+// LightStepTracerImpl
 //------------------------------------------------------------------------------
 namespace {
-class LightStepTracer : public Tracer,
-                        public std::enable_shared_from_this<LightStepTracer> {
+class LightStepTracerImpl
+    : public LightStepTracer,
+      public std::enable_shared_from_this<LightStepTracerImpl> {
  public:
-  explicit LightStepTracer(std::unique_ptr<Recorder>&& recorder)
+  explicit LightStepTracerImpl(std::unique_ptr<Recorder>&& recorder)
       : recorder_(std::move(recorder)) {}
 
   std::unique_ptr<Span> StartSpanWithOptions(
@@ -400,24 +362,77 @@ class LightStepTracer : public Tracer,
     return nullptr;
   }
 
-  Expected<void> Inject(const SpanContext& sc, CarrierFormat format,
-                        const CarrierWriter& writer) const override {
+  Expected<void> Inject(const SpanContext& sc,
+                        const TextMapWriter& writer) const override {
+    return InjectImpl(sc, writer);
+  }
+
+  Expected<void> Inject(const SpanContext& sc,
+                        const HTTPHeadersWriter& writer) const override {
+    return InjectImpl(sc, writer);
+  }
+
+  Expected<std::unique_ptr<SpanContext>> Extract(
+      const TextMapReader& reader) const override {
+    return ExtractImpl(reader);
+  }
+
+  Expected<std::unique_ptr<SpanContext>> Extract(
+      const HTTPHeadersReader& reader) const override {
+    return ExtractImpl(reader);
+  }
+
+  void Close() noexcept override {
+    recorder_->FlushWithTimeout(std::chrono::hours(24));
+  }
+
+  // LightStep extensions to the opentracing::Tracer API.
+  Expected<std::array<uint64_t, 2>> GetTraceSpanIds(const SpanContext& sc) const
+      noexcept {
     auto lightstep_span_context =
         dynamic_cast<const LightStepSpanContext*>(&sc);
     if (lightstep_span_context == nullptr) {
       return make_unexpected(invalid_span_context_error);
     }
-    return lightstep_span_context->Inject(format, writer);
+    std::array<uint64_t, 2> result = {lightstep_span_context->trace_id,
+                                      lightstep_span_context->span_id};
+    return result;
   }
 
-  Expected<std::unique_ptr<SpanContext>> Extract(
-      CarrierFormat format, const CarrierReader& reader) const override {
+  Expected<std::unique_ptr<SpanContext>> MakeSpanContext(
+      uint64_t trace_id, uint64_t span_id,
+      std::unordered_map<std::string, std::string>&& baggage) const
+      noexcept try {
+    std::unique_ptr<SpanContext> result(
+        new LightStepSpanContext(trace_id, span_id, std::move(baggage)));
+    return result;
+  } catch (const std::bad_alloc&) {
+    return make_unexpected(make_error_code(std::errc::not_enough_memory));
+  }
+
+ private:
+  std::unique_ptr<Recorder> recorder_;
+
+  template <class Carrier>
+  Expected<void> InjectImpl(const SpanContext& sc,
+                            const Carrier& writer) const {
+    auto lightstep_span_context =
+        dynamic_cast<const LightStepSpanContext*>(&sc);
+    if (lightstep_span_context == nullptr) {
+      return make_unexpected(invalid_span_context_error);
+    }
+    return lightstep_span_context->Inject(writer);
+  }
+
+  template <class Carrier>
+  Expected<std::unique_ptr<SpanContext>> ExtractImpl(
+      const Carrier& reader) const {
     auto lightstep_span_context = new (std::nothrow) LightStepSpanContext();
     std::unique_ptr<SpanContext> span_context(lightstep_span_context);
     if (!span_context) {
       return make_unexpected(make_error_code(std::errc::not_enough_memory));
     }
-    auto result = lightstep_span_context->Extract(format, reader);
+    auto result = lightstep_span_context->Extract(reader);
     if (!result) {
       return make_unexpected(result.error());
     }
@@ -426,13 +441,6 @@ class LightStepTracer : public Tracer,
     }
     return span_context;
   }
-
-  void Close() noexcept override {
-    recorder_->FlushWithTimeout(std::chrono::hours(24));
-  }
-
- private:
-  std::unique_ptr<Recorder> recorder_;
 };
 }  // anonymous namespace
 
@@ -445,7 +453,7 @@ std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
     return make_noop_tracer();
   }
   return std::shared_ptr<opentracing::Tracer>(
-      new (std::nothrow) LightStepTracer(std::move(recorder)));
+      new (std::nothrow) LightStepTracerImpl(std::move(recorder)));
 }
 
 std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
