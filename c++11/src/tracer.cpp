@@ -386,30 +386,6 @@ class LightStepTracerImpl
     recorder_->FlushWithTimeout(std::chrono::hours(24));
   }
 
-  // LightStep extensions to the opentracing::Tracer API.
-  Expected<std::array<uint64_t, 2>> GetTraceSpanIds(const SpanContext& sc) const
-      noexcept {
-    auto lightstep_span_context =
-        dynamic_cast<const LightStepSpanContext*>(&sc);
-    if (lightstep_span_context == nullptr) {
-      return make_unexpected(invalid_span_context_error);
-    }
-    std::array<uint64_t, 2> result = {lightstep_span_context->trace_id,
-                                      lightstep_span_context->span_id};
-    return result;
-  }
-
-  Expected<std::unique_ptr<SpanContext>> MakeSpanContext(
-      uint64_t trace_id, uint64_t span_id,
-      std::unordered_map<std::string, std::string>&& baggage) const
-      noexcept try {
-    std::unique_ptr<SpanContext> result(
-        new LightStepSpanContext(trace_id, span_id, std::move(baggage)));
-    return result;
-  } catch (const std::bad_alloc&) {
-    return make_unexpected(make_error_code(std::errc::not_enough_memory));
-  }
-
  private:
   std::unique_ptr<Recorder> recorder_;
 
@@ -443,6 +419,33 @@ class LightStepTracerImpl
   }
 };
 }  // anonymous namespace
+
+//------------------------------------------------------------------------------
+// GetTraceSpanIds
+//------------------------------------------------------------------------------
+Expected<std::array<uint64_t, 2>> LightStepTracer::GetTraceSpanIds(
+    const SpanContext& sc) const noexcept {
+  auto lightstep_span_context = dynamic_cast<const LightStepSpanContext*>(&sc);
+  if (lightstep_span_context == nullptr) {
+    return make_unexpected(invalid_span_context_error);
+  }
+  std::array<uint64_t, 2> result = {
+      {lightstep_span_context->trace_id, lightstep_span_context->span_id}};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// MakeSpanContext
+//------------------------------------------------------------------------------
+Expected<std::unique_ptr<SpanContext>> LightStepTracer::MakeSpanContext(
+    uint64_t trace_id, uint64_t span_id,
+    std::unordered_map<std::string, std::string>&& baggage) const noexcept try {
+  std::unique_ptr<SpanContext> result(
+      new LightStepSpanContext(trace_id, span_id, std::move(baggage)));
+  return result;
+} catch (const std::bad_alloc&) {
+  return make_unexpected(make_error_code(std::errc::not_enough_memory));
+}
 
 //------------------------------------------------------------------------------
 // make_lightstep_tracer

@@ -1,3 +1,4 @@
+#include <lightstep/binary_protocol.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
 #include <string>
@@ -5,6 +6,7 @@
 #include "in_memory_tracer.h"
 
 #define CATCH_CONFIG_MAIN
+#include <google/protobuf/util/message_differencer.h>
 #include <lightstep/catch/catch.hpp>
 
 using namespace lightstep;
@@ -51,6 +53,7 @@ TEST_CASE("propagation") {
   auto tracer = make_lightstep_tracer(std::unique_ptr<Recorder>(recorder));
   std::unordered_map<std::string, std::string> text_map;
   TextMapCarrier carrier(text_map);
+  BinaryCarrier binary_carrier;
 
   SECTION("Inject, extract, inject yields the same text_map.") {
     auto span = tracer->StartSpan("a");
@@ -65,6 +68,22 @@ TEST_CASE("propagation") {
     text_map.clear();
     CHECK(tracer->Inject(*span_context, carrier));
     CHECK(injection_map1 == text_map);
+  }
+
+  SECTION("Inject, extract, inject yields the same BinaryCarrier.") {
+    auto span = tracer->StartSpan("a");
+    CHECK(span);
+    span->SetBaggageItem("abc", "123");
+    CHECK(
+        tracer->Inject(span->context(), LightStepBinaryWriter(binary_carrier)));
+    auto binary_carrier1 = binary_carrier;
+    auto span_context_maybe =
+        tracer->Extract(LightStepBinaryReader(&binary_carrier));
+    CHECK(span_context_maybe);
+    CHECK(tracer->Inject(*span_context_maybe->get(),
+                         LightStepBinaryWriter(binary_carrier)));
+    CHECK(google::protobuf::util::MessageDifferencer::Equals(binary_carrier1,
+                                                             binary_carrier));
   }
 
   SECTION(

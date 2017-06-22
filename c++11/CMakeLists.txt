@@ -64,12 +64,14 @@ include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH})
 
 add_library(lightstep_protobuf OBJECT ${COLLECTOR_PB_CPP_FILE}
                                       ${COLLECTOR_GRPC_PB_CPP_FILE}
-                                      ${COLLECTOR_CARRIER_PB_CPP_FILE})
+                                      ${COLLECTOR_CARRIER_PB_CPP_FILE}
+                                      ${LIGHTSTEP_CARRIER_PB_CPP_FILE})
 
 add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_protobuf>
                              src/utility.cpp
                              src/tracer.cpp
                              src/propagation.cpp
+                             src/binary_protocol.cpp
                              src/rpc_recorder.cpp)
 target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
 if (CLANG_TIDY_EXE)

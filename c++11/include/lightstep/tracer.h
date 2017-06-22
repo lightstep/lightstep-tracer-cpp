@@ -41,6 +41,8 @@ struct LightStepTracerOptions {
   std::chrono::system_clock::duration report_timeout = std::chrono::seconds(5);
 };
 
+// The LightStepTracer interface can be used by custom carriers that need more
+// direct access to a span context's data so as to propagate more efficiently.
 class LightStepTracer : public opentracing::Tracer {
  public:
   opentracing::Expected<std::array<uint64_t, 2>> GetTraceSpanIds(
