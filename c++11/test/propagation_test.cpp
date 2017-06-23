@@ -1,4 +1,4 @@
-#include <lightstep/binary_protocol.h>
+#include <lightstep/binary_carrier.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
 #include <string>

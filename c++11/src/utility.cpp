@@ -1,3 +1,4 @@
+#include "utility.h"
 #include <collector.pb.h>
 #include <lightstep/rapidjson/stringbuffer.h>
 #include <lightstep/rapidjson/writer.h>
@@ -57,7 +58,7 @@ struct JsonValueVisitor {
   void operator()(uint64_t value) { result = writer.Uint64(value); }
 
   void operator()(const std::string& s) {
-    result = writer.String(s.data(), s.size());
+    result = writer.String(s.data(), static_cast<unsigned>(s.size()));
   }
 
   void operator()(std::nullptr_t) { result = writer.Null(); }
@@ -82,7 +83,8 @@ struct JsonValueVisitor {
     }
     for (const auto& key_value : dictionary) {
       if (!(result =
-                writer.Key(key_value.first.data(), key_value.first.size()))) {
+                writer.Key(key_value.first.data(),
+                           static_cast<unsigned>(key_value.first.size())))) {
         return;
       }
       if (!(result = to_json(writer, key_value.second))) {
@@ -134,11 +136,11 @@ struct ValueVisitor {
 
   void operator()(const char* s) const { key_value.set_string_value(s); }
 
-  void operator()(const Values& values) const {
+  void operator()(const Values& /*unused*/) const {
     key_value.set_json_value(to_json(original_value));
   }
 
-  void operator()(const Dictionary& dictionary) const {
+  void operator()(const Dictionary& /*unused*/) const {
     key_value.set_json_value(to_json(original_value));
   }
 };

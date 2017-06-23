@@ -1,4 +1,4 @@
-#include <lightstep/binary_protocol.h>
+#include <lightstep/binary_carrier.h>
 #include <lightstep/tracer.h>
 using namespace opentracing;
 
@@ -35,8 +35,9 @@ Expected<void> LightStepBinaryWriter::Inject(
     return make_unexpected(invalid_carrier_error);
   }
   auto trace_span_ids_maybe = lightstep_tracer->GetTraceSpanIds(sc);
-  if (!trace_span_ids_maybe)
+  if (!trace_span_ids_maybe) {
     return make_unexpected(trace_span_ids_maybe.error());
+  }
   auto& trace_span_ids = *trace_span_ids_maybe;
   carrier_.Clear();
   auto basic = carrier_.mutable_basic_ctx();

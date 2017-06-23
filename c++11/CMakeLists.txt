@@ -6,6 +6,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     -Wno-weak-vtables 
     -Wno-exit-time-destructors 
     -Wno-global-constructors 
+    -Wno-sign-conversion
     -Wno-padded)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(WARNING_CXX_FLAGS -Wall -Wextra)
@@ -17,7 +18,8 @@ if(NOT CLANG_TIDY_EXE)
   message(STATUS "clang-tidy not found.")
 else()
   message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
-  set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=*,-clang-analyzer-alpha.*")
+  set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=*,-clang-analyzer-alpha.*\
+,-llvm-include-order,-google-runtime-references,-google-build-using-namespace")
 endif()
 
 configure_file(version.h.in include/lightstep/version.h)
@@ -71,7 +73,7 @@ add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_protobuf>
                              src/utility.cpp
                              src/tracer.cpp
                              src/propagation.cpp
-                             src/binary_protocol.cpp
+                             src/binary_carrier.cpp
                              src/rpc_recorder.cpp)
 target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
 if (CLANG_TIDY_EXE)
