@@ -123,7 +123,7 @@ TEST_CASE("propagation") {
 
   SECTION(
       "Injecting a non-LightStep span returns invalid_span_context_error.") {
-    auto noop_tracer = make_noop_tracer();
+    auto noop_tracer = MakeNoopTracer();
     CHECK(noop_tracer);
     auto span = noop_tracer->StartSpan("a");
     CHECK(span);

@@ -135,7 +135,7 @@ TEST_CASE("in_memory_tracer") {
   }
 
   SECTION("References to non-LightStep spans and null pointers are ignored.") {
-    auto noop_tracer = make_noop_tracer();
+    auto noop_tracer = MakeNoopTracer();
     auto noop_span = noop_tracer->StartSpan("noop");
     CHECK(noop_span);
     StartSpanOptions options;
