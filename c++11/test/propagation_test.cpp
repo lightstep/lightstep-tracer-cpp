@@ -1,12 +1,13 @@
+#include <google/protobuf/util/message_differencer.h>
 #include <lightstep/binary_carrier.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
+#include <cctype>
 #include <string>
 #include <unordered_map>
 #include "in_memory_tracer.h"
 
 #define CATCH_CONFIG_MAIN
-#include <google/protobuf/util/message_differencer.h>
 #include <lightstep/catch/catch.hpp>
 
 using namespace lightstep;
@@ -46,27 +47,54 @@ struct TextMapCarrier : TextMapReader, TextMapWriter {
 };
 
 //------------------------------------------------------------------------------
+// HTTPHeadersCarrier
+//------------------------------------------------------------------------------
+struct HTTPHeadersCarrier : HTTPHeadersReader, HTTPHeadersWriter {
+  HTTPHeadersCarrier(std::unordered_map<std::string, std::string>& text_map_)
+      : text_map(text_map_) {}
+
+  Expected<void> Set(const std::string& key,
+                     const std::string& value) const override {
+    text_map[key] = value;
+    return {};
+  }
+
+  Expected<void> ForeachKey(
+      std::function<Expected<void>(StringRef key, StringRef value)> f)
+      const override {
+    for (const auto& key_value : text_map) {
+      auto result = f(key_value.first, key_value.second);
+      if (!result) return result;
+    }
+    return {};
+  }
+
+  std::unordered_map<std::string, std::string>& text_map;
+};
+
+//------------------------------------------------------------------------------
 // tests
 //------------------------------------------------------------------------------
 TEST_CASE("propagation") {
   auto recorder = new InMemoryRecorder();
   auto tracer = make_lightstep_tracer(std::unique_ptr<Recorder>(recorder));
   std::unordered_map<std::string, std::string> text_map;
-  TextMapCarrier carrier(text_map);
+  TextMapCarrier text_map_carrier(text_map);
+  HTTPHeadersCarrier http_headers_carrier(text_map);
   BinaryCarrier binary_carrier;
 
   SECTION("Inject, extract, inject yields the same text_map.") {
     auto span = tracer->StartSpan("a");
     CHECK(span);
     span->SetBaggageItem("abc", "123");
-    CHECK(tracer->Inject(span->context(), carrier));
+    CHECK(tracer->Inject(span->context(), text_map_carrier));
     auto injection_map1 = text_map;
-    auto span_context_maybe = tracer->Extract(carrier);
+    auto span_context_maybe = tracer->Extract(text_map_carrier);
     CHECK(span_context_maybe);
     auto span_context = std::move(*span_context_maybe);
     CHECK(span_context);
     text_map.clear();
-    CHECK(tracer->Inject(*span_context, carrier));
+    CHECK(tracer->Inject(*span_context, text_map_carrier));
     CHECK(injection_map1 == text_map);
   }
 
@@ -88,7 +116,7 @@ TEST_CASE("propagation") {
 
   SECTION(
       "Extracing a context from an empty text-map gives a null span context.") {
-    auto span_context_maybe = tracer->Extract(carrier);
+    auto span_context_maybe = tracer->Extract(text_map_carrier);
     CHECK(span_context_maybe);
     CHECK(span_context_maybe->get() == nullptr);
   }
@@ -99,7 +127,7 @@ TEST_CASE("propagation") {
     CHECK(noop_tracer);
     auto span = noop_tracer->StartSpan("a");
     CHECK(span);
-    auto was_successful = tracer->Inject(span->context(), carrier);
+    auto was_successful = tracer->Inject(span->context(), text_map_carrier);
     CHECK(!was_successful);
     CHECK(was_successful.error() == invalid_span_context_error);
   }
@@ -109,14 +137,28 @@ TEST_CASE("propagation") {
       "span_context_corrupted_error") {
     auto span = tracer->StartSpan("a");
     CHECK(span);
-    CHECK(tracer->Inject(span->context(), carrier));
+    CHECK(tracer->Inject(span->context(), text_map_carrier));
 
     // Remove a field to get an invalid span context.
     text_map.erase(std::begin(text_map));
-    auto span_context_maybe = tracer->Extract(carrier);
+    auto span_context_maybe = tracer->Extract(text_map_carrier);
     CHECK(!span_context_maybe);
     CHECK(span_context_maybe.error() == span_context_corrupted_error);
   }
 
-  // TODO: Test case sensitivity with HTTPHeader fields.
+  SECTION("Extract is insensitive to changes in case for http header fields") {
+    auto span = tracer->StartSpan("a");
+    CHECK(span);
+    CHECK(tracer->Inject(span->context(), http_headers_carrier));
+
+    // Change the case of one of the fields
+    auto key_value = *std::begin(text_map);
+    text_map.erase(std::begin(text_map));
+    auto key = key_value.first;
+    key[0] = key[0] == std::toupper(key[0])
+                 ? static_cast<char>(std::tolower(key[0]))
+                 : static_cast<char>(std::toupper(key[0]));
+    text_map[key] = key_value.second;
+    CHECK(tracer->Extract(http_headers_carrier));
+  }
 }
