@@ -9,10 +9,12 @@ namespace lightstep {
 Expected<std::unique_ptr<SpanContext>> LightStepBinaryReader::Extract(
     const Tracer& tracer) const try {
   auto lightstep_tracer = dynamic_cast<const LightStepTracer*>(&tracer);
-  if (!lightstep_tracer) {
+  if (lightstep_tracer == nullptr) {
     return make_unexpected(invalid_carrier_error);
   }
-  if (!carrier_) return {};
+  if (carrier_ == nullptr) {
+    return {};
+  }
   auto& basic = carrier_->basic_ctx();
   std::unordered_map<std::string, std::string> baggage;
   for (const auto& entry : basic.baggage_items()) {
@@ -31,7 +33,7 @@ Expected<void> LightStepBinaryWriter::Inject(
     const opentracing::Tracer& tracer, const opentracing::SpanContext& sc) const
     try {
   auto lightstep_tracer = dynamic_cast<const LightStepTracer*>(&tracer);
-  if (!lightstep_tracer) {
+  if (lightstep_tracer == nullptr) {
     return make_unexpected(invalid_carrier_error);
   }
   auto trace_span_ids_maybe = lightstep_tracer->GetTraceSpanIds(sc);
