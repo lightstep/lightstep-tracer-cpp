@@ -151,7 +151,7 @@ TEST_CASE("propagation") {
     CHECK(span);
     CHECK(tracer->Inject(span->context(), http_headers_carrier));
 
-    // Change the case of one of the fields
+    // Change the case of one of the fields.
     auto key_value = *std::begin(text_map);
     text_map.erase(std::begin(text_map));
     auto key = key_value.first;
