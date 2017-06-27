@@ -10,12 +10,12 @@ using namespace opentracing;
 namespace lightstep {
 #define PREFIX_TRACER_STATE "ot-tracer-"
 // Note: these constants are a convention of the OpenTracing basictracers.
-const std::string PrefixBaggage = "ot-baggage-";
+const StringRef PrefixBaggage = "ot-baggage-";
 
 const int FieldCount = 3;
-const std::string FieldNameTraceID = PREFIX_TRACER_STATE "traceid";
-const std::string FieldNameSpanID = PREFIX_TRACER_STATE "spanid";
-const std::string FieldNameSampled = PREFIX_TRACER_STATE "sampled";
+const StringRef FieldNameTraceID = PREFIX_TRACER_STATE "traceid";
+const StringRef FieldNameSpanID = PREFIX_TRACER_STATE "spanid";
+const StringRef FieldNameSampled = PREFIX_TRACER_STATE "sampled";
 #undef PREFIX_TRACER_STATE
 //------------------------------------------------------------------------------
 // uint64_to_hex

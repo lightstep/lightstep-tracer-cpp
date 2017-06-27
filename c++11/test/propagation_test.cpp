@@ -27,8 +27,7 @@ struct TextMapCarrier : TextMapReader, TextMapWriter {
   TextMapCarrier(std::unordered_map<std::string, std::string>& text_map_)
       : text_map(text_map_) {}
 
-  Expected<void> Set(const std::string& key,
-                     const std::string& value) const override {
+  Expected<void> Set(StringRef key, StringRef value) const override {
     text_map[key] = value;
     return {};
   }
@@ -53,8 +52,7 @@ struct HTTPHeadersCarrier : HTTPHeadersReader, HTTPHeadersWriter {
   HTTPHeadersCarrier(std::unordered_map<std::string, std::string>& text_map_)
       : text_map(text_map_) {}
 
-  Expected<void> Set(const std::string& key,
-                     const std::string& value) const override {
+  Expected<void> Set(StringRef key, StringRef value) const override {
     text_map[key] = value;
     return {};
   }
