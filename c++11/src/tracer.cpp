@@ -362,6 +362,12 @@ class LightStepTracerImpl
     return nullptr;
   }
 
+  Expected<void> Inject(const SpanContext& /*sc*/,
+                        std::ostream& /*writer*/) const override {
+    // Not supported yet.
+    return make_unexpected(invalid_carrier_error);
+  }
+
   Expected<void> Inject(const SpanContext& sc,
                         const TextMapWriter& writer) const override {
     return InjectImpl(sc, writer);
@@ -370,6 +376,12 @@ class LightStepTracerImpl
   Expected<void> Inject(const SpanContext& sc,
                         const HTTPHeadersWriter& writer) const override {
     return InjectImpl(sc, writer);
+  }
+
+  Expected<std::unique_ptr<SpanContext>> Extract(
+      std::istream& /*reader*/) const override {
+    // Not supported yet.
+    return make_unexpected(invalid_carrier_error);
   }
 
   Expected<std::unique_ptr<SpanContext>> Extract(
