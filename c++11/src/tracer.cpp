@@ -83,13 +83,13 @@ class LightStepSpanContext : public SpanContext {
   }
 
   template <class Carrier>
-  Expected<void> Inject(const Carrier& writer) const {
+  Expected<void> Inject(Carrier& writer) const {
     std::lock_guard<std::mutex> l(baggage_mutex_);
     return inject_span_context(writer, trace_id, span_id, baggage_);
   }
 
   template <class Carrier>
-  Expected<bool> Extract(const Carrier& reader) {
+  Expected<bool> Extract(Carrier& reader) {
     std::lock_guard<std::mutex> l(baggage_mutex_);
     return extract_span_context(reader, trace_id, span_id, baggage_);
   }
@@ -362,10 +362,9 @@ class LightStepTracerImpl
     return nullptr;
   }
 
-  Expected<void> Inject(const SpanContext& /*sc*/,
-                        std::ostream& /*writer*/) const override {
-    // Not supported yet.
-    return make_unexpected(invalid_carrier_error);
+  Expected<void> Inject(const SpanContext& sc,
+                        std::ostream& writer) const override {
+    return InjectImpl(sc, writer);
   }
 
   Expected<void> Inject(const SpanContext& sc,
@@ -379,9 +378,8 @@ class LightStepTracerImpl
   }
 
   Expected<std::unique_ptr<SpanContext>> Extract(
-      std::istream& /*reader*/) const override {
-    // Not supported yet.
-    return make_unexpected(invalid_carrier_error);
+      std::istream& reader) const override {
+    return ExtractImpl(reader);
   }
 
   Expected<std::unique_ptr<SpanContext>> Extract(
@@ -402,8 +400,7 @@ class LightStepTracerImpl
   std::unique_ptr<Recorder> recorder_;
 
   template <class Carrier>
-  Expected<void> InjectImpl(const SpanContext& sc,
-                            const Carrier& writer) const {
+  Expected<void> InjectImpl(const SpanContext& sc, Carrier& writer) const {
     auto lightstep_span_context =
         dynamic_cast<const LightStepSpanContext*>(&sc);
     if (lightstep_span_context == nullptr) {
@@ -413,8 +410,7 @@ class LightStepTracerImpl
   }
 
   template <class Carrier>
-  Expected<std::unique_ptr<SpanContext>> ExtractImpl(
-      const Carrier& reader) const {
+  Expected<std::unique_ptr<SpanContext>> ExtractImpl(Carrier& reader) const {
     auto lightstep_span_context = new (std::nothrow) LightStepSpanContext();
     std::unique_ptr<SpanContext> span_context(lightstep_span_context);
     if (!span_context) {

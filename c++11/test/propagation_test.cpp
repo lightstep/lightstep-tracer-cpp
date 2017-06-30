@@ -3,6 +3,7 @@
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
 #include <cctype>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include "in_memory_tracer.h"
@@ -88,11 +89,9 @@ TEST_CASE("propagation") {
     CHECK(tracer->Inject(span->context(), text_map_carrier));
     auto injection_map1 = text_map;
     auto span_context_maybe = tracer->Extract(text_map_carrier);
-    CHECK(span_context_maybe);
-    auto span_context = std::move(*span_context_maybe);
-    CHECK(span_context);
+    CHECK((span_context_maybe && span_context_maybe->get()));
     text_map.clear();
-    CHECK(tracer->Inject(*span_context, text_map_carrier));
+    CHECK(tracer->Inject(*span_context_maybe->get(), text_map_carrier));
     CHECK(injection_map1 == text_map);
   }
 
@@ -105,11 +104,26 @@ TEST_CASE("propagation") {
     auto binary_carrier1 = binary_carrier;
     auto span_context_maybe =
         tracer->Extract(LightStepBinaryReader(&binary_carrier));
-    CHECK(span_context_maybe);
+    CHECK((span_context_maybe && span_context_maybe->get()));
     CHECK(tracer->Inject(*span_context_maybe->get(),
                          LightStepBinaryWriter(binary_carrier)));
     CHECK(google::protobuf::util::MessageDifferencer::Equals(binary_carrier1,
                                                              binary_carrier));
+  }
+
+  SECTION("Inject, extract, inject yields the same binary blob.") {
+    std::ostringstream oss(std::ios::binary);
+    auto span = tracer->StartSpan("a");
+    CHECK(span);
+    span->SetBaggageItem("abc", "123");
+    CHECK(tracer->Inject(span->context(), oss));
+    auto blob = oss.str();
+    std::istringstream iss(blob, std::ios::binary);
+    auto span_context_maybe = tracer->Extract(iss);
+    CHECK((span_context_maybe && span_context_maybe->get()));
+    std::ostringstream oss2(std::ios::binary);
+    CHECK(tracer->Inject(*span_context_maybe->get(), oss2));
+    CHECK(blob == oss2.str());
   }
 
   SECTION(
@@ -158,5 +172,27 @@ TEST_CASE("propagation") {
                  : static_cast<char>(std::toupper(key[0]));
     text_map[key] = key_value.second;
     CHECK(tracer->Extract(http_headers_carrier));
+  }
+
+  SECTION("Extract/Inject fail if a stream has failure bits set.") {
+    std::ostringstream oss(std::ios::binary);
+    oss.setstate(std::ios_base::failbit);
+    auto span = tracer->StartSpan("a");
+    CHECK(span);
+    CHECK(!tracer->Inject(span->context(), oss));
+    oss.clear();
+    CHECK(tracer->Inject(span->context(), oss));
+    auto blob = oss.str();
+    std::istringstream iss(blob, std::ios::binary);
+    iss.setstate(std::ios_base::failbit);
+    CHECK(!tracer->Extract(iss));
+  }
+
+  SECTION("Calling Extract on an empty stream yields a nullptr.") {
+    std::string blob;
+    std::istringstream iss(blob, std::ios::binary);
+    auto span_context_maybe = tracer->Extract(iss);
+    CHECK(span_context_maybe);
+    CHECK(span_context_maybe->get() == nullptr);
   }
 }

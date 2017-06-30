@@ -37,8 +37,65 @@ static uint64_t hex_to_uint64(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
+// write_uint64
+//------------------------------------------------------------------------------
+static void write_uint64(std::ostream& out, uint64_t u) {
+  out.write(reinterpret_cast<char*>(&u), sizeof(u));
+}
+
+//------------------------------------------------------------------------------
+// read_uint64
+//------------------------------------------------------------------------------
+static uint64_t read_uint64(std::istream& in) {
+  uint64_t u = 0;
+  in.read(reinterpret_cast<char*>(&u), sizeof(u));
+  if (!in.good()) return 0;
+  return u;
+}
+
+//------------------------------------------------------------------------------
+// write_string
+//------------------------------------------------------------------------------
+static void write_string(std::ostream& out, const std::string& s) {
+  write_uint64(out, s.size());
+  out.write(s.data(), s.size());
+}
+
+//------------------------------------------------------------------------------
+// read_string
+//------------------------------------------------------------------------------
+static void read_string(std::istream& in, std::string& s) {
+  auto length = read_uint64(in);
+  s.resize(length);
+  in.read(&s.front(), length);
+}
+
+//------------------------------------------------------------------------------
 // inject_span_context
 //------------------------------------------------------------------------------
+Expected<void> inject_span_context(
+    std::ostream& carrier, uint64_t trace_id, uint64_t span_id,
+    const std::unordered_map<std::string, std::string>& baggage) {
+  // TODO: Do we want to fiddle with carrier.exceptions() to ensure
+  // that exceptions aren't thrown?
+  write_uint64(carrier, trace_id);
+  write_uint64(carrier, span_id);
+  write_uint64(carrier, baggage.size());
+  for (const auto& baggage_item : baggage) {
+    write_string(carrier, baggage_item.first);
+    write_string(carrier, baggage_item.second);
+  }
+
+  // Flush so that when we call carrier.good, we'll get an accurate view of the
+  // error state.
+  carrier.flush();
+  if (!carrier.good()) {
+    return make_unexpected(make_error_code(std::io_errc::stream));
+  }
+
+  return {};
+}
+
 Expected<void> inject_span_context(
     const TextMapWriter& carrier, uint64_t trace_id, uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
@@ -80,6 +137,43 @@ Expected<void> inject_span_context(
 //------------------------------------------------------------------------------
 // extract_span_context
 //------------------------------------------------------------------------------
+Expected<bool> extract_span_context(
+    std::istream& carrier, uint64_t& trace_id, uint64_t& span_id,
+    std::unordered_map<std::string, std::string>& baggage) {
+  // istream::peek returns EOF if it's in an error state, so check for an
+  // error state first before checking for an empty stream.
+  if (!carrier.good()) {
+    return make_unexpected(make_error_code(std::io_errc::stream));
+  }
+
+  // Check for the case when no span is encoded.
+  if (carrier.peek() == EOF) {
+    return false;
+  }
+
+  // TODO: Do we want to fiddle with carrier.exceptions() to ensure
+  // that exceptions aren't thrown?
+  trace_id = read_uint64(carrier);
+  span_id = read_uint64(carrier);
+  auto num_baggage = read_uint64(carrier);
+  baggage.reserve(num_baggage);
+  std::string key, value;
+  for (int i = 0; i < num_baggage; ++i) try {
+      read_string(carrier, key);
+      read_string(carrier, value);
+      baggage[key] = value;
+    } catch (const std::bad_alloc&) {
+      return make_unexpected(make_error_code(std::errc::not_enough_memory));
+    }
+  if (carrier.eof()) {
+    return make_unexpected(span_context_corrupted_error);
+  }
+  if (!carrier.good()) {
+    return make_unexpected(make_error_code(std::io_errc::stream));
+  }
+  return true;
+}
+
 template <class KeyCompare>
 static Expected<bool> extract_span_context(
     const TextMapReader& carrier, uint64_t& trace_id, uint64_t& span_id,
