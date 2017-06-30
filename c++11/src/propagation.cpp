@@ -139,7 +139,7 @@ Expected<void> inject_span_context(
 //------------------------------------------------------------------------------
 Expected<bool> extract_span_context(
     std::istream& carrier, uint64_t& trace_id, uint64_t& span_id,
-    std::unordered_map<std::string, std::string>& baggage) {
+    std::unordered_map<std::string, std::string>& baggage) try {
   // istream::peek returns EOF if it's in an error state, so check for an
   // error state first before checking for an empty stream.
   if (!carrier.good()) {
@@ -158,13 +158,17 @@ Expected<bool> extract_span_context(
   auto num_baggage = read_uint64(carrier);
   baggage.reserve(num_baggage);
   std::string key, value;
-  for (int i = 0; i < num_baggage; ++i) try {
-      read_string(carrier, key);
-      read_string(carrier, value);
-      baggage[key] = value;
-    } catch (const std::bad_alloc&) {
-      return make_unexpected(make_error_code(std::errc::not_enough_memory));
+  for (int i = 0; i < num_baggage; ++i) {
+    read_string(carrier, key);
+    read_string(carrier, value);
+    baggage[key] = value;
+
+    // Check fo EOF and break out of the loop if reached in case we're reading
+    // invalid data and `num_baggage` is some arbitrarily large value.
+    if (carrier.eof()) {
+      break;
     }
+  }
   if (carrier.eof()) {
     return make_unexpected(span_context_corrupted_error);
   }
@@ -172,6 +176,8 @@ Expected<bool> extract_span_context(
     return make_unexpected(make_error_code(std::io_errc::stream));
   }
   return true;
+} catch (const std::bad_alloc&) {
+  return make_unexpected(make_error_code(std::errc::not_enough_memory));
 }
 
 template <class KeyCompare>
