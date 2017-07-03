@@ -32,7 +32,7 @@ class ReportBuilder {
  public:
   explicit ReportBuilder(const LightStepTracerOptions& options)
       : reset_next_(true) {
-    // TODO(rnickb): Fill in any core internal_metrics.
+    // TODO(rnburn): Fill in any core internal_metrics.
     collector::Reporter* reporter = preamble_.mutable_reporter();
     for (const auto& tag : options.tags) {
       *reporter->mutable_tags()->Add() = to_key_value(tag.first, tag.second);
@@ -195,7 +195,7 @@ void RpcRecorder::flush_one() {
     if (save_pending == 0) {
       return;
     }
-    // TODO(rnickb): Compute and set timestamp_offset_micros
+    // TODO(rnburn): Compute and set timestamp_offset_micros
     save_dropped = dropped_spans_;
     builder_.setPendingClientDroppedSpans(save_dropped);
     dropped_spans_ = 0;
@@ -249,12 +249,11 @@ bool RpcRecorder::write_report(const collector::ReportRequest& report) {
   grpc::Status status = client_.Report(&context, report, &resp);
   if (!status.ok()) {
     std::cerr << "Report RPC failed: " << status.error_message();
-    // TODO(rnickb): Put some of these back into a buffer, etc. (Presently they
-    // all
-    // drop.)
+    // TODO(rnburn): Put some of these back into a buffer, etc. (Presently they
+    // all drop.)
     return false;
   }
-  // TODO(rnickb): Use response.
+  // TODO(rnburn): Use response.
   return true;
 }
 

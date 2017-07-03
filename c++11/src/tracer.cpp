@@ -16,7 +16,7 @@
 using namespace opentracing;
 
 namespace lightstep {
-std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
+std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
     std::unique_ptr<Recorder>&& recorder);
 //------------------------------------------------------------------------------
 // to_timestamp
@@ -45,7 +45,9 @@ class LightStepSpanContext : public SpanContext {
       : trace_id(trace_id_), span_id(span_id_), baggage_(std::move(baggage)) {}
 
   LightStepSpanContext(const LightStepSpanContext&) = delete;
-  LightStepSpanContext(LightStepSpanContext&&) = default;
+  LightStepSpanContext(LightStepSpanContext&&) = delete;
+
+  ~LightStepSpanContext() override = default;
 
   LightStepSpanContext& operator=(LightStepSpanContext&) = delete;
   LightStepSpanContext& operator=(LightStepSpanContext&& other) noexcept {
@@ -456,9 +458,9 @@ Expected<std::unique_ptr<SpanContext>> LightStepTracer::MakeSpanContext(
 }
 
 //------------------------------------------------------------------------------
-// make_lightstep_tracer
+// MakeLightStepTracer
 //------------------------------------------------------------------------------
-std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
+std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
     std::unique_ptr<Recorder>&& recorder) {
   if (!recorder) {
     return MakeNoopTracer();
@@ -467,8 +469,8 @@ std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
       new (std::nothrow) LightStepTracerImpl(std::move(recorder)));
 }
 
-std::shared_ptr<opentracing::Tracer> make_lightstep_tracer(
+std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
     const LightStepTracerOptions& options) {
-  return make_lightstep_tracer(make_lightstep_recorder(options));
+  return MakeLightStepTracer(make_lightstep_recorder(options));
 }
 }  // namespace lightstep

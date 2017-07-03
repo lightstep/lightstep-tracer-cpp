@@ -49,7 +49,9 @@ static void write_uint64(std::ostream& out, uint64_t u) {
 static uint64_t read_uint64(std::istream& in) {
   uint64_t u = 0;
   in.read(reinterpret_cast<char*>(&u), sizeof(u));
-  if (!in.good()) return 0;
+  if (!in.good()) {
+    return 0;
+  }
   return u;
 }
 
@@ -76,8 +78,8 @@ static void read_string(std::istream& in, std::string& s) {
 Expected<void> inject_span_context(
     std::ostream& carrier, uint64_t trace_id, uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
-  // TODO: Do we want to fiddle with carrier.exceptions() to ensure
-  // that exceptions aren't thrown?
+  // TODO(rnburn): Do we want to fiddle with carrier.exceptions() to ensure that
+  // exceptions aren't thrown?
   write_uint64(carrier, trace_id);
   write_uint64(carrier, span_id);
   write_uint64(carrier, baggage.size());
@@ -140,8 +142,8 @@ Expected<void> inject_span_context(
 Expected<bool> extract_span_context(
     std::istream& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) try {
-  // istream::peek returns EOF if it's in an error state, so check for an
-  // error state first before checking for an empty stream.
+  // istream::peek returns EOF if it's in an error state, so check for an error
+  // state first before checking for an empty stream.
   if (!carrier.good()) {
     return make_unexpected(make_error_code(std::io_errc::stream));
   }
@@ -151,8 +153,8 @@ Expected<bool> extract_span_context(
     return false;
   }
 
-  // TODO: Do we want to fiddle with carrier.exceptions() to ensure
-  // that exceptions aren't thrown?
+  // TODO(rnburn): Do we want to fiddle with carrier.exceptions() to ensure that
+  // exceptions aren't thrown?
   trace_id = read_uint64(carrier);
   span_id = read_uint64(carrier);
   auto num_baggage = read_uint64(carrier);
@@ -219,7 +221,7 @@ static Expected<bool> extract_span_context(
   if (count > 0 && count != FieldCount) {
     return make_unexpected(span_context_corrupted_error);
   }
-  { return true; }
+  return true;
 }
 
 Expected<bool> extract_span_context(

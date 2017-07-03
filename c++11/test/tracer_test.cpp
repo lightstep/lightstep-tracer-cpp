@@ -9,7 +9,7 @@ using namespace lightstep;
 using namespace opentracing;
 
 namespace lightstep {
-std::shared_ptr<Tracer> make_lightstep_tracer(
+std::shared_ptr<Tracer> MakeLightStepTracer(
     std::unique_ptr<Recorder>&& recorder);
 
 collector::KeyValue to_key_value(StringRef key, const Value& value);
@@ -58,7 +58,7 @@ static bool has_relationship(SpanReferenceType relationship,
 //------------------------------------------------------------------------------
 TEST_CASE("in_memory_tracer") {
   auto recorder = new InMemoryRecorder();
-  auto tracer = make_lightstep_tracer(std::unique_ptr<Recorder>(recorder));
+  auto tracer = MakeLightStepTracer(std::unique_ptr<Recorder>(recorder));
 
   SECTION("StartSpan applies the provided tags.") {
     {

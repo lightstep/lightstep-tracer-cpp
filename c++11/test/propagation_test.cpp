@@ -15,7 +15,7 @@ using namespace lightstep;
 using namespace opentracing;
 
 namespace lightstep {
-std::shared_ptr<Tracer> make_lightstep_tracer(
+std::shared_ptr<Tracer> MakeLightStepTracer(
     std::unique_ptr<Recorder>&& recorder);
 
 collector::KeyValue to_key_value(StringRef key, const Value& value);
@@ -76,7 +76,7 @@ struct HTTPHeadersCarrier : HTTPHeadersReader, HTTPHeadersWriter {
 //------------------------------------------------------------------------------
 TEST_CASE("propagation") {
   auto recorder = new InMemoryRecorder();
-  auto tracer = make_lightstep_tracer(std::unique_ptr<Recorder>(recorder));
+  auto tracer = MakeLightStepTracer(std::unique_ptr<Recorder>(recorder));
   std::unordered_map<std::string, std::string> text_map;
   TextMapCarrier text_map_carrier(text_map);
   HTTPHeadersCarrier http_headers_carrier(text_map);
