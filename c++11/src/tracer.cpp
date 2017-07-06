@@ -58,7 +58,7 @@ class LightStepSpanContext : public SpanContext {
     return *this;
   }
 
-  void setBaggageItem(StringRef key, StringRef value) noexcept try {
+  void setBaggageItem(string_view key, string_view value) noexcept try {
     std::lock_guard<std::mutex> l(baggage_mutex_);
     baggage_.emplace(key, value);
   } catch (const std::bad_alloc&) {
@@ -178,7 +178,7 @@ namespace {
 class LightStepSpan : public Span {
  public:
   LightStepSpan(std::shared_ptr<const Tracer>&& tracer, Recorder& recorder,
-                StringRef operation_name, const StartSpanOptions& options)
+                string_view operation_name, const StartSpanOptions& options)
       : tracer_(std::move(tracer)),
         recorder_(recorder),
         operation_name_(operation_name) {
@@ -282,33 +282,33 @@ class LightStepSpan : public Span {
     // Do nothing if memory allocation fails.
   }
 
-  void SetOperationName(StringRef name) noexcept override try {
+  void SetOperationName(string_view name) noexcept override try {
     std::lock_guard<std::mutex> l(mutex_);
     operation_name_ = name;
   } catch (const std::bad_alloc&) {
     // Don't change operation name if memory can't be allocated for it.
   }
 
-  void SetTag(StringRef key, const Value& value) noexcept override try {
+  void SetTag(string_view key, const Value& value) noexcept override try {
     std::lock_guard<std::mutex> l(mutex_);
     tags_[key] = value;
   } catch (const std::bad_alloc&) {
     // Don't add the tag if memory can't be allocated for it.
   }
 
-  void SetBaggageItem(StringRef restricted_key,
-                      StringRef value) noexcept override {
+  void SetBaggageItem(string_view restricted_key,
+                      string_view value) noexcept override {
     span_context_.setBaggageItem(restricted_key, value);
   }
 
-  std::string BaggageItem(StringRef restricted_key) const noexcept override
+  std::string BaggageItem(string_view restricted_key) const noexcept override
       try {
     return span_context_.baggageItem(restricted_key);
   } catch (const std::bad_alloc&) {
     return {};
   }
 
-  void Log(std::initializer_list<std::pair<StringRef, Value>>
+  void Log(std::initializer_list<std::pair<string_view, Value>>
                fields) noexcept override try {
     auto timestamp = SystemClock::now();
     collector::Log log;
@@ -355,7 +355,7 @@ class LightStepTracerImpl
       : recorder_(std::move(recorder)) {}
 
   std::unique_ptr<Span> StartSpanWithOptions(
-      StringRef operation_name, const StartSpanOptions& options) const
+      string_view operation_name, const StartSpanOptions& options) const
       noexcept override try {
     return std::unique_ptr<Span>(new LightStepSpan(
         shared_from_this(), *recorder_, operation_name, options));

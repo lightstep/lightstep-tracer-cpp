@@ -10,12 +10,12 @@ using namespace opentracing;
 namespace lightstep {
 #define PREFIX_TRACER_STATE "ot-tracer-"
 // Note: these constants are a convention of the OpenTracing basictracers.
-const StringRef PrefixBaggage = "ot-baggage-";
+const string_view PrefixBaggage = "ot-baggage-";
 
 const int FieldCount = 3;
-const StringRef FieldNameTraceID = PREFIX_TRACER_STATE "traceid";
-const StringRef FieldNameSpanID = PREFIX_TRACER_STATE "spanid";
-const StringRef FieldNameSampled = PREFIX_TRACER_STATE "sampled";
+const string_view FieldNameTraceID = PREFIX_TRACER_STATE "traceid";
+const string_view FieldNameSpanID = PREFIX_TRACER_STATE "spanid";
+const string_view FieldNameSampled = PREFIX_TRACER_STATE "sampled";
 #undef PREFIX_TRACER_STATE
 //------------------------------------------------------------------------------
 // uint64_to_hex
@@ -188,8 +188,8 @@ static Expected<bool> extract_span_context(
     std::unordered_map<std::string, std::string>& baggage,
     KeyCompare key_compare) {
   int count = 0;
-  auto result = carrier.ForeachKey([&](StringRef key,
-                                       StringRef value) -> Expected<void> {
+  auto result = carrier.ForeachKey([&](string_view key,
+                                       string_view value) -> Expected<void> {
     if (key_compare(key, FieldNameTraceID)) {
       trace_id = hex_to_uint64(value);
       count++;
@@ -200,7 +200,7 @@ static Expected<bool> extract_span_context(
       // Ignored
       count++;
     } else if (key.length() > PrefixBaggage.size() &&
-               key_compare(StringRef(key.data(), PrefixBaggage.size()),
+               key_compare(string_view(key.data(), PrefixBaggage.size()),
                            PrefixBaggage)) {
       try {
         baggage.emplace(
@@ -228,7 +228,7 @@ Expected<bool> extract_span_context(
     const TextMapReader& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) {
   return extract_span_context(carrier, trace_id, span_id, baggage,
-                              std::equal_to<StringRef>());
+                              std::equal_to<string_view>());
 }
 
 // HTTP header field names are case insensitive, so we need to ignore case when
@@ -238,7 +238,7 @@ Expected<bool> extract_span_context(
 Expected<bool> extract_span_context(
     const HTTPHeadersReader& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) {
-  auto iequals = [](StringRef lhs, StringRef rhs) {
+  auto iequals = [](string_view lhs, string_view rhs) {
     return lhs.length() == rhs.length() &&
            std::equal(std::begin(lhs), std::end(lhs), std::begin(rhs),
                       [](char a, char b) {

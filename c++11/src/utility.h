@@ -9,7 +9,7 @@
 namespace lightstep {
 uint64_t generate_id();
 std::string get_program_name();
-collector::KeyValue to_key_value(opentracing::StringRef key,
+collector::KeyValue to_key_value(opentracing::string_view key,
                                  const opentracing::Value& value);
 }  // namespace lightstep
 

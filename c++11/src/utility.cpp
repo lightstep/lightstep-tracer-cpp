@@ -146,7 +146,7 @@ struct ValueVisitor {
 };
 }  // anonymous namespace
 
-collector::KeyValue to_key_value(StringRef key, const Value& value) {
+collector::KeyValue to_key_value(string_view key, const Value& value) {
   collector::KeyValue key_value;
   key_value.set_key(key);
   ValueVisitor value_visitor{key_value, value};

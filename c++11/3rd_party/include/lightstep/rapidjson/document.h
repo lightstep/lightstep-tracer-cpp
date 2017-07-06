@@ -224,7 +224,7 @@ struct GenericMemberIterator<true,Encoding,Allocator> {
 #endif // RAPIDJSON_NOMEMBERITERATORCLASS
 
 ///////////////////////////////////////////////////////////////////////////////
-// GenericStringRef
+// Genericstring_view
 
 //! Reference to a constant string (not taking a copy)
 /*!
@@ -247,14 +247,14 @@ struct GenericMemberIterator<true,Encoding,Allocator> {
 
     const char* bar = foo;
     // Value x(bar); // not ok, can't rely on bar's lifetime
-    Value x(StringRef(bar)); // lifetime explicitly guaranteed by user
-    Value y(StringRef(bar, 3));  // ok, explicitly pass length
+    Value x(string_view(bar)); // lifetime explicitly guaranteed by user
+    Value y(string_view(bar, 3));  // ok, explicitly pass length
     \endcode
 
-    \see StringRef, GenericValue::SetString
+    \see string_view, GenericValue::SetString
 */
 template<typename CharType>
-struct GenericStringRef {
+struct Genericstring_view {
     typedef CharType Ch; //!< character type of the string
 
     //! Create string reference from \c const character array
@@ -262,7 +262,7 @@ struct GenericStringRef {
     /*!
         This constructor implicitly creates a constant string reference from
         a \c const character array.  It has better performance than
-        \ref StringRef(const CharType*) by inferring the string \ref length
+        \ref string_view(const CharType*) by inferring the string \ref length
         from the array length, and also supports strings containing null
         characters.
 
@@ -283,7 +283,7 @@ struct GenericStringRef {
      */
 #endif
     template<SizeType N>
-    GenericStringRef(const CharType (&str)[N]) RAPIDJSON_NOEXCEPT
+    Genericstring_view(const CharType (&str)[N]) RAPIDJSON_NOEXCEPT
         : s(str), length(N-1) {}
 
     //! Explicitly create string reference from \c const character pointer
@@ -292,7 +292,7 @@ struct GenericStringRef {
         This constructor can be used to \b explicitly  create a reference to
         a constant string pointer.
 
-        \see StringRef(const CharType*)
+        \see string_view(const CharType*)
 
         \param str Constant character pointer, lifetime assumed to be longer
             than the use of the string in e.g. a GenericValue
@@ -307,7 +307,7 @@ struct GenericStringRef {
             GenericValue instead.
      */
 #endif
-    explicit GenericStringRef(const CharType* str)
+    explicit Genericstring_view(const CharType* str)
         : s(str), length(internal::StrLen(str)){ RAPIDJSON_ASSERT(s != 0); }
 
     //! Create constant string reference from pointer and length
@@ -319,10 +319,10 @@ struct GenericStringRef {
         \note Constant complexity.
      */
 #endif
-    GenericStringRef(const CharType* str, SizeType len)
+    Genericstring_view(const CharType* str, SizeType len)
         : s(str), length(len) { RAPIDJSON_ASSERT(s != 0); }
 
-    GenericStringRef(const GenericStringRef& rhs) : s(rhs.s), length(rhs.length) {}
+    Genericstring_view(const Genericstring_view& rhs) : s(rhs.s), length(rhs.length) {}
 
     //! implicit conversion to plain CharType pointer
     operator const Ch *() const { return s; }
@@ -333,9 +333,9 @@ struct GenericStringRef {
 private:
     //! Disallow construction from non-const array
     template<SizeType N>
-    GenericStringRef(CharType (&str)[N]) /* = delete */;
+    Genericstring_view(CharType (&str)[N]) /* = delete */;
     //! Copy assignment operator not permitted - immutable type
-    GenericStringRef& operator=(const GenericStringRef& rhs) /* = delete */;
+    Genericstring_view& operator=(const Genericstring_view& rhs) /* = delete */;
 };
 
 //! Mark a character pointer as constant string
@@ -345,14 +345,14 @@ private:
     to be valid long enough.
     \tparam CharType Character type of the string
     \param str Constant string, lifetime assumed to be longer than the use of the string in e.g. a GenericValue
-    \return GenericStringRef string reference object
-    \relatesalso GenericStringRef
+    \return Genericstring_view string reference object
+    \relatesalso Genericstring_view
 
-    \see GenericValue::GenericValue(StringRefType), GenericValue::operator=(StringRefType), GenericValue::SetString(StringRefType), GenericValue::PushBack(StringRefType, Allocator&), GenericValue::AddMember
+    \see GenericValue::GenericValue(string_viewType), GenericValue::operator=(string_viewType), GenericValue::SetString(string_viewType), GenericValue::PushBack(string_viewType, Allocator&), GenericValue::AddMember
 */
 template<typename CharType>
-inline GenericStringRef<CharType> StringRef(const CharType* str) {
-    return GenericStringRef<CharType>(str, internal::StrLen(str));
+inline Genericstring_view<CharType> string_view(const CharType* str) {
+    return Genericstring_view<CharType>(str, internal::StrLen(str));
 }
 
 //! Mark a character pointer as constant string
@@ -367,12 +367,12 @@ inline GenericStringRef<CharType> StringRef(const CharType* str) {
     \tparam CharType character type of the string
     \param str Constant string, lifetime assumed to be longer than the use of the string in e.g. a GenericValue
     \param length The length of source string.
-    \return GenericStringRef string reference object
-    \relatesalso GenericStringRef
+    \return Genericstring_view string reference object
+    \relatesalso Genericstring_view
 */
 template<typename CharType>
-inline GenericStringRef<CharType> StringRef(const CharType* str, size_t length) {
-    return GenericStringRef<CharType>(str, SizeType(length));
+inline Genericstring_view<CharType> string_view(const CharType* str, size_t length) {
+    return Genericstring_view<CharType>(str, SizeType(length));
 }
 
 #if RAPIDJSON_HAS_STDSTRING
@@ -384,13 +384,13 @@ inline GenericStringRef<CharType> StringRef(const CharType* str, size_t length) 
 
     \tparam CharType character type of the string
     \param str Constant string, lifetime assumed to be longer than the use of the string in e.g. a GenericValue
-    \return GenericStringRef string reference object
-    \relatesalso GenericStringRef
+    \return Genericstring_view string reference object
+    \relatesalso Genericstring_view
     \note Requires the definition of the preprocessor symbol \ref RAPIDJSON_HAS_STDSTRING.
 */
 template<typename CharType>
-inline GenericStringRef<CharType> StringRef(const std::basic_string<CharType>& str) {
-    return GenericStringRef<CharType>(str.data(), SizeType(str.size()));
+inline Genericstring_view<CharType> string_view(const std::basic_string<CharType>& str) {
+    return Genericstring_view<CharType>(str.data(), SizeType(str.size()));
 }
 #endif
 
@@ -479,7 +479,7 @@ struct TypeHelper<ValueType, const typename ValueType::Ch*> {
     typedef const typename ValueType::Ch* StringType;
     static bool Is(const ValueType& v) { return v.IsString(); }
     static StringType Get(const ValueType& v) { return v.GetString(); }
-    static ValueType& Set(ValueType& v, const StringType data) { return v.SetString(typename ValueType::StringRefType(data)); }
+    static ValueType& Set(ValueType& v, const StringType data) { return v.SetString(typename ValueType::string_viewType(data)); }
     static ValueType& Set(ValueType& v, const StringType data, typename ValueType::AllocatorType& a) { return v.SetString(data, a); }
 };
 
@@ -552,7 +552,7 @@ public:
     typedef Encoding EncodingType;                  //!< Encoding type from template parameter.
     typedef Allocator AllocatorType;                //!< Allocator type from template parameter.
     typedef typename Encoding::Ch Ch;               //!< Character type derived from Encoding.
-    typedef GenericStringRef<Ch> StringRefType;     //!< Reference to a constant string
+    typedef Genericstring_view<Ch> string_viewType;     //!< Reference to a constant string
     typedef typename GenericMemberIterator<false,Encoding,Allocator>::Iterator MemberIterator;  //!< Member iterator for iterating in object.
     typedef typename GenericMemberIterator<true,Encoding,Allocator>::Iterator ConstMemberIterator;  //!< Constant member iterator for iterating in object.
     typedef GenericValue* ValueIterator;            //!< Value iterator for iterating in array.
@@ -651,7 +651,7 @@ public:
                 data_  = *reinterpret_cast<const Data*>(&rhs.data_);
             }
             else
-                SetStringRaw(StringRef(rhs.GetString(), rhs.GetStringLength()), allocator);
+                SetStringRaw(string_view(rhs.GetString(), rhs.GetStringLength()), allocator);
             break;
         default:
             data_.f.flags = rhs.data_.f.flags;
@@ -724,22 +724,22 @@ public:
     explicit GenericValue(float f) RAPIDJSON_NOEXCEPT : data_() { data_.n.d = static_cast<double>(f); data_.f.flags = kNumberDoubleFlag; }
 
     //! Constructor for constant string (i.e. do not make a copy of string)
-    GenericValue(const Ch* s, SizeType length) RAPIDJSON_NOEXCEPT : data_() { SetStringRaw(StringRef(s, length)); }
+    GenericValue(const Ch* s, SizeType length) RAPIDJSON_NOEXCEPT : data_() { SetStringRaw(string_view(s, length)); }
 
     //! Constructor for constant string (i.e. do not make a copy of string)
-    explicit GenericValue(StringRefType s) RAPIDJSON_NOEXCEPT : data_() { SetStringRaw(s); }
+    explicit GenericValue(string_viewType s) RAPIDJSON_NOEXCEPT : data_() { SetStringRaw(s); }
 
     //! Constructor for copy-string (i.e. do make a copy of string)
-    GenericValue(const Ch* s, SizeType length, Allocator& allocator) : data_() { SetStringRaw(StringRef(s, length), allocator); }
+    GenericValue(const Ch* s, SizeType length, Allocator& allocator) : data_() { SetStringRaw(string_view(s, length), allocator); }
 
     //! Constructor for copy-string (i.e. do make a copy of string)
-    GenericValue(const Ch*s, Allocator& allocator) : data_() { SetStringRaw(StringRef(s), allocator); }
+    GenericValue(const Ch*s, Allocator& allocator) : data_() { SetStringRaw(string_view(s), allocator); }
 
 #if RAPIDJSON_HAS_STDSTRING
     //! Constructor for copy-string from a string object (i.e. do make a copy of string)
     /*! \note Requires the definition of the preprocessor symbol \ref RAPIDJSON_HAS_STDSTRING.
      */
-    GenericValue(const std::basic_string<Ch>& s, Allocator& allocator) : data_() { SetStringRaw(StringRef(s), allocator); }
+    GenericValue(const std::basic_string<Ch>& s, Allocator& allocator) : data_() { SetStringRaw(string_view(s), allocator); }
 #endif
 
     //! Constructor for Array.
@@ -820,9 +820,9 @@ public:
     //! Assignment of constant string reference (no copy)
     /*! \param str Constant string reference to be assigned
         \note This overload is needed to avoid clashes with the generic primitive type assignment overload below.
-        \see GenericStringRef, operator=(T)
+        \see Genericstring_view, operator=(T)
     */
-    GenericValue& operator=(StringRefType str) RAPIDJSON_NOEXCEPT {
+    GenericValue& operator=(string_viewType str) RAPIDJSON_NOEXCEPT {
         GenericValue s(str);
         return *this = s;
     }
@@ -835,7 +835,7 @@ public:
             especially (\c const) \ref Ch*.  This helps avoiding implicitly
             referencing character strings with insufficient lifetime, use
             \ref SetString(const Ch*, Allocator&) (for copying) or
-            \ref StringRef() (to explicitly mark the pointer as constant) instead.
+            \ref string_view() (to explicitly mark the pointer as constant) instead.
             All other pointer types would implicitly convert to \c bool,
             use \ref SetBool() instead.
     */
@@ -943,13 +943,13 @@ public:
     }
 
     //! Equal-to operator with const C-string pointer
-    bool operator==(const Ch* rhs) const { return *this == GenericValue(StringRef(rhs)); }
+    bool operator==(const Ch* rhs) const { return *this == GenericValue(string_view(rhs)); }
 
 #if RAPIDJSON_HAS_STDSTRING
     //! Equal-to operator with string object
     /*! \note Requires the definition of the preprocessor symbol \ref RAPIDJSON_HAS_STDSTRING.
      */
-    bool operator==(const std::basic_string<Ch>& rhs) const { return *this == GenericValue(StringRef(rhs)); }
+    bool operator==(const std::basic_string<Ch>& rhs) const { return *this == GenericValue(string_view(rhs)); }
 #endif
 
     //! Equal-to operator with primitive types
@@ -1081,7 +1081,7 @@ public:
     */
     template <typename T>
     RAPIDJSON_DISABLEIF_RETURN((internal::NotExpr<internal::IsSame<typename internal::RemoveConst<T>::Type, Ch> >),(GenericValue&)) operator[](T* name) {
-        GenericValue n(StringRef(name));
+        GenericValue n(string_view(name));
         return (*this)[n];
     }
     template <typename T>
@@ -1118,8 +1118,8 @@ public:
 
 #if RAPIDJSON_HAS_STDSTRING
     //! Get a value from an object associated with name (string object).
-    GenericValue& operator[](const std::basic_string<Ch>& name) { return (*this)[GenericValue(StringRef(name))]; }
-    const GenericValue& operator[](const std::basic_string<Ch>& name) const { return (*this)[GenericValue(StringRef(name))]; }
+    GenericValue& operator[](const std::basic_string<Ch>& name) { return (*this)[GenericValue(string_view(name))]; }
+    const GenericValue& operator[](const std::basic_string<Ch>& name) const { return (*this)[GenericValue(string_view(name))]; }
 #endif
 
     //! Const member iterator
@@ -1182,7 +1182,7 @@ public:
         \note Linear time complexity.
     */
     MemberIterator FindMember(const Ch* name) {
-        GenericValue n(StringRef(name));
+        GenericValue n(string_view(name));
         return FindMember(n);
     }
 
@@ -1221,8 +1221,8 @@ public:
         \return Iterator to member, if it exists.
             Otherwise returns \ref MemberEnd().
     */
-    MemberIterator FindMember(const std::basic_string<Ch>& name) { return FindMember(GenericValue(StringRef(name))); }
-    ConstMemberIterator FindMember(const std::basic_string<Ch>& name) const { return FindMember(GenericValue(StringRef(name))); }
+    MemberIterator FindMember(const std::basic_string<Ch>& name) { return FindMember(GenericValue(string_view(name))); }
+    ConstMemberIterator FindMember(const std::basic_string<Ch>& name) const { return FindMember(GenericValue(string_view(name))); }
 #endif
 
     //! Add a member (name-value pair) to the object.
@@ -1267,7 +1267,7 @@ public:
         \note This overload is needed to avoid clashes with the generic primitive type AddMember(GenericValue&,T,Allocator&) overload below.
         \note Amortized Constant time complexity.
     */
-    GenericValue& AddMember(GenericValue& name, StringRefType value, Allocator& allocator) {
+    GenericValue& AddMember(GenericValue& name, string_viewType value, Allocator& allocator) {
         GenericValue v(value);
         return AddMember(name, v, allocator);
     }
@@ -1299,8 +1299,8 @@ public:
         \note The source type \c T explicitly disallows all pointer types,
             especially (\c const) \ref Ch*.  This helps avoiding implicitly
             referencing character strings with insufficient lifetime, use
-            \ref AddMember(StringRefType, GenericValue&, Allocator&) or \ref
-            AddMember(StringRefType, StringRefType, Allocator&).
+            \ref AddMember(string_viewType, GenericValue&, Allocator&) or \ref
+            AddMember(string_viewType, string_viewType, Allocator&).
             All other pointer types would implicitly convert to \c bool,
             use an explicit cast instead, if needed.
         \note Amortized Constant time complexity.
@@ -1322,7 +1322,7 @@ public:
     GenericValue& AddMember(GenericValue& name, GenericValue&& value, Allocator& allocator) {
         return AddMember(name, value, allocator);
     }
-    GenericValue& AddMember(StringRefType name, GenericValue&& value, Allocator& allocator) {
+    GenericValue& AddMember(string_viewType name, GenericValue&& value, Allocator& allocator) {
         GenericValue n(name);
         return AddMember(n, value, allocator);
     }
@@ -1339,7 +1339,7 @@ public:
         \post value.IsNull()
         \note Amortized Constant time complexity.
     */
-    GenericValue& AddMember(StringRefType name, GenericValue& value, Allocator& allocator) {
+    GenericValue& AddMember(string_viewType name, GenericValue& value, Allocator& allocator) {
         GenericValue n(name);
         return AddMember(n, value, allocator);
     }
@@ -1350,10 +1350,10 @@ public:
         \param allocator    Allocator for reallocating memory. It must be the same one as used before. Commonly use GenericDocument::GetAllocator().
         \return The value itself for fluent API.
         \pre  IsObject()
-        \note This overload is needed to avoid clashes with the generic primitive type AddMember(StringRefType,T,Allocator&) overload below.
+        \note This overload is needed to avoid clashes with the generic primitive type AddMember(string_viewType,T,Allocator&) overload below.
         \note Amortized Constant time complexity.
     */
-    GenericValue& AddMember(StringRefType name, StringRefType value, Allocator& allocator) {
+    GenericValue& AddMember(string_viewType name, string_viewType value, Allocator& allocator) {
         GenericValue v(value);
         return AddMember(name, v, allocator);
     }
@@ -1369,15 +1369,15 @@ public:
         \note The source type \c T explicitly disallows all pointer types,
             especially (\c const) \ref Ch*.  This helps avoiding implicitly
             referencing character strings with insufficient lifetime, use
-            \ref AddMember(StringRefType, GenericValue&, Allocator&) or \ref
-            AddMember(StringRefType, StringRefType, Allocator&).
+            \ref AddMember(string_viewType, GenericValue&, Allocator&) or \ref
+            AddMember(string_viewType, string_viewType, Allocator&).
             All other pointer types would implicitly convert to \c bool,
             use an explicit cast instead, if needed.
         \note Amortized Constant time complexity.
     */
     template <typename T>
     RAPIDJSON_DISABLEIF_RETURN((internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T> >), (GenericValue&))
-    AddMember(StringRefType name, T value, Allocator& allocator) {
+    AddMember(string_viewType name, T value, Allocator& allocator) {
         GenericValue n(name);
         return AddMember(n, value, allocator);
     }
@@ -1402,12 +1402,12 @@ public:
         \note Linear time complexity.
     */
     bool RemoveMember(const Ch* name) {
-        GenericValue n(StringRef(name));
+        GenericValue n(string_view(name));
         return RemoveMember(n);
     }
 
 #if RAPIDJSON_HAS_STDSTRING
-    bool RemoveMember(const std::basic_string<Ch>& name) { return RemoveMember(GenericValue(StringRef(name))); }
+    bool RemoveMember(const std::basic_string<Ch>& name) { return RemoveMember(GenericValue(string_view(name))); }
 #endif
 
     template <typename SourceAllocator>
@@ -1488,12 +1488,12 @@ public:
         \note Linear time complexity.
     */
     bool EraseMember(const Ch* name) {
-        GenericValue n(StringRef(name));
+        GenericValue n(string_view(name));
         return EraseMember(n);
     }
 
 #if RAPIDJSON_HAS_STDSTRING
-    bool EraseMember(const std::basic_string<Ch>& name) { return EraseMember(GenericValue(StringRef(name))); }
+    bool EraseMember(const std::basic_string<Ch>& name) { return EraseMember(GenericValue(string_view(name))); }
 #endif
 
     template <typename SourceAllocator>
@@ -1611,10 +1611,10 @@ public:
         \return The value itself for fluent API.
         \note If the number of elements to be appended is known, calls Reserve() once first may be more efficient.
         \note Amortized constant time complexity.
-        \see GenericStringRef
+        \see Genericstring_view
     */
-    GenericValue& PushBack(StringRefType value, Allocator& allocator) {
-        return (*this).template PushBack<StringRefType>(value, allocator);
+    GenericValue& PushBack(string_viewType value, Allocator& allocator) {
+        return (*this).template PushBack<string_viewType>(value, allocator);
     }
 
     //! Append a primitive value at the end of the array.
@@ -1629,7 +1629,7 @@ public:
             especially (\c const) \ref Ch*.  This helps avoiding implicitly
             referencing character strings with insufficient lifetime, use
             \ref PushBack(GenericValue&, Allocator&) or \ref
-            PushBack(StringRefType, Allocator&).
+            PushBack(string_viewType, Allocator&).
             All other pointer types would implicitly convert to \c bool,
             use an explicit cast instead, if needed.
         \note Amortized constant time complexity.
@@ -1743,16 +1743,16 @@ public:
         \param length The length of source string, excluding the trailing null terminator.
         \return The value itself for fluent API.
         \post IsString() == true && GetString() == s && GetStringLength() == length
-        \see SetString(StringRefType)
+        \see SetString(string_viewType)
     */
-    GenericValue& SetString(const Ch* s, SizeType length) { return SetString(StringRef(s, length)); }
+    GenericValue& SetString(const Ch* s, SizeType length) { return SetString(string_view(s, length)); }
 
     //! Set this value as a string without copying source string.
     /*! \param s source string reference
         \return The value itself for fluent API.
         \post IsString() == true && GetString() == s && GetStringLength() == s.length
     */
-    GenericValue& SetString(StringRefType s) { this->~GenericValue(); SetStringRaw(s); return *this; }
+    GenericValue& SetString(string_viewType s) { this->~GenericValue(); SetStringRaw(s); return *this; }
 
     //! Set this value as a string by copying from source string.
     /*! This version has better performance with supplied length, and also support string containing null character.
@@ -1762,7 +1762,7 @@ public:
         \return The value itself for fluent API.
         \post IsString() == true && GetString() != s && strcmp(GetString(),s) == 0 && GetStringLength() == length
     */
-    GenericValue& SetString(const Ch* s, SizeType length, Allocator& allocator) { this->~GenericValue(); SetStringRaw(StringRef(s, length), allocator); return *this; }
+    GenericValue& SetString(const Ch* s, SizeType length, Allocator& allocator) { this->~GenericValue(); SetStringRaw(string_view(s, length), allocator); return *this; }
 
     //! Set this value as a string by copying from source string.
     /*! \param s source string. 
@@ -2009,14 +2009,14 @@ private:
     }
 
     //! Initialize this value as constant string, without calling destructor.
-    void SetStringRaw(StringRefType s) RAPIDJSON_NOEXCEPT {
+    void SetStringRaw(string_viewType s) RAPIDJSON_NOEXCEPT {
         data_.f.flags = kConstStringFlag;
         SetStringPointer(s);
         data_.s.length = s.length;
     }
 
     //! Initialize this value as copy string with initial data, without calling destructor.
-    void SetStringRaw(StringRefType s, Allocator& allocator) {
+    void SetStringRaw(string_viewType s, Allocator& allocator) {
         Ch* str = 0;
         if (ShortString::Usable(s.length)) {
             data_.f.flags = kShortStringFlag;
@@ -2468,7 +2468,7 @@ public:
     typedef ValueType* ValueIterator;  // This may be const or non-const iterator
     typedef const ValueT* ConstValueIterator;
     typedef typename ValueType::AllocatorType AllocatorType;
-    typedef typename ValueType::StringRefType StringRefType;
+    typedef typename ValueType::string_viewType string_viewType;
 
     template <typename, typename>
     friend class GenericValue;
@@ -2489,7 +2489,7 @@ public:
 #if RAPIDJSON_HAS_CXX11_RVALUE_REFS
     GenericArray PushBack(ValueType&& value, AllocatorType& allocator) const { value_.PushBack(value, allocator); return *this; }
 #endif // RAPIDJSON_HAS_CXX11_RVALUE_REFS
-    GenericArray PushBack(StringRefType value, AllocatorType& allocator) const { value_.PushBack(value, allocator); return *this; }
+    GenericArray PushBack(string_viewType value, AllocatorType& allocator) const { value_.PushBack(value, allocator); return *this; }
     template <typename T> RAPIDJSON_DISABLEIF_RETURN((internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T> >), (const GenericArray&)) PushBack(T value, AllocatorType& allocator) const { value_.PushBack(value, allocator); return *this; }
     GenericArray PopBack() const { value_.PopBack(); return *this; }
     ValueIterator Erase(ConstValueIterator pos) const { return value_.Erase(pos); }
@@ -2521,7 +2521,7 @@ public:
     typedef GenericMemberIterator<Const, typename ValueT::EncodingType, typename ValueT::AllocatorType> MemberIterator;  // This may be const or non-const iterator
     typedef GenericMemberIterator<true, typename ValueT::EncodingType, typename ValueT::AllocatorType> ConstMemberIterator;
     typedef typename ValueType::AllocatorType AllocatorType;
-    typedef typename ValueType::StringRefType StringRefType;
+    typedef typename ValueType::string_viewType string_viewType;
     typedef typename ValueType::EncodingType EncodingType;
     typedef typename ValueType::Ch Ch;
 
@@ -2552,7 +2552,7 @@ public:
     MemberIterator FindMember(const std::basic_string<Ch>& name) const { return value_.FindMember(name); }
 #endif
     GenericObject AddMember(ValueType& name, ValueType& value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
-    GenericObject AddMember(ValueType& name, StringRefType value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
+    GenericObject AddMember(ValueType& name, string_viewType value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
 #if RAPIDJSON_HAS_STDSTRING
     GenericObject AddMember(ValueType& name, std::basic_string<Ch>& value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
 #endif
@@ -2561,11 +2561,11 @@ public:
     GenericObject AddMember(ValueType&& name, ValueType&& value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
     GenericObject AddMember(ValueType&& name, ValueType& value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
     GenericObject AddMember(ValueType& name, ValueType&& value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
-    GenericObject AddMember(StringRefType name, ValueType&& value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
+    GenericObject AddMember(string_viewType name, ValueType&& value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
 #endif // RAPIDJSON_HAS_CXX11_RVALUE_REFS
-    GenericObject AddMember(StringRefType name, ValueType& value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
-    GenericObject AddMember(StringRefType name, StringRefType value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
-    template <typename T> RAPIDJSON_DISABLEIF_RETURN((internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T> >), (GenericObject)) AddMember(StringRefType name, T value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
+    GenericObject AddMember(string_viewType name, ValueType& value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
+    GenericObject AddMember(string_viewType name, string_viewType value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
+    template <typename T> RAPIDJSON_DISABLEIF_RETURN((internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T> >), (GenericObject)) AddMember(string_viewType name, T value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
     void RemoveAllMembers() { value_.RemoveAllMembers(); }
     bool RemoveMember(const Ch* name) const { return value_.RemoveMember(name); }
 #if RAPIDJSON_HAS_STDSTRING
@@ -2577,7 +2577,7 @@ public:
     MemberIterator EraseMember(ConstMemberIterator first, ConstMemberIterator last) const { return value_.EraseMember(first, last); }
     bool EraseMember(const Ch* name) const { return value_.EraseMember(name); }
 #if RAPIDJSON_HAS_STDSTRING
-    bool EraseMember(const std::basic_string<Ch>& name) const { return EraseMember(ValueType(StringRef(name))); }
+    bool EraseMember(const std::basic_string<Ch>& name) const { return EraseMember(ValueType(string_view(name))); }
 #endif
     template <typename SourceAllocator> bool EraseMember(const GenericValue<EncodingType, SourceAllocator>& name) const { return value_.EraseMember(name); }
 
