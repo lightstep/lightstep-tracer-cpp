@@ -108,7 +108,7 @@ template <bool Const, typename Encoding, typename Allocator>
 class GenericMemberIterator;
 
 template<typename CharType>
-struct Genericstring_view;
+struct GenericStringRef;
 
 template <typename Encoding, typename Allocator> 
 class GenericValue;

@@ -428,7 +428,7 @@ public:
                     v = &((*v)[t->index]);
                 }
                 else {
-                    typename ValueType::MemberIterator m = v->FindMember(Genericstring_view<Ch>(t->name, t->length));
+                    typename ValueType::MemberIterator m = v->FindMember(GenericStringRef<Ch>(t->name, t->length));
                     if (m == v->MemberEnd()) {
                         v->AddMember(ValueType(t->name, t->length, allocator).Move(), ValueType().Move(), allocator);
                         v = &(--v->MemberEnd())->value; // Assumes AddMember() appends at the end
@@ -483,7 +483,7 @@ public:
             switch (v->GetType()) {
             case kObjectType:
                 {
-                    typename ValueType::MemberIterator m = v->FindMember(Genericstring_view<Ch>(t->name, t->length));
+                    typename ValueType::MemberIterator m = v->FindMember(GenericStringRef<Ch>(t->name, t->length));
                     if (m == v->MemberEnd())
                         break;
                     v = &m->value;
@@ -719,7 +719,7 @@ public:
             switch (v->GetType()) {
             case kObjectType:
                 {
-                    typename ValueType::MemberIterator m = v->FindMember(Genericstring_view<Ch>(t->name, t->length));
+                    typename ValueType::MemberIterator m = v->FindMember(GenericStringRef<Ch>(t->name, t->length));
                     if (m == v->MemberEnd())
                         return false;
                     v = &m->value;
@@ -737,7 +737,7 @@ public:
 
         switch (v->GetType()) {
         case kObjectType:
-            return v->EraseMember(Genericstring_view<Ch>(last->name, last->length));
+            return v->EraseMember(GenericStringRef<Ch>(last->name, last->length));
         case kArrayType:
             if (last->index == kPointerInvalidIndex || last->index >= v->Size())
                 return false;
