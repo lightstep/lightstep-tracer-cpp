@@ -10,7 +10,7 @@ class LightStepBinaryReader : public opentracing::CustomCarrierReader {
   LightStepBinaryReader(const BinaryCarrier* carrier) noexcept
       : carrier_(carrier) {}
 
-  opentracing::Expected<std::unique_ptr<opentracing::SpanContext>> Extract(
+  opentracing::expected<std::unique_ptr<opentracing::SpanContext>> Extract(
       const opentracing::Tracer& tracer) const override;
 
  private:
@@ -21,7 +21,7 @@ class LightStepBinaryWriter : public opentracing::CustomCarrierWriter {
  public:
   LightStepBinaryWriter(BinaryCarrier& carrier) noexcept : carrier_(carrier) {}
 
-  opentracing::Expected<void> Inject(
+  opentracing::expected<void> Inject(
       const opentracing::Tracer& tracer,
       const opentracing::SpanContext& sc) const override;
 

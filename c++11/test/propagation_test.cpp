@@ -28,13 +28,13 @@ struct TextMapCarrier : TextMapReader, TextMapWriter {
   TextMapCarrier(std::unordered_map<std::string, std::string>& text_map_)
       : text_map(text_map_) {}
 
-  Expected<void> Set(string_view key, string_view value) const override {
+  expected<void> Set(string_view key, string_view value) const override {
     text_map[key] = value;
     return {};
   }
 
-  Expected<void> ForeachKey(
-      std::function<Expected<void>(string_view key, string_view value)> f)
+  expected<void> ForeachKey(
+      std::function<expected<void>(string_view key, string_view value)> f)
       const override {
     for (const auto& key_value : text_map) {
       auto result = f(key_value.first, key_value.second);
@@ -53,13 +53,13 @@ struct HTTPHeadersCarrier : HTTPHeadersReader, HTTPHeadersWriter {
   HTTPHeadersCarrier(std::unordered_map<std::string, std::string>& text_map_)
       : text_map(text_map_) {}
 
-  Expected<void> Set(string_view key, string_view value) const override {
+  expected<void> Set(string_view key, string_view value) const override {
     text_map[key] = value;
     return {};
   }
 
-  Expected<void> ForeachKey(
-      std::function<Expected<void>(string_view key, string_view value)> f)
+  expected<void> ForeachKey(
+      std::function<expected<void>(string_view key, string_view value)> f)
       const override {
     for (const auto& key_value : text_map) {
       auto result = f(key_value.first, key_value.second);

@@ -6,7 +6,7 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 // Extract
 //------------------------------------------------------------------------------
-Expected<std::unique_ptr<SpanContext>> LightStepBinaryReader::Extract(
+expected<std::unique_ptr<SpanContext>> LightStepBinaryReader::Extract(
     const Tracer& tracer) const try {
   auto lightstep_tracer = dynamic_cast<const LightStepTracer*>(&tracer);
   if (lightstep_tracer == nullptr) {
@@ -29,7 +29,7 @@ Expected<std::unique_ptr<SpanContext>> LightStepBinaryReader::Extract(
 //------------------------------------------------------------------------------
 // Inject
 //------------------------------------------------------------------------------
-Expected<void> LightStepBinaryWriter::Inject(
+expected<void> LightStepBinaryWriter::Inject(
     const opentracing::Tracer& tracer, const opentracing::SpanContext& sc) const
     try {
   auto lightstep_tracer = dynamic_cast<const LightStepTracer*>(&tracer);

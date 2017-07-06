@@ -75,7 +75,7 @@ static void read_string(std::istream& in, std::string& s) {
 //------------------------------------------------------------------------------
 // inject_span_context
 //------------------------------------------------------------------------------
-Expected<void> inject_span_context(
+expected<void> inject_span_context(
     std::ostream& carrier, uint64_t trace_id, uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
   // TODO(rnburn): Do we want to fiddle with carrier.exceptions() to ensure that
@@ -98,7 +98,7 @@ Expected<void> inject_span_context(
   return {};
 }
 
-Expected<void> inject_span_context(
+expected<void> inject_span_context(
     const TextMapWriter& carrier, uint64_t trace_id, uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
   std::string trace_id_hex, span_id_hex, baggage_key;
@@ -139,7 +139,7 @@ Expected<void> inject_span_context(
 //------------------------------------------------------------------------------
 // extract_span_context
 //------------------------------------------------------------------------------
-Expected<bool> extract_span_context(
+expected<bool> extract_span_context(
     std::istream& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) try {
   // istream::peek returns EOF if it's in an error state, so check for an error
@@ -183,13 +183,13 @@ Expected<bool> extract_span_context(
 }
 
 template <class KeyCompare>
-static Expected<bool> extract_span_context(
+static expected<bool> extract_span_context(
     const TextMapReader& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage,
     KeyCompare key_compare) {
   int count = 0;
   auto result = carrier.ForeachKey([&](string_view key,
-                                       string_view value) -> Expected<void> {
+                                       string_view value) -> expected<void> {
     if (key_compare(key, FieldNameTraceID)) {
       trace_id = hex_to_uint64(value);
       count++;
@@ -224,7 +224,7 @@ static Expected<bool> extract_span_context(
   return true;
 }
 
-Expected<bool> extract_span_context(
+expected<bool> extract_span_context(
     const TextMapReader& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) {
   return extract_span_context(carrier, trace_id, span_id, baggage,
@@ -235,7 +235,7 @@ Expected<bool> extract_span_context(
 // comparing against the OpenTracing field names.
 //
 // See https://stackoverflow.com/a/5259004/4447365
-Expected<bool> extract_span_context(
+expected<bool> extract_span_context(
     const HTTPHeadersReader& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) {
   auto iequals = [](string_view lhs, string_view rhs) {
