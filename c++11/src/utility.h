@@ -2,7 +2,7 @@
 #define LIGHTSTEP_UTILITY_H
 
 #include <collector.pb.h>
-#include <opentracing/stringref.h>
+#include <opentracing/string_view.h>
 #include <opentracing/value.h>
 #include <string>
 

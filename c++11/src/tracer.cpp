@@ -1,7 +1,7 @@
 #include <collector.pb.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
-#include <opentracing/stringref.h>
+#include <opentracing/string_view.h>
 #include <atomic>
 #include <cstdint>
 #include <iostream>

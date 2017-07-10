@@ -2,7 +2,7 @@
 #include <collector.pb.h>
 #include <lightstep/rapidjson/stringbuffer.h>
 #include <lightstep/rapidjson/writer.h>
-#include <opentracing/stringref.h>
+#include <opentracing/string_view.h>
 #include <opentracing/value.h>
 #include <unistd.h>
 #include <stdexcept>

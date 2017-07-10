@@ -3,7 +3,7 @@
 #include <grpc++/create_channel.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
-#include <opentracing/stringref.h>
+#include <opentracing/string_view.h>
 #include <iostream>
 #include <sstream>
 #include <thread>
