@@ -463,7 +463,7 @@ expected<std::unique_ptr<SpanContext>> LightStepTracer::MakeSpanContext(
 std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
     std::unique_ptr<Recorder>&& recorder) {
   if (!recorder) {
-    return MakeNoopTracer();
+    return nullptr;
   }
   return std::shared_ptr<opentracing::Tracer>(
       new (std::nothrow) LightStepTracerImpl(std::move(recorder)));

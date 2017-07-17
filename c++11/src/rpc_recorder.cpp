@@ -1,6 +1,5 @@
 #include <collector.grpc.pb.h>
 #include <collector.pb.h>
-#include <grpc++/create_channel.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
 #include <opentracing/string_view.h>
@@ -14,15 +13,6 @@ using namespace opentracing;
 
 namespace lightstep {
 //------------------------------------------------------------------------------
-// hostPortOf
-//------------------------------------------------------------------------------
-static std::string hostPortOf(const LightStepTracerOptions& options) {
-  std::ostringstream os;
-  os << options.collector_host << ":" << options.collector_port;
-  return os.str();
-}
-
-//------------------------------------------------------------------------------
 // ReportBuilder
 //------------------------------------------------------------------------------
 // ReportBuilder helps construct lightstep::collector::ReportRequest
@@ -30,8 +20,7 @@ static std::string hostPortOf(const LightStepTracerOptions& options) {
 namespace {
 class ReportBuilder {
  public:
-  explicit ReportBuilder(const LightStepTracerOptions& options)
-      : reset_next_(true) {
+  ReportBuilder(const LightStepTracerOptions& options) : reset_next_(true) {
     // TODO(rnburn): Fill in any core internal_metrics.
     collector::Reporter* reporter = preamble_.mutable_reporter();
     for (const auto& tag : options.tags) {
@@ -80,14 +69,11 @@ class ReportBuilder {
 namespace {
 class RpcRecorder : public Recorder {
  public:
-  explicit RpcRecorder(LightStepTracerOptions&& options)
-      : options_(std::move(options)),
+  explicit RpcRecorder(const LightStepTracerOptions& options,
+                       std::unique_ptr<Transporter>&& transporter)
+      : options_(options),
         builder_(options_),
-        client_(grpc::CreateChannel(
-            hostPortOf(options_),
-            (options_.collector_encryption == "tls")
-                ? grpc::SslCredentials(grpc::SslCredentialsOptions())
-                : grpc::InsecureChannelCredentials())) {
+        transporter_(std::move(transporter)) {
     writer_ = std::thread(&RpcRecorder::write, this);
   }
 
@@ -118,7 +104,7 @@ class RpcRecorder : public Recorder {
 
  private:
   void write();
-  bool write_report(const collector::ReportRequest& /*report*/);
+  bool write_report(const collector::ReportRequest& report);
   void flush_one();
 
   // Forces the writer thread to exit immediately.
@@ -156,7 +142,7 @@ class RpcRecorder : public Recorder {
   size_t dropped_spans_ = 0;
 
   // Collector service stub.
-  collector::CollectorService::Stub client_;
+  std::unique_ptr<Transporter> transporter_;
 };
 }  // namespace
 
@@ -242,19 +228,18 @@ bool RpcRecorder::FlushWithTimeout(
 // write_report
 //------------------------------------------------------------------------------
 bool RpcRecorder::write_report(const collector::ReportRequest& report) {
-  grpc::ClientContext context;
-  collector::ReportResponse resp;
-  context.set_fail_fast(true);
-  context.set_deadline(SystemClock::now() + options_.report_timeout);
-  grpc::Status status = client_.Report(&context, report, &resp);
-  if (!status.ok()) {
-    std::cerr << "Report RPC failed: " << status.error_message();
-    // TODO(rnburn): Put some of these back into a buffer, etc. (Presently they
-    // all drop.)
-    return false;
-  }
-  // TODO(rnburn): Use response.
-  return true;
+  auto response_maybe = transporter_->SendReport(report);
+  return static_cast<bool>(response_maybe);
+}
+
+//------------------------------------------------------------------------------
+// make_rpc_recorder
+//------------------------------------------------------------------------------
+std::unique_ptr<Recorder> make_rpc_recorder(
+    const LightStepTracerOptions& options,
+    std::unique_ptr<Transporter>&& transporter) {
+  return std::unique_ptr<Recorder>(
+      new RpcRecorder(options, std::move(transporter)));
 }
 
 //------------------------------------------------------------------------------
@@ -276,7 +261,8 @@ std::unique_ptr<Recorder> make_lightstep_recorder(
     options_new.tags.emplace(component_name_key, get_program_name());
   }
 
-  return std::unique_ptr<Recorder>(new RpcRecorder(std::move(options_new)));
+  auto transporter = make_grpc_transporter(options_new);
+  return make_rpc_recorder(options_new, std::move(transporter));
 } catch (const std::exception& e) {
   std::cerr << "Failed to initialize LightStep's recorder: " << e.what();
   return nullptr;

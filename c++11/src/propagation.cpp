@@ -92,7 +92,7 @@ expected<void> inject_span_context(
   // error state.
   carrier.flush();
   if (!carrier.good()) {
-    return make_unexpected(make_error_code(std::io_errc::stream));
+    return make_unexpected(std::make_error_code(std::io_errc::stream));
   }
 
   return {};
@@ -107,7 +107,7 @@ expected<void> inject_span_context(
     span_id_hex = uint64_to_hex(span_id);
     baggage_key = PrefixBaggage;
   } catch (const std::bad_alloc&) {
-    return make_unexpected(make_error_code(std::errc::not_enough_memory));
+    return make_unexpected(std::make_error_code(std::errc::not_enough_memory));
   }
   auto result = carrier.Set(FieldNameTraceID, trace_id_hex);
   if (!result) {
@@ -126,7 +126,8 @@ expected<void> inject_span_context(
       baggage_key.replace(std::begin(baggage_key) + PrefixBaggage.size(),
                           std::end(baggage_key), baggage_item.first);
     } catch (const std::bad_alloc&) {
-      return make_unexpected(make_error_code(std::errc::not_enough_memory));
+      return make_unexpected(
+          std::make_error_code(std::errc::not_enough_memory));
     }
     result = carrier.Set(baggage_key, baggage_item.second);
     if (!result) {
@@ -145,7 +146,7 @@ expected<bool> extract_span_context(
   // istream::peek returns EOF if it's in an error state, so check for an error
   // state first before checking for an empty stream.
   if (!carrier.good()) {
-    return make_unexpected(make_error_code(std::io_errc::stream));
+    return make_unexpected(std::make_error_code(std::io_errc::stream));
   }
 
   // Check for the case when no span is encoded.
@@ -175,11 +176,11 @@ expected<bool> extract_span_context(
     return make_unexpected(span_context_corrupted_error);
   }
   if (!carrier.good()) {
-    return make_unexpected(make_error_code(std::io_errc::stream));
+    return make_unexpected(std::make_error_code(std::io_errc::stream));
   }
   return true;
 } catch (const std::bad_alloc&) {
-  return make_unexpected(make_error_code(std::errc::not_enough_memory));
+  return make_unexpected(std::make_error_code(std::errc::not_enough_memory));
 }
 
 template <class KeyCompare>
@@ -207,7 +208,8 @@ static expected<bool> extract_span_context(
             std::string(std::begin(key) + PrefixBaggage.size(), std::end(key)),
             value);
       } catch (const std::bad_alloc&) {
-        return make_unexpected(make_error_code(std::errc::not_enough_memory));
+        return make_unexpected(
+            std::make_error_code(std::errc::not_enough_memory));
       }
     }
     return {};

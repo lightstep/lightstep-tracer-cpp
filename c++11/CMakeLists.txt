@@ -74,6 +74,7 @@ add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_protobuf>
                              src/tracer.cpp
                              src/propagation.cpp
                              src/binary_carrier.cpp
+                             src/grpc_transporter.cpp
                              src/rpc_recorder.cpp)
 target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
 if (CLANG_TIDY_EXE)
