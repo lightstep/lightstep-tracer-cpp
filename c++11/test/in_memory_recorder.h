@@ -1,5 +1,5 @@
-#ifndef LIGHTSTEP_IN_MEMORY_TRACER_H
-#define LIGHTSTEP_IN_MEMORY_TRACER_H
+#ifndef LIGHTSTEP_IN_MEMORY_RECORDER_H
+#define LIGHTSTEP_IN_MEMORY_RECORDER_H
 
 #include <mutex>
 #include <stdexcept>
@@ -37,4 +37,4 @@ class InMemoryRecorder : public Recorder {
 };
 }  // namespace lightstep
 
-#endif  // LIGHTSTEP_IN_MEMORY_TRACER_H
+#endif  // LIGHTSTEP_IN_MEMORY_RECORDER_H

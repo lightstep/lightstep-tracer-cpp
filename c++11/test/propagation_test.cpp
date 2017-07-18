@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
-#include "in_memory_tracer.h"
+#include "in_memory_recorder.h"
 
 #define CATCH_CONFIG_MAIN
 #include <lightstep/catch/catch.hpp>

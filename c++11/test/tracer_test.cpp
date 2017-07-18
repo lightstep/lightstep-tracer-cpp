@@ -1,7 +1,7 @@
 #include <google/protobuf/util/message_differencer.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
-#include "in_memory_tracer.h"
+#include "in_memory_recorder.h"
 
 #define CATCH_CONFIG_MAIN
 #include <lightstep/catch/catch.hpp>
