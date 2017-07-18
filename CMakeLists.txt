@@ -3,6 +3,9 @@ enable_testing()
 
 project(lightstep-tracer)
 
+option(LS_WITH_ASAN "Generate tests using address-sanitizer." OFF)
+option(LS_WITH_TSAN "Generate tests using thread-sanitizer." OFF)
+
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY 
                   "A LightStep implementation of the C++ OpenTracing API")
 SET(CPACK_PACKAGE_VENDOR "lightstep.com")
@@ -29,6 +32,25 @@ if( NOT EXISTS "${PROTO_PATH}/.git" )
   execute_process(COMMAND git submodule update --init --recursive
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
+
+set(WITH_ASAN OFF)
+if (LS_WITH_ASAN AND (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") OR
+  ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND
+   "${COMPILER_VERSION}" VERSION_GREATER "4.8")))
+   set(WITH_ASAN ON)
+   set(ASAN_CXX_FLAGS -O1 -g -fsanitize=address -fno-omit-frame-pointer)
+   set(ASAN_LD_FLAGS -fsanitize=address)
+endif()
+
+set(WITH_TSAN OFF)
+if (LS_WITH_TSAN AND (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") OR
+  ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND
+   "${COMPILER_VERSION}" VERSION_GREATER "4.8")))
+   set(WITH_TSAN ON)
+   set(TSAN_CXX_FLAGS -O1 -g -fsanitize=thread)
+   set(TSAN_LD_FLAGS -fsanitize=thread)
+endif()
+
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  ${GRPC_CFLAGS_OTHER} \
                      ${GRPCPP_CFLAGS_OTHER}")

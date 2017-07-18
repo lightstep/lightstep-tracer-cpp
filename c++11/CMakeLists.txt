@@ -69,13 +69,15 @@ add_library(lightstep_protobuf OBJECT ${COLLECTOR_PB_CPP_FILE}
                                       ${COLLECTOR_CARRIER_PB_CPP_FILE}
                                       ${LIGHTSTEP_CARRIER_PB_CPP_FILE})
 
+set(LIGHTSTEP_SRCS src/utility.cpp
+                   src/tracer.cpp
+                   src/propagation.cpp
+                   src/binary_carrier.cpp
+                   src/grpc_transporter.cpp
+                   src/rpc_recorder.cpp)
+
 add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_protobuf>
-                             src/utility.cpp
-                             src/tracer.cpp
-                             src/propagation.cpp
-                             src/binary_carrier.cpp
-                             src/grpc_transporter.cpp
-                             src/rpc_recorder.cpp)
+                             ${LIGHTSTEP_SRCS})
 target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
 if (CLANG_TIDY_EXE)
   set_target_properties(lightstep_tracer PROPERTIES
@@ -88,6 +90,26 @@ install(TARGETS lightstep_tracer
 
 target_link_libraries(lightstep_tracer ${GRPC_LIBRARIES}
                                        ${GRPCPP_LIBRARIES})
+
+if (WITH_ASAN)
+  add_library(lightstep_tracer_asan $<TARGET_OBJECTS:lightstep_protobuf>
+                                    ${LIGHTSTEP_SRCS})
+  target_compile_options(lightstep_tracer_asan PUBLIC ${ASAN_CXX_FLAGS})
+  target_link_libraries(lightstep_tracer_asan ${GRPC_LIBRARIES}
+                                              ${GRPCPP_LIBRARIES})
+  set_target_properties(lightstep_tracer_asan 
+    PROPERTIES LINK_FLAGS "${ASAN_LD_FLAGS}")
+endif()
+
+if (WITH_TSAN)
+  add_library(lightstep_tracer_tsan $<TARGET_OBJECTS:lightstep_protobuf>
+                                    ${LIGHTSTEP_SRCS})
+  target_compile_options(lightstep_tracer_tsan PUBLIC ${TSAN_CXX_FLAGS})
+  target_link_libraries(lightstep_tracer_tsan ${GRPC_LIBRARIES}
+                                              ${GRPCPP_LIBRARIES})
+  set_target_properties(lightstep_tracer_tsan 
+    PROPERTIES LINK_FLAGS "${TSAN_LD_FLAGS}")
+endif()
 
 add_subdirectory(test)
 add_subdirectory(example)
