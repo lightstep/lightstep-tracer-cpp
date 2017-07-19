@@ -54,9 +54,9 @@ std::string GetProgramName() {
 }
 
 //------------------------------------------------------------------------------
-// to_json
+// ToJson
 //------------------------------------------------------------------------------
-static bool to_json(JsonWriter& writer, const Value& value);
+static bool ToJson(JsonWriter& writer, const Value& value);
 
 namespace {
 struct JsonValueVisitor {
@@ -84,7 +84,7 @@ struct JsonValueVisitor {
       return;
     }
     for (const auto& value : values) {
-      if (!(result = to_json(writer, value))) {
+      if (!(result = ToJson(writer, value))) {
         return;
       }
     }
@@ -101,7 +101,7 @@ struct JsonValueVisitor {
                            static_cast<unsigned>(key_value.first.size())))) {
         return;
       }
-      if (!(result = to_json(writer, key_value.second))) {
+      if (!(result = ToJson(writer, key_value.second))) {
         return;
       }
     }
@@ -110,16 +110,16 @@ struct JsonValueVisitor {
 };
 }  // anonymous namespace
 
-static bool to_json(JsonWriter& writer, const Value& value) {
+static bool ToJson(JsonWriter& writer, const Value& value) {
   JsonValueVisitor value_visitor{writer, true};
   apply_visitor(value_visitor, value);
   return value_visitor.result;
 }
 
-static std::string to_json(const Value& value) {
+static std::string ToJson(const Value& value) {
   rapidjson::StringBuffer buffer;
   JsonWriter writer(buffer);
-  if (!to_json(writer, value)) {
+  if (!ToJson(writer, value)) {
     return {};
   }
   return buffer.GetString();
@@ -151,11 +151,11 @@ struct ValueVisitor {
   void operator()(const char* s) const { key_value.set_string_value(s); }
 
   void operator()(const Values& /*unused*/) const {
-    key_value.set_json_value(to_json(original_value));
+    key_value.set_json_value(ToJson(original_value));
   }
 
   void operator()(const Dictionary& /*unused*/) const {
-    key_value.set_json_value(to_json(original_value));
+    key_value.set_json_value(ToJson(original_value));
   }
 };
 }  // anonymous namespace
