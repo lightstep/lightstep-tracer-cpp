@@ -1,5 +1,4 @@
-#ifndef LIGHTSTEP_SPAN_GENERATOR_H
-#define LIGHTSTEP_SPAN_GENERATOR_H
+#pragma once
 
 #include <opentracing/tracer.h>
 #include <atomic>
@@ -37,5 +36,3 @@ class SpanGenerator {
   void GenerateSpans();
 };
 }  // namespace lightstep
-
-#endif  // LIGHTSTEP_SPAN_GENERATOR_H

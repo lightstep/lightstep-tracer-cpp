@@ -1,5 +1,4 @@
-#ifndef LIGHTSTEP_RECORDER_H
-#define LIGHTSTEP_RECORDER_H
+#pragma once
 
 #include <collector.pb.h>
 #include <lightstep/tracer.h>
@@ -26,5 +25,3 @@ std::unique_ptr<Recorder> make_rpc_recorder(
 std::unique_ptr<Recorder> make_lightstep_recorder(
     const LightStepTracerOptions& options) noexcept;
 }  // namespace lightstep
-
-#endif  // LIGHTSTEP_RECORDER_H

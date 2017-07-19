@@ -1,5 +1,4 @@
-#ifndef LIGHTSTEP_IN_MEMORY_TRANSPORTER_H
-#define LIGHTSTEP_IN_MEMORY_TRANSPORTER_H
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -24,5 +23,3 @@ class InMemoryTransporter : public Transporter {
   std::vector<collector::Span> spans_;
 };
 }  // namespace lightstep
-
-#endif  // LIGHTSTEP_IN_MEMORY_TRANSPORTER_H

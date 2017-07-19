@@ -1,5 +1,4 @@
-#ifndef LIGHTSTEP_UTILITY_H
-#define LIGHTSTEP_UTILITY_H
+#pragma once
 
 #include <collector.pb.h>
 #include <opentracing/string_view.h>
@@ -21,8 +20,8 @@ google::protobuf::Timestamp ToTimestamp(
 uint64_t GenerateId();
 
 /**
- * Attempts to determine the name of the executable invoked.
- * Returns "c++-program" if unsuccessful.
+ * Attempts to determine the name of the executable invoked.  Returns
+ * "c++-program" if unsuccessful.
  */
 std::string GetProgramName();
 
@@ -33,5 +32,3 @@ std::string GetProgramName();
 collector::KeyValue to_key_value(opentracing::string_view key,
                                  const opentracing::Value& value);
 }  // namespace lightstep
-
-#endif  // LIGHTSTEP_UTILITY_H

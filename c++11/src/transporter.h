@@ -1,5 +1,4 @@
-#ifndef LIGHTSTEP_TRANSPORT_H
-#define LIGHTSTEP_TRANSPORT_H
+#pragma once
 
 #include <collector.grpc.pb.h>
 #include <lightstep/tracer.h>
@@ -17,5 +16,3 @@ class Transporter {
 std::unique_ptr<Transporter> make_grpc_transporter(
     const LightStepTracerOptions& options);
 }  // namespace lightstep
-
-#endif  // LIGHTSTEP_TRANSPORT_H

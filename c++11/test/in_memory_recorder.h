@@ -1,5 +1,4 @@
-#ifndef LIGHTSTEP_IN_MEMORY_RECORDER_H
-#define LIGHTSTEP_IN_MEMORY_RECORDER_H
+#pragma once
 
 #include <mutex>
 #include <stdexcept>
@@ -36,5 +35,3 @@ class InMemoryRecorder : public Recorder {
   std::vector<collector::Span> spans_;
 };
 }  // namespace lightstep
-
-#endif  // LIGHTSTEP_IN_MEMORY_RECORDER_H

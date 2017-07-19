@@ -1,5 +1,4 @@
-#ifndef LIGHTSTEP_TRACER_H
-#define LIGHTSTEP_TRACER_H
+#pragma once
 
 #include <opentracing/tracer.h>
 #include <opentracing/value.h>
@@ -57,5 +56,3 @@ class LightStepTracer : public opentracing::Tracer {
 std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
     const LightStepTracerOptions& options);
 }  // namespace lightstep
-
-#endif  // LIGHTSTEP_TRACER_H

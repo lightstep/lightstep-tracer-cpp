@@ -1,5 +1,4 @@
-#ifndef LIGHTSTEP_BINARY_PROTOCOL_H
-#define LIGHTSTEP_BINARY_PROTOCOL_H
+#pragma once
 
 #include <lightstep_carrier.pb.h>
 #include <opentracing/propagation.h>
@@ -29,5 +28,3 @@ class LightStepBinaryWriter : public opentracing::CustomCarrierWriter {
   BinaryCarrier& carrier_;
 };
 }  // namespace lightstep
-
-#endif  // LIGHTSTEP_BINARY_PROTOCOL_H
