@@ -7,7 +7,6 @@
 #include <sstream>
 #include <thread>
 #include "recorder.h"
-#include "tags.h"
 #include "utility.h"
 using namespace opentracing;
 
@@ -20,7 +19,8 @@ namespace lightstep {
 namespace {
 class ReportBuilder {
  public:
-  ReportBuilder(const LightStepTracerOptions& options) : reset_next_(true) {
+  explicit ReportBuilder(const LightStepTracerOptions& options)
+      : reset_next_(true) {
     // TODO(rnburn): Fill in any core internal_metrics.
     collector::Reporter* reporter = preamble_.mutable_reporter();
     for (const auto& tag : options.tags) {
@@ -247,22 +247,8 @@ std::unique_ptr<Recorder> make_rpc_recorder(
 //------------------------------------------------------------------------------
 std::unique_ptr<Recorder> make_lightstep_recorder(
     const LightStepTracerOptions& options) noexcept try {
-  auto options_new = options;
-
-  // Copy over default tags.
-  for (const auto& tag : default_tags) {
-    options_new.tags[tag.first] = tag.second;
-  }
-
-  // Set the component name if provided or default it to the program name.
-  if (!options.component_name.empty()) {
-    options_new.tags[component_name_key] = options.component_name;
-  } else {
-    options_new.tags.emplace(component_name_key, GetProgramName());
-  }
-
-  auto transporter = make_grpc_transporter(options_new);
-  return make_rpc_recorder(options_new, std::move(transporter));
+  auto transporter = make_grpc_transporter(options);
+  return make_rpc_recorder(options, std::move(transporter));
 } catch (const std::exception& e) {
   std::cerr << "Failed to initialize LightStep's recorder: " << e.what();
   return nullptr;

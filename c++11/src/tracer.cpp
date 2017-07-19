@@ -1,23 +1,28 @@
 #include <collector.pb.h>
 #include <lightstep/tracer.h>
+#include <lightstep/version.h>
 #include <opentracing/string_view.h>
-#include <atomic>
+#include <opentracing/value.h>
+#include <opentracing/version.h>
 #include <cstdint>
 #include <iostream>
 #include <memory>
-#include <mutex>
-#include <random>
-#include <tuple>
 #include <vector>
-#include "lightstep_span.h"
 #include "lightstep_span_context.h"
 #include "lightstep_tracer_impl.h"
-#include "propagation.h"
 #include "recorder.h"
 #include "utility.h"
 using namespace opentracing;
 
 namespace lightstep {
+const char* const component_name_key = "lightstep.component_name";
+
+const std::pair<const char*, opentracing::Value> default_tags[] = {
+    {"lightstep.tracer_platform", "c++"},
+    {"lightstep.tracer_platform_version", __cplusplus},
+    {"lightstep.tracer_version", LIGHTSTEP_VERSION},
+    {"lightstep.opentracing_version", OPENTRACING_VERSION}};
+
 //------------------------------------------------------------------------------
 // GetTraceSpanIds
 //------------------------------------------------------------------------------
@@ -50,6 +55,20 @@ expected<std::unique_ptr<SpanContext>> LightStepTracer::MakeSpanContext(
 //------------------------------------------------------------------------------
 std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
     const LightStepTracerOptions& options) {
+  auto options_new = options;
+
+  // Copy over default tags.
+  for (const auto& tag : default_tags) {
+    options_new.tags[tag.first] = tag.second;
+  }
+
+  // Set the component name if provided or default it to the program name.
+  if (!options.component_name.empty()) {
+    options_new.tags[component_name_key] = options.component_name;
+  } else {
+    options_new.tags.emplace(component_name_key, GetProgramName());
+  }
+
   auto recorder = make_lightstep_recorder(options);
   if (!recorder) {
     return nullptr;
