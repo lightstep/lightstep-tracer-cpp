@@ -18,18 +18,6 @@ using namespace opentracing;
 namespace lightstep {
 std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
     std::unique_ptr<Recorder>&& recorder);
-//------------------------------------------------------------------------------
-// to_timestamp
-//------------------------------------------------------------------------------
-static google::protobuf::Timestamp to_timestamp(SystemTime t) {
-  using namespace std::chrono;
-  auto nanos = duration_cast<nanoseconds>(t.time_since_epoch()).count();
-  google::protobuf::Timestamp ts;
-  const uint64_t nanosPerSec = 1000000000;
-  ts.set_seconds(nanos / nanosPerSec);
-  ts.set_nanos(nanos % nanosPerSec);
-  return ts;
-}
 
 //------------------------------------------------------------------------------
 // LightStepSpanContext
@@ -204,9 +192,9 @@ class LightStepSpan : public Span {
 
     // Set SpanContext.
     auto trace_id = references_.empty()
-                        ? generate_id()
+                        ? GenerateId()
                         : references_[0].span_context().trace_id();
-    auto span_id = generate_id();
+    auto span_id = GenerateId();
     span_context_ = LightStepSpanContext(trace_id, span_id, std::move(baggage));
   }
 
@@ -240,7 +228,7 @@ class LightStepSpan : public Span {
     span.set_duration_micros(
         std::chrono::duration_cast<std::chrono::microseconds>(duration)
             .count());
-    *span.mutable_start_timestamp() = to_timestamp(start_timestamp_);
+    *span.mutable_start_timestamp() = ToTimestamp(start_timestamp_);
 
     // Set references.
     auto references = span.mutable_references();
@@ -312,7 +300,7 @@ class LightStepSpan : public Span {
                fields) noexcept override try {
     auto timestamp = SystemClock::now();
     collector::Log log;
-    *log.mutable_timestamp() = to_timestamp(timestamp);
+    *log.mutable_timestamp() = ToTimestamp(timestamp);
     auto key_values = log.mutable_keyvalues();
     for (const auto& field : fields) {
       *key_values->Add() = to_key_value(field.first, field.second);

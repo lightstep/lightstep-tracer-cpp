@@ -26,7 +26,7 @@ class ReportBuilder {
     for (const auto& tag : options.tags) {
       *reporter->mutable_tags()->Add() = to_key_value(tag.first, tag.second);
     }
-    reporter->set_reporter_id(generate_id());
+    reporter->set_reporter_id(GenerateId());
     preamble_.mutable_auth()->set_access_token(options.access_token);
   }
 
@@ -258,7 +258,7 @@ std::unique_ptr<Recorder> make_lightstep_recorder(
   if (!options.component_name.empty()) {
     options_new.tags[component_name_key] = options.component_name;
   } else {
-    options_new.tags.emplace(component_name_key, get_program_name());
+    options_new.tags.emplace(component_name_key, GetProgramName());
   }
 
   auto transporter = make_grpc_transporter(options_new);

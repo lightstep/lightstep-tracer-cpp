@@ -14,17 +14,31 @@ using JsonWriter = rapidjson::Writer<rapidjson::StringBuffer>;
 }  // namespace
 
 //------------------------------------------------------------------------------
-// generate_id
+// ToTimestamp
 //------------------------------------------------------------------------------
-uint64_t generate_id() {
+google::protobuf::Timestamp ToTimestamp(
+    const std::chrono::system_clock::time_point& t) {
+  using namespace std::chrono;
+  auto nanos = duration_cast<nanoseconds>(t.time_since_epoch()).count();
+  google::protobuf::Timestamp ts;
+  const uint64_t nanosPerSec = 1000000000;
+  ts.set_seconds(nanos / nanosPerSec);
+  ts.set_nanos(nanos % nanosPerSec);
+  return ts;
+}
+
+//------------------------------------------------------------------------------
+// GenerateId
+//------------------------------------------------------------------------------
+uint64_t GenerateId() {
   static thread_local std::mt19937_64 rand_source{std::random_device()()};
   return rand_source();
 }
 
 //------------------------------------------------------------------------------
-// get_program_name
+// GetProgramName
 //------------------------------------------------------------------------------
-std::string get_program_name() {
+std::string GetProgramName() {
   constexpr int path_max = 1024;
   std::unique_ptr<char[]> exe_path(new char[path_max]);
   ssize_t size = ::readlink("/proc/self/exe", exe_path.get(), path_max);
