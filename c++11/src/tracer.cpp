@@ -69,7 +69,7 @@ std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
     options_new.tags.emplace(component_name_key, GetProgramName());
   }
 
-  auto recorder = make_lightstep_recorder(options);
+  auto recorder = make_lightstep_recorder(options_new);
   if (!recorder) {
     return nullptr;
   }
