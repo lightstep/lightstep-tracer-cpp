@@ -1,6 +1,7 @@
 #include <google/protobuf/util/message_differencer.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
+#include "../src/lightstep_tracer_impl.h"
 #include "../src/utility.h"
 #include "in_memory_recorder.h"
 
@@ -8,11 +9,6 @@
 #include <lightstep/catch/catch.hpp>
 using namespace lightstep;
 using namespace opentracing;
-
-namespace lightstep {
-std::shared_ptr<Tracer> MakeLightStepTracer(
-    std::unique_ptr<Recorder>&& recorder);
-}  // namespace lightstep
 
 //------------------------------------------------------------------------------
 // HasTag
@@ -55,9 +51,10 @@ static bool HasRelationship(SpanReferenceType relationship,
 //------------------------------------------------------------------------------
 // tests
 //------------------------------------------------------------------------------
-TEST_CASE("in_memory_tracer") {
+TEST_CASE("tracer") {
   auto recorder = new InMemoryRecorder();
-  auto tracer = MakeLightStepTracer(std::unique_ptr<Recorder>(recorder));
+  auto tracer = std::shared_ptr<opentracing::Tracer>{
+      new LightStepTracerImpl{std::unique_ptr<Recorder>{recorder}}};
 
   SECTION("StartSpan applies the provided tags.") {
     {

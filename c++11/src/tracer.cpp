@@ -18,9 +18,6 @@
 using namespace opentracing;
 
 namespace lightstep {
-std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
-    std::unique_ptr<Recorder>&& recorder);
-
 //------------------------------------------------------------------------------
 // GetTraceSpanIds
 //------------------------------------------------------------------------------
@@ -52,16 +49,12 @@ expected<std::unique_ptr<SpanContext>> LightStepTracer::MakeSpanContext(
 // MakeLightStepTracer
 //------------------------------------------------------------------------------
 std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
-    std::unique_ptr<Recorder>&& recorder) {
+    const LightStepTracerOptions& options) {
+  auto recorder = make_lightstep_recorder(options);
   if (!recorder) {
     return nullptr;
   }
   return std::shared_ptr<opentracing::Tracer>(
       new (std::nothrow) LightStepTracerImpl(std::move(recorder)));
-}
-
-std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
-    const LightStepTracerOptions& options) {
-  return MakeLightStepTracer(make_lightstep_recorder(options));
 }
 }  // namespace lightstep

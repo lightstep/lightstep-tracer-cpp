@@ -6,6 +6,8 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include "../src/lightstep_tracer_impl.h"
+#include "../src/utility.h"
 #include "in_memory_recorder.h"
 
 #define CATCH_CONFIG_MAIN
@@ -13,13 +15,6 @@
 
 using namespace lightstep;
 using namespace opentracing;
-
-namespace lightstep {
-std::shared_ptr<Tracer> MakeLightStepTracer(
-    std::unique_ptr<Recorder>&& recorder);
-
-collector::KeyValue ToKeyValue(string_view key, const Value& value);
-}  // namespace lightstep
 
 //------------------------------------------------------------------------------
 // TextMapCarrier
@@ -76,7 +71,8 @@ struct HTTPHeadersCarrier : HTTPHeadersReader, HTTPHeadersWriter {
 //------------------------------------------------------------------------------
 TEST_CASE("propagation") {
   auto recorder = new InMemoryRecorder();
-  auto tracer = MakeLightStepTracer(std::unique_ptr<Recorder>(recorder));
+  auto tracer = std::shared_ptr<opentracing::Tracer>{
+      new LightStepTracerImpl{std::unique_ptr<Recorder>{recorder}}};
   std::unordered_map<std::string, std::string> text_map;
   TextMapCarrier text_map_carrier(text_map);
   HTTPHeadersCarrier http_headers_carrier(text_map);

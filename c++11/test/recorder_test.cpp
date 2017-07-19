@@ -1,5 +1,6 @@
 #include "../src/recorder.h"
 #include <lightstep/tracer.h>
+#include "../src/lightstep_tracer_impl.h"
 #include "in_memory_transporter.h"
 #include "span_generator.h"
 
@@ -9,18 +10,14 @@
 using namespace lightstep;
 using namespace opentracing;
 
-namespace lightstep {
-std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
-    std::unique_ptr<Recorder>&& recorder);
-}  // namespace lightstep
-
 TEST_CASE("rpc_recorder") {
   LightStepTracerOptions options;
   options.reporting_period = std::chrono::milliseconds(2);
   options.max_buffered_spans = 5;
   auto in_memory_transporter = new InMemoryTransporter();
-  auto tracer = MakeLightStepTracer(make_rpc_recorder(
-      options, std::unique_ptr<Transporter>(in_memory_transporter)));
+  auto tracer = std::shared_ptr<opentracing::Tracer>{
+      new LightStepTracerImpl{make_rpc_recorder(
+          options, std::unique_ptr<Transporter>{in_memory_transporter})}};
   CHECK(tracer);
 
   SECTION(
