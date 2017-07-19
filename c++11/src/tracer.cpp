@@ -1,6 +1,5 @@
 #include <collector.pb.h>
 #include <lightstep/tracer.h>
-#include <opentracing/noop.h>
 #include <opentracing/string_view.h>
 #include <atomic>
 #include <cstdint>
@@ -10,6 +9,7 @@
 #include <random>
 #include <tuple>
 #include <vector>
+#include "lightstep_span_context.h"
 #include "propagation.h"
 #include "recorder.h"
 #include "utility.h"
@@ -18,82 +18,6 @@ using namespace opentracing;
 namespace lightstep {
 std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
     std::unique_ptr<Recorder>&& recorder);
-
-//------------------------------------------------------------------------------
-// LightStepSpanContext
-//------------------------------------------------------------------------------
-namespace {
-class LightStepSpanContext : public SpanContext {
- public:
-  LightStepSpanContext() noexcept = default;
-
-  LightStepSpanContext(
-      uint64_t trace_id_, uint64_t span_id_,
-      std::unordered_map<std::string, std::string>&& baggage) noexcept
-      : trace_id(trace_id_), span_id(span_id_), baggage_(std::move(baggage)) {}
-
-  LightStepSpanContext(const LightStepSpanContext&) = delete;
-  LightStepSpanContext(LightStepSpanContext&&) = delete;
-
-  ~LightStepSpanContext() override = default;
-
-  LightStepSpanContext& operator=(LightStepSpanContext&) = delete;
-  LightStepSpanContext& operator=(LightStepSpanContext&& other) noexcept {
-    std::lock_guard<std::mutex> l(baggage_mutex_);
-    trace_id = other.trace_id;
-    span_id = other.span_id;
-    baggage_ = std::move(other.baggage_);
-    return *this;
-  }
-
-  void setBaggageItem(string_view key, string_view value) noexcept try {
-    std::lock_guard<std::mutex> l(baggage_mutex_);
-    baggage_.emplace(key, value);
-  } catch (const std::bad_alloc&) {
-  }
-
-  std::string baggageItem(const std::string& key) const {
-    std::lock_guard<std::mutex> l(baggage_mutex_);
-    auto lookup = baggage_.find(key);
-    if (lookup != baggage_.end()) {
-      return lookup->second;
-    }
-    return {};
-  }
-
-  void ForeachBaggageItem(
-      std::function<bool(const std::string& key, const std::string& value)> f)
-      const override {
-    std::lock_guard<std::mutex> l(baggage_mutex_);
-    for (const auto& bi : baggage_) {
-      if (!f(bi.first, bi.second)) {
-        return;
-      }
-    }
-  }
-
-  template <class Carrier>
-  expected<void> Inject(Carrier& writer) const {
-    std::lock_guard<std::mutex> l(baggage_mutex_);
-    return inject_span_context(writer, trace_id, span_id, baggage_);
-  }
-
-  template <class Carrier>
-  expected<bool> Extract(Carrier& reader) {
-    std::lock_guard<std::mutex> l(baggage_mutex_);
-    return extract_span_context(reader, trace_id, span_id, baggage_);
-  }
-
-  // These are modified during constructors (StartSpan and Extract),
-  // but would require extra work/copying to make them const.
-  uint64_t trace_id{0};
-  uint64_t span_id{0};
-
- private:
-  mutable std::mutex baggage_mutex_;
-  std::unordered_map<std::string, std::string> baggage_;
-};
-}  // anonymous namespace
 
 //------------------------------------------------------------------------------
 // set_span_reference
@@ -122,9 +46,9 @@ static bool set_span_reference(
     return false;
   }
   collector_reference.mutable_span_context()->set_trace_id(
-      referenced_context->trace_id);
+      referenced_context->trace_id());
   collector_reference.mutable_span_context()->set_span_id(
-      referenced_context->span_id);
+      referenced_context->span_id());
 
   referenced_context->ForeachBaggageItem(
       [&baggage](const std::string& key, const std::string& value) {
@@ -254,8 +178,8 @@ class LightStepSpan : public Span {
 
     // Set the span context.
     auto span_context = span.mutable_span_context();
-    span_context->set_trace_id(span_context_.trace_id);
-    span_context->set_span_id(span_context_.span_id);
+    span_context->set_trace_id(span_context_.trace_id());
+    span_context->set_span_id(span_context_.span_id());
     auto baggage = span_context->mutable_baggage();
     span_context_.ForeachBaggageItem(
         [baggage](const std::string& key, const std::string& value) {
@@ -286,12 +210,12 @@ class LightStepSpan : public Span {
 
   void SetBaggageItem(string_view restricted_key,
                       string_view value) noexcept override {
-    span_context_.setBaggageItem(restricted_key, value);
+    span_context_.set_baggage_item(restricted_key, value);
   }
 
   std::string BaggageItem(string_view restricted_key) const noexcept override
       try {
-    return span_context_.baggageItem(restricted_key);
+    return span_context_.baggage_item(restricted_key);
   } catch (const std::bad_alloc&) {
     return {};
   }
@@ -428,7 +352,7 @@ expected<std::array<uint64_t, 2>> LightStepTracer::GetTraceSpanIds(
     return make_unexpected(invalid_span_context_error);
   }
   std::array<uint64_t, 2> result = {
-      {lightstep_span_context->trace_id, lightstep_span_context->span_id}};
+      {lightstep_span_context->trace_id(), lightstep_span_context->span_id()}};
   return result;
 }
 

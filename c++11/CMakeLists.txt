@@ -74,7 +74,8 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/propagation.cpp
                    src/binary_carrier.cpp
                    src/grpc_transporter.cpp
-                   src/rpc_recorder.cpp)
+                   src/rpc_recorder.cpp
+                   src/lightstep_span_context.cpp)
 
 add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_protobuf>
                              ${LIGHTSTEP_SRCS})
