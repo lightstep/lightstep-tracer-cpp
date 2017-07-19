@@ -24,7 +24,7 @@ class ReportBuilder {
     // TODO(rnburn): Fill in any core internal_metrics.
     collector::Reporter* reporter = preamble_.mutable_reporter();
     for (const auto& tag : options.tags) {
-      *reporter->mutable_tags()->Add() = to_key_value(tag.first, tag.second);
+      *reporter->mutable_tags()->Add() = ToKeyValue(tag.first, tag.second);
     }
     reporter->set_reporter_id(GenerateId());
     preamble_.mutable_auth()->set_access_token(options.access_token);

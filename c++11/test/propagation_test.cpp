@@ -18,7 +18,7 @@ namespace lightstep {
 std::shared_ptr<Tracer> MakeLightStepTracer(
     std::unique_ptr<Recorder>&& recorder);
 
-collector::KeyValue to_key_value(string_view key, const Value& value);
+collector::KeyValue ToKeyValue(string_view key, const Value& value);
 }  // namespace lightstep
 
 //------------------------------------------------------------------------------

@@ -12,7 +12,7 @@ namespace lightstep {
 std::shared_ptr<Tracer> MakeLightStepTracer(
     std::unique_ptr<Recorder>&& recorder);
 
-collector::KeyValue to_key_value(string_view key, const Value& value);
+collector::KeyValue ToKeyValue(string_view key, const Value& value);
 }  // namespace lightstep
 
 //------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ collector::KeyValue to_key_value(string_view key, const Value& value);
 //------------------------------------------------------------------------------
 static bool has_tag(const collector::Span& span, string_view key,
                     const Value& value) {
-  auto key_value = to_key_value(key, value);
+  auto key_value = ToKeyValue(key, value);
   return std::find_if(
              std::begin(span.tags()), std::end(span.tags()),
              [&](const collector::KeyValue& other) {

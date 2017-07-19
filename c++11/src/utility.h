@@ -29,6 +29,6 @@ std::string GetProgramName();
  * Converts an OpenTracing key-value pair to the key-value pair used in the
  * protobuf data structures.
  */
-collector::KeyValue to_key_value(opentracing::string_view key,
-                                 const opentracing::Value& value);
+collector::KeyValue ToKeyValue(opentracing::string_view key,
+                               const opentracing::Value& value);
 }  // namespace lightstep
