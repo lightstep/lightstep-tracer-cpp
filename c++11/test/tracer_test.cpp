@@ -1,6 +1,7 @@
 #include <google/protobuf/util/message_differencer.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
+#include "../src/utility.h"
 #include "in_memory_recorder.h"
 
 #define CATCH_CONFIG_MAIN
@@ -11,15 +12,13 @@ using namespace opentracing;
 namespace lightstep {
 std::shared_ptr<Tracer> MakeLightStepTracer(
     std::unique_ptr<Recorder>&& recorder);
-
-collector::KeyValue ToKeyValue(string_view key, const Value& value);
 }  // namespace lightstep
 
 //------------------------------------------------------------------------------
-// has_tag
+// HasTag
 //------------------------------------------------------------------------------
-static bool has_tag(const collector::Span& span, string_view key,
-                    const Value& value) {
+static bool HasTag(const collector::Span& span, string_view key,
+                   const Value& value) {
   auto key_value = ToKeyValue(key, value);
   return std::find_if(
              std::begin(span.tags()), std::end(span.tags()),
@@ -30,11 +29,11 @@ static bool has_tag(const collector::Span& span, string_view key,
 }
 
 //------------------------------------------------------------------------------
-// has_relationship
+// HasRelationship
 //------------------------------------------------------------------------------
-static bool has_relationship(SpanReferenceType relationship,
-                             const collector::Span& span_a,
-                             const collector::Span& span_b) {
+static bool HasRelationship(SpanReferenceType relationship,
+                            const collector::Span& span_a,
+                            const collector::Span& span_b) {
   collector::Reference reference;
   switch (relationship) {
     case SpanReferenceType::ChildOfRef:
@@ -69,8 +68,8 @@ TEST_CASE("in_memory_tracer") {
     }
     auto span = recorder->top();
     CHECK(span.operation_name() == "a");
-    CHECK(has_tag(span, "abc", 123));
-    CHECK(has_tag(span, "xyz", true));
+    CHECK(HasTag(span, "abc", 123));
+    CHECK(HasTag(span, "xyz", true));
   }
 
   SECTION("You can set a single child-of reference when starting a span.") {
@@ -83,8 +82,8 @@ TEST_CASE("in_memory_tracer") {
     auto spans = recorder->spans();
     CHECK(spans.at(0).span_context().trace_id() ==
           spans.at(1).span_context().trace_id());
-    CHECK(has_relationship(SpanReferenceType::ChildOfRef, spans.at(1),
-                           spans.at(0)));
+    CHECK(HasRelationship(SpanReferenceType::ChildOfRef, spans.at(1),
+                          spans.at(0)));
   }
 
   SECTION("You can set a single follows-from reference when starting a span.") {
@@ -97,8 +96,8 @@ TEST_CASE("in_memory_tracer") {
     auto spans = recorder->spans();
     CHECK(spans.at(0).span_context().trace_id() ==
           spans.at(1).span_context().trace_id());
-    CHECK(has_relationship(SpanReferenceType::FollowsFromRef, spans.at(1),
-                           spans.at(0)));
+    CHECK(HasRelationship(SpanReferenceType::FollowsFromRef, spans.at(1),
+                          spans.at(0)));
   }
 
   SECTION("Multiple references are supported when starting a span.") {
@@ -112,10 +111,10 @@ TEST_CASE("in_memory_tracer") {
     span_b->Finish();
     span_c->Finish();
     auto spans = recorder->spans();
-    CHECK(has_relationship(SpanReferenceType::ChildOfRef, spans.at(2),
-                           spans.at(0)));
-    CHECK(has_relationship(SpanReferenceType::FollowsFromRef, spans.at(2),
-                           spans.at(1)));
+    CHECK(HasRelationship(SpanReferenceType::ChildOfRef, spans.at(2),
+                          spans.at(0)));
+    CHECK(HasRelationship(SpanReferenceType::FollowsFromRef, spans.at(2),
+                          spans.at(1)));
   }
 
   SECTION(
@@ -166,11 +165,11 @@ TEST_CASE("in_memory_tracer") {
     CHECK(recorder->top().operation_name() == "b");
   }
 
-  SECTION("Tags can be specified.") {
+  SECTION("Tags can be specified after a span is started.") {
     auto span = tracer->StartSpan("a");
     CHECK(span);
     span->SetTag("abc", 123);
     span->Finish();
-    CHECK(has_tag(recorder->top(), "abc", 123));
+    CHECK(HasTag(recorder->top(), "abc", 123));
   }
 }

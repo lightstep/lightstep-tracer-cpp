@@ -9,6 +9,10 @@
 #include <vector>
 
 namespace lightstep {
+/**
+ * SpanGenerator randomly creates spans using a provided tracer at a specified
+ * rate.
+ */
 class SpanGenerator {
  public:
   SpanGenerator(
@@ -17,6 +21,9 @@ class SpanGenerator {
 
   ~SpanGenerator();
 
+  /**
+   * Randomly generate spans over a `duration`-length time window.
+   */
   void Run(std::chrono::steady_clock::duration duration);
 
   int num_spans_generated() const { return num_spans_generated_; }

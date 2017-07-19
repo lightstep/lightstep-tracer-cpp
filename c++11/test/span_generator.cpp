@@ -10,6 +10,9 @@ static thread_local std::mt19937 rng{std::random_device()()};
 const int num_threads = 5;
 
 namespace lightstep {
+//------------------------------------------------------------------------------
+// GenerateRandomDuration
+//------------------------------------------------------------------------------
 static std::chrono::steady_clock::duration GenerateRandomDuration(
     const std::chrono::steady_clock::duration& max_duration) {
   auto t = std::uniform_real_distribution<double>(0, 1)(rng);
@@ -17,6 +20,9 @@ static std::chrono::steady_clock::duration GenerateRandomDuration(
       t * max_duration);
 }
 
+//------------------------------------------------------------------------------
+// Constructor
+//------------------------------------------------------------------------------
 SpanGenerator::SpanGenerator(
     const Tracer& tracer,
     const std::chrono::steady_clock::duration& avg_time_between_spans)
@@ -29,6 +35,9 @@ SpanGenerator::SpanGenerator(
   }
 }
 
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
 SpanGenerator::~SpanGenerator() {
   std::unique_lock<std::mutex> lock_guard{mutex_};
   exit_ = true;
@@ -37,6 +46,9 @@ SpanGenerator::~SpanGenerator() {
   for (auto& thread : generator_threads_) thread.join();
 }
 
+//------------------------------------------------------------------------------
+// Run
+//------------------------------------------------------------------------------
 void SpanGenerator::Run(std::chrono::steady_clock::duration duration) {
   // Reduce the requested duration so as to ensure that any spans started
   // get finish within the `duration` time window.
@@ -55,6 +67,9 @@ void SpanGenerator::Run(std::chrono::steady_clock::duration duration) {
   std::this_thread::sleep_for(2 * max_span_duration_);
 }
 
+//------------------------------------------------------------------------------
+// GenerateSpans
+//------------------------------------------------------------------------------
 void SpanGenerator::GenerateSpans() {
   while (1) {
     std::unique_lock<std::mutex> lock_guard{mutex_};
