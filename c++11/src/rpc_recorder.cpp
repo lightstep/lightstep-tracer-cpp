@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <thread>
+#include "grpc_transporter.h"
 #include "recorder.h"
 #include "utility.h"
 using namespace opentracing;
@@ -247,7 +248,7 @@ std::unique_ptr<Recorder> make_rpc_recorder(
 //------------------------------------------------------------------------------
 std::unique_ptr<Recorder> make_lightstep_recorder(
     const LightStepTracerOptions& options) noexcept try {
-  auto transporter = make_grpc_transporter(options);
+  auto transporter = std::unique_ptr<Transporter>{new GrpcTransporter{options}};
   return make_rpc_recorder(options, std::move(transporter));
 } catch (const std::exception& e) {
   std::cerr << "Failed to initialize LightStep's recorder: " << e.what();

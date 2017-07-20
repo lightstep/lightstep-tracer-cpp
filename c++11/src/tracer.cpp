@@ -15,20 +15,27 @@
 using namespace opentracing;
 
 namespace lightstep {
-const char* const component_name_key = "lightstep.component_name";
+const string_view component_name_key = "lightstep.component_name";
 
-const std::pair<const char*, opentracing::Value> default_tags[] = {
-    {"lightstep.tracer_platform", "c++"},
-    {"lightstep.tracer_platform_version", __cplusplus},
-    {"lightstep.tracer_version", LIGHTSTEP_VERSION},
-    {"lightstep.opentracing_version", OPENTRACING_VERSION}};
+//------------------------------------------------------------------------------
+// GetDefaultTags
+//------------------------------------------------------------------------------
+static const std::vector<std::pair<string_view, Value>>& GetDefaultTags() {
+  static const std::vector<std::pair<string_view, Value>> default_tags = {
+      {"lightstep.tracer_platform", "c++"},
+      {"lightstep.tracer_platform_version", __cplusplus},
+      {"lightstep.tracer_version", LIGHTSTEP_VERSION},
+      {"lightstep.opentracing_version", OPENTRACING_VERSION}};
+  return default_tags;
+}
 
 //------------------------------------------------------------------------------
 // GetTraceSpanIds
 //------------------------------------------------------------------------------
 expected<std::array<uint64_t, 2>> LightStepTracer::GetTraceSpanIds(
-    const SpanContext& sc) const noexcept {
-  auto lightstep_span_context = dynamic_cast<const LightStepSpanContext*>(&sc);
+    const SpanContext& span_context) const noexcept {
+  auto lightstep_span_context =
+      dynamic_cast<const LightStepSpanContext*>(&span_context);
   if (lightstep_span_context == nullptr) {
     return make_unexpected(invalid_span_context_error);
   }
@@ -58,7 +65,7 @@ std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
   auto options_new = options;
 
   // Copy over default tags.
-  for (const auto& tag : default_tags) {
+  for (const auto& tag : GetDefaultTags()) {
     options_new.tags[tag.first] = tag.second;
   }
 

@@ -12,7 +12,4 @@ class Transporter {
   virtual opentracing::expected<collector::ReportResponse> SendReport(
       const collector::ReportRequest& report) noexcept = 0;
 };
-
-std::unique_ptr<Transporter> make_grpc_transporter(
-    const LightStepTracerOptions& options);
 }  // namespace lightstep
