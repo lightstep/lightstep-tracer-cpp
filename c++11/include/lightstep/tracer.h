@@ -54,5 +54,5 @@ class LightStepTracer : public opentracing::Tracer {
 };
 
 std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
-    const LightStepTracerOptions& options);
+    LightStepTracerOptions options);
 }  // namespace lightstep

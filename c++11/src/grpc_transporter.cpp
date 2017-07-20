@@ -1,5 +1,6 @@
 #include "grpc_transporter.h"
 #include <chrono>
+#include <iostream>
 #include <sstream>
 using namespace opentracing;
 

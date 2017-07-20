@@ -8,9 +8,10 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include "buffered_recorder.h"
+#include "grpc_transporter.h"
 #include "lightstep_span_context.h"
 #include "lightstep_tracer_impl.h"
-#include "recorder.h"
 #include "utility.h"
 using namespace opentracing;
 
@@ -54,33 +55,30 @@ expected<std::unique_ptr<SpanContext>> LightStepTracer::MakeSpanContext(
       new LightStepSpanContext(trace_id, span_id, std::move(baggage)));
   return result;
 } catch (const std::bad_alloc&) {
-  return make_unexpected(make_error_code(std::errc::not_enough_memory));
+  return make_unexpected(std::make_error_code(std::errc::not_enough_memory));
 }
 
 //------------------------------------------------------------------------------
 // MakeLightStepTracer
 //------------------------------------------------------------------------------
 std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
-    const LightStepTracerOptions& options) {
-  auto options_new = options;
-
+    LightStepTracerOptions options) {
   // Copy over default tags.
   for (const auto& tag : GetDefaultTags()) {
-    options_new.tags[tag.first] = tag.second;
+    options.tags[tag.first] = tag.second;
   }
 
-  // Set the component name if provided or default it to the program name.
-  if (!options.component_name.empty()) {
-    options_new.tags[component_name_key] = options.component_name;
+  // Set the component name if not provided to the program name.
+  if (options.component_name.empty()) {
+    options.tags.emplace(component_name_key, GetProgramName());
   } else {
-    options_new.tags.emplace(component_name_key, GetProgramName());
+    options.tags.emplace(component_name_key, options.component_name);
   }
 
-  auto recorder = make_lightstep_recorder(options_new);
-  if (!recorder) {
-    return nullptr;
-  }
-  return std::shared_ptr<opentracing::Tracer>(
-      new (std::nothrow) LightStepTracerImpl(std::move(recorder)));
+  auto transporter = std::unique_ptr<Transporter>{new GrpcTransporter{options}};
+  auto recorder = std::unique_ptr<Recorder>{
+      new BufferedRecorder{std::move(options), std::move(transporter)}};
+  return std::shared_ptr<opentracing::Tracer>{
+      new LightStepTracerImpl{std::move(recorder)}};
 }
 }  // namespace lightstep
