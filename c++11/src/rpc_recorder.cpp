@@ -8,62 +8,11 @@
 #include <thread>
 #include "grpc_transporter.h"
 #include "recorder.h"
+#include "report_builder.h"
 #include "utility.h"
 using namespace opentracing;
 
 namespace lightstep {
-//------------------------------------------------------------------------------
-// ReportBuilder
-//------------------------------------------------------------------------------
-// ReportBuilder helps construct lightstep::collector::ReportRequest
-// messages.  Not thread-safe, thread compatible.
-namespace {
-class ReportBuilder {
- public:
-  explicit ReportBuilder(const LightStepTracerOptions& options)
-      : reset_next_(true) {
-    // TODO(rnburn): Fill in any core internal_metrics.
-    collector::Reporter* reporter = preamble_.mutable_reporter();
-    for (const auto& tag : options.tags) {
-      *reporter->mutable_tags()->Add() = ToKeyValue(tag.first, tag.second);
-    }
-    reporter->set_reporter_id(GenerateId());
-    preamble_.mutable_auth()->set_access_token(options.access_token);
-  }
-
-  // addSpan adds the span to the currently-building ReportRequest.
-  void addSpan(collector::Span&& span) {
-    if (reset_next_) {
-      pending_.Clear();
-      pending_.CopyFrom(preamble_);
-      reset_next_ = false;
-    }
-    *pending_.mutable_spans()->Add() = span;
-  }
-
-  // pendingSpans() is the number of pending spans.
-  size_t pendingSpans() const { return pending_.spans_size(); }
-
-  void setPendingClientDroppedSpans(uint64_t spans) {
-    auto count = pending_.mutable_internal_metrics()->add_counts();
-    count->set_name("spans.dropped");
-    count->set_int_value(spans);
-  }
-
-  // pending() returns a mutable object, appropriate for swapping with
-  // another ReportRequest object.
-  collector::ReportRequest& pending() {
-    reset_next_ = true;
-    return pending_;
-  }
-
- private:
-  bool reset_next_;
-  collector::ReportRequest preamble_;
-  collector::ReportRequest pending_;
-};
-}  // anonymous namespace
-
 //------------------------------------------------------------------------------
 // RpcRecorder
 //------------------------------------------------------------------------------
@@ -90,12 +39,12 @@ class RpcRecorder : public Recorder {
 
   void RecordSpan(collector::Span&& span) noexcept override {
     std::lock_guard<std::mutex> lock(write_mutex_);
-    if (builder_.pendingSpans() >= options_.max_buffered_spans) {
+    if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
       dropped_spans_++;
       return;
     }
-    builder_.addSpan(std::move(span));
-    if (builder_.pendingSpans() >= options_.max_buffered_spans) {
+    builder_.AddSpan(std::move(span));
+    if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
       write_cond_.notify_all();
     }
   }
@@ -122,7 +71,7 @@ class RpcRecorder : public Recorder {
     std::unique_lock<std::mutex> lock(write_mutex_);
     write_cond_.wait_until(lock, next, [this]() {
       return this->write_exit_ ||
-             this->builder_.pendingSpans() >= options_.max_buffered_spans;
+             this->builder_.num_pending_spans() >= options_.max_buffered_spans;
     });
     return !write_exit_;
   }
@@ -178,13 +127,13 @@ void RpcRecorder::flush_one() {
     // inflight without a lock. Assumption is that this thread is the
     // only place inflight_ is used.
     std::lock_guard<std::mutex> lock(write_mutex_);
-    save_pending = builder_.pendingSpans();
+    save_pending = builder_.num_pending_spans();
     if (save_pending == 0) {
       return;
     }
     // TODO(rnburn): Compute and set timestamp_offset_micros
     save_dropped = dropped_spans_;
-    builder_.setPendingClientDroppedSpans(save_dropped);
+    builder_.set_pending_client_dropped_spans(save_dropped);
     dropped_spans_ = 0;
     std::swap(builder_.pending(), inflight_);
     ++encoding_seqno_;
@@ -212,7 +161,7 @@ bool RpcRecorder::FlushWithTimeout(
   // operations to clear out all the presently pending data.
   std::unique_lock<std::mutex> lock(write_mutex_);
 
-  bool has_encoded = builder_.pendingSpans() != 0;
+  bool has_encoded = builder_.num_pending_spans() != 0;
 
   if (!has_encoded && encoding_seqno_ == 1 + flushed_seqno_) {
     return true;
