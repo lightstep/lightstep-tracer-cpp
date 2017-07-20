@@ -59,7 +59,7 @@ bool BufferedRecorder::FlushWithTimeout(
 }
 
 //------------------------------------------------------------------------------
-// write
+// Write
 //------------------------------------------------------------------------------
 void BufferedRecorder::Write() {
   auto next = std::chrono::steady_clock::now() + options_.reporting_period;
