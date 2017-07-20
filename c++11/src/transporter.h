@@ -5,6 +5,9 @@
 #include <opentracing/util.h>
 
 namespace lightstep {
+/**
+ * An Abstract class that sends ReportRequests.
+ */
 class Transporter {
  public:
   virtual ~Transporter() = default;

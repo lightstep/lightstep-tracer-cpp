@@ -5,6 +5,9 @@
 #include "transporter.h"
 
 namespace lightstep {
+/**
+ * GrpcTransporter sends ReportRequests to the specified host via gRPC.
+ */
 class GrpcTransporter : public Transporter {
  public:
   explicit GrpcTransporter(const LightStepTracerOptions& options);

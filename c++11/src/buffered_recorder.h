@@ -11,6 +11,10 @@
 #include "transporter.h"
 
 namespace lightstep {
+/**
+ * BufferedRecorder buffers spans finished by a tracer and sends them over to
+ * the provided Transporter.
+ */
 class BufferedRecorder : public Recorder {
  public:
   explicit BufferedRecorder(LightStepTracerOptions options,
