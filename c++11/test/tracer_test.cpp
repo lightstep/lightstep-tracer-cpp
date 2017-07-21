@@ -16,12 +16,12 @@ using namespace opentracing;
 static bool HasTag(const collector::Span& span, string_view key,
                    const Value& value) {
   auto key_value = ToKeyValue(key, value);
-  return std::find_if(
-             std::begin(span.tags()), std::end(span.tags()),
-             [&](const collector::KeyValue& other) {
-               return google::protobuf::util::MessageDifferencer::Equals(
-                   key_value, other);
-             }) != std::end(span.tags());
+  return std::any_of(
+      std::begin(span.tags()), std::end(span.tags()),
+      [&](const collector::KeyValue& other) {
+        return google::protobuf::util::MessageDifferencer::Equals(key_value,
+                                                                  other);
+      });
 }
 
 //------------------------------------------------------------------------------
