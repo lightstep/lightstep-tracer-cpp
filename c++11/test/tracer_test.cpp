@@ -40,12 +40,12 @@ static bool HasRelationship(SpanReferenceType relationship,
       break;
   }
   *reference.mutable_span_context() = span_b.span_context();
-  return std::find_if(
-             std::begin(span_a.references()), std::end(span_a.references()),
-             [&](const collector::Reference& other) {
-               return google::protobuf::util::MessageDifferencer::Equals(
-                   reference, other);
-             }) != std::end(span_a.references());
+  return std::any_of(
+      std::begin(span_a.references()), std::end(span_a.references()),
+      [&](const collector::Reference& other) {
+        return google::protobuf::util::MessageDifferencer::Equals(reference,
+                                                                  other);
+      });
 }
 
 //------------------------------------------------------------------------------

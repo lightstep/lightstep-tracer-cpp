@@ -17,8 +17,8 @@ namespace lightstep {
  */
 class BufferedRecorder : public Recorder {
  public:
-  explicit BufferedRecorder(LightStepTracerOptions options,
-                            std::unique_ptr<Transporter>&& transporter);
+  BufferedRecorder(LightStepTracerOptions options,
+                   std::unique_ptr<Transporter>&& transporter);
 
   BufferedRecorder(const BufferedRecorder&) = delete;
   BufferedRecorder(BufferedRecorder&&) = delete;
@@ -60,7 +60,7 @@ class BufferedRecorder : public Recorder {
   size_t encoding_seqno_ = 1;
   size_t dropped_spans_ = 0;
 
-  // Collector service stub.
+  // Transporter through which to send span reports.
   std::unique_ptr<Transporter> transporter_;
 };
 }  // namespace lightstep
