@@ -18,18 +18,18 @@ const string_view FieldNameSpanID = PREFIX_TRACER_STATE "spanid";
 const string_view FieldNameSampled = PREFIX_TRACER_STATE "sampled";
 #undef PREFIX_TRACER_STATE
 //------------------------------------------------------------------------------
-// uint64_to_hex
+// Uint64ToHex
 //------------------------------------------------------------------------------
-static std::string uint64_to_hex(uint64_t u) {
+static std::string Uint64ToHex(uint64_t u) {
   std::stringstream ss;
   ss << std::setfill('0') << std::setw(16) << std::hex << u;
   return ss.str();
 }
 
 //------------------------------------------------------------------------------
-// hex_to_uint64
+// HexToUint64
 //------------------------------------------------------------------------------
-static uint64_t hex_to_uint64(const std::string& s) {
+static uint64_t HexToUint64(const std::string& s) {
   std::stringstream ss(s);
   uint64_t x;
   ss >> std::setw(16) >> std::hex >> x;
@@ -37,16 +37,16 @@ static uint64_t hex_to_uint64(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-// write_uint64
+// WriteUint64
 //------------------------------------------------------------------------------
-static void write_uint64(std::ostream& out, uint64_t u) {
+static void WriteUint64(std::ostream& out, uint64_t u) {
   out.write(reinterpret_cast<char*>(&u), sizeof(u));
 }
 
 //------------------------------------------------------------------------------
-// read_uint64
+// ReadUint64
 //------------------------------------------------------------------------------
-static uint64_t read_uint64(std::istream& in) {
+static uint64_t ReadUint64(std::istream& in) {
   uint64_t u = 0;
   in.read(reinterpret_cast<char*>(&u), sizeof(u));
   if (!in.good()) {
@@ -56,36 +56,36 @@ static uint64_t read_uint64(std::istream& in) {
 }
 
 //------------------------------------------------------------------------------
-// write_string
+// WriteString
 //------------------------------------------------------------------------------
-static void write_string(std::ostream& out, const std::string& s) {
-  write_uint64(out, s.size());
+static void WriteString(std::ostream& out, const std::string& s) {
+  WriteUint64(out, s.size());
   out.write(s.data(), s.size());
 }
 
 //------------------------------------------------------------------------------
-// read_string
+// ReadString
 //------------------------------------------------------------------------------
-static void read_string(std::istream& in, std::string& s) {
-  auto length = read_uint64(in);
+static void ReadString(std::istream& in, std::string& s) {
+  auto length = ReadUint64(in);
   s.resize(length);
   in.read(&s.front(), length);
 }
 
 //------------------------------------------------------------------------------
-// inject_span_context
+// InjectSpanContext
 //------------------------------------------------------------------------------
-expected<void> inject_span_context(
+expected<void> InjectSpanContext(
     std::ostream& carrier, uint64_t trace_id, uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
   // TODO(rnburn): Do we want to fiddle with carrier.exceptions() to ensure that
   // exceptions aren't thrown?
-  write_uint64(carrier, trace_id);
-  write_uint64(carrier, span_id);
-  write_uint64(carrier, baggage.size());
+  WriteUint64(carrier, trace_id);
+  WriteUint64(carrier, span_id);
+  WriteUint64(carrier, baggage.size());
   for (const auto& baggage_item : baggage) {
-    write_string(carrier, baggage_item.first);
-    write_string(carrier, baggage_item.second);
+    WriteString(carrier, baggage_item.first);
+    WriteString(carrier, baggage_item.second);
   }
 
   // Flush so that when we call carrier.good, we'll get an accurate view of the
@@ -98,13 +98,13 @@ expected<void> inject_span_context(
   return {};
 }
 
-expected<void> inject_span_context(
+expected<void> InjectSpanContext(
     const TextMapWriter& carrier, uint64_t trace_id, uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
   std::string trace_id_hex, span_id_hex, baggage_key;
   try {
-    trace_id_hex = uint64_to_hex(trace_id);
-    span_id_hex = uint64_to_hex(span_id);
+    trace_id_hex = Uint64ToHex(trace_id);
+    span_id_hex = Uint64ToHex(span_id);
     baggage_key = PrefixBaggage;
   } catch (const std::bad_alloc&) {
     return make_unexpected(std::make_error_code(std::errc::not_enough_memory));
@@ -138,9 +138,9 @@ expected<void> inject_span_context(
 }
 
 //------------------------------------------------------------------------------
-// extract_span_context
+// ExtractSpanContext
 //------------------------------------------------------------------------------
-expected<bool> extract_span_context(
+expected<bool> ExtractSpanContext(
     std::istream& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) try {
   // istream::peek returns EOF if it's in an error state, so check for an error
@@ -156,14 +156,14 @@ expected<bool> extract_span_context(
 
   // TODO(rnburn): Do we want to fiddle with carrier.exceptions() to ensure that
   // exceptions aren't thrown?
-  trace_id = read_uint64(carrier);
-  span_id = read_uint64(carrier);
-  auto num_baggage = read_uint64(carrier);
+  trace_id = ReadUint64(carrier);
+  span_id = ReadUint64(carrier);
+  auto num_baggage = ReadUint64(carrier);
   baggage.reserve(num_baggage);
   std::string key, value;
   for (int i = 0; i < num_baggage; ++i) {
-    read_string(carrier, key);
-    read_string(carrier, value);
+    ReadString(carrier, key);
+    ReadString(carrier, value);
     baggage[key] = value;
 
     // Check fo EOF and break out of the loop if reached in case we're reading
@@ -184,35 +184,35 @@ expected<bool> extract_span_context(
 }
 
 template <class KeyCompare>
-static expected<bool> extract_span_context(
+static expected<bool> ExtractSpanContext(
     const TextMapReader& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage,
     KeyCompare key_compare) {
   int count = 0;
   auto result = carrier.ForeachKey([&](string_view key,
                                        string_view value) -> expected<void> {
-    if (key_compare(key, FieldNameTraceID)) {
-      trace_id = hex_to_uint64(value);
-      count++;
-    } else if (key_compare(key, FieldNameSpanID)) {
-      span_id = hex_to_uint64(value);
-      count++;
-    } else if (key_compare(key, FieldNameSampled)) {
-      // Ignored
-      count++;
-    } else if (key.length() > PrefixBaggage.size() &&
-               key_compare(string_view(key.data(), PrefixBaggage.size()),
-                           PrefixBaggage)) {
-      try {
+    try {
+      if (key_compare(key, FieldNameTraceID)) {
+        trace_id = HexToUint64(value);
+        count++;
+      } else if (key_compare(key, FieldNameSpanID)) {
+        span_id = HexToUint64(value);
+        count++;
+      } else if (key_compare(key, FieldNameSampled)) {
+        // Ignored
+        count++;
+      } else if (key.length() > PrefixBaggage.size() &&
+                 key_compare(string_view{key.data(), PrefixBaggage.size()},
+                             PrefixBaggage)) {
         baggage.emplace(
-            std::string(std::begin(key) + PrefixBaggage.size(), std::end(key)),
+            std::string{std::begin(key) + PrefixBaggage.size(), std::end(key)},
             value);
-      } catch (const std::bad_alloc&) {
-        return make_unexpected(
-            std::make_error_code(std::errc::not_enough_memory));
       }
+      return {};
+    } catch (const std::bad_alloc&) {
+      return make_unexpected(
+          std::make_error_code(std::errc::not_enough_memory));
     }
-    return {};
   });
   if (!result) {
     return make_unexpected(result.error());
@@ -226,18 +226,18 @@ static expected<bool> extract_span_context(
   return true;
 }
 
-expected<bool> extract_span_context(
+expected<bool> ExtractSpanContext(
     const TextMapReader& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) {
-  return extract_span_context(carrier, trace_id, span_id, baggage,
-                              std::equal_to<string_view>());
+  return ExtractSpanContext(carrier, trace_id, span_id, baggage,
+                            std::equal_to<string_view>());
 }
 
 // HTTP header field names are case insensitive, so we need to ignore case when
 // comparing against the OpenTracing field names.
 //
 // See https://stackoverflow.com/a/5259004/4447365
-expected<bool> extract_span_context(
+expected<bool> ExtractSpanContext(
     const HTTPHeadersReader& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) {
   auto iequals = [](string_view lhs, string_view rhs) {
@@ -247,6 +247,6 @@ expected<bool> extract_span_context(
                         return std::tolower(a) == std::tolower(b);
                       });
   };
-  return extract_span_context(carrier, trace_id, span_id, baggage, iequals);
+  return ExtractSpanContext(carrier, trace_id, span_id, baggage, iequals);
 }
 }  // namespace lightstep
