@@ -30,13 +30,13 @@ expected<std::unique_ptr<SpanContext>> LightStepBinaryReader::Extract(
 // Inject
 //------------------------------------------------------------------------------
 expected<void> LightStepBinaryWriter::Inject(
-    const opentracing::Tracer& tracer, const opentracing::SpanContext& sc) const
-    try {
+    const opentracing::Tracer& tracer,
+    const opentracing::SpanContext& span_context) const try {
   auto lightstep_tracer = dynamic_cast<const LightStepTracer*>(&tracer);
   if (lightstep_tracer == nullptr) {
     return make_unexpected(invalid_carrier_error);
   }
-  auto trace_span_ids_maybe = lightstep_tracer->GetTraceSpanIds(sc);
+  auto trace_span_ids_maybe = lightstep_tracer->GetTraceSpanIds(span_context);
   if (!trace_span_ids_maybe) {
     return make_unexpected(trace_span_ids_maybe.error());
   }
@@ -49,7 +49,7 @@ expected<void> LightStepBinaryWriter::Inject(
 
   auto baggage = basic->mutable_baggage_items();
 
-  sc.ForeachBaggageItem(
+  span_context.ForeachBaggageItem(
       [baggage](const std::string& key, const std::string& value) {
         (*baggage)[key] = value;
         return true;

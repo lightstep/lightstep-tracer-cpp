@@ -7,7 +7,7 @@ namespace lightstep {
 class LightStepBinaryReader : public opentracing::CustomCarrierReader {
  public:
   LightStepBinaryReader(const BinaryCarrier* carrier) noexcept
-      : carrier_(carrier) {}
+      : carrier_{carrier} {}
 
   opentracing::expected<std::unique_ptr<opentracing::SpanContext>> Extract(
       const opentracing::Tracer& tracer) const override;

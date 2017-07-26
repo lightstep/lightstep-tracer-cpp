@@ -1,4 +1,5 @@
 #include "propagation.h"
+#include <lightstep_carrier.pb.h>
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
@@ -17,6 +18,7 @@ const string_view FieldNameTraceID = PREFIX_TRACER_STATE "traceid";
 const string_view FieldNameSpanID = PREFIX_TRACER_STATE "spanid";
 const string_view FieldNameSampled = PREFIX_TRACER_STATE "sampled";
 #undef PREFIX_TRACER_STATE
+
 //------------------------------------------------------------------------------
 // Uint64ToHex
 //------------------------------------------------------------------------------
@@ -37,55 +39,35 @@ static uint64_t HexToUint64(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-// WriteUint64
-//------------------------------------------------------------------------------
-static void WriteUint64(std::ostream& out, uint64_t u) {
-  out.write(reinterpret_cast<char*>(&u), sizeof(u));
-}
-
-//------------------------------------------------------------------------------
-// ReadUint64
-//------------------------------------------------------------------------------
-static uint64_t ReadUint64(std::istream& in) {
-  uint64_t u = 0;
-  in.read(reinterpret_cast<char*>(&u), sizeof(u));
-  if (!in.good()) {
-    return 0;
-  }
-  return u;
-}
-
-//------------------------------------------------------------------------------
-// WriteString
-//------------------------------------------------------------------------------
-static void WriteString(std::ostream& out, const std::string& s) {
-  WriteUint64(out, s.size());
-  out.write(s.data(), s.size());
-}
-
-//------------------------------------------------------------------------------
-// ReadString
-//------------------------------------------------------------------------------
-static void ReadString(std::istream& in, std::string& s) {
-  auto length = ReadUint64(in);
-  s.resize(length);
-  in.read(&s.front(), length);
-}
-
-//------------------------------------------------------------------------------
 // InjectSpanContext
 //------------------------------------------------------------------------------
+static opentracing::expected<void> InjectSpanContext(
+    BinaryCarrier& carrier, uint64_t trace_id, uint64_t span_id,
+    const std::unordered_map<std::string, std::string>& baggage) noexcept try {
+  carrier.Clear();
+  auto basic = carrier.mutable_basic_ctx();
+  basic->set_trace_id(trace_id);
+  basic->set_span_id(span_id);
+  basic->set_sampled(true);
+  auto mutable_baggage = basic->mutable_baggage_items();
+  for (auto& baggage_item : baggage) {
+    (*mutable_baggage)[baggage_item.first] = baggage_item.second;
+  }
+  return {};
+} catch (const std::bad_alloc&) {
+  return make_unexpected(std::make_error_code(std::errc::not_enough_memory));
+}
+
 expected<void> InjectSpanContext(
     std::ostream& carrier, uint64_t trace_id, uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
-  // TODO(rnburn): Do we want to fiddle with carrier.exceptions() to ensure that
-  // exceptions aren't thrown?
-  WriteUint64(carrier, trace_id);
-  WriteUint64(carrier, span_id);
-  WriteUint64(carrier, baggage.size());
-  for (const auto& baggage_item : baggage) {
-    WriteString(carrier, baggage_item.first);
-    WriteString(carrier, baggage_item.second);
+  BinaryCarrier binary_carrier;
+  auto result = InjectSpanContext(binary_carrier, trace_id, span_id, baggage);
+  if (!result) {
+    return result;
+  }
+  if (!binary_carrier.SerializeToOstream(&carrier)) {
+    return make_unexpected(std::make_error_code(std::io_errc::stream));
   }
 
   // Flush so that when we call carrier.good, we'll get an accurate view of the
@@ -140,6 +122,20 @@ expected<void> InjectSpanContext(
 //------------------------------------------------------------------------------
 // ExtractSpanContext
 //------------------------------------------------------------------------------
+static opentracing::expected<bool> ExtractSpanContext(
+    const BinaryCarrier& carrier, uint64_t& trace_id, uint64_t& span_id,
+    std::unordered_map<std::string, std::string>& baggage) noexcept try {
+  auto& basic = carrier.basic_ctx();
+  trace_id = basic.trace_id();
+  span_id = basic.span_id();
+  for (const auto& entry : basic.baggage_items()) {
+    baggage.emplace(entry.first, entry.second);
+  }
+  return true;
+} catch (const std::bad_alloc&) {
+  return make_unexpected(std::make_error_code(std::errc::not_enough_memory));
+}
+
 expected<bool> ExtractSpanContext(
     std::istream& carrier, uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) try {
@@ -154,31 +150,11 @@ expected<bool> ExtractSpanContext(
     return false;
   }
 
-  // TODO(rnburn): Do we want to fiddle with carrier.exceptions() to ensure that
-  // exceptions aren't thrown?
-  trace_id = ReadUint64(carrier);
-  span_id = ReadUint64(carrier);
-  auto num_baggage = ReadUint64(carrier);
-  baggage.reserve(num_baggage);
-  std::string key, value;
-  for (int i = 0; i < num_baggage; ++i) {
-    ReadString(carrier, key);
-    ReadString(carrier, value);
-    baggage[key] = value;
-
-    // Check fo EOF and break out of the loop if reached in case we're reading
-    // invalid data and `num_baggage` is some arbitrarily large value.
-    if (carrier.eof()) {
-      break;
-    }
+  BinaryCarrier binary_carrier;
+  if (!binary_carrier.ParseFromIstream(&carrier)) {
+    return false;
   }
-  if (carrier.eof()) {
-    return make_unexpected(span_context_corrupted_error);
-  }
-  if (!carrier.good()) {
-    return make_unexpected(std::make_error_code(std::io_errc::stream));
-  }
-  return true;
+  return ExtractSpanContext(binary_carrier, trace_id, span_id, baggage);
 } catch (const std::bad_alloc&) {
   return make_unexpected(std::make_error_code(std::errc::not_enough_memory));
 }
