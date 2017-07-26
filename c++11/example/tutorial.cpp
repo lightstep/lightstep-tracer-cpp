@@ -9,6 +9,7 @@ using namespace opentracing;
 
 int main() {
   LightStepTracerOptions options;
+  options.verbose = true;
   options.component_name = "Tutorial";
   if (const char* access_token = std::getenv("LIGHTSTEP_ACCESS_TOKEN")) {
     options.access_token = access_token;

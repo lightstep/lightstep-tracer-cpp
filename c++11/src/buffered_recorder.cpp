@@ -1,4 +1,5 @@
 #include "buffered_recorder.h"
+#include "logger.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -83,7 +84,14 @@ void BufferedRecorder::Write() {
 //------------------------------------------------------------------------------
 bool BufferedRecorder::WriteReport(const collector::ReportRequest& report) {
   auto response_maybe = transporter_->SendReport(report);
-  return static_cast<bool>(response_maybe);
+  if (!response_maybe) {
+    return false;
+  }
+  if (options_.verbose) {
+    GetLogger().info(R"(Report: resp="{}")",
+                     response_maybe->ShortDebugString());
+  }
+  return true;
 }
 
 //------------------------------------------------------------------------------

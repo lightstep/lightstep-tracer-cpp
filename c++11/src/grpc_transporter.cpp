@@ -1,7 +1,7 @@
 #include "grpc_transporter.h"
 #include <chrono>
-#include <iostream>
 #include <sstream>
+#include "logger.h"
 using namespace opentracing;
 
 namespace lightstep {
@@ -36,7 +36,7 @@ expected<collector::ReportResponse> GrpcTransporter::SendReport(
   context.set_deadline(std::chrono::system_clock::now() + report_timeout_);
   auto status = client_.Report(&context, report, &resp);
   if (!status.ok()) {
-    std::cerr << "Report RPC failed: " << status.error_message();
+    GetLogger().error("Report RPC failed: {}", status.error_message());
     // TODO(rnburn): Is there a better error code for this?
     return make_unexpected(
         std::make_error_code(std::errc::network_unreachable));

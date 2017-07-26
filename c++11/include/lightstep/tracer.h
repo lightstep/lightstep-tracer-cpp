@@ -28,6 +28,9 @@ struct LightStepTracerOptions {
   // this Tracer.
   std::unordered_map<std::string, opentracing::Value> tags;
 
+  // Set `verbose` to true to enable more text logging.
+  bool verbose = false;
+
   // `max_buffered_spans` is the maximum number of spans that will be buffered
   // before sending them to a collector.
   size_t max_buffered_spans = 2000;
@@ -53,6 +56,7 @@ class LightStepTracer : public opentracing::Tracer {
       noexcept;
 };
 
+// Returns a std::shared_ptr to a LightStepTracer or nullptr on failure.
 std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
-    LightStepTracerOptions options);
+    LightStepTracerOptions options) noexcept;
 }  // namespace lightstep

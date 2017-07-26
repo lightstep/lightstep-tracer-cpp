@@ -1,4 +1,5 @@
 #include "lightstep_span.h"
+#include "logger.h"
 #include "utility.h"
 
 using opentracing::SystemTime;
@@ -51,13 +52,13 @@ static bool SetSpanReference(
       break;
   }
   if (reference.second == nullptr) {
-    std::cerr << "LightStep: passed in null span reference.\n";
+    GetLogger().warn("Passed in null span reference.");
     return false;
   }
   auto referenced_context =
       dynamic_cast<const LightStepSpanContext*>(reference.second);
   if (referenced_context == nullptr) {
-    std::cerr << "LightStep: passed in span reference of unexpected type.\n";
+    GetLogger().warn("Passed in span reference of unexpected type.");
     return false;
   }
   collector_reference.mutable_span_context()->set_trace_id(

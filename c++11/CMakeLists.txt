@@ -28,6 +28,10 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lightstep
         DESTINATION include)
 
 include_directories(SYSTEM 3rd_party/include)
+
+# Needed to make some of the internal relative includes work.
+include_directories(SYSTEM 3rd_party/include/lightstep)
+
 include_directories(include)
 install(DIRECTORY include/lightstep DESTINATION include)
 
@@ -71,6 +75,7 @@ add_library(lightstep_protobuf OBJECT ${COLLECTOR_PB_CPP_FILE}
 
 set(LIGHTSTEP_SRCS src/utility.cpp
                    src/propagation.cpp
+                   src/logger.cpp
                    src/binary_carrier.cpp
                    src/grpc_transporter.cpp
                    src/report_builder.cpp

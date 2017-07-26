@@ -12,6 +12,7 @@
 #include "grpc_transporter.h"
 #include "lightstep_span_context.h"
 #include "lightstep_tracer_impl.h"
+#include "logger.h"
 #include "utility.h"
 using namespace opentracing;
 
@@ -62,7 +63,21 @@ expected<std::unique_ptr<SpanContext>> LightStepTracer::MakeSpanContext(
 // MakeLightStepTracer
 //------------------------------------------------------------------------------
 std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
-    LightStepTracerOptions options) {
+    LightStepTracerOptions options) noexcept try {
+  // Create and configure the logger.
+  auto& logger = GetLogger();
+  if (options.verbose) {
+    logger.set_level(spdlog::level::info);
+  } else {
+    logger.set_level(spdlog::level::err);
+  }
+
+  // Validate `options`.
+  if (options.access_token.empty()) {
+    logger.error("Must provide an access_token!");
+    return nullptr;
+  }
+
   // Copy over default tags.
   for (const auto& tag : GetDefaultTags()) {
     options.tags[tag.first] = tag.second;
@@ -80,5 +95,11 @@ std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
       new BufferedRecorder{std::move(options), std::move(transporter)}};
   return std::shared_ptr<opentracing::Tracer>{
       new LightStepTracerImpl{std::move(recorder)}};
+} catch (const spdlog::spdlog_ex& e) {
+  std::cerr << "Log init failed: " << e.what() << "\n";
+  return nullptr;
+} catch (const std::exception& e) {
+  GetLogger().error("Failed to construct LightStep Tracer: {}", e.what());
+  return nullptr;
 }
 }  // namespace lightstep
