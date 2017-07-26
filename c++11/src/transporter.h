@@ -13,6 +13,6 @@ class Transporter {
   virtual ~Transporter() = default;
 
   virtual opentracing::expected<collector::ReportResponse> SendReport(
-      const collector::ReportRequest& report) noexcept = 0;
+      const collector::ReportRequest& report) = 0;
 };
 }  // namespace lightstep

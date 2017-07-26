@@ -1,4 +1,5 @@
 #include "buffered_recorder.h"
+#include <exception>
 #include "logger.h"
 
 namespace lightstep {
@@ -24,7 +25,7 @@ BufferedRecorder::~BufferedRecorder() {
 //------------------------------------------------------------------------------
 // RecordSpan
 //------------------------------------------------------------------------------
-void BufferedRecorder::RecordSpan(collector::Span&& span) noexcept {
+void BufferedRecorder::RecordSpan(collector::Span&& span) noexcept try {
   std::lock_guard<std::mutex> lock_guard{write_mutex_};
   if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
     dropped_spans_++;
@@ -34,6 +35,8 @@ void BufferedRecorder::RecordSpan(collector::Span&& span) noexcept {
   if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
     write_cond_.notify_all();
   }
+} catch (const std::exception& e) {
+  GetLogger().error("Failed to record span: {}", e.what());
 }
 
 //------------------------------------------------------------------------------

@@ -13,7 +13,7 @@ class GrpcTransporter : public Transporter {
   explicit GrpcTransporter(const LightStepTracerOptions& options);
 
   opentracing::expected<collector::ReportResponse> SendReport(
-      const collector::ReportRequest& report) noexcept override;
+      const collector::ReportRequest& report) override;
 
  private:
   // Collector service stub.

@@ -29,7 +29,7 @@ GrpcTransporter::GrpcTransporter(const LightStepTracerOptions& options)
 // SendReport
 //------------------------------------------------------------------------------
 expected<collector::ReportResponse> GrpcTransporter::SendReport(
-    const collector::ReportRequest& report) noexcept {
+    const collector::ReportRequest& report) {
   grpc::ClientContext context;
   collector::ReportResponse resp;
   context.set_fail_fast(true);

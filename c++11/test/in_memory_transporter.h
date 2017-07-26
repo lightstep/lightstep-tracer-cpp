@@ -8,7 +8,7 @@ namespace lightstep {
 class InMemoryTransporter : public Transporter {
  public:
   virtual opentracing::expected<collector::ReportResponse> SendReport(
-      const collector::ReportRequest& report) noexcept override {
+      const collector::ReportRequest& report) override {
     collector::ReportResponse response;
     spans_.reserve(spans_.size() + report.spans_size());
     for (auto& span : report.spans()) {
