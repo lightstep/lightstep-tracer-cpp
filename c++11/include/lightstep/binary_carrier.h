@@ -18,11 +18,11 @@ class LightStepBinaryReader : public opentracing::CustomCarrierReader {
 
 class LightStepBinaryWriter : public opentracing::CustomCarrierWriter {
  public:
-  LightStepBinaryWriter(BinaryCarrier& carrier) noexcept : carrier_(carrier) {}
+  LightStepBinaryWriter(BinaryCarrier& carrier) noexcept : carrier_{carrier} {}
 
   opentracing::expected<void> Inject(
       const opentracing::Tracer& tracer,
-      const opentracing::SpanContext& sc) const override;
+      const opentracing::SpanContext& span_context) const override;
 
  private:
   BinaryCarrier& carrier_;
