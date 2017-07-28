@@ -79,6 +79,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/binary_carrier.cpp
                    src/grpc_transporter.cpp
                    src/report_builder.cpp
+                   src/manual_recorder.cpp
                    src/buffered_recorder.cpp
                    src/lightstep_span_context.cpp
                    src/lightstep_span.cpp

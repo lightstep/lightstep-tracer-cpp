@@ -102,9 +102,14 @@ LightStepTracerImpl::Extract(
 }
 
 //------------------------------------------------------------------------------
-// Close
+// Flush
 //------------------------------------------------------------------------------
-void LightStepTracerImpl::Close() noexcept {
+void LightStepTracerImpl::Flush() noexcept {
   recorder_->FlushWithTimeout(std::chrono::hours(24));
 }
+
+//------------------------------------------------------------------------------
+// Close
+//------------------------------------------------------------------------------
+void LightStepTracerImpl::Close() noexcept { Flush(); }
 }  // namespace lightstep

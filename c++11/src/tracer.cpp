@@ -62,7 +62,7 @@ expected<std::unique_ptr<SpanContext>> LightStepTracer::MakeSpanContext(
 //------------------------------------------------------------------------------
 // MakeLightStepTracer
 //------------------------------------------------------------------------------
-std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
+std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     LightStepTracerOptions options) noexcept try {
   // Create and configure the logger.
   auto& logger = GetLogger();
@@ -93,13 +93,18 @@ std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
   auto transporter = std::unique_ptr<Transporter>{new GrpcTransporter{options}};
   auto recorder = std::unique_ptr<Recorder>{
       new BufferedRecorder{std::move(options), std::move(transporter)}};
-  return std::shared_ptr<opentracing::Tracer>{
+  return std::shared_ptr<LightStepTracer>{
       new LightStepTracerImpl{std::move(recorder)}};
 } catch (const spdlog::spdlog_ex& e) {
   std::cerr << "Log init failed: " << e.what() << "\n";
   return nullptr;
 } catch (const std::exception& e) {
   GetLogger().error("Failed to construct LightStep Tracer: {}", e.what());
+  return nullptr;
+}
+
+std::shared_ptr<LightStepTracer> MakeLightStepTracer(
+    LightStepManualTracerOptions /*options*/) noexcept {
   return nullptr;
 }
 }  // namespace lightstep

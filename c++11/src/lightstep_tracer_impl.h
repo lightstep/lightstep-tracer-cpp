@@ -35,6 +35,8 @@ class LightStepTracerImpl
   opentracing::expected<std::unique_ptr<opentracing::SpanContext>> Extract(
       const opentracing::HTTPHeadersReader& reader) const override;
 
+  void Flush() noexcept override;
+
   void Close() noexcept override;
 
  private:
