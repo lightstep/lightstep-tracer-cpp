@@ -9,7 +9,7 @@ namespace lightstep {
 BufferedRecorder::BufferedRecorder(LightStepTracerOptions options,
                                    std::unique_ptr<Transporter>&& transporter)
     : options_{std::move(options)},
-      builder_{options_},
+      builder_{options_.access_token, options_.tags},
       transporter_{std::move(transporter)} {
   writer_ = std::thread(&BufferedRecorder::Write, this);
 }

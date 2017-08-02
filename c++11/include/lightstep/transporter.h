@@ -1,8 +1,9 @@
 #pragma once
 
-#include <google/protobuf/message.h>
 #include <opentracing/util.h>
-#include <functional>
+#include <opentracing/string_view.h>
+#include <google/protobuf/message.h>
+
 
 namespace lightstep {
 class AsyncTransporter {
@@ -11,7 +12,18 @@ class AsyncTransporter {
 
   virtual void Send(const google::protobuf::Message& request,
                     google::protobuf::Message& response,
-                    std::function<void()> success_callback,
-                    std::function<void(std::error_code)> fail_callback) = 0;
+                    void (*on_success)(void* context),
+                    void (*on_failure)(std::error_code error, void* context));
 };
+
+class LightStepAsyncTransporter : public AsyncTransporter {
+ public:
+   int file_descriptor() const;
+
+   void OnRead();
+   void OnWrite();
+   void OnTimeout();
+};
+
+std::unique_ptr<LightStepAsyncTransporter> MakeLightStepAsyncTransporter();
 }  // namespace lightstep

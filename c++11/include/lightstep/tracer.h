@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lightstep/transporter.h>
 #include <opentracing/tracer.h>
 #include <opentracing/value.h>
 #include <array>
@@ -8,7 +9,10 @@
 #include <unordered_map>
 
 namespace lightstep {
-class AsyncTransporter;
+
+const std::string& CollectorServiceFullName();
+
+const std::string& CollectorMethodName();
 
 struct LightStepTracerOptions {
   // `component_name` is the human-readable identity of the instrumented

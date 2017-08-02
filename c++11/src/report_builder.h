@@ -1,7 +1,10 @@
 #pragma once
 
 #include <collector.pb.h>
+#include <string>
+#include <unordered_map>
 #include <lightstep/tracer.h>
+#include <opentracing/value.h>
 
 namespace lightstep {
 /**
@@ -10,7 +13,9 @@ namespace lightstep {
  */
 class ReportBuilder {
  public:
-  explicit ReportBuilder(const LightStepTracerOptions& options);
+  ReportBuilder(
+      const std::string& access_token,
+      const std::unordered_map<std::string, opentracing::Value>& tags);
 
   // AddSpan adds the span to the currently-building ReportRequest.
   void AddSpan(collector::Span&& span);

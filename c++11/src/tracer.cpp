@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 #include "buffered_recorder.h"
+#include "manual_recorder.h"
 #include "grpc_transporter.h"
 #include "lightstep_span_context.h"
 #include "lightstep_tracer_impl.h"
@@ -18,6 +19,9 @@ using namespace opentracing;
 
 namespace lightstep {
 const string_view component_name_key = "lightstep.component_name";
+const string_view collector_service_full_name =
+    "lightstep.collector.CollectorService";
+const string_view collector_method_name = "Report";
 
 //------------------------------------------------------------------------------
 // GetDefaultTags
@@ -29,6 +33,22 @@ static const std::vector<std::pair<string_view, Value>>& GetDefaultTags() {
       {"lightstep.tracer_version", LIGHTSTEP_VERSION},
       {"lightstep.opentracing_version", OPENTRACING_VERSION}};
   return default_tags;
+}
+
+//------------------------------------------------------------------------------
+// CollectorServiceFullName
+//------------------------------------------------------------------------------
+const std::string& CollectorServiceFullName() {
+  static std::string name = collector_service_full_name;
+  return name;
+}
+
+//------------------------------------------------------------------------------
+// CollectorMethodName
+//------------------------------------------------------------------------------
+const std::string& CollectorMethodName() {
+  static std::string name = collector_method_name;
+  return name;
 }
 
 //------------------------------------------------------------------------------
@@ -104,7 +124,10 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
 }
 
 std::shared_ptr<LightStepTracer> MakeLightStepTracer(
-    LightStepManualTracerOptions /*options*/) noexcept {
-  return nullptr;
+    LightStepManualTracerOptions options) noexcept {
+  auto recorder = std::unique_ptr<Recorder>{
+    new ManualRecorder{std::move(options)}};
+  return std::shared_ptr<LightStepTracer>{
+      new LightStepTracerImpl{std::move(recorder)}};
 }
 }  // namespace lightstep

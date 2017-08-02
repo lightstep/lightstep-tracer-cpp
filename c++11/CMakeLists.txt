@@ -84,6 +84,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/lightstep_span_context.cpp
                    src/lightstep_span.cpp
                    src/lightstep_tracer_impl.cpp
+                   src/transporter.cpp
                    src/tracer.cpp)
 
 add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_protobuf>
