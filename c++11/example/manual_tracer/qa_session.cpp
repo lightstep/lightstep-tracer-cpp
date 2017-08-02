@@ -79,8 +79,6 @@ void QASession::EventCallback(evutil_socket_t socketfd, short what,
 // ReadQuestions
 //------------------------------------------------------------------------------
 void QASession::ReadQuestions(evutil_socket_t socketfd) {
-  std::cout << "Read:"
-            << "\n";
   std::array<char, socket_buffer_size> buffer;
   int num_read;
   do {
