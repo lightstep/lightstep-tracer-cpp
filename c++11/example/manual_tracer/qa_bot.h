@@ -1,14 +1,16 @@
 #pragma once
 
 #include <event2/listener.h>
+#include <opentracing/tracer.h>
 
 class QABot {
  public:
-  explicit QABot(event_base* base);
+  QABot(std::shared_ptr<opentracing::Tracer>&& tracer, event_base* base);
 
   ~QABot();
 
  private:
+  std::shared_ptr<opentracing::Tracer> tracer_;
   evconnlistener* listener_;
 
   static void AcceptConnectionCallback(evconnlistener* listener,

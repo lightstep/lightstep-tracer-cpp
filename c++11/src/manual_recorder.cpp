@@ -29,13 +29,18 @@ void ManualRecorder::FlushOne() {
     return;
   }
 
+  saved_pending_spans_ = builder_.num_pending_spans();
+  if (saved_pending_spans_ == 0) {
+    return;
+  }
   saved_dropped_spans_ = dropped_spans_;
   builder_.set_pending_client_dropped_spans(dropped_spans_);
   dropped_spans_ = 0;
   std::swap(builder_.pending(), active_request_);
   ++encoding_seqno_;
   options_.transporter->Send(active_request_, active_response_,
-                             OnSuccessCallback, OnFailureCallback);
+                             OnSuccessCallback, OnFailureCallback,
+                             static_cast<void*>(this));
 }
 
 //------------------------------------------------------------------------------
@@ -67,6 +72,7 @@ void ManualRecorder::OnFailureCallback(std::error_code /*error*/, void* context)
   auto recorder = static_cast<ManualRecorder*>(context);
   ++recorder->flushed_seqno_;
   recorder->active_request_.Clear();
-  recorder->dropped_spans_ += recorder->saved_dropped_spans_;
+  recorder->dropped_spans_ +=
+      recorder->saved_dropped_spans_ + recorder->saved_pending_spans_;
 }
 }  // namespace lightstep

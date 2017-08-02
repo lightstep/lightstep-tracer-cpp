@@ -78,6 +78,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/logger.cpp
                    src/binary_carrier.cpp
                    src/grpc_transporter.cpp
+                   src/nghttp2_async_transporter.cpp
                    src/report_builder.cpp
                    src/manual_recorder.cpp
                    src/buffered_recorder.cpp

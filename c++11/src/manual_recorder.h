@@ -27,6 +27,7 @@ class ManualRecorder : public Recorder {
   collector::ReportRequest active_request_;
   collector::ReportResponse active_response_;
   size_t saved_dropped_spans_ = 0;
+  size_t saved_pending_spans_ = 0;
   size_t flushed_seqno_ = 0;
   size_t encoding_seqno_ = 1;
   size_t dropped_spans_ = 0;

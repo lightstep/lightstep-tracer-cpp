@@ -13,16 +13,17 @@ class AsyncTransporter {
   virtual void Send(const google::protobuf::Message& request,
                     google::protobuf::Message& response,
                     void (*on_success)(void* context),
-                    void (*on_failure)(std::error_code error, void* context));
+                    void (*on_failure)(std::error_code error, void* context),
+                    void* context) = 0;
 };
 
 class LightStepAsyncTransporter : public AsyncTransporter {
  public:
-   int file_descriptor() const;
+   virtual int file_descriptor() const noexcept = 0;
 
-   void OnRead();
-   void OnWrite();
-   void OnTimeout();
+   virtual void OnRead() noexcept = 0;
+   virtual void OnWrite() noexcept = 0;
+   virtual void OnTimeout() noexcept = 0;
 };
 
 std::unique_ptr<LightStepAsyncTransporter> MakeLightStepAsyncTransporter();

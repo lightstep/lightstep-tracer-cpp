@@ -3,14 +3,18 @@
 #include <event2/event.h>
 #include <string>
 #include <vector>
+#include <opentracing/span.h>
+#include <memory>
 
 class QASession {
  public:
-  QASession(evutil_socket_t socketfd, event_base* base);
+  QASession(std::unique_ptr<opentracing::Span>&& span, evutil_socket_t socketfd,
+            event_base* base);
 
   ~QASession();
 
  private:
+  std::unique_ptr<opentracing::Span> span_;
   event* event_;
   std::string active_question_;
   std::string active_answer_;

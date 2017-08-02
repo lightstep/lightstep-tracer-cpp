@@ -10,7 +10,9 @@
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-QABot::QABot(event_base* base) {
+QABot::QABot(std::shared_ptr<opentracing::Tracer>&& tracer, event_base* base) 
+  : tracer_{std::move(tracer)}
+{
   sockaddr_in address = {};
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;
@@ -38,10 +40,12 @@ QABot::~QABot() { evconnlistener_free(listener_); }
 //------------------------------------------------------------------------------
 void QABot::AcceptConnectionCallback(evconnlistener* listener,
                                      evutil_socket_t socketfd,
-                                     sockaddr* address, int socket_len,
+                                     sockaddr* /*address*/, int /*socket_len*/,
                                      void* context) {
+  auto qa_bot = static_cast<QABot*>(context);
   auto base = evconnlistener_get_base(listener);
-  auto session = new QASession{socketfd, base};
+  auto session =
+      new QASession{qa_bot->tracer_->StartSpan("QASession"), socketfd, base};
 }
 
 //------------------------------------------------------------------------------

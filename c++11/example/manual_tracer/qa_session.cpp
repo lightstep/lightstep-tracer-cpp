@@ -41,7 +41,9 @@ static std::string AnswerQuestion(const std::string& question) {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-QASession::QASession(evutil_socket_t socketfd, event_base* base) {
+QASession::QASession(std::unique_ptr<opentracing::Span>&& span,
+                     evutil_socket_t socketfd, event_base* base)
+    : span_{std::move(span)} {
   event_ = event_new(base, socketfd, EV_READ | EV_WRITE | EV_PERSIST,
                      &QASession::EventCallback, this);
   if (event_ == nullptr) {
@@ -105,7 +107,11 @@ void QASession::ReadQuestions(evutil_socket_t socketfd) {
     auto i = std::find(first, last, '\n');
     active_question_.append(first, i);
     if (i != last) {
-      answers_.append(AnswerQuestion(active_question_));
+      auto answer = AnswerQuestion(active_question_);
+      span_->Log({{"event", "question_answer"},
+                  {"question", active_question_},
+                  {"answer", answer}});
+      answers_.append(std::move(answer));
       active_question_.clear();
       active_question_.append(std::next(i), last);
     }
