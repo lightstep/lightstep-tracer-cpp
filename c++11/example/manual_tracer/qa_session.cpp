@@ -11,7 +11,7 @@
 //------------------------------------------------------------------------------
 // AnswerQuestion
 //------------------------------------------------------------------------------
-static std::string AnswerQuestion(const std::string& question) {
+static std::string AnswerQuestion(const std::string& /*question*/) {
   static thread_local std::mt19937 rng{std::random_device{}()};
   static const char* const answers[] = {"It is certain\n",
                                         "It is decidedly so\n",
@@ -82,7 +82,7 @@ void QASession::ReadQuestions(evutil_socket_t socketfd) {
   std::array<char, socket_buffer_size> buffer;
   int num_read;
   do {
-    num_read = read(socketfd, buffer.data(), buffer.size());
+    num_read = read(socketfd, buffer.data(), static_cast<int>(buffer.size()));
 
     // Reached EOF, close the socket.
     if (num_read == 0) {
