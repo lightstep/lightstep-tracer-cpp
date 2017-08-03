@@ -13,6 +13,8 @@ ManualRecorder::ManualRecorder(LightStepManualTracerOptions options)
 // RecordSpan
 //------------------------------------------------------------------------------
 void ManualRecorder::RecordSpan(collector::Span&& span) noexcept {
+  // TODO(rnburn): Do we want to have any sort of locking here, or can we assum
+  // that spans are only recorded on a single thread?
   if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
     dropped_spans_++;
     return;

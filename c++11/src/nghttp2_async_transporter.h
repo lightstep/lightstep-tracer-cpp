@@ -3,10 +3,13 @@
 #include <lightstep/transporter.h>
 
 namespace lightstep {
+// This still needs to be filled in, but shows what the interface for a
+// LightStep-provided async transporter might look like.
 class Nghttp2AsyncTransporter : public LightStepAsyncTransporter {
  public:
   int file_descriptor() const noexcept override {
-    // This isn't implemented yet, so return a dummy file descriptor for now.
+    // Since this isn't implemented yet, so return a dummy file descriptor for
+    // now.
     return -1;
   }
 
