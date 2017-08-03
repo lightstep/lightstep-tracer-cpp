@@ -15,23 +15,25 @@
 #include "lightstep_tracer_impl.h"
 #include "logger.h"
 #include "utility.h"
-using namespace opentracing;
 
 namespace lightstep {
-const string_view component_name_key = "lightstep.component_name";
-const string_view collector_service_full_name =
+const opentracing::string_view component_name_key = "lightstep.component_name";
+const opentracing::string_view collector_service_full_name =
     "lightstep.collector.CollectorService";
-const string_view collector_method_name = "Report";
+const opentracing::string_view collector_method_name = "Report";
 
 //------------------------------------------------------------------------------
 // GetDefaultTags
 //------------------------------------------------------------------------------
-static const std::vector<std::pair<string_view, Value>>& GetDefaultTags() {
-  static const std::vector<std::pair<string_view, Value>> default_tags = {
-      {"lightstep.tracer_platform", "c++"},
-      {"lightstep.tracer_platform_version", __cplusplus},
-      {"lightstep.tracer_version", LIGHTSTEP_VERSION},
-      {"lightstep.opentracing_version", OPENTRACING_VERSION}};
+static const std::vector<
+    std::pair<opentracing::string_view, opentracing::Value>>&
+GetDefaultTags() {
+  static const std::vector<
+      std::pair<opentracing::string_view, opentracing::Value>>
+      default_tags = {{"lightstep.tracer_platform", "c++"},
+                      {"lightstep.tracer_platform_version", __cplusplus},
+                      {"lightstep.tracer_version", LIGHTSTEP_VERSION},
+                      {"lightstep.opentracing_version", OPENTRACING_VERSION}};
   return default_tags;
 }
 
@@ -54,12 +56,13 @@ const std::string& CollectorMethodName() {
 //------------------------------------------------------------------------------
 // GetTraceSpanIds
 //------------------------------------------------------------------------------
-expected<std::array<uint64_t, 2>> LightStepTracer::GetTraceSpanIds(
-    const SpanContext& span_context) const noexcept {
+opentracing::expected<std::array<uint64_t, 2>> LightStepTracer::GetTraceSpanIds(
+    const opentracing::SpanContext& span_context) const noexcept {
   auto lightstep_span_context =
       dynamic_cast<const LightStepSpanContext*>(&span_context);
   if (lightstep_span_context == nullptr) {
-    return make_unexpected(invalid_span_context_error);
+    return opentracing::make_unexpected(
+        opentracing::invalid_span_context_error);
   }
   std::array<uint64_t, 2> result = {
       {lightstep_span_context->trace_id(), lightstep_span_context->span_id()}};
@@ -69,14 +72,16 @@ expected<std::array<uint64_t, 2>> LightStepTracer::GetTraceSpanIds(
 //------------------------------------------------------------------------------
 // MakeSpanContext
 //------------------------------------------------------------------------------
-expected<std::unique_ptr<SpanContext>> LightStepTracer::MakeSpanContext(
+opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
+LightStepTracer::MakeSpanContext(
     uint64_t trace_id, uint64_t span_id,
     std::unordered_map<std::string, std::string>&& baggage) const noexcept try {
-  std::unique_ptr<SpanContext> result(
-      new LightStepSpanContext(trace_id, span_id, std::move(baggage)));
+  std::unique_ptr<opentracing::SpanContext> result{
+      new LightStepSpanContext{trace_id, span_id, std::move(baggage)}};
   return result;
 } catch (const std::bad_alloc&) {
-  return make_unexpected(std::make_error_code(std::errc::not_enough_memory));
+  return opentracing::make_unexpected(
+      std::make_error_code(std::errc::not_enough_memory));
 }
 
 //------------------------------------------------------------------------------

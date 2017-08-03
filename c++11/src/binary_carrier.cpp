@@ -1,16 +1,15 @@
 #include <lightstep/binary_carrier.h>
 #include <lightstep/tracer.h>
-using namespace opentracing;
 
 namespace lightstep {
 //------------------------------------------------------------------------------
 // Extract
 //------------------------------------------------------------------------------
-expected<std::unique_ptr<SpanContext>> LightStepBinaryReader::Extract(
-    const Tracer& tracer) const try {
+opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
+LightStepBinaryReader::Extract(const opentracing::Tracer& tracer) const try {
   auto lightstep_tracer = dynamic_cast<const LightStepTracer*>(&tracer);
   if (lightstep_tracer == nullptr) {
-    return make_unexpected(invalid_carrier_error);
+    return opentracing::make_unexpected(opentracing::invalid_carrier_error);
   }
   if (carrier_ == nullptr) {
     return {};
@@ -23,22 +22,23 @@ expected<std::unique_ptr<SpanContext>> LightStepBinaryReader::Extract(
   return lightstep_tracer->MakeSpanContext(basic.trace_id(), basic.span_id(),
                                            std::move(baggage));
 } catch (const std::bad_alloc&) {
-  return make_unexpected(make_error_code(std::errc::not_enough_memory));
+  return opentracing::make_unexpected(
+      std::make_error_code(std::errc::not_enough_memory));
 }
 
 //------------------------------------------------------------------------------
 // Inject
 //------------------------------------------------------------------------------
-expected<void> LightStepBinaryWriter::Inject(
+opentracing::expected<void> LightStepBinaryWriter::Inject(
     const opentracing::Tracer& tracer,
     const opentracing::SpanContext& span_context) const try {
   auto lightstep_tracer = dynamic_cast<const LightStepTracer*>(&tracer);
   if (lightstep_tracer == nullptr) {
-    return make_unexpected(invalid_carrier_error);
+    return opentracing::make_unexpected(opentracing::invalid_carrier_error);
   }
   auto trace_span_ids_maybe = lightstep_tracer->GetTraceSpanIds(span_context);
   if (!trace_span_ids_maybe) {
-    return make_unexpected(trace_span_ids_maybe.error());
+    return opentracing::make_unexpected(trace_span_ids_maybe.error());
   }
   auto& trace_span_ids = *trace_span_ids_maybe;
   carrier_.Clear();
@@ -56,6 +56,7 @@ expected<void> LightStepBinaryWriter::Inject(
       });
   return {};
 } catch (const std::bad_alloc&) {
-  return make_unexpected(make_error_code(std::errc::not_enough_memory));
+  return opentracing::make_unexpected(
+      std::make_error_code(std::errc::not_enough_memory));
 }
 }  // namespace lightstep
