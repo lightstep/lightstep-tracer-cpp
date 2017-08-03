@@ -10,9 +10,8 @@
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-QABot::QABot(std::shared_ptr<opentracing::Tracer>&& tracer, event_base* base) 
-  : tracer_{std::move(tracer)}
-{
+QABot::QABot(std::shared_ptr<opentracing::Tracer>&& tracer, event_base* base)
+    : tracer_{std::move(tracer)} {
   sockaddr_in address = {};
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;

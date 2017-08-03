@@ -1,10 +1,10 @@
 #pragma once
 
 #include <collector.pb.h>
-#include <string>
-#include <unordered_map>
 #include <lightstep/tracer.h>
 #include <opentracing/value.h>
+#include <string>
+#include <unordered_map>
 
 namespace lightstep {
 /**

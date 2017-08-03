@@ -1,9 +1,8 @@
 #pragma once
 
-#include <opentracing/util.h>
-#include <opentracing/string_view.h>
 #include <google/protobuf/message.h>
-
+#include <opentracing/string_view.h>
+#include <opentracing/util.h>
 
 namespace lightstep {
 class AsyncTransporter {
@@ -19,11 +18,11 @@ class AsyncTransporter {
 
 class LightStepAsyncTransporter : public AsyncTransporter {
  public:
-   virtual int file_descriptor() const noexcept = 0;
+  virtual int file_descriptor() const noexcept = 0;
 
-   virtual void OnRead() noexcept = 0;
-   virtual void OnWrite() noexcept = 0;
-   virtual void OnTimeout() noexcept = 0;
+  virtual void OnRead() noexcept = 0;
+  virtual void OnWrite() noexcept = 0;
+  virtual void OnTimeout() noexcept = 0;
 };
 
 std::unique_ptr<LightStepAsyncTransporter> MakeLightStepAsyncTransporter();

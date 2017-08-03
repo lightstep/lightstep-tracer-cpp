@@ -5,13 +5,13 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <array>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
-#include <array>
-#include <thread>
-#include <random>
 #include <mutex>
+#include <random>
+#include <thread>
 #include "config.h"
 
 static thread_local std::mt19937 rng{std::random_device{}()};
@@ -27,7 +27,7 @@ static const std::string& PickQuestion() {
   return questions[dist(rng)];
 };
 
-void error(const char *msg) {
+void error(const char* msg) {
   perror(const_cast<char*>(msg));
   std::terminate();
 }
@@ -48,7 +48,7 @@ static void WriteQuestion(int socketfd, const std::string& s) {
 static std::string ReadAnswer(int socketfd) {
   std::string result;
   std::array<char, socket_buffer_size> buffer;
-  while(1) {
+  while (1) {
     auto n = read(socketfd, buffer.data(), static_cast<int>(buffer.size()));
     if (n <= 0) {
       std::cerr << "Error reading from socket\n";
@@ -93,17 +93,17 @@ static void RunQASession(int id) {
   }
   sockaddr_in serv_addr = {};
   serv_addr.sin_family = AF_INET;
-  bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,
+  bcopy((char*)server->h_addr, (char*)&serv_addr.sin_addr.s_addr,
         server->h_length);
   serv_addr.sin_port = htons(qabot_port);
-  if (connect(socketfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+  if (connect(socketfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
     std::cerr << "Error connecting\n";
     std::terminate();
   }
 
   std::uniform_int_distribution<> dist{1, 10};
   auto num_questions = dist(rng);
-  for (int i=0; i<num_questions; ++i) {
+  for (int i = 0; i < num_questions; ++i) {
     RunQA(socketfd, id);
   }
   close(socketfd);
@@ -111,7 +111,7 @@ static void RunQASession(int id) {
 
 int main() {
   std::array<std::thread, 5> threads;
-  int id=0;
+  int id = 0;
   for (auto& thread : threads) {
     thread = std::thread(RunQASession, id++);
   }

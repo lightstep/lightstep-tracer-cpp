@@ -18,4 +18,4 @@ void Nghttp2AsyncTransporter::Send(
   context_ = context;
   GetLogger().info(R"(req="{}")", request.ShortDebugString());
 }
-} // namespace lightstep
+}  // namespace lightstep

@@ -9,11 +9,11 @@
 #include <memory>
 #include <vector>
 #include "buffered_recorder.h"
-#include "manual_recorder.h"
 #include "grpc_transporter.h"
 #include "lightstep_span_context.h"
 #include "lightstep_tracer_impl.h"
 #include "logger.h"
+#include "manual_recorder.h"
 #include "utility.h"
 
 namespace lightstep {
@@ -130,8 +130,8 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
 
 std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     LightStepManualTracerOptions options) noexcept {
-  auto recorder = std::unique_ptr<Recorder>{
-    new ManualRecorder{std::move(options)}};
+  auto recorder =
+      std::unique_ptr<Recorder>{new ManualRecorder{std::move(options)}};
   return std::shared_ptr<LightStepTracer>{
       new LightStepTracerImpl{std::move(recorder)}};
 }

@@ -1,9 +1,9 @@
-#include <lightstep/transporter.h>
-#include <lightstep/tracer.h>
 #include <event2/event.h>
-#include "qa_bot.h"
+#include <lightstep/tracer.h>
+#include <lightstep/transporter.h>
 #include <cassert>
 #include <iostream>
+#include "qa_bot.h"
 using namespace lightstep;
 
 static void FlushTracerCallback(int /*sock*/, short /*what*/, void* context) {
@@ -47,7 +47,6 @@ int main() {
       event_new(base, -1, EV_PERSIST, FlushTracerCallback, tracer.get());
   timeval flush_time_period = {1, 0};
   evtimer_add(timer_event, &flush_time_period);
-
 
   QABot bot{std::move(tracer), base};
   event_base_dispatch(base);

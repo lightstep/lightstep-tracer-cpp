@@ -1,10 +1,10 @@
 #pragma once
 
 #include <event2/event.h>
-#include <string>
-#include <vector>
 #include <opentracing/span.h>
 #include <memory>
+#include <string>
+#include <vector>
 
 class QASession {
  public:

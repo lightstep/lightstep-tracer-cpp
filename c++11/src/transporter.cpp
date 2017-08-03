@@ -9,4 +9,4 @@ std::unique_ptr<LightStepAsyncTransporter> MakeLightStepAsyncTransporter() {
   return std::unique_ptr<LightStepAsyncTransporter>{
       new Nghttp2AsyncTransporter{}};
 }
-} // namespace lightstep
+}  // namespace lightstep
