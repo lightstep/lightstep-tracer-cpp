@@ -6,12 +6,9 @@
 #include <opentracing/value.h>
 #include <unistd.h>
 #include <stdexcept>
-using namespace opentracing;
 
 namespace lightstep {
-namespace {
 using JsonWriter = rapidjson::Writer<rapidjson::StringBuffer>;
-}  // namespace
 
 //------------------------------------------------------------------------------
 // ToTimestamp
@@ -56,7 +53,7 @@ std::string GetProgramName() {
 //------------------------------------------------------------------------------
 // ToJson
 //------------------------------------------------------------------------------
-static bool ToJson(JsonWriter& writer, const Value& value);
+static bool ToJson(JsonWriter& writer, const opentracing::Value& value);
 
 namespace {
 struct JsonValueVisitor {
@@ -79,7 +76,7 @@ struct JsonValueVisitor {
 
   void operator()(const char* s) { result = writer.String(s); }
 
-  void operator()(const Values& values) {
+  void operator()(const opentracing::Values& values) {
     if (!(result = writer.StartArray())) {
       return;
     }
@@ -91,7 +88,7 @@ struct JsonValueVisitor {
     result = writer.EndArray();
   }
 
-  void operator()(const Dictionary& dictionary) {
+  void operator()(const opentracing::Dictionary& dictionary) {
     if (!(result = writer.StartObject())) {
       return;
     }
@@ -110,13 +107,13 @@ struct JsonValueVisitor {
 };
 }  // anonymous namespace
 
-static bool ToJson(JsonWriter& writer, const Value& value) {
+static bool ToJson(JsonWriter& writer, const opentracing::Value& value) {
   JsonValueVisitor value_visitor{writer, true};
   apply_visitor(value_visitor, value);
   return value_visitor.result;
 }
 
-static std::string ToJson(const Value& value) {
+static std::string ToJson(const opentracing::Value& value) {
   rapidjson::StringBuffer buffer;
   JsonWriter writer(buffer);
   if (!ToJson(writer, value)) {
@@ -131,7 +128,7 @@ static std::string ToJson(const Value& value) {
 namespace {
 struct ValueVisitor {
   collector::KeyValue& key_value;
-  const Value& original_value;
+  const opentracing::Value& original_value;
 
   void operator()(bool value) const { key_value.set_bool_value(value); }
 
@@ -150,17 +147,18 @@ struct ValueVisitor {
 
   void operator()(const char* s) const { key_value.set_string_value(s); }
 
-  void operator()(const Values& /*unused*/) const {
+  void operator()(const opentracing::Values& /*unused*/) const {
     key_value.set_json_value(ToJson(original_value));
   }
 
-  void operator()(const Dictionary& /*unused*/) const {
+  void operator()(const opentracing::Dictionary& /*unused*/) const {
     key_value.set_json_value(ToJson(original_value));
   }
 };
 }  // anonymous namespace
 
-collector::KeyValue ToKeyValue(string_view key, const Value& value) {
+collector::KeyValue ToKeyValue(opentracing::string_view key,
+                               const opentracing::Value& value) {
   collector::KeyValue key_value;
   key_value.set_key(key);
   ValueVisitor value_visitor{key_value, value};
