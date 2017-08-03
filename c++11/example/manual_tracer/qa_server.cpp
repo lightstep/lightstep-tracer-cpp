@@ -1,3 +1,12 @@
+/**
+ * This is a minimal example of an application that uses LightStep's manual
+ * tracer.
+ *
+ * The application is built using the Reactor pattern. It uses libevent to
+ * concurrently manage multiple sockets. From each socket, it reads questions
+ * and sends answers until that socket closes. It integrates the regular tracer
+ * flushes and events over the tracer's socket into the main libevent loop.
+ */
 #include <event2/event.h>
 #include <lightstep/tracer.h>
 #include <lightstep/transporter.h>
@@ -48,6 +57,7 @@ int main() {
   timeval flush_time_period = {1, 0};
   evtimer_add(timer_event, &flush_time_period);
 
+  // Set up the QABot server.
   QABot bot{std::move(tracer), base};
   event_base_dispatch(base);
   event_del(transporter_event);
