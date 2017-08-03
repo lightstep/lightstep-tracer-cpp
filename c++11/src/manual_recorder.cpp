@@ -68,11 +68,12 @@ void ManualRecorder::OnSuccessCallback(void* context) {
 //------------------------------------------------------------------------------
 // OnFailureCallback
 //------------------------------------------------------------------------------
-void ManualRecorder::OnFailureCallback(std::error_code /*error*/, void* context) {
+void ManualRecorder::OnFailureCallback(std::error_code error, void* context) {
   auto recorder = static_cast<ManualRecorder*>(context);
   ++recorder->flushed_seqno_;
   recorder->active_request_.Clear();
   recorder->dropped_spans_ +=
       recorder->saved_dropped_spans_ + recorder->saved_pending_spans_;
+  GetLogger().error("Failed to send report: {}", error.message());
 }
 }  // namespace lightstep

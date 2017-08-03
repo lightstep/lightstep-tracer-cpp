@@ -1,4 +1,5 @@
 #include "nghttp2_async_transporter.h"
+#include "logger.h"
 
 namespace lightstep {
 void Nghttp2AsyncTransporter::OnTimeout() noexcept {
@@ -15,5 +16,6 @@ void Nghttp2AsyncTransporter::Send(
   on_success_ = on_success;
   on_failure_ = on_failure;
   context_ = context;
+  GetLogger().info(R"(req="{}")", request.ShortDebugString());
 }
 } // namespace lightstep
