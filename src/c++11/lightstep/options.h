@@ -7,6 +7,7 @@
 
 #include <chrono>
 #include <memory>
+#include <functional>
 
 #include "lightstep/util.h"
 #include "lightstep/value.h"
