@@ -11,12 +11,13 @@ using namespace lightstep;
 using namespace opentracing;
 
 TEST_CASE("rpc_recorder") {
+  spdlog::logger logger{"lightstep", spdlog::sinks::stderr_sink_mt::instance()};
   LightStepTracerOptions options;
   options.reporting_period = std::chrono::milliseconds(2);
   options.max_buffered_spans = 5;
   auto in_memory_transporter = new InMemoryTransporter();
   auto recorder = new BufferedRecorder{
-      options, std::unique_ptr<Transporter>{in_memory_transporter}};
+      logger, options, std::unique_ptr<Transporter>{in_memory_transporter}};
   auto tracer = std::shared_ptr<opentracing::Tracer>{
       new LightStepTracerImpl{std::unique_ptr<Recorder>{recorder}}};
   CHECK(tracer);

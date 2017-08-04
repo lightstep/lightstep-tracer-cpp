@@ -1,14 +1,15 @@
 #include "buffered_recorder.h"
 #include <exception>
-#include "logger.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-BufferedRecorder::BufferedRecorder(LightStepTracerOptions options,
+BufferedRecorder::BufferedRecorder(spdlog::logger& logger,
+                                   LightStepTracerOptions options,
                                    std::unique_ptr<Transporter>&& transporter)
-    : options_{std::move(options)},
+    : logger_{logger},
+      options_{std::move(options)},
       builder_{options_},
       transporter_{std::move(transporter)} {
   writer_ = std::thread(&BufferedRecorder::Write, this);
@@ -36,7 +37,7 @@ void BufferedRecorder::RecordSpan(collector::Span&& span) noexcept try {
     write_cond_.notify_all();
   }
 } catch (const std::exception& e) {
-  GetLogger().error("Failed to record span: {}", e.what());
+  logger_.error("Failed to record span: {}", e.what());
 }
 
 //------------------------------------------------------------------------------
@@ -91,8 +92,7 @@ bool BufferedRecorder::WriteReport(const collector::ReportRequest& report) {
     return false;
   }
   if (options_.verbose) {
-    GetLogger().info(R"(Report: resp="{}")",
-                     response_maybe->ShortDebugString());
+    logger_.info(R"(Report: resp="{}")", response_maybe->ShortDebugString());
   }
   return true;
 }

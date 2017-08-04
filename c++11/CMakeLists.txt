@@ -75,7 +75,6 @@ add_library(lightstep_protobuf OBJECT ${COLLECTOR_PB_CPP_FILE}
 
 set(LIGHTSTEP_SRCS src/utility.cpp
                    src/propagation.cpp
-                   src/logger.cpp
                    src/binary_carrier.cpp
                    src/grpc_transporter.cpp
                    src/report_builder.cpp

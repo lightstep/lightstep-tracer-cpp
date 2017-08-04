@@ -9,10 +9,10 @@
 #include <memory>
 #include <vector>
 #include "buffered_recorder.h"
+#include "custom_logger_sink.h"
 #include "grpc_transporter.h"
 #include "lightstep_span_context.h"
 #include "lightstep_tracer_impl.h"
-#include "logger.h"
 #include "utility.h"
 
 namespace lightstep {
@@ -70,41 +70,52 @@ LightStepTracer::MakeSpanContext(
 std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
     LightStepTracerOptions options) noexcept try {
   // Create and configure the logger.
-  auto& logger = GetLogger();
-  if (options.verbose) {
-    logger.set_level(spdlog::level::info);
+  std::shared_ptr<spdlog::logger> logger;
+  if (options.logger_sink) {
+    logger = std::make_shared<spdlog::logger>(
+        "lightstep",
+        std::make_shared<CustomLoggerSink>(std::move(options.logger_sink)));
   } else {
-    logger.set_level(spdlog::level::err);
+    logger = std::make_shared<spdlog::logger>(
+        "lightstep", spdlog::sinks::stderr_sink_mt::instance());
   }
+  try {
+    if (options.verbose) {
+      logger->set_level(spdlog::level::info);
+    } else {
+      logger->set_level(spdlog::level::err);
+    }
 
-  // Validate `options`.
-  if (options.access_token.empty()) {
-    logger.error("Must provide an access_token!");
+    // Validate `options`.
+    if (options.access_token.empty()) {
+      logger->error("Must provide an access_token!");
+      return nullptr;
+    }
+
+    // Copy over default tags.
+    for (const auto& tag : GetDefaultTags()) {
+      options.tags[tag.first] = tag.second;
+    }
+
+    // Set the component name if not provided to the program name.
+    if (options.component_name.empty()) {
+      options.tags.emplace(component_name_key, GetProgramName());
+    } else {
+      options.tags.emplace(component_name_key, options.component_name);
+    }
+
+    auto transporter =
+        std::unique_ptr<Transporter>{new GrpcTransporter{*logger, options}};
+    auto recorder = std::unique_ptr<Recorder>{new BufferedRecorder{
+        *logger, std::move(options), std::move(transporter)}};
+    return std::shared_ptr<opentracing::Tracer>{
+        new LightStepTracerImpl{std::move(logger), std::move(recorder)}};
+  } catch (const std::exception& e) {
+    logger->error("Failed to construct LightStep Tracer: {}", e.what());
     return nullptr;
   }
-
-  // Copy over default tags.
-  for (const auto& tag : GetDefaultTags()) {
-    options.tags[tag.first] = tag.second;
-  }
-
-  // Set the component name if not provided to the program name.
-  if (options.component_name.empty()) {
-    options.tags.emplace(component_name_key, GetProgramName());
-  } else {
-    options.tags.emplace(component_name_key, options.component_name);
-  }
-
-  auto transporter = std::unique_ptr<Transporter>{new GrpcTransporter{options}};
-  auto recorder = std::unique_ptr<Recorder>{
-      new BufferedRecorder{std::move(options), std::move(transporter)}};
-  return std::shared_ptr<opentracing::Tracer>{
-      new LightStepTracerImpl{std::move(recorder)}};
 } catch (const spdlog::spdlog_ex& e) {
-  std::cerr << "Log init failed: " << e.what() << "\n";
-  return nullptr;
-} catch (const std::exception& e) {
-  GetLogger().error("Failed to construct LightStep Tracer: {}", e.what());
+  std::cerr << "Failed to initialize logger: " << e.what() << "\n";
   return nullptr;
 }
 }  // namespace lightstep

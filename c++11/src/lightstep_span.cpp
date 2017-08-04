@@ -1,5 +1,4 @@
 #include "lightstep_span.h"
-#include "logger.h"
 #include "utility.h"
 
 using opentracing::SystemTime;
@@ -38,6 +37,7 @@ static std::tuple<SystemTime, SteadyTime> ComputeStartTimestamps(
 // SetSpanReference
 //------------------------------------------------------------------------------
 static bool SetSpanReference(
+    spdlog::logger& logger,
     const std::pair<opentracing::SpanReferenceType,
                     const opentracing::SpanContext*>& reference,
     std::unordered_map<std::string, std::string>& baggage,
@@ -52,13 +52,13 @@ static bool SetSpanReference(
       break;
   }
   if (reference.second == nullptr) {
-    GetLogger().warn("Passed in null span reference.");
+    logger.warn("Passed in null span reference.");
     return false;
   }
   auto referenced_context =
       dynamic_cast<const LightStepSpanContext*>(reference.second);
   if (referenced_context == nullptr) {
-    GetLogger().warn("Passed in span reference of unexpected type.");
+    logger.warn("Passed in span reference of unexpected type.");
     return false;
   }
   collector_reference.mutable_span_context()->set_trace_id(
@@ -79,10 +79,11 @@ static bool SetSpanReference(
 // Constructor
 //------------------------------------------------------------------------------
 LightStepSpan::LightStepSpan(
-    std::shared_ptr<const opentracing::Tracer>&& tracer, Recorder& recorder,
-    opentracing::string_view operation_name,
+    std::shared_ptr<const opentracing::Tracer>&& tracer, spdlog::logger& logger,
+    Recorder& recorder, opentracing::string_view operation_name,
     const opentracing::StartSpanOptions& options)
     : tracer_{std::move(tracer)},
+      logger_{logger},
       recorder_{recorder},
       operation_name_{operation_name} {
   // Set the start timestamps.
@@ -94,7 +95,7 @@ LightStepSpan::LightStepSpan(
   references_.reserve(options.references.size());
   collector::Reference collector_reference;
   for (auto& reference : options.references) {
-    if (!SetSpanReference(reference, baggage, collector_reference)) {
+    if (!SetSpanReference(logger_, reference, baggage, collector_reference)) {
       continue;
     }
     references_.push_back(collector_reference);
@@ -183,6 +184,7 @@ void LightStepSpan::FinishWithOptions(
   recorder_.RecordSpan(std::move(span));
 } catch (const std::bad_alloc&) {
   // Do nothing if memory allocation fails.
+  logger_.error("Span::FinishWithOptions failed.");
 }
 
 //------------------------------------------------------------------------------
@@ -194,6 +196,7 @@ void LightStepSpan::SetOperationName(
   operation_name_ = name;
 } catch (const std::bad_alloc&) {
   // Don't change operation name if memory can't be allocated for it.
+  logger_.error("Span::SetOperationName failed.");
 }
 
 //------------------------------------------------------------------------------
@@ -205,6 +208,7 @@ void LightStepSpan::SetTag(opentracing::string_view key,
   tags_[key] = value;
 } catch (const std::bad_alloc&) {
   // Don't add the tag if memory can't be allocated for it.
+  logger_.error("Span::SetTag failed.");
 }
 
 //------------------------------------------------------------------------------
@@ -222,6 +226,7 @@ std::string LightStepSpan::BaggageItem(
     opentracing::string_view restricted_key) const noexcept try {
   return span_context_.baggage_item(restricted_key);
 } catch (const std::bad_alloc&) {
+  logger_.error("Span::BaggageItem failed, returning empty string.");
   return {};
 }
 
@@ -241,5 +246,6 @@ void LightStepSpan::Log(std::initializer_list<
   logs_.emplace_back(std::move(log));
 } catch (const std::bad_alloc&) {
   // Do nothing if memory can't be allocted for log records.
+  logger_.error("Span::Log failed.");
 }
 }  // namespace lightstep

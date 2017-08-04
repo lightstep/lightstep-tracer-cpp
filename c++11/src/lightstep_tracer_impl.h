@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lightstep/spdlog/logger.h>
 #include <memory>
 #include "recorder.h"
 
@@ -8,7 +9,10 @@ class LightStepTracerImpl
     : public LightStepTracer,
       public std::enable_shared_from_this<LightStepTracerImpl> {
  public:
-  explicit LightStepTracerImpl(std::unique_ptr<Recorder>&& recorder) noexcept;
+  LightStepTracerImpl(std::unique_ptr<Recorder>&& recorder) noexcept;
+
+  LightStepTracerImpl(std::shared_ptr<spdlog::logger> logger,
+                      std::unique_ptr<Recorder>&& recorder) noexcept;
 
   std::unique_ptr<opentracing::Span> StartSpanWithOptions(
       opentracing::string_view operation_name,
@@ -38,6 +42,7 @@ class LightStepTracerImpl
   void Close() noexcept override;
 
  private:
+  std::shared_ptr<spdlog::logger> logger_;
   std::unique_ptr<Recorder> recorder_;
 };
 }  // namespace lightstep

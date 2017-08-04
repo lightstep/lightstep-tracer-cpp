@@ -1,7 +1,6 @@
 #include "grpc_transporter.h"
 #include <chrono>
 #include <sstream>
-#include "logger.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -16,12 +15,14 @@ static std::string HostPortOf(const LightStepTracerOptions& options) {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-GrpcTransporter::GrpcTransporter(const LightStepTracerOptions& options)
-    : client_(grpc::CreateChannel(
+GrpcTransporter::GrpcTransporter(spdlog::logger& logger,
+                                 const LightStepTracerOptions& options)
+    : logger_{logger},
+      client_{grpc::CreateChannel(
           HostPortOf(options),
           (options.collector_encryption == "tls")
               ? grpc::SslCredentials(grpc::SslCredentialsOptions())
-              : grpc::InsecureChannelCredentials())),
+              : grpc::InsecureChannelCredentials())},
       report_timeout_{options.report_timeout} {}
 
 //------------------------------------------------------------------------------
@@ -35,7 +36,7 @@ opentracing::expected<collector::ReportResponse> GrpcTransporter::SendReport(
   context.set_deadline(std::chrono::system_clock::now() + report_timeout_);
   auto status = client_.Report(&context, report, &resp);
   if (!status.ok()) {
-    GetLogger().error("Report RPC failed: {}", status.error_message());
+    logger_.error("Report RPC failed: {}", status.error_message());
     // TODO(rnburn): Is there a better error code for this?
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::network_unreachable));

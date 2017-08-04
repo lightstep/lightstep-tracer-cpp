@@ -4,6 +4,7 @@
 #include <opentracing/value.h>
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <unordered_map>
 
@@ -30,6 +31,10 @@ struct LightStepTracerOptions {
 
   // Set `verbose` to true to enable more text logging.
   bool verbose = false;
+
+  // Set `logger_sink` to a custom function to override where logging is
+  // printed; otherwise, it defaults to stderr.
+  std::function<void(opentracing::string_view)> logger_sink;
 
   // `max_buffered_spans` is the maximum number of spans that will be buffered
   // before sending them to a collector.

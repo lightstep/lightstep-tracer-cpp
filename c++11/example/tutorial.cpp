@@ -11,6 +11,13 @@ int main() {
   LightStepTracerOptions options;
   options.verbose = true;
   options.component_name = "Tutorial";
+
+  // Optionally, by setting `options.logger_sink`, you can customize where logs
+  // from the LightStep tracer are recorded.
+  options.logger_sink = [](opentracing::string_view message) {
+    std::cout << "Tracer's Log: " << message;
+  };
+
   if (const char* access_token = std::getenv("LIGHTSTEP_ACCESS_TOKEN")) {
     options.access_token = access_token;
   } else {
