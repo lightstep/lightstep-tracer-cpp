@@ -168,6 +168,7 @@ static void ToJson(std::ostringstream& writer,
 
 static std::string ToJson(const opentracing::Value& value) {
   std::ostringstream writer;
+  writer.exceptions(std::ios::badbit | std::ios::failbit);
   ToJson(writer, value);
   return writer.str();
 }

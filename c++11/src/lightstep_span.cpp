@@ -160,7 +160,11 @@ void LightStepSpan::FinishWithOptions(
     auto tags = span.mutable_tags();
     tags->Reserve(static_cast<int>(tags_.size()));
     for (const auto& tag : tags_) {
-      *tags->Add() = ToKeyValue(tag.first, tag.second);
+      try {
+        *tags->Add() = ToKeyValue(tag.first, tag.second);
+      } catch (const std::exception& e) {
+        logger_.error(R"(Dropping tag for key "{}": {})", tag.first, e.what());
+      }
     }
     auto logs = span.mutable_logs();
     for (auto& log : logs_) {
@@ -241,7 +245,12 @@ void LightStepSpan::Log(std::initializer_list<
   *log.mutable_timestamp() = ToTimestamp(timestamp);
   auto key_values = log.mutable_keyvalues();
   for (const auto& field : fields) {
-    *key_values->Add() = ToKeyValue(field.first, field.second);
+    try {
+      *key_values->Add() = ToKeyValue(field.first, field.second);
+    } catch (const std::exception& e) {
+      logger_.error(R"(Failed to log record for key "{}":)",
+                    std::string{field.first}, e.what());
+    }
   }
   logs_.emplace_back(std::move(log));
 } catch (const std::bad_alloc&) {
