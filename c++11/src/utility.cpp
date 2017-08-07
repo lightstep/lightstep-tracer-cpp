@@ -5,6 +5,8 @@
 #include <opentracing/value.h>
 #include <unistd.h>
 #include <cmath>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 
 namespace lightstep {
@@ -53,7 +55,7 @@ std::string GetProgramName() {
 //------------------------------------------------------------------------------
 // The implementation is based off of this answer from StackOverflow:
 // https://stackoverflow.com/a/33799784
-static void WriteEscapedString(fmt::MemoryWriter& writer,
+static void WriteEscapedString(std::ostringstream& writer,
                                opentracing::string_view s) {
   writer << '"';
   for (char c : s) {
@@ -79,7 +81,8 @@ static void WriteEscapedString(fmt::MemoryWriter& writer,
       default:
         if ('\x00' <= c && c <= '\x1f') {
           writer << R"(\u)";
-          writer << fmt::pad(fmt::hex(static_cast<int>(c)), 4, '0');
+          writer << std::hex << std::setw(4) << std::setfill('0')
+                 << static_cast<int>(c);
         } else {
           writer << c;
         }
@@ -91,11 +94,11 @@ static void WriteEscapedString(fmt::MemoryWriter& writer,
 //------------------------------------------------------------------------------
 // ToJson
 //------------------------------------------------------------------------------
-static void ToJson(fmt::MemoryWriter& writer, const opentracing::Value& value);
+static void ToJson(std::ostringstream& writer, const opentracing::Value& value);
 
 namespace {
 struct JsonValueVisitor {
-  fmt::MemoryWriter& writer;
+  std::ostringstream& writer;
 
   void operator()(bool value) {
     if (value) {
@@ -157,13 +160,14 @@ struct JsonValueVisitor {
 };
 }  // anonymous namespace
 
-static void ToJson(fmt::MemoryWriter& writer, const opentracing::Value& value) {
+static void ToJson(std::ostringstream& writer,
+                   const opentracing::Value& value) {
   JsonValueVisitor value_visitor{writer};
   apply_visitor(value_visitor, value);
 }
 
 static std::string ToJson(const opentracing::Value& value) {
-  fmt::MemoryWriter writer;
+  std::ostringstream writer;
   ToJson(writer, value);
   return writer.str();
 }
