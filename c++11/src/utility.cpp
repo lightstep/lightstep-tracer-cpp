@@ -102,9 +102,9 @@ struct JsonValueVisitor {
 
   void operator()(bool value) {
     if (value) {
-      writer << R"("true")";
+      writer << "true";
     } else {
-      writer << R"("false")";
+      writer << "false";
     }
   }
 
@@ -113,9 +113,9 @@ struct JsonValueVisitor {
       writer << R"("NaN")";
     } else if (std::isinf(value)) {
       if (std::signbit(value)) {
-        writer << R"(-Inf)";
+        writer << R"("-Inf")";
       } else {
-        writer << R"(+Inf)";
+        writer << R"("+Inf")";
       }
     } else {
       writer << value;
@@ -128,7 +128,7 @@ struct JsonValueVisitor {
 
   void operator()(const std::string& s) { WriteEscapedString(writer, s); }
 
-  void operator()(std::nullptr_t) { writer << R"("null")"; }
+  void operator()(std::nullptr_t) { writer << "null"; }
 
   void operator()(const char* s) { WriteEscapedString(writer, s); }
 
