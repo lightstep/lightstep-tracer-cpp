@@ -44,7 +44,7 @@ void BufferedRecorder::RecordSpan(collector::Span&& span) noexcept try {
 // FlushWithTimeout
 //------------------------------------------------------------------------------
 bool BufferedRecorder::FlushWithTimeout(
-    std::chrono::system_clock::duration timeout) noexcept {
+    std::chrono::system_clock::duration timeout) noexcept try {
   // Note: there is no effort made to speed up the flush when
   // requested, it simply waits for the regularly scheduled flush
   // operations to clear out all the presently pending data.
@@ -58,15 +58,22 @@ bool BufferedRecorder::FlushWithTimeout(
 
   size_t wait_seq = encoding_seqno_ - (has_encoded ? 0 : 1);
 
-  return write_cond_.wait_for(lock, timeout, [this, wait_seq]() {
-    return this->flushed_seqno_ >= wait_seq;
+  auto result = write_cond_.wait_for(lock, timeout, [this, wait_seq]() {
+    return write_exit_ || this->flushed_seqno_ >= wait_seq;
   });
+  if (!result) {
+    return false;
+  }
+  return this->flushed_seqno_ >= wait_seq;
+} catch (const std::exception& e) {
+  logger_.error("Failed to flush recorder: {}", e.what());
+  return false;
 }
 
 //------------------------------------------------------------------------------
 // Write
 //------------------------------------------------------------------------------
-void BufferedRecorder::Write() {
+void BufferedRecorder::Write() noexcept try {
   auto next = std::chrono::steady_clock::now() + options_.reporting_period;
 
   while (WaitForNextWrite(next)) {
@@ -81,6 +88,9 @@ void BufferedRecorder::Write() {
       next = end + options_.reporting_period - elapsed;
     }
   }
+} catch (const std::exception& e) {
+  MakeWriterExit();
+  logger_.error("Fatal error shutting down writer thread: {}", e.what());
 }
 
 //------------------------------------------------------------------------------

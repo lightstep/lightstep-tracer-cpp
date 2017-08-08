@@ -42,4 +42,14 @@ TEST_CASE("rpc_recorder") {
     CHECK(in_memory_transporter->spans().size() >
           span_generator.num_spans_generated() / 10);
   }
+
+  SECTION(
+      "If the transporter's SendReport function throws, we drop all subsequent "
+      "spans.") {
+    SpanGenerator span_generator(*tracer, options.reporting_period * 2);
+    in_memory_transporter->set_should_throw(true);
+    span_generator.Run(std::chrono::milliseconds(250));
+    tracer->Close();
+    CHECK(in_memory_transporter->spans().size() == 0);
+  }
 }

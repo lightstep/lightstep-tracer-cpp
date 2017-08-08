@@ -34,7 +34,7 @@ class BufferedRecorder : public Recorder {
       std::chrono::system_clock::duration timeout) noexcept override;
 
  private:
-  void Write();
+  void Write() noexcept;
   bool WriteReport(const collector::ReportRequest& report);
   void FlushOne();
 
