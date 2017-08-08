@@ -64,8 +64,8 @@ std::unique_ptr<opentracing::Span> LightStepTracerImpl::StartSpanWithOptions(
     const opentracing::StartSpanOptions& options) const noexcept try {
   return std::unique_ptr<opentracing::Span>{new LightStepSpan{
       shared_from_this(), *logger_, *recorder_, operation_name, options}};
-} catch (const std::bad_alloc&) {
-  // Don't create a span if std::bad_alloc is thrown.
+} catch (const std::exception& e) {
+  logger_->error("StartSpanWithOptions failed: {}", e.what());
   return nullptr;
 }
 

@@ -186,9 +186,8 @@ void LightStepSpan::FinishWithOptions(
 
   // Record the span
   recorder_.RecordSpan(std::move(span));
-} catch (const std::bad_alloc&) {
-  // Do nothing if memory allocation fails.
-  logger_.error("Span::FinishWithOptions failed.");
+} catch (const std::exception& e) {
+  logger_.error("FinishWithOptions failed: {}", e.what());
 }
 
 //------------------------------------------------------------------------------
@@ -198,9 +197,8 @@ void LightStepSpan::SetOperationName(
     opentracing::string_view name) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   operation_name_ = name;
-} catch (const std::bad_alloc&) {
-  // Don't change operation name if memory can't be allocated for it.
-  logger_.error("Span::SetOperationName failed.");
+} catch (const std::exception& e) {
+  logger_.error("SetOperationName failed: {}", e.what());
 }
 
 //------------------------------------------------------------------------------
@@ -210,9 +208,8 @@ void LightStepSpan::SetTag(opentracing::string_view key,
                            const opentracing::Value& value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   tags_[key] = value;
-} catch (const std::bad_alloc&) {
-  // Don't add the tag if memory can't be allocated for it.
-  logger_.error("Span::SetTag failed.");
+} catch (const std::exception& e) {
+  logger_.error("SetTag failed: {}", e.what());
 }
 
 //------------------------------------------------------------------------------
@@ -229,8 +226,8 @@ void LightStepSpan::SetBaggageItem(opentracing::string_view restricted_key,
 std::string LightStepSpan::BaggageItem(
     opentracing::string_view restricted_key) const noexcept try {
   return span_context_.baggage_item(restricted_key);
-} catch (const std::bad_alloc&) {
-  logger_.error("Span::BaggageItem failed, returning empty string.");
+} catch (const std::exception& e) {
+  logger_.error("BaggageItem failed, returning empty string: {}", e.what());
   return {};
 }
 
@@ -253,8 +250,7 @@ void LightStepSpan::Log(std::initializer_list<
     }
   }
   logs_.emplace_back(std::move(log));
-} catch (const std::bad_alloc&) {
-  // Do nothing if memory can't be allocted for log records.
-  logger_.error("Span::Log failed.");
+} catch (const std::exception& e) {
+  logger_.error("Log failed: {}", e.what());
 }
 }  // namespace lightstep

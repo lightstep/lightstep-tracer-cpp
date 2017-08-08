@@ -27,7 +27,8 @@ void LightStepSpanContext::set_baggage_item(
     opentracing::string_view key, opentracing::string_view value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{baggage_mutex_};
   baggage_.emplace(key, value);
-} catch (const std::bad_alloc&) {
+} catch (const std::exception&) {
+  // Drop baggage item upon error.
 }
 
 //------------------------------------------------------------------------------
