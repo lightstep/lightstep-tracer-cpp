@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lightstep/spdlog/logger.h>
 #include <lightstep/transporter.h>
 #include "recorder.h"
 #include "report_builder.h"
@@ -7,7 +8,7 @@
 namespace lightstep {
 class ManualRecorder : public Recorder {
  public:
-  explicit ManualRecorder(LightStepManualTracerOptions options);
+  ManualRecorder(spdlog::logger& logger, LightStepManualTracerOptions options);
 
   void RecordSpan(collector::Span&& span) noexcept override;
 
@@ -20,6 +21,7 @@ class ManualRecorder : public Recorder {
   static void OnSuccessCallback(void* context);
   static void OnFailureCallback(std::error_code error, void* context);
 
+  spdlog::logger& logger_;
   LightStepManualTracerOptions options_;
 
   // Buffer state (protected by write_mutex_).

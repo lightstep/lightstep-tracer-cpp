@@ -26,5 +26,6 @@ macro(_lightstep_test TEST_NAME)
 endmacro()
 
 _lightstep_test(tracer_test tracer_test.cpp)
+_lightstep_test(utility_test utility_test.cpp)
 _lightstep_test(propagation_test propagation_test.cpp)
 _lightstep_test(recorder_test recorder_test.cpp span_generator.cpp)

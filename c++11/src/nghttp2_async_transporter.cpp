@@ -1,5 +1,5 @@
 #include "nghttp2_async_transporter.h"
-#include "logger.h"
+#include <iostream>
 
 namespace lightstep {
 void Nghttp2AsyncTransporter::OnTimeout() noexcept {
@@ -11,11 +11,11 @@ void Nghttp2AsyncTransporter::OnTimeout() noexcept {
 
 void Nghttp2AsyncTransporter::Send(
     const google::protobuf::Message& request,
-    google::protobuf::Message& response, void (*on_success)(void* context),
+    google::protobuf::Message& /*response*/, void (*on_success)(void* context),
     void (*on_failure)(std::error_code error, void* context), void* context) {
   on_success_ = on_success;
   on_failure_ = on_failure;
   context_ = context;
-  GetLogger().info(R"(req="{}")", request.ShortDebugString());
+  std::cout << "req=" << request.ShortDebugString() << "\n";
 }
 }  // namespace lightstep

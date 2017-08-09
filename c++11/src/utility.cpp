@@ -1,15 +1,15 @@
 #include "utility.h"
 #include <collector.pb.h>
-#include <lightstep/rapidjson/stringbuffer.h>
-#include <lightstep/rapidjson/writer.h>
+#include <lightstep/spdlog/logger.h>
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>
 #include <unistd.h>
+#include <cmath>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 
 namespace lightstep {
-using JsonWriter = rapidjson::Writer<rapidjson::StringBuffer>;
-
 //------------------------------------------------------------------------------
 // ToTimestamp
 //------------------------------------------------------------------------------
@@ -51,75 +51,126 @@ std::string GetProgramName() {
 }
 
 //------------------------------------------------------------------------------
+// WriteEscapedString
+//------------------------------------------------------------------------------
+// The implementation is based off of this answer from StackOverflow:
+// https://stackoverflow.com/a/33799784
+static void WriteEscapedString(std::ostringstream& writer,
+                               opentracing::string_view s) {
+  writer << '"';
+  for (char c : s) {
+    switch (c) {
+      case '"':
+        writer << R"(\")";
+        break;
+      case '\\':
+        writer << R"(\\)";
+        break;
+      case '\b':
+        writer << R"(\b)";
+        break;
+      case '\n':
+        writer << R"(\n)";
+        break;
+      case '\r':
+        writer << R"(\r)";
+        break;
+      case '\t':
+        writer << R"(\t)";
+        break;
+      default:
+        if ('\x00' <= c && c <= '\x1f') {
+          writer << R"(\u)";
+          writer << std::hex << std::setw(4) << std::setfill('0')
+                 << static_cast<int>(c);
+        } else {
+          writer << c;
+        }
+    }
+  }
+  writer << '"';
+}
+
+//------------------------------------------------------------------------------
 // ToJson
 //------------------------------------------------------------------------------
-static bool ToJson(JsonWriter& writer, const opentracing::Value& value);
+static void ToJson(std::ostringstream& writer, const opentracing::Value& value);
 
 namespace {
 struct JsonValueVisitor {
-  JsonWriter& writer;
-  bool result;
+  std::ostringstream& writer;
 
-  void operator()(bool value) { result = writer.Bool(value); }
-
-  void operator()(double value) { result = writer.Double(value); }
-
-  void operator()(int64_t value) { result = writer.Int64(value); }
-
-  void operator()(uint64_t value) { result = writer.Uint64(value); }
-
-  void operator()(const std::string& s) {
-    result = writer.String(s.data(), static_cast<unsigned>(s.size()));
+  void operator()(bool value) {
+    if (value) {
+      writer << "true";
+    } else {
+      writer << "false";
+    }
   }
 
-  void operator()(std::nullptr_t) { result = writer.Null(); }
+  void operator()(double value) {
+    if (std::isnan(value)) {
+      writer << R"("NaN")";
+    } else if (std::isinf(value)) {
+      if (std::signbit(value)) {
+        writer << R"("-Inf")";
+      } else {
+        writer << R"("+Inf")";
+      }
+    } else {
+      writer << value;
+    }
+  }
 
-  void operator()(const char* s) { result = writer.String(s); }
+  void operator()(int64_t value) { writer << value; }
+
+  void operator()(uint64_t value) { writer << value; }
+
+  void operator()(const std::string& s) { WriteEscapedString(writer, s); }
+
+  void operator()(std::nullptr_t) { writer << "null"; }
+
+  void operator()(const char* s) { WriteEscapedString(writer, s); }
 
   void operator()(const opentracing::Values& values) {
-    if (!(result = writer.StartArray())) {
-      return;
-    }
+    writer << '[';
+    size_t i = 0;
     for (const auto& value : values) {
-      if (!(result = ToJson(writer, value))) {
-        return;
+      ToJson(writer, value);
+      if (++i < values.size()) {
+        writer << ',';
       }
     }
-    result = writer.EndArray();
+    writer << ']';
   }
 
   void operator()(const opentracing::Dictionary& dictionary) {
-    if (!(result = writer.StartObject())) {
-      return;
-    }
+    writer << '{';
+    size_t i = 0;
     for (const auto& key_value : dictionary) {
-      if (!(result =
-                writer.Key(key_value.first.data(),
-                           static_cast<unsigned>(key_value.first.size())))) {
-        return;
-      }
-      if (!(result = ToJson(writer, key_value.second))) {
-        return;
+      WriteEscapedString(writer, key_value.first);
+      writer << ':';
+      ToJson(writer, key_value.second);
+      if (++i < dictionary.size()) {
+        writer << ',';
       }
     }
-    result = writer.EndObject();
+    writer << '}';
   }
 };
 }  // anonymous namespace
 
-static bool ToJson(JsonWriter& writer, const opentracing::Value& value) {
-  JsonValueVisitor value_visitor{writer, true};
+static void ToJson(std::ostringstream& writer,
+                   const opentracing::Value& value) {
+  JsonValueVisitor value_visitor{writer};
   apply_visitor(value_visitor, value);
-  return value_visitor.result;
 }
 
 static std::string ToJson(const opentracing::Value& value) {
-  rapidjson::StringBuffer buffer;
-  JsonWriter writer(buffer);
-  if (!ToJson(writer, value)) {
-    return {};
-  }
-  return buffer.GetString();
+  std::ostringstream writer;
+  writer.exceptions(std::ios::badbit | std::ios::failbit);
+  ToJson(writer, value);
+  return writer.str();
 }
 
 //------------------------------------------------------------------------------

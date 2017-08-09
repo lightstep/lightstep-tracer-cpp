@@ -47,7 +47,14 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
 //------------------------------------------------------------------------------
 LightStepTracerImpl::LightStepTracerImpl(
     std::unique_ptr<Recorder>&& recorder) noexcept
-    : recorder_(std::move(recorder)) {}
+    : logger_{std::make_shared<spdlog::logger>(
+          "lightstep", spdlog::sinks::stderr_sink_mt::instance())},
+      recorder_{std::move(recorder)} {}
+
+LightStepTracerImpl::LightStepTracerImpl(
+    std::shared_ptr<spdlog::logger> logger,
+    std::unique_ptr<Recorder>&& recorder) noexcept
+    : logger_{std::move(logger)}, recorder_{std::move(recorder)} {}
 
 //------------------------------------------------------------------------------
 // StartSpanWithOptions
@@ -56,9 +63,9 @@ std::unique_ptr<opentracing::Span> LightStepTracerImpl::StartSpanWithOptions(
     opentracing::string_view operation_name,
     const opentracing::StartSpanOptions& options) const noexcept try {
   return std::unique_ptr<opentracing::Span>{new LightStepSpan{
-      shared_from_this(), *recorder_, operation_name, options}};
-} catch (const std::bad_alloc&) {
-  // Don't create a span if std::bad_alloc is thrown.
+      shared_from_this(), *logger_, *recorder_, operation_name, options}};
+} catch (const std::exception& e) {
+  logger_->error("StartSpanWithOptions failed: {}", e.what());
   return nullptr;
 }
 

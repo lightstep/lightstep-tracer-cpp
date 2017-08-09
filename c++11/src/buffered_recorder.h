@@ -1,6 +1,7 @@
 #pragma once
 
 #include <collector.pb.h>
+#include <lightstep/spdlog/logger.h>
 #include <lightstep/tracer.h>
 #include <condition_variable>
 #include <memory>
@@ -17,7 +18,7 @@ namespace lightstep {
  */
 class BufferedRecorder : public Recorder {
  public:
-  BufferedRecorder(LightStepTracerOptions options,
+  BufferedRecorder(spdlog::logger& logger, LightStepTracerOptions options,
                    std::unique_ptr<Transporter>&& transporter);
 
   BufferedRecorder(const BufferedRecorder&) = delete;
@@ -33,7 +34,7 @@ class BufferedRecorder : public Recorder {
       std::chrono::system_clock::duration timeout) noexcept override;
 
  private:
-  void Write();
+  void Write() noexcept;
   bool WriteReport(const collector::ReportRequest& report);
   void FlushOne();
 
@@ -45,6 +46,7 @@ class BufferedRecorder : public Recorder {
   // should exit.
   bool WaitForNextWrite(const std::chrono::steady_clock::time_point& next);
 
+  spdlog::logger& logger_;
   const LightStepTracerOptions options_;
 
   // Writer state.

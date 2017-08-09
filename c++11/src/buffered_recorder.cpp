@@ -1,14 +1,15 @@
 #include "buffered_recorder.h"
 #include <exception>
-#include "logger.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-BufferedRecorder::BufferedRecorder(LightStepTracerOptions options,
+BufferedRecorder::BufferedRecorder(spdlog::logger& logger,
+                                   LightStepTracerOptions options,
                                    std::unique_ptr<Transporter>&& transporter)
-    : options_{std::move(options)},
+    : logger_{logger},
+      options_{std::move(options)},
       builder_{options_.access_token, options_.tags},
       transporter_{std::move(transporter)} {
   writer_ = std::thread(&BufferedRecorder::Write, this);
@@ -36,14 +37,14 @@ void BufferedRecorder::RecordSpan(collector::Span&& span) noexcept try {
     write_cond_.notify_all();
   }
 } catch (const std::exception& e) {
-  GetLogger().error("Failed to record span: {}", e.what());
+  logger_.error("Failed to record span: {}", e.what());
 }
 
 //------------------------------------------------------------------------------
 // FlushWithTimeout
 //------------------------------------------------------------------------------
 bool BufferedRecorder::FlushWithTimeout(
-    std::chrono::system_clock::duration timeout) noexcept {
+    std::chrono::system_clock::duration timeout) noexcept try {
   // Note: there is no effort made to speed up the flush when
   // requested, it simply waits for the regularly scheduled flush
   // operations to clear out all the presently pending data.
@@ -57,15 +58,22 @@ bool BufferedRecorder::FlushWithTimeout(
 
   size_t wait_seq = encoding_seqno_ - (has_encoded ? 0 : 1);
 
-  return write_cond_.wait_for(lock, timeout, [this, wait_seq]() {
-    return this->flushed_seqno_ >= wait_seq;
+  auto result = write_cond_.wait_for(lock, timeout, [this, wait_seq]() {
+    return write_exit_ || this->flushed_seqno_ >= wait_seq;
   });
+  if (!result) {
+    return false;
+  }
+  return this->flushed_seqno_ >= wait_seq;
+} catch (const std::exception& e) {
+  logger_.error("Failed to flush recorder: {}", e.what());
+  return false;
 }
 
 //------------------------------------------------------------------------------
 // Write
 //------------------------------------------------------------------------------
-void BufferedRecorder::Write() {
+void BufferedRecorder::Write() noexcept try {
   auto next = std::chrono::steady_clock::now() + options_.reporting_period;
 
   while (WaitForNextWrite(next)) {
@@ -80,6 +88,9 @@ void BufferedRecorder::Write() {
       next = end + options_.reporting_period - elapsed;
     }
   }
+} catch (const std::exception& e) {
+  MakeWriterExit();
+  logger_.error("Fatal error shutting down writer thread: {}", e.what());
 }
 
 //------------------------------------------------------------------------------
@@ -91,8 +102,7 @@ bool BufferedRecorder::WriteReport(const collector::ReportRequest& report) {
     return false;
   }
   if (options_.verbose) {
-    GetLogger().info(R"(Report: resp="{}")",
-                     response_maybe->ShortDebugString());
+    logger_.info(R"(Report: resp="{}")", response_maybe->ShortDebugString());
   }
   return true;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <collector.pb.h>
+#include <lightstep/spdlog/logger.h>
 #include <opentracing/span.h>
 #include <atomic>
 #include <mutex>
@@ -11,8 +12,13 @@
 namespace lightstep {
 class LightStepSpan : public opentracing::Span {
  public:
+  /* LightStepSpan(std::shared_ptr<const opentracing::Tracer>&& tracer, */
+  /*               Recorder& recorder, opentracing::string_view operation_name,
+   */
+  /*               const opentracing::StartSpanOptions& options); */
   LightStepSpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
-                Recorder& recorder, opentracing::string_view operation_name,
+                spdlog::logger& logger, Recorder& recorder,
+                opentracing::string_view operation_name,
                 const opentracing::StartSpanOptions& options);
 
   LightStepSpan(const LightStepSpan&) = delete;
@@ -50,6 +56,7 @@ class LightStepSpan : public opentracing::Span {
  private:
   // Fields set in StartSpan() are not protected by a mutex.
   std::shared_ptr<const opentracing::Tracer> tracer_;
+  spdlog::logger& logger_;
   Recorder& recorder_;
   std::vector<collector::Reference> references_;
   std::chrono::system_clock::time_point start_timestamp_;

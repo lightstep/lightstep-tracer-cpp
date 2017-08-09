@@ -1,12 +1,13 @@
 #include "manual_recorder.h"
-#include "logger.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-ManualRecorder::ManualRecorder(LightStepManualTracerOptions options)
-    : options_{std::move(options)},
+ManualRecorder::ManualRecorder(spdlog::logger& logger,
+                               LightStepManualTracerOptions options)
+    : logger_{logger},
+      options_{std::move(options)},
       builder_{options_.access_token, options_.tags} {}
 
 //------------------------------------------------------------------------------
@@ -62,8 +63,8 @@ void ManualRecorder::OnSuccessCallback(void* context) {
   ++recorder->flushed_seqno_;
   recorder->active_request_.Clear();
   if (recorder->options_.verbose) {
-    GetLogger().info(R"(Report: resp="{}")",
-                     recorder->active_response_.ShortDebugString());
+    recorder->logger_.info(R"(Report: resp="{}")",
+                           recorder->active_response_.ShortDebugString());
   }
 }
 
@@ -76,6 +77,6 @@ void ManualRecorder::OnFailureCallback(std::error_code error, void* context) {
   recorder->active_request_.Clear();
   recorder->dropped_spans_ +=
       recorder->saved_dropped_spans_ + recorder->saved_pending_spans_;
-  GetLogger().error("Failed to send report: {}", error.message());
+  recorder->logger_.error("Failed to send report: {}", error.message());
 }
 }  // namespace lightstep
