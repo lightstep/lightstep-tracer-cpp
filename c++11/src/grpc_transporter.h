@@ -3,6 +3,7 @@
 #include <grpc++/create_channel.h>
 #include <lightstep/spdlog/logger.h>
 #include <lightstep/tracer.h>
+#include <lightstep/transporter.h>
 #include "transporter.h"
 
 namespace lightstep {
@@ -17,6 +18,22 @@ class GrpcTransporter : public Transporter {
 
   opentracing::expected<collector::ReportResponse> SendReport(
       const collector::ReportRequest& report) override;
+
+ private:
+  spdlog::logger& logger_;
+  // Collector service stub.
+  collector::CollectorService::Stub client_;
+  std::chrono::system_clock::duration report_timeout_;
+};
+
+class GrpcTransporter2 : public Transporter2 {
+ public:
+  GrpcTransporter2(spdlog::logger& logger,
+                   const LightStepTracerOptions& options);
+
+  opentracing::expected<void> Send(
+      const google::protobuf::Message& request,
+      google::protobuf::Message& response) override;
 
  private:
   spdlog::logger& logger_;

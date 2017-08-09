@@ -46,11 +46,19 @@ struct LightStepTracerOptions {
   // before sending them to a collector.
   size_t max_buffered_spans = 2000;
 
+  // If `use_thread` is true, then the tracer will internally manage a thread to
+  // regularly send reports to the collector; otherwise, if false,
+  // LightStepTracer::Flush must be manually invoked to send reports.
+  bool use_thread = true;
+
   // `reporting_period` is the maximum duration of time between sending spans
-  // to a collector.  If zero, the default will be used.
+  // to a collector.  If zero, the default will be used; and ignored if
+  // `use_thread` is false.
   std::chrono::steady_clock::duration reporting_period =
       std::chrono::milliseconds(500);
 
+  // `report_timeout` is the timeout to use when sending a reports to the
+  // collector. Ignored if a custom transport is used.
   std::chrono::system_clock::duration report_timeout = std::chrono::seconds(5);
 };
 

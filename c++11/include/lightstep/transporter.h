@@ -5,6 +5,15 @@
 #include <opentracing/util.h>
 
 namespace lightstep {
+class Transporter2 {
+ public:
+  virtual ~Transporter2() = default;
+
+  virtual opentracing::expected<void> Send(
+      const google::protobuf::Message& request,
+      google::protobuf::Message& response) = 0;
+};
+
 class AsyncTransporter {
  public:
   virtual ~AsyncTransporter() = default;
