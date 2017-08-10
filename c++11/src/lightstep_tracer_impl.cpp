@@ -39,7 +39,7 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
   if (!*result) {
     span_context.reset();
   }
-  return span_context;
+  return std::move(span_context);
 }
 
 //------------------------------------------------------------------------------
