@@ -61,6 +61,8 @@ struct LightStepTracerOptions {
   // `report_timeout` is the timeout to use when sending a reports to the
   // collector. Ignored if a custom transport is used.
   std::chrono::system_clock::duration report_timeout = std::chrono::seconds(5);
+
+  std::unique_ptr<Transporter> transporter;
 };
 
 struct LightStepManualTracerOptions {

@@ -14,12 +14,12 @@
 namespace lightstep {
 /**
  * BufferedRecorder buffers spans finished by a tracer and sends them over to
- * the provided Transporter.
+ * the provided SyncTransporter.
  */
 class BufferedRecorder : public Recorder {
  public:
   BufferedRecorder(spdlog::logger& logger, LightStepTracerOptions options,
-                   std::unique_ptr<Transporter>&& transporter);
+                   std::unique_ptr<SyncTransporter>&& transporter);
 
   BufferedRecorder(const BufferedRecorder&) = delete;
   BufferedRecorder(BufferedRecorder&&) = delete;
@@ -62,7 +62,7 @@ class BufferedRecorder : public Recorder {
   size_t encoding_seqno_ = 1;
   size_t dropped_spans_ = 0;
 
-  // Transporter through which to send span reports.
-  std::unique_ptr<Transporter> transporter_;
+  // SyncTransporter through which to send span reports.
+  std::unique_ptr<SyncTransporter> transporter_;
 };
 }  // namespace lightstep

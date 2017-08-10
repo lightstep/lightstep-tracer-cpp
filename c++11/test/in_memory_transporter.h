@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace lightstep {
-class InMemoryTransporter : public Transporter {
+class InMemoryTransporter : public SyncTransporter {
  public:
   opentracing::expected<void> Send(
       const google::protobuf::Message& request,

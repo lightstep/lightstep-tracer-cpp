@@ -8,16 +8,17 @@ namespace lightstep {
 class Transporter {
  public:
   virtual ~Transporter() = default;
+};
 
+class SyncTransporter : public Transporter {
+ public:
   virtual opentracing::expected<void> Send(
       const google::protobuf::Message& request,
       google::protobuf::Message& response) = 0;
 };
 
-class AsyncTransporter {
+class AsyncTransporter : public Transporter {
  public:
-  virtual ~AsyncTransporter() = default;
-
   virtual void Send(const google::protobuf::Message& request,
                     google::protobuf::Message& response,
                     void (*on_success)(void* context),

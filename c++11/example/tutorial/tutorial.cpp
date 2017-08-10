@@ -25,7 +25,7 @@ int main() {
                  "`LIGHTSTEP_ACCESS_TOKEN` to your access token!\n";
     return -1;
   }
-  auto tracer = MakeLightStepTracer(options);
+  auto tracer = MakeLightStepTracer(std::move(options));
   assert(tracer);
 
   auto parent_span = tracer->StartSpan("parent");

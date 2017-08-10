@@ -5,10 +5,12 @@ namespace lightstep {
 // Constructor
 //------------------------------------------------------------------------------
 ManualRecorder::ManualRecorder(spdlog::logger& logger,
-                               LightStepManualTracerOptions options)
+                               LightStepManualTracerOptions options,
+                               std::unique_ptr<AsyncTransporter>&& transporter)
     : logger_{logger},
       options_{std::move(options)},
-      builder_{options_.access_token, options_.tags} {}
+      builder_{options_.access_token, options_.tags},
+      transporter_{std::move(transporter)} {}
 
 //------------------------------------------------------------------------------
 // RecordSpan

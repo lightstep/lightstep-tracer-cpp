@@ -85,6 +85,39 @@ LightStepTracer::MakeSpanContext(
 }
 
 //------------------------------------------------------------------------------
+// MakeThreadedTracer
+//------------------------------------------------------------------------------
+static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
+    std::shared_ptr<spdlog::logger> logger, LightStepTracerOptions&& options) {
+  std::unique_ptr<SyncTransporter> transporter;
+  if (options.transporter != nullptr) {
+    transporter = std::unique_ptr<SyncTransporter>{
+        dynamic_cast<SyncTransporter*>(options.transporter.get())};
+    if (transporter == nullptr) {
+      logger->error(
+          "`options.transporter` must be derived from SyncTransporter");
+      return nullptr;
+    }
+    options.transporter.release();
+  } else {
+    transporter =
+        std::unique_ptr<SyncTransporter>{new GrpcTransporter{*logger, options}};
+  }
+  auto recorder = std::unique_ptr<Recorder>{new BufferedRecorder{
+      *logger, std::move(options), std::move(transporter)}};
+  return std::shared_ptr<LightStepTracer>{
+      new LightStepTracerImpl{std::move(logger), std::move(recorder)}};
+}
+
+//------------------------------------------------------------------------------
+// MakeNonThreadedTracer
+//------------------------------------------------------------------------------
+static std::shared_ptr<LightStepTracer> MakeNonThreadedTracer(
+    std::shared_ptr<spdlog::logger> logger, LightStepTracerOptions&& options) {
+  return nullptr;
+}
+
+//------------------------------------------------------------------------------
 // MakeLightStepTracer
 //------------------------------------------------------------------------------
 std::shared_ptr<LightStepTracer> MakeLightStepTracer(
@@ -124,12 +157,11 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
       options.tags.emplace(component_name_key, options.component_name);
     }
 
-    auto transporter =
-        std::unique_ptr<Transporter>{new GrpcTransporter{*logger, options}};
-    auto recorder = std::unique_ptr<Recorder>{new BufferedRecorder{
-        *logger, std::move(options), std::move(transporter)}};
-    return std::shared_ptr<LightStepTracer>{
-        new LightStepTracerImpl{std::move(logger), std::move(recorder)}};
+    if (options.use_thread) {
+      return MakeThreadedTracer(logger, std::move(options));
+    } else {
+      return MakeNonThreadedTracer(logger, std::move(options));
+    }
   } catch (const std::exception& e) {
     logger->error("Failed to construct LightStep Tracer: {}", e.what());
     return nullptr;

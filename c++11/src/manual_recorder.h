@@ -8,7 +8,8 @@
 namespace lightstep {
 class ManualRecorder : public Recorder {
  public:
-  ManualRecorder(spdlog::logger& logger, LightStepManualTracerOptions options);
+  ManualRecorder(spdlog::logger& logger, LightStepManualTracerOptions options,
+                 std::unique_ptr<AsyncTransporter>&& transporter = nullptr);
 
   void RecordSpan(collector::Span&& span) noexcept override;
 
@@ -33,5 +34,8 @@ class ManualRecorder : public Recorder {
   size_t flushed_seqno_ = 0;
   size_t encoding_seqno_ = 1;
   size_t dropped_spans_ = 0;
+
+  // AsyncTransporter through which to send span reports.
+  std::unique_ptr<AsyncTransporter> transporter_;
 };
 }  // namespace lightstep

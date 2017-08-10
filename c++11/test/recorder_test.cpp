@@ -17,7 +17,8 @@ TEST_CASE("rpc_recorder") {
   options.max_buffered_spans = 5;
   auto in_memory_transporter = new InMemoryTransporter();
   auto recorder = new BufferedRecorder{
-      logger, options, std::unique_ptr<Transporter>{in_memory_transporter}};
+      logger, std::move(options),
+      std::unique_ptr<SyncTransporter>{in_memory_transporter}};
   auto tracer = std::shared_ptr<opentracing::Tracer>{
       new LightStepTracerImpl{std::unique_ptr<Recorder>{recorder}}};
   CHECK(tracer);

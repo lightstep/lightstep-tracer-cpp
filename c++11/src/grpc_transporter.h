@@ -11,7 +11,7 @@ namespace lightstep {
 /**
  * GrpcTransporter sends ReportRequests to the specified host via gRPC.
  */
-class GrpcTransporter : public Transporter {
+class GrpcTransporter : public SyncTransporter {
  public:
   GrpcTransporter(spdlog::logger& logger,
                   const LightStepTracerOptions& options);
