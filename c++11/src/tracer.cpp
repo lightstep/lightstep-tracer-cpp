@@ -58,7 +58,7 @@ LightStepTracer::MakeSpanContext(
     std::unordered_map<std::string, std::string>&& baggage) const noexcept try {
   std::unique_ptr<opentracing::SpanContext> result{
       new LightStepSpanContext{trace_id, span_id, std::move(baggage)}};
-  return result;
+  return std::move(result);
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(
       std::make_error_code(std::errc::not_enough_memory));
