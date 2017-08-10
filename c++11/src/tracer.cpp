@@ -114,14 +114,32 @@ static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
 //------------------------------------------------------------------------------
 static std::shared_ptr<LightStepTracer> MakeNonThreadedTracer(
     std::shared_ptr<spdlog::logger> logger, LightStepTracerOptions&& options) {
-  return nullptr;
+  std::unique_ptr<AsyncTransporter> transporter;
+  if (options.transporter != nullptr) {
+    transporter = std::unique_ptr<AsyncTransporter>{
+        dynamic_cast<AsyncTransporter*>(options.transporter.get())};
+    if (transporter == nullptr) {
+      logger->error(
+          "`options.transporter` must be derived from AsyncTransporter");
+      return nullptr;
+    }
+    options.transporter.release();
+  } else {
+    logger->error(
+        "`options.transporter` must be set if `options.use_thread` is false");
+    return nullptr;
+  }
+  auto recorder = std::unique_ptr<Recorder>{
+      new ManualRecorder{*logger, std::move(options), std::move(transporter)}};
+  return std::shared_ptr<LightStepTracer>{
+      new LightStepTracerImpl{std::move(logger), std::move(recorder)}};
 }
 
 //------------------------------------------------------------------------------
 // MakeLightStepTracer
 //------------------------------------------------------------------------------
 std::shared_ptr<LightStepTracer> MakeLightStepTracer(
-    LightStepTracerOptions options) noexcept try {
+    LightStepTracerOptions&& options) noexcept try {
   // Create and configure the logger.
   std::shared_ptr<spdlog::logger> logger;
   if (options.logger_sink) {
@@ -157,59 +175,10 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
       options.tags.emplace(component_name_key, options.component_name);
     }
 
-    if (options.use_thread) {
-      return MakeThreadedTracer(logger, std::move(options));
-    } else {
+    if (!options.use_thread) {
       return MakeNonThreadedTracer(logger, std::move(options));
     }
-  } catch (const std::exception& e) {
-    logger->error("Failed to construct LightStep Tracer: {}", e.what());
-    return nullptr;
-  }
-} catch (const spdlog::spdlog_ex& e) {
-  std::cerr << "Failed to initialize logger: " << e.what() << "\n";
-  return nullptr;
-}
-
-std::shared_ptr<LightStepTracer> MakeLightStepTracer(
-    LightStepManualTracerOptions options) noexcept try {
-  std::shared_ptr<spdlog::logger> logger;
-  if (options.logger_sink) {
-    logger = std::make_shared<spdlog::logger>(
-        "lightstep",
-        std::make_shared<CustomLoggerSink>(std::move(options.logger_sink)));
-  } else {
-    logger = std::make_shared<spdlog::logger>(
-        "lightstep", spdlog::sinks::stderr_sink_mt::instance());
-  }
-  try {
-    if (options.verbose) {
-      logger->set_level(spdlog::level::info);
-    } else {
-      logger->set_level(spdlog::level::err);
-    }
-
-    // Validate `options`.
-    if (options.access_token.empty()) {
-      logger->error("Must provide an access_token!");
-      return nullptr;
-    }
-
-    // Copy over default tags.
-    for (const auto& tag : GetDefaultTags()) {
-      options.tags[tag.first] = tag.second;
-    }
-
-    // Set the component name if not provided to the program name.
-    if (options.component_name.empty()) {
-      options.tags.emplace(component_name_key, GetProgramName());
-    } else {
-      options.tags.emplace(component_name_key, options.component_name);
-    }
-    auto recorder = std::unique_ptr<Recorder>{
-        new ManualRecorder{*logger, std::move(options)}};
-    return std::shared_ptr<LightStepTracer>{
-        new LightStepTracerImpl{std::move(logger), std::move(recorder)}};
+    return MakeThreadedTracer(logger, std::move(options));
   } catch (const std::exception& e) {
     logger->error("Failed to construct LightStep Tracer: {}", e.what());
     return nullptr;

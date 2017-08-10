@@ -5,7 +5,7 @@ namespace lightstep {
 // Constructor
 //------------------------------------------------------------------------------
 ManualRecorder::ManualRecorder(spdlog::logger& logger,
-                               LightStepManualTracerOptions options,
+                               LightStepTracerOptions options,
                                std::unique_ptr<AsyncTransporter>&& transporter)
     : logger_{logger},
       options_{std::move(options)},
@@ -43,9 +43,8 @@ void ManualRecorder::FlushOne() {
   dropped_spans_ = 0;
   std::swap(builder_.pending(), active_request_);
   ++encoding_seqno_;
-  options_.transporter->Send(active_request_, active_response_,
-                             OnSuccessCallback, OnFailureCallback,
-                             static_cast<void*>(this));
+  transporter_->Send(active_request_, active_response_, OnSuccessCallback,
+                     OnFailureCallback, static_cast<void*>(this));
 }
 
 //------------------------------------------------------------------------------

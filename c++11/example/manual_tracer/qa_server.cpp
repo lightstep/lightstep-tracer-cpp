@@ -44,10 +44,10 @@ int main() {
       TransporterCallback, static_cast<void*>(transporter.get()));
   event_add(transporter_event, &transporter_timeout);
 
-  LightStepManualTracerOptions options;
+  LightStepTracerOptions options;
+  options.use_thread = false;
   options.verbose = true;
-  options.transporter =
-      std::unique_ptr<AsyncTransporter>{transporter.release()};
+  options.transporter = std::unique_ptr<Transporter>{transporter.release()};
   auto tracer = MakeLightStepTracer(std::move(options));
   assert(tracer);
 

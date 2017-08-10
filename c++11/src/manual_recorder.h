@@ -8,8 +8,8 @@
 namespace lightstep {
 class ManualRecorder : public Recorder {
  public:
-  ManualRecorder(spdlog::logger& logger, LightStepManualTracerOptions options,
-                 std::unique_ptr<AsyncTransporter>&& transporter = nullptr);
+  ManualRecorder(spdlog::logger& logger, LightStepTracerOptions options,
+                 std::unique_ptr<AsyncTransporter>&& transporter);
 
   void RecordSpan(collector::Span&& span) noexcept override;
 
@@ -23,7 +23,7 @@ class ManualRecorder : public Recorder {
   static void OnFailureCallback(std::error_code error, void* context);
 
   spdlog::logger& logger_;
-  LightStepManualTracerOptions options_;
+  LightStepTracerOptions options_;
 
   // Buffer state (protected by write_mutex_).
   ReportBuilder builder_;
