@@ -97,12 +97,13 @@ void BufferedRecorder::Write() noexcept try {
 // WriteReport
 //------------------------------------------------------------------------------
 bool BufferedRecorder::WriteReport(const collector::ReportRequest& report) {
-  auto response_maybe = transporter_->SendReport(report);
-  if (!response_maybe) {
+  collector::ReportResponse response;
+  auto was_successful = transporter_->Send(report, response);
+  if (!was_successful) {
     return false;
   }
   if (options_.verbose) {
-    logger_.info(R"(Report: resp="{}")", response_maybe->ShortDebugString());
+    logger_.info(R"(Report: resp="{}")", response.ShortDebugString());
   }
   return true;
 }

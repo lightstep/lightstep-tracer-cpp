@@ -3,7 +3,6 @@
 #include <collector.pb.h>
 #include <lightstep/tracer.h>
 #include <chrono>
-#include "transporter.h"
 
 namespace lightstep {
 /**

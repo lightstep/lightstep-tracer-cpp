@@ -26,7 +26,8 @@ struct LightStepTracerOptions {
   // available on your account page at https://app.lightstep.com/account
   std::string access_token;
 
-  // The host, port, and encryption option to use for the collector.
+  // The host, port, and encryption option to use for the collector. Ignored if
+  // a custom transporter is used.
   std::string collector_host = "collector-grpc.lightstep.com";
   uint32_t collector_port = 443;
   std::string collector_encryption = "tls";

@@ -3,13 +3,13 @@
 #include <collector.pb.h>
 #include <lightstep/spdlog/logger.h>
 #include <lightstep/tracer.h>
+#include <lightstep/transporter.h>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <thread>
 #include "recorder.h"
 #include "report_builder.h"
-#include "transporter.h"
 
 namespace lightstep {
 /**
