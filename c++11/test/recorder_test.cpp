@@ -91,7 +91,7 @@ TEST_CASE("rpc_recorder2") {
   CHECK(tracer);
 
   SECTION(
-      "The reporter thread waits untill `now() + options.reporting_period`") {
+      "The reporter thread waits until `now() + options.reporting_period`") {
     auto now = condition_variable->Now();
     condition_variable->WaitTillNextEvent();
     auto event = condition_variable->next_event();
