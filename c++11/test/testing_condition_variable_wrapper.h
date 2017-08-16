@@ -22,6 +22,8 @@ class TestingConditionVariableWrapper : public ConditionVariableWrapper {
 
   void NotifyAll() override;
 
+  void WaitTillNextEvent();
+
   void Step();
 
   void set_block_notify_all(bool value) { block_notify_all_ = value; }
@@ -57,7 +59,6 @@ class TestingConditionVariableWrapper : public ConditionVariableWrapper {
     using Event::Event;
     void Process(
         TestingConditionVariableWrapper& /*condition_variable*/) override {
-      std::cout << "WaitEvent" << std::endl;
       Notify();
     }
     void Notify() override { ++ticker_; }
@@ -82,7 +83,7 @@ class TestingConditionVariableWrapper : public ConditionVariableWrapper {
   void AddEvent(Event* event);
 
   mutable std::mutex mutex_;
-  std::chrono::steady_clock::time_point now_;
+  std::chrono::steady_clock::time_point now_ = std::chrono::steady_clock::now();
   std::atomic<bool> block_notify_all_{false};
   std::vector<Event*> events_;
 };

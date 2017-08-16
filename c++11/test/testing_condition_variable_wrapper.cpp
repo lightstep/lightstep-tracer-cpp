@@ -86,6 +86,21 @@ void TestingConditionVariableWrapper::NotifyAll() {
 }
 
 //------------------------------------------------------------------------------
+// WaitTillNextEvent
+//------------------------------------------------------------------------------
+void TestingConditionVariableWrapper::WaitTillNextEvent() {
+  while (1) {
+    {
+      std::lock_guard<std::mutex> lock_guard{mutex_};
+      if (!events_.empty()) {
+        return;
+      }
+    }
+    std::this_thread::yield();
+  }
+}
+
+//------------------------------------------------------------------------------
 // Step
 //------------------------------------------------------------------------------
 void TestingConditionVariableWrapper::Step() {

@@ -91,6 +91,16 @@ TEST_CASE("rpc_recorder2") {
   CHECK(tracer);
 
   SECTION(
+      "The reporter thread waits untill `now() + options.reporting_period`") {
+    auto now = condition_variable->Now();
+    condition_variable->WaitTillNextEvent();
+    auto event = condition_variable->next_event();
+    CHECK(dynamic_cast<const TestingConditionVariableWrapper::WaitEvent*>(
+              event) != nullptr);
+    CHECK(event->timeout() == now + options.reporting_period);
+  }
+
+  SECTION(
       "Dropped spans counts get sent in the next ReportRequest, and cleared in "
       "the following ReportRequest") {
     condition_variable->set_block_notify_all(true);
@@ -117,6 +127,8 @@ TEST_CASE("rpc_recorder2") {
     auto reports = in_memory_transporter->reports();
     CHECK(reports.size() == 2);
     CHECK(LookupSpansDropped(reports[0]) == 1);
+    CHECK(reports[0].spans_size() == options.max_buffered_spans);
     CHECK(LookupSpansDropped(reports[1]) == 0);
+    CHECK(reports[1].spans_size() == 1);
   }
 }

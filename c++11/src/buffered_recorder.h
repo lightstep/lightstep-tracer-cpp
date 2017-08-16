@@ -56,7 +56,6 @@ class BufferedRecorder : public Recorder {
 
   // Writer state.
   std::mutex write_mutex_;
-  std::condition_variable write_cond_;
   bool write_exit_ = false;
   std::thread writer_;
 
@@ -70,6 +69,6 @@ class BufferedRecorder : public Recorder {
   // Transporter through which to send span reports.
   std::unique_ptr<Transporter> transporter_;
 
-  std::unique_ptr<ConditionVariableWrapper> write_cond2_;
+  std::unique_ptr<ConditionVariableWrapper> write_cond_;
 };
 }  // namespace lightstep
