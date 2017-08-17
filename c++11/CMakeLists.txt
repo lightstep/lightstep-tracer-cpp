@@ -23,6 +23,7 @@ else()
 endif()
 
 configure_file(version.h.in include/lightstep/version.h)
+configure_file(config.h.in include/lightstep/config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lightstep 
         DESTINATION include)

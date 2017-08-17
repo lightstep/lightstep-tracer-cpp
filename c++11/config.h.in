@@ -1,0 +1,3 @@
+#pragma once
+
+#cmakedefine LS_WITH_GRPC

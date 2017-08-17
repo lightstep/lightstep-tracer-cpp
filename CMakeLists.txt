@@ -5,6 +5,7 @@ project(lightstep-tracer)
 
 option(LS_WITH_ASAN "Generate tests using address-sanitizer." OFF)
 option(LS_WITH_TSAN "Generate tests using thread-sanitizer." OFF)
+option(LS_WITH_GRPC "Build with support for gRPC." ON)
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY 
                   "A LightStep implementation of the C++ OpenTracing API")
