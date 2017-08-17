@@ -6,6 +6,11 @@
 #include "../src/condition_variable_wrapper.h"
 
 namespace lightstep {
+/**
+ * TestingConditionVariableWrapper provides an interface to a condition variable
+ * that supports pausing, stepping, and advancing without waiting so as to
+ * support testing.
+ */
 class TestingConditionVariableWrapper : public ConditionVariableWrapper {
  public:
   ~TestingConditionVariableWrapper() override;
