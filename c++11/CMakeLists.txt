@@ -19,7 +19,7 @@ if(NOT CLANG_TIDY_EXE)
 else()
   message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
   set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=*,-clang-analyzer-alpha.*\
-,-llvm-include-order,-google-runtime-references,-google-build-using-namespace")
+,-llvm-include-order,-google-runtime-references,-google-build-using-namespace,-cppcoreguidelines-pro-type-vararg")
 endif()
 
 configure_file(version.h.in include/lightstep/version.h)
