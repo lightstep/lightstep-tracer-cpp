@@ -27,12 +27,10 @@ pkg_search_module(GRPCPP REQUIRED grpc++)
 find_path(OPENTRACING_INCLUDE_DIR NAMES opentracing/tracer.h)
 find_library(OPENTRACING_LIB opentracing)
 
-set(PROTO_PATH "${CMAKE_SOURCE_DIR}/lightstep-tracer-common")
-
-if( NOT EXISTS "${PROTO_PATH}/.git" )
-  execute_process(COMMAND git submodule update --init --recursive
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-endif()
+set(LIGHTSTEP_LINK_LIBRARIES ${OPENTRACING_LIB}
+                             ${PROTOBUF_LIBRARIES} 
+                             ${GRPC_LIBRARIES}
+                             ${GRPCPP_LIBRARIES})
 
 set(WITH_ASAN OFF)
 if (LS_WITH_ASAN AND (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") OR
