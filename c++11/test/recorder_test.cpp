@@ -3,7 +3,6 @@
 #include "../src/buffered_recorder.h"
 #include "../src/lightstep_tracer_impl.h"
 #include "in_memory_transporter.h"
-#include "span_generator.h"
 #include "testing_condition_variable_wrapper.h"
 
 #define CATCH_CONFIG_MAIN
@@ -37,51 +36,6 @@ TEST_CASE("rpc_recorder") {
   options.reporting_period = std::chrono::milliseconds(2);
   options.max_buffered_spans = 5;
   auto in_memory_transporter = new InMemoryTransporter{};
-  auto recorder = new BufferedRecorder{
-      logger, options, std::unique_ptr<Transporter>{in_memory_transporter}};
-  auto tracer = std::shared_ptr<opentracing::Tracer>{
-      new LightStepTracerImpl{std::unique_ptr<Recorder>{recorder}}};
-  CHECK(tracer);
-
-  SECTION(
-      "If spans are recorded at a rate significantly slower than "
-      "LightStepTracerOptions::reporting_period, then no spans get dropped.") {
-    SpanGenerator span_generator{*tracer, 2 * options.reporting_period};
-    span_generator.Run(std::chrono::milliseconds(250));
-    tracer->Close();
-    CHECK(in_memory_transporter->spans().size() ==
-          span_generator.num_spans_generated());
-  }
-
-  SECTION(
-      "If spans are recorded at a rate significantly faster than "
-      "LightStepTracerOptions::reporting_period, then a fraction of the spans "
-      "get successfuly transported.") {
-    SpanGenerator span_generator{*tracer, options.reporting_period / 5};
-    span_generator.Run(std::chrono::milliseconds(250));
-    tracer->Close();
-    CHECK(in_memory_transporter->spans().size() >
-          span_generator.num_spans_generated() / 10);
-  }
-
-  SECTION(
-      "If the transporter's SendReport function throws, we drop all subsequent "
-      "spans.") {
-    logger.set_level(spdlog::level::off);
-    SpanGenerator span_generator{*tracer, options.reporting_period * 2};
-    in_memory_transporter->set_should_throw(true);
-    span_generator.Run(std::chrono::milliseconds(250));
-    tracer->Close();
-    CHECK(in_memory_transporter->spans().size() == 0);
-  }
-}
-
-TEST_CASE("rpc_recorder2") {
-  spdlog::logger logger{"lightstep", spdlog::sinks::stderr_sink_mt::instance()};
-  LightStepTracerOptions options;
-  options.reporting_period = std::chrono::milliseconds(2);
-  options.max_buffered_spans = 5;
-  auto in_memory_transporter = new InMemoryTransporter{};
   auto condition_variable = new TestingConditionVariableWrapper{};
   auto recorder = new BufferedRecorder{
       logger, options, std::unique_ptr<Transporter>{in_memory_transporter},
@@ -90,14 +44,71 @@ TEST_CASE("rpc_recorder2") {
       new LightStepTracerImpl{std::unique_ptr<Recorder>{recorder}}};
   CHECK(tracer);
 
-  SECTION(
-      "The reporter thread waits until `now() + options.reporting_period`") {
+  SECTION("The writer thread waits until `now() + options.reporting_period`") {
     auto now = condition_variable->Now();
     condition_variable->WaitTillNextEvent();
     auto event = condition_variable->next_event();
     CHECK(dynamic_cast<const TestingConditionVariableWrapper::WaitEvent*>(
               event) != nullptr);
     CHECK(event->timeout() == now + options.reporting_period);
+  }
+
+  SECTION(
+      "If the writer thread takes longer than `options.reporting_period` to "
+      "run then it runs again immediately upon finishing.") {
+    auto now = condition_variable->Now() + 2 * options.reporting_period;
+    condition_variable->WaitTillNextEvent();
+    auto span = tracer->StartSpan("abc");
+    span->Finish();
+    condition_variable->set_now(now);
+    condition_variable->Step();
+    condition_variable->WaitTillNextEvent();
+    auto event = condition_variable->next_event();
+    CHECK(dynamic_cast<const TestingConditionVariableWrapper::WaitEvent*>(
+              event) != nullptr);
+    CHECK(condition_variable->Now() == now);
+    CHECK(event->timeout() == now);
+  }
+
+  SECTION(
+      "If the writer thread takes time between 0 and "
+      "`options.reporting_period` to run it subtracts the elapse time from the "
+      "next timeout") {
+    auto now = condition_variable->Now() + 3 * options.reporting_period / 2;
+    condition_variable->WaitTillNextEvent();
+    auto span = tracer->StartSpan("abc");
+    span->Finish();
+    condition_variable->set_now(now);
+    condition_variable->Step();
+    condition_variable->WaitTillNextEvent();
+    auto event = condition_variable->next_event();
+    CHECK(dynamic_cast<const TestingConditionVariableWrapper::WaitEvent*>(
+              event) != nullptr);
+    CHECK(condition_variable->Now() == now);
+    CHECK(event->timeout() == now + options.reporting_period / 2);
+  }
+
+  SECTION(
+      "If the transporter's SendReport function throws, we drop all subsequent "
+      "spans.") {
+    logger.set_level(spdlog::level::off);
+    in_memory_transporter->set_should_throw(true);
+
+    // Wait until the writer thread is ready to run.
+    condition_variable->WaitTillNextEvent();
+
+    auto span = tracer->StartSpan("abc");
+    span->Finish();
+    condition_variable->Step();
+
+    // Create another span
+    span = tracer->StartSpan("abc");
+    span->Finish();
+
+    tracer->Close();
+
+    // Verify no spans were transported.
+    CHECK(in_memory_transporter->spans().size() == 0);
   }
 
   SECTION(
@@ -113,9 +124,10 @@ TEST_CASE("rpc_recorder2") {
     CHECK(dynamic_cast<const TestingConditionVariableWrapper::NotifyAllEvent*>(
               condition_variable->next_event()) != nullptr);
 
-    condition_variable->Step();  // Process NotifyAll Event
+    // Wait until the first report gets sent
+    condition_variable->Step();
+    condition_variable->Step();
     condition_variable->set_block_notify_all(false);
-    condition_variable->Step();  // Waits for the first report to be sent
 
     auto span = tracer->StartSpan("xyz");
     CHECK(span);
@@ -126,9 +138,9 @@ TEST_CASE("rpc_recorder2") {
 
     auto reports = in_memory_transporter->reports();
     CHECK(reports.size() == 2);
-    CHECK(LookupSpansDropped(reports[0]) == 1);
-    CHECK(reports[0].spans_size() == options.max_buffered_spans);
-    CHECK(LookupSpansDropped(reports[1]) == 0);
-    CHECK(reports[1].spans_size() == 1);
+    CHECK(LookupSpansDropped(reports.at(0)) == 1);
+    CHECK(reports.at(0).spans_size() == options.max_buffered_spans);
+    CHECK(LookupSpansDropped(reports.at(1)) == 0);
+    CHECK(reports.at(1).spans_size() == 1);
   }
 }

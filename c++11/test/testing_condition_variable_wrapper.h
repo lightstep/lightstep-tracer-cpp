@@ -12,6 +12,8 @@ class TestingConditionVariableWrapper : public ConditionVariableWrapper {
 
   std::chrono::steady_clock::time_point Now() const override;
 
+  void set_now(const std::chrono::steady_clock::time_point& time_point);
+
   bool WaitFor(std::unique_lock<std::mutex>& lock,
                const std::chrono::steady_clock::duration& duration,
                std::function<bool()> predicate) override;

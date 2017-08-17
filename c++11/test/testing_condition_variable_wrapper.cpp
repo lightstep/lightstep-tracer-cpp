@@ -38,6 +38,15 @@ std::chrono::steady_clock::time_point TestingConditionVariableWrapper::Now()
 }
 
 //------------------------------------------------------------------------------
+// set_now
+//------------------------------------------------------------------------------
+void TestingConditionVariableWrapper::set_now(
+    const std::chrono::steady_clock::time_point& time_point) {
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  now_ = std::max(now_, time_point);
+}
+
+//------------------------------------------------------------------------------
 // WaitFor
 //------------------------------------------------------------------------------
 bool TestingConditionVariableWrapper::WaitFor(
@@ -56,19 +65,22 @@ bool TestingConditionVariableWrapper::WaitUntil(
     const std::chrono::steady_clock::time_point& timeout,
     std::function<bool()> predicate) {
   WaitEvent event{timeout};
+  if (predicate()) {
+    return true;
+  }
   while (1) {
-    if (timeout <= Now()) {
-      return predicate();
-    }
-    if (predicate()) {
-      return true;
-    }
     lock.unlock();
     AddEvent(&event);
     while (!event.DecrementTicker()) {
       std::this_thread::yield();
     }
     lock.lock();
+    if (timeout <= Now()) {
+      return predicate();
+    }
+    if (predicate()) {
+      return true;
+    }
   }
 }
 
