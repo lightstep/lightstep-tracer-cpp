@@ -2,6 +2,7 @@ macro(_lightstep_test TEST_NAME)
   add_executable(${TEST_NAME} ${ARGN})
   target_link_libraries(${TEST_NAME} lightstep_tracer ${OPENTRACING_LIB} 
                         ${PROTOBUF_LIBRARIES})
+  target_compile_options(${TEST_NAME} PUBLIC "-g")
   add_test(${TEST_NAME} ${TEST_NAME})
 
   if (WITH_ASAN)
@@ -28,4 +29,5 @@ endmacro()
 _lightstep_test(tracer_test tracer_test.cpp)
 _lightstep_test(utility_test utility_test.cpp)
 _lightstep_test(propagation_test propagation_test.cpp)
-_lightstep_test(recorder_test recorder_test.cpp span_generator.cpp)
+_lightstep_test(recorder_test recorder_test.cpp
+                              testing_condition_variable_wrapper.cpp)

@@ -5,6 +5,7 @@
 #include <opentracing/value.h>
 #include <opentracing/version.h>
 #include <cstdint>
+#include <cstdio>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -184,7 +185,9 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     return nullptr;
   }
 } catch (const spdlog::spdlog_ex& e) {
-  std::cerr << "Failed to initialize logger: " << e.what() << "\n";
+  // Use fprintf to print the error because std::cerr can throw the user
+  // configures by calling std::cerr::exceptions.
+  std::fprintf(stderr, "Failed to initialize logger: %s\n", e.what());
   return nullptr;
 }
 }  // namespace lightstep

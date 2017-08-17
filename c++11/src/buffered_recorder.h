@@ -8,6 +8,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include "condition_variable_wrapper.h"
 #include "recorder.h"
 #include "report_builder.h"
 
@@ -18,8 +19,12 @@ namespace lightstep {
  */
 class BufferedRecorder : public Recorder {
  public:
-  BufferedRecorder(spdlog::logger& logger, LightStepTracerOptions options,
+  BufferedRecorder(spdlog::logger& logger, LightStepTracerOptions&& options,
                    std::unique_ptr<SyncTransporter>&& transporter);
+
+  BufferedRecorder(spdlog::logger& logger, LightStepTracerOptions&& options,
+                   std::unique_ptr<SyncTransporter>&& transporter,
+                   std::unique_ptr<ConditionVariableWrapper>&& write_cond);
 
   BufferedRecorder(const BufferedRecorder&) = delete;
   BufferedRecorder(BufferedRecorder&&) = delete;
@@ -51,7 +56,6 @@ class BufferedRecorder : public Recorder {
 
   // Writer state.
   std::mutex write_mutex_;
-  std::condition_variable write_cond_;
   bool write_exit_ = false;
   std::thread writer_;
 
@@ -64,5 +68,7 @@ class BufferedRecorder : public Recorder {
 
   // SyncTransporter through which to send span reports.
   std::unique_ptr<SyncTransporter> transporter_;
+
+  std::unique_ptr<ConditionVariableWrapper> write_cond_;
 };
 }  // namespace lightstep

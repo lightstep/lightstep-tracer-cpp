@@ -5,13 +5,22 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
+BufferedRecorder::BufferedRecorder(spdlog::logger& logger,
+                                   LightStepTracerOptions&& options,
+                                   std::unique_ptr<SyncTransporter>&& transporter)
+    : BufferedRecorder{logger, std::move(options), std::move(transporter),
+                       std::unique_ptr<ConditionVariableWrapper>{
+                           new StandardConditionVariableWrapper{}}} {}
+
 BufferedRecorder::BufferedRecorder(
-    spdlog::logger& logger, LightStepTracerOptions options,
-    std::unique_ptr<SyncTransporter>&& transporter)
+    spdlog::logger& logger, LightStepTracerOptions&& options,
+    std::unique_ptr<SyncTransporter>&& transporter,
+    std::unique_ptr<ConditionVariableWrapper>&& write_cond)
     : logger_{logger},
       options_{std::move(options)},
       builder_{options_.access_token, options_.tags},
-      transporter_{std::move(transporter)} {
+      transporter_{std::move(transporter)},
+      write_cond_{std::move(write_cond)} {
   writer_ = std::thread(&BufferedRecorder::Write, this);
 }
 
@@ -34,7 +43,7 @@ void BufferedRecorder::RecordSpan(collector::Span&& span) noexcept try {
   }
   builder_.AddSpan(std::move(span));
   if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
-    write_cond_.notify_all();
+    write_cond_->NotifyAll();
   }
 } catch (const std::exception& e) {
   logger_.error("Failed to record span: {}", e.what());
@@ -58,7 +67,7 @@ bool BufferedRecorder::FlushWithTimeout(
 
   size_t wait_seq = encoding_seqno_ - (has_encoded ? 0 : 1);
 
-  auto result = write_cond_.wait_for(lock, timeout, [this, wait_seq]() {
+  auto result = write_cond_->WaitFor(lock, timeout, [this, wait_seq]() {
     return write_exit_ || this->flushed_seqno_ >= wait_seq;
   });
   if (!result) {
@@ -74,12 +83,12 @@ bool BufferedRecorder::FlushWithTimeout(
 // Write
 //------------------------------------------------------------------------------
 void BufferedRecorder::Write() noexcept try {
-  auto next = std::chrono::steady_clock::now() + options_.reporting_period;
+  auto next = write_cond_->Now() + options_.reporting_period;
 
   while (WaitForNextWrite(next)) {
     FlushOne();
 
-    auto end = std::chrono::steady_clock::now();
+    auto end = write_cond_->Now();
     auto elapsed = end - next;
 
     if (elapsed > options_.reporting_period) {
@@ -134,7 +143,7 @@ void BufferedRecorder::FlushOne() {
   {
     std::lock_guard<std::mutex> lock_guard{write_mutex_};
     ++flushed_seqno_;
-    write_cond_.notify_all();
+    write_cond_->NotifyAll();
     inflight_.Clear();
 
     if (!success) {
@@ -149,7 +158,7 @@ void BufferedRecorder::FlushOne() {
 void BufferedRecorder::MakeWriterExit() {
   std::lock_guard<std::mutex> lock_guard{write_mutex_};
   write_exit_ = true;
-  write_cond_.notify_all();
+  write_cond_->NotifyAll();
 }
 
 //------------------------------------------------------------------------------
@@ -158,7 +167,7 @@ void BufferedRecorder::MakeWriterExit() {
 bool BufferedRecorder::WaitForNextWrite(
     const std::chrono::steady_clock::time_point& next) {
   std::unique_lock<std::mutex> lock{write_mutex_};
-  write_cond_.wait_until(lock, next, [this]() {
+  write_cond_->WaitUntil(lock, next, [this]() {
     return this->write_exit_ ||
            this->builder_.num_pending_spans() >= options_.max_buffered_spans;
   });
