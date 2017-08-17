@@ -38,6 +38,7 @@ install(DIRECTORY include/lightstep DESTINATION include)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 include(LightStepProtobuf)
+include(LightStepClangTidy)
 
 set(LIGHTSTEP_SRCS src/utility.cpp
                    src/propagation.cpp
@@ -56,10 +57,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
 add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_protobuf>
                              ${LIGHTSTEP_SRCS})
 target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
-if (CLANG_TIDY_EXE)
-  set_target_properties(lightstep_tracer PROPERTIES
-                                         CXX_CLANG_TIDY "${DO_CLANG_TIDY}")
-endif()
+_apply_clang_tidy_if_available(lightstep_tracer)
 
 install(TARGETS lightstep_tracer
         LIBRARY DESTINATION lib 
