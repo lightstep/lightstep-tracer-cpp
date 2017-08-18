@@ -18,27 +18,44 @@ set(COLLECTOR_GRPC_PB_H_FILE ${GENERATED_PROTOBUF_PATH}/collector.grpc.pb.h)
 set(LIGHTSTEP_CARRIER_PB_CPP_FILE ${GENERATED_PROTOBUF_PATH}/lightstep_carrier.pb.cc)
 set(LIGHTSTEP_CARRIER_PB_H_FILE ${GENERATED_PROTOBUF_PATH}/lightstep_carrier.pb.h)
 
-add_custom_command(
-    OUTPUT ${COLLECTOR_PB_H_FILE}
-           ${COLLECTOR_PB_CPP_FILE}
-           ${COLLECTOR_GRPC_PB_H_FILE}
-           ${COLLECTOR_GRPC_PB_CPP_FILE}
-           ${LIGHTSTEP_CARRIER_PB_H_FILE}
-           ${LIGHTSTEP_CARRIER_PB_CPP_FILE}
-    COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-    ARGS "--proto_path=${PROTO_PATH}"
-         "--cpp_out=${GENERATED_PROTOBUF_PATH}"
-         "${COLLECTOR_PROTO}"
-         "${LIGHTSTEP_CARRIER_PROTO}"
-    COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-    ARGS "--proto_path=${PROTO_PATH}"
-         "--grpc_out=${GENERATED_PROTOBUF_PATH}"
-         "--plugin=protoc-gen-grpc=/usr/local/bin/GRPC_CPP_PLUGIN"
-         "${COLLECTOR_PROTO}"
-    )
-include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH})
-
-add_library(lightstep_protobuf OBJECT ${COLLECTOR_PB_CPP_FILE}
-                                      ${COLLECTOR_GRPC_PB_CPP_FILE}
-                                      ${COLLECTOR_CARRIER_PB_CPP_FILE}
-                                      ${LIGHTSTEP_CARRIER_PB_CPP_FILE})
+if (LS_WITH_GRPC)
+  add_custom_command(
+      OUTPUT ${COLLECTOR_PB_H_FILE}
+             ${COLLECTOR_PB_CPP_FILE}
+             ${COLLECTOR_GRPC_PB_H_FILE}
+             ${COLLECTOR_GRPC_PB_CPP_FILE}
+             ${LIGHTSTEP_CARRIER_PB_H_FILE}
+             ${LIGHTSTEP_CARRIER_PB_CPP_FILE}
+      COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+      ARGS "--proto_path=${PROTO_PATH}"
+           "--cpp_out=${GENERATED_PROTOBUF_PATH}"
+           "${COLLECTOR_PROTO}"
+           "${LIGHTSTEP_CARRIER_PROTO}"
+      COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+      ARGS "--proto_path=${PROTO_PATH}"
+           "--grpc_out=${GENERATED_PROTOBUF_PATH}"
+           "--plugin=protoc-gen-grpc=/usr/local/bin/GRPC_CPP_PLUGIN"
+           "${COLLECTOR_PROTO}"
+      )
+  include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH})
+  
+  add_library(lightstep_protobuf OBJECT ${COLLECTOR_PB_CPP_FILE}
+                                        ${COLLECTOR_GRPC_PB_CPP_FILE}
+                                        ${LIGHTSTEP_CARRIER_PB_CPP_FILE})
+else()
+  add_custom_command(
+      OUTPUT ${COLLECTOR_PB_H_FILE}
+             ${COLLECTOR_PB_CPP_FILE}
+             ${LIGHTSTEP_CARRIER_PB_H_FILE}
+             ${LIGHTSTEP_CARRIER_PB_CPP_FILE}
+      COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+      ARGS "--proto_path=${PROTO_PATH}"
+           "--cpp_out=${GENERATED_PROTOBUF_PATH}"
+           "${COLLECTOR_PROTO}"
+           "${LIGHTSTEP_CARRIER_PROTO}"
+      )
+  include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH})
+  
+  add_library(lightstep_protobuf OBJECT ${COLLECTOR_PB_CPP_FILE}
+                                        ${LIGHTSTEP_CARRIER_PB_CPP_FILE})
+endif()

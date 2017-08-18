@@ -5,9 +5,9 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-BufferedRecorder::BufferedRecorder(spdlog::logger& logger,
-                                   LightStepTracerOptions&& options,
-                                   std::unique_ptr<SyncTransporter>&& transporter)
+BufferedRecorder::BufferedRecorder(
+    spdlog::logger& logger, LightStepTracerOptions&& options,
+    std::unique_ptr<SyncTransporter>&& transporter)
     : BufferedRecorder{logger, std::move(options), std::move(transporter),
                        std::unique_ptr<ConditionVariableWrapper>{
                            new StandardConditionVariableWrapper{}}} {}

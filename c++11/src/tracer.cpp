@@ -101,8 +101,7 @@ static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
     }
     options.transporter.release();
   } else {
-    transporter =
-        std::unique_ptr<SyncTransporter>{new GrpcTransporter{*logger, options}};
+    transporter = MakeGrpcTransporter(*logger, options);
   }
   auto recorder = std::unique_ptr<Recorder>{new BufferedRecorder{
       *logger, std::move(options), std::move(transporter)}};
