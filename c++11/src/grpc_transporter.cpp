@@ -22,9 +22,7 @@ static std::string HostPortOf(const LightStepTracerOptions& options) {
 // GrpcTransporter
 //------------------------------------------------------------------------------
 namespace {
-/**
- * GrpcTransporter sends ReportRequests to the specified host via gRPC.
- */
+// GrpcTransporter sends ReportRequests to the specified host via gRPC.
 class GrpcTransporter : public SyncTransporter {
  public:
   GrpcTransporter(spdlog::logger& logger, const LightStepTracerOptions& options)

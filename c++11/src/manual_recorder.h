@@ -6,6 +6,8 @@
 #include "report_builder.h"
 
 namespace lightstep {
+// ManualRecorder buffers spans finished by a tracer and sends them over to
+// the provided AsyncTransporter when FlushWithTimeout is called.
 class ManualRecorder : public Recorder {
  public:
   ManualRecorder(spdlog::logger& logger, LightStepTracerOptions options,

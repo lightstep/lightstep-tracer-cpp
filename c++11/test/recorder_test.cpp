@@ -30,7 +30,7 @@ static int LookupSpansDropped(const collector::ReportRequest& report) {
   return static_cast<int>(iter->int_value());
 }
 
-TEST_CASE("rpc_recorder") {
+TEST_CASE("auto_recorder") {
   spdlog::logger logger{"lightstep", spdlog::sinks::stderr_sink_mt::instance()};
   LightStepTracerOptions options;
   options.reporting_period = std::chrono::milliseconds(2);

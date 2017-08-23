@@ -12,10 +12,6 @@
 namespace lightstep {
 class LightStepSpan : public opentracing::Span {
  public:
-  /* LightStepSpan(std::shared_ptr<const opentracing::Tracer>&& tracer, */
-  /*               Recorder& recorder, opentracing::string_view operation_name,
-   */
-  /*               const opentracing::StartSpanOptions& options); */
   LightStepSpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
                 spdlog::logger& logger, Recorder& recorder,
                 opentracing::string_view operation_name,

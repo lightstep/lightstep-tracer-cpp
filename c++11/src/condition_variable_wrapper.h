@@ -6,11 +6,9 @@
 #include <mutex>
 
 namespace lightstep {
-/**
- * ConditionVariableWrapper is used to support testing. It allows for a custom
- * condition variable implementation and artificial clock so that tests can be
- * run without blocking timeout.
- */
+// ConditionVariableWrapper is used to support testing. It allows for a custom
+// condition variable implementation and artificial clock so that tests can be
+// run without blocking timeout.
 class ConditionVariableWrapper {
  public:
   virtual ~ConditionVariableWrapper() = default;

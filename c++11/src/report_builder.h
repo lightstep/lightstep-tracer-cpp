@@ -7,10 +7,8 @@
 #include <unordered_map>
 
 namespace lightstep {
-/**
- * ReportBuilder helps construct lightstep::collector::ReportRequest messages.
- * Not thread-safe, thread compatible.
- */
+// ReportBuilder helps construct lightstep::collector::ReportRequest messages.
+// Not thread-safe, thread compatible.
 class ReportBuilder {
  public:
   ReportBuilder(

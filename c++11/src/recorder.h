@@ -5,9 +5,7 @@
 #include <chrono>
 
 namespace lightstep {
-/**
- * Abstract class that accepts spans from a Tracer once they are finished.
- */
+// Abstract class that accepts spans from a Tracer once they are finished.
 class Recorder {
  public:
   virtual ~Recorder() = default;
