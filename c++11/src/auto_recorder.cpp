@@ -1,18 +1,18 @@
-#include "buffered_recorder.h"
+#include "auto_recorder.h"
 #include <exception>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-BufferedRecorder::BufferedRecorder(
-    spdlog::logger& logger, LightStepTracerOptions&& options,
-    std::unique_ptr<SyncTransporter>&& transporter)
-    : BufferedRecorder{logger, std::move(options), std::move(transporter),
-                       std::unique_ptr<ConditionVariableWrapper>{
-                           new StandardConditionVariableWrapper{}}} {}
+AutoRecorder::AutoRecorder(spdlog::logger& logger,
+                           LightStepTracerOptions&& options,
+                           std::unique_ptr<SyncTransporter>&& transporter)
+    : AutoRecorder{logger, std::move(options), std::move(transporter),
+                   std::unique_ptr<ConditionVariableWrapper>{
+                       new StandardConditionVariableWrapper{}}} {}
 
-BufferedRecorder::BufferedRecorder(
+AutoRecorder::AutoRecorder(
     spdlog::logger& logger, LightStepTracerOptions&& options,
     std::unique_ptr<SyncTransporter>&& transporter,
     std::unique_ptr<ConditionVariableWrapper>&& write_cond)
@@ -21,13 +21,13 @@ BufferedRecorder::BufferedRecorder(
       builder_{options_.access_token, options_.tags},
       transporter_{std::move(transporter)},
       write_cond_{std::move(write_cond)} {
-  writer_ = std::thread(&BufferedRecorder::Write, this);
+  writer_ = std::thread(&AutoRecorder::Write, this);
 }
 
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-BufferedRecorder::~BufferedRecorder() {
+AutoRecorder::~AutoRecorder() {
   MakeWriterExit();
   writer_.join();
 }
@@ -35,7 +35,7 @@ BufferedRecorder::~BufferedRecorder() {
 //------------------------------------------------------------------------------
 // RecordSpan
 //------------------------------------------------------------------------------
-void BufferedRecorder::RecordSpan(collector::Span&& span) noexcept try {
+void AutoRecorder::RecordSpan(collector::Span&& span) noexcept try {
   std::lock_guard<std::mutex> lock_guard{write_mutex_};
   if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
     dropped_spans_++;
@@ -52,7 +52,7 @@ void BufferedRecorder::RecordSpan(collector::Span&& span) noexcept try {
 //------------------------------------------------------------------------------
 // FlushWithTimeout
 //------------------------------------------------------------------------------
-bool BufferedRecorder::FlushWithTimeout(
+bool AutoRecorder::FlushWithTimeout(
     std::chrono::system_clock::duration timeout) noexcept try {
   // Note: there is no effort made to speed up the flush when
   // requested, it simply waits for the regularly scheduled flush
@@ -82,7 +82,7 @@ bool BufferedRecorder::FlushWithTimeout(
 //------------------------------------------------------------------------------
 // Write
 //------------------------------------------------------------------------------
-void BufferedRecorder::Write() noexcept try {
+void AutoRecorder::Write() noexcept try {
   auto next = write_cond_->Now() + options_.reporting_period;
 
   while (WaitForNextWrite(next)) {
@@ -105,7 +105,7 @@ void BufferedRecorder::Write() noexcept try {
 //------------------------------------------------------------------------------
 // WriteReport
 //------------------------------------------------------------------------------
-bool BufferedRecorder::WriteReport(const collector::ReportRequest& report) {
+bool AutoRecorder::WriteReport(const collector::ReportRequest& report) {
   collector::ReportResponse response;
   auto was_successful = transporter_->Send(report, response);
   if (!was_successful) {
@@ -120,7 +120,7 @@ bool BufferedRecorder::WriteReport(const collector::ReportRequest& report) {
 //------------------------------------------------------------------------------
 // FlushOne
 //------------------------------------------------------------------------------
-void BufferedRecorder::FlushOne() {
+void AutoRecorder::FlushOne() {
   size_t save_dropped;
   size_t save_pending;
   {
@@ -155,7 +155,7 @@ void BufferedRecorder::FlushOne() {
 //------------------------------------------------------------------------------
 // MakeWriterExit
 //------------------------------------------------------------------------------
-void BufferedRecorder::MakeWriterExit() {
+void AutoRecorder::MakeWriterExit() {
   std::lock_guard<std::mutex> lock_guard{write_mutex_};
   write_exit_ = true;
   write_cond_->NotifyAll();
@@ -164,7 +164,7 @@ void BufferedRecorder::MakeWriterExit() {
 //------------------------------------------------------------------------------
 // WaitForNextWrite
 //------------------------------------------------------------------------------
-bool BufferedRecorder::WaitForNextWrite(
+bool AutoRecorder::WaitForNextWrite(
     const std::chrono::steady_clock::time_point& next) {
   std::unique_lock<std::mutex> lock{write_mutex_};
   write_cond_->WaitUntil(lock, next, [this]() {

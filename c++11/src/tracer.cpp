@@ -9,7 +9,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include "buffered_recorder.h"
+#include "auto_recorder.h"
 #include "custom_logger_sink.h"
 #include "grpc_transporter.h"
 #include "lightstep_span_context.h"
@@ -103,8 +103,8 @@ static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
   } else {
     transporter = MakeGrpcTransporter(*logger, options);
   }
-  auto recorder = std::unique_ptr<Recorder>{new BufferedRecorder{
-      *logger, std::move(options), std::move(transporter)}};
+  auto recorder = std::unique_ptr<Recorder>{
+      new AutoRecorder{*logger, std::move(options), std::move(transporter)}};
   return std::shared_ptr<LightStepTracer>{
       new LightStepTracerImpl{std::move(logger), std::move(recorder)}};
 }

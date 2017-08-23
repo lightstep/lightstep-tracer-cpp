@@ -14,24 +14,24 @@
 
 namespace lightstep {
 /**
- * BufferedRecorder buffers spans finished by a tracer and sends them over to
+ * AutoRecorder buffers spans finished by a tracer and sends them over to
  * the provided SyncTransporter.
  */
-class BufferedRecorder : public Recorder {
+class AutoRecorder : public Recorder {
  public:
-  BufferedRecorder(spdlog::logger& logger, LightStepTracerOptions&& options,
-                   std::unique_ptr<SyncTransporter>&& transporter);
+  AutoRecorder(spdlog::logger& logger, LightStepTracerOptions&& options,
+               std::unique_ptr<SyncTransporter>&& transporter);
 
-  BufferedRecorder(spdlog::logger& logger, LightStepTracerOptions&& options,
-                   std::unique_ptr<SyncTransporter>&& transporter,
-                   std::unique_ptr<ConditionVariableWrapper>&& write_cond);
+  AutoRecorder(spdlog::logger& logger, LightStepTracerOptions&& options,
+               std::unique_ptr<SyncTransporter>&& transporter,
+               std::unique_ptr<ConditionVariableWrapper>&& write_cond);
 
-  BufferedRecorder(const BufferedRecorder&) = delete;
-  BufferedRecorder(BufferedRecorder&&) = delete;
-  BufferedRecorder& operator=(const BufferedRecorder&) = delete;
-  BufferedRecorder& operator=(BufferedRecorder&&) = delete;
+  AutoRecorder(const AutoRecorder&) = delete;
+  AutoRecorder(AutoRecorder&&) = delete;
+  AutoRecorder& operator=(const AutoRecorder&) = delete;
+  AutoRecorder& operator=(AutoRecorder&&) = delete;
 
-  ~BufferedRecorder() override;
+  ~AutoRecorder() override;
 
   void RecordSpan(collector::Span&& span) noexcept override;
 

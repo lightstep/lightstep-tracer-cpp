@@ -1,6 +1,6 @@
 #include <lightstep/tracer.h>
 #include <algorithm>
-#include "../src/buffered_recorder.h"
+#include "../src/auto_recorder.h"
 #include "../src/lightstep_tracer_impl.h"
 #include "in_memory_transporter.h"
 #include "testing_condition_variable_wrapper.h"
@@ -37,7 +37,7 @@ TEST_CASE("rpc_recorder") {
   options.max_buffered_spans = 5;
   auto in_memory_transporter = new InMemoryTransporter{};
   auto condition_variable = new TestingConditionVariableWrapper{};
-  auto recorder = new BufferedRecorder{
+  auto recorder = new AutoRecorder{
       logger, std::move(options),
       std::unique_ptr<SyncTransporter>{in_memory_transporter},
       std::unique_ptr<ConditionVariableWrapper>{condition_variable}};
