@@ -1,3 +1,6 @@
+# ==============================================================================
+# Configure compiler warnings
+
 set(CMAKE_CXX_STANDARD 11)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(WARNING_CXX_FLAGS -Weverything 
@@ -12,21 +15,17 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(WARNING_CXX_FLAGS -Wall -Wextra)
 endif()
 
-find_program(CLANG_TIDY_EXE NAMES "clang-tidy" 
-                            DOC "Path to clang-tidy executable")
-if(NOT CLANG_TIDY_EXE)
-  message(STATUS "clang-tidy not found.")
-else()
-  message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
-  set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=*,-clang-analyzer-alpha.*\
-,-llvm-include-order,-google-runtime-references,-google-build-using-namespace,-cppcoreguidelines-pro-type-vararg")
-endif()
+# ==============================================================================
+# Set up generated header files config.h and version.h
 
 configure_file(version.h.in include/lightstep/version.h)
 configure_file(config.h.in include/lightstep/config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lightstep 
         DESTINATION include)
+
+# ==============================================================================
+# Build LightStep tracer
 
 include_directories(SYSTEM 3rd_party/include)
 
@@ -64,6 +63,9 @@ install(TARGETS lightstep_tracer
         ARCHIVE DESTINATION lib)
 
 target_link_libraries(lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
+
+# ==============================================================================
+# Build optional sanitized versions of the LightStep tracer.
 
 if (WITH_ASAN)
   add_library(lightstep_tracer_asan $<TARGET_OBJECTS:lightstep_protobuf>
