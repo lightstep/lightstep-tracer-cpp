@@ -1,2 +1,1 @@
 add_subdirectory(tutorial)
-add_subdirectory(manual_tracer)

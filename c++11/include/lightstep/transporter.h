@@ -25,15 +25,4 @@ class AsyncTransporter : public Transporter {
                     void (*on_failure)(std::error_code error, void* context),
                     void* context) = 0;
 };
-
-class LightStepAsyncTransporter : public AsyncTransporter {
- public:
-  virtual int file_descriptor() const noexcept = 0;
-
-  virtual void OnRead() noexcept = 0;
-  virtual void OnWrite() noexcept = 0;
-  virtual void OnTimeout() noexcept = 0;
-};
-
-std::unique_ptr<LightStepAsyncTransporter> MakeLightStepAsyncTransporter();
 }  // namespace lightstep
