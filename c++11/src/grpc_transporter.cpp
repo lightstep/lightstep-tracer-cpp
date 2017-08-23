@@ -44,8 +44,8 @@ class GrpcTransporter : public SyncTransporter {
     context.set_fail_fast(true);
     context.set_deadline(std::chrono::system_clock::now() + report_timeout_);
     auto status = client_.Report(
-        &context, static_cast<const collector::ReportRequest&>(request),
-        static_cast<collector::ReportResponse*>(&response));
+        &context, dynamic_cast<const collector::ReportRequest&>(request),
+        dynamic_cast<collector::ReportResponse*>(&response));
     if (!status.ok()) {
       logger_.error("Report RPC failed: {}", status.error_message());
       // TODO(rnburn): Is there a better error code for this?

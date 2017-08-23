@@ -12,7 +12,7 @@ class InMemoryTransporter : public SyncTransporter {
  public:
   opentracing::expected<void> Send(
       const google::protobuf::Message& request,
-      google::protobuf::Message& response) override {
+      google::protobuf::Message& /*response*/) override {
     if (should_throw_) {
       throw std::runtime_error{"should_throw_ == true"};
     }
