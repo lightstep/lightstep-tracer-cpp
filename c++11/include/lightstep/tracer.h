@@ -50,17 +50,21 @@ struct LightStepTracerOptions {
   // If `use_thread` is true, then the tracer will internally manage a thread to
   // regularly send reports to the collector; otherwise, if false,
   // LightStepTracer::Flush must be manually invoked to send reports.
+  //
+  // Note: If `use_thread` is false, then the tracer doesn't do internal
+  // locking so as to be non-blocking; so if spans are started and finished
+  // concurrently, then the user is responsible for synchronization.
   bool use_thread = true;
 
   // `reporting_period` is the maximum duration of time between sending spans
   // to a collector.  If zero, the default will be used; and ignored if
   // `use_thread` is false.
   std::chrono::steady_clock::duration reporting_period =
-      std::chrono::milliseconds(500);
+      std::chrono::milliseconds{500};
 
   // `report_timeout` is the timeout to use when sending a reports to the
   // collector. Ignored if a custom transport is used.
-  std::chrono::system_clock::duration report_timeout = std::chrono::seconds(5);
+  std::chrono::system_clock::duration report_timeout = std::chrono::seconds{5};
 
   std::unique_ptr<Transporter> transporter;
 };
@@ -77,7 +81,7 @@ class LightStepTracer : public opentracing::Tracer {
                   std::unordered_map<std::string, std::string>&& baggage) const
       noexcept;
 
-  virtual void Flush() noexcept = 0;
+  virtual bool Flush() noexcept = 0;
 };
 
 // Returns a std::shared_ptr to a LightStepTracer or nullptr on failure.

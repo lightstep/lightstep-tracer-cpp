@@ -19,7 +19,7 @@ class ManualRecorder : public Recorder {
       std::chrono::system_clock::duration timeout) noexcept override;
 
  private:
-  void FlushOne();
+  bool FlushOne();
 
   static void OnSuccessCallback(void* context);
   static void OnFailureCallback(std::error_code error, void* context);

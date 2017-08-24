@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "../src/auto_recorder.h"
 #include "../src/lightstep_tracer_impl.h"
+#include "../src/manual_recorder.h"
 #include "in_memory_transporter.h"
 #include "testing_condition_variable_wrapper.h"
 
@@ -33,9 +34,9 @@ static int LookupSpansDropped(const collector::ReportRequest& report) {
 TEST_CASE("auto_recorder") {
   spdlog::logger logger{"lightstep", spdlog::sinks::stderr_sink_mt::instance()};
   LightStepTracerOptions options;
-  options.reporting_period = std::chrono::milliseconds(2);
+  options.reporting_period = std::chrono::milliseconds{2};
   options.max_buffered_spans = 5;
-  auto in_memory_transporter = new InMemoryTransporter{};
+  auto in_memory_transporter = new InMemorySyncTransporter{};
   auto condition_variable = new TestingConditionVariableWrapper{};
   auto recorder = new AutoRecorder{
       logger, std::move(options),
@@ -45,7 +46,9 @@ TEST_CASE("auto_recorder") {
       new LightStepTracerImpl{std::unique_ptr<Recorder>{recorder}}};
   CHECK(tracer);
 
-  SECTION("The writer thread waits until `now() + options.reporting_period`") {
+  SECTION(
+      "The writer thread waits until `now() + options.reporting_period` to "
+      "send a report") {
     auto now = condition_variable->Now();
     condition_variable->WaitTillNextEvent();
     auto event = condition_variable->next_event();
@@ -56,7 +59,7 @@ TEST_CASE("auto_recorder") {
 
   SECTION(
       "If the writer thread takes longer than `options.reporting_period` to "
-      "run then it runs again immediately upon finishing.") {
+      "run, then it runs again immediately upon finishing.") {
     auto now = condition_variable->Now() + 2 * options.reporting_period;
     condition_variable->WaitTillNextEvent();
     auto span = tracer->StartSpan("abc");
@@ -73,8 +76,8 @@ TEST_CASE("auto_recorder") {
 
   SECTION(
       "If the writer thread takes time between 0 and "
-      "`options.reporting_period` to run it subtracts the elapse time from the "
-      "next timeout") {
+      "`options.reporting_period` to run, then it subtracts the elapse time "
+      "from the next timeout") {
     auto now = condition_variable->Now() + 3 * options.reporting_period / 2;
     condition_variable->WaitTillNextEvent();
     auto span = tracer->StartSpan("abc");
@@ -114,7 +117,7 @@ TEST_CASE("auto_recorder") {
 
   SECTION(
       "Dropped spans counts get sent in the next ReportRequest, and cleared in "
-      "the following ReportRequest") {
+      "the following ReportRequest.") {
     condition_variable->set_block_notify_all(true);
     for (size_t i = 0; i < options.max_buffered_spans + 1; ++i) {
       auto span = tracer->StartSpan("abc");
@@ -143,5 +146,68 @@ TEST_CASE("auto_recorder") {
     CHECK(reports.at(0).spans_size() == options.max_buffered_spans);
     CHECK(LookupSpansDropped(reports.at(1)) == 0);
     CHECK(reports.at(1).spans_size() == 1);
+  }
+}
+
+TEST_CASE("manual_recorder") {
+  spdlog::logger logger{"lightstep", spdlog::sinks::stderr_sink_mt::instance()};
+  LightStepTracerOptions options;
+  options.max_buffered_spans = 5;
+  auto in_memory_transporter = new InMemoryAsyncTransporter{};
+  auto recorder = new ManualRecorder{
+      logger, std::move(options),
+      std::unique_ptr<AsyncTransporter>{in_memory_transporter}};
+  auto tracer = std::shared_ptr<LightStepTracer>{
+      new LightStepTracerImpl{std::unique_ptr<Recorder>{recorder}}};
+  CHECK(tracer);
+
+  SECTION("Buffered spans get transported after Flush is manually called.") {
+    auto span = tracer->StartSpan("abc");
+    CHECK(span);
+    span->Finish();
+    CHECK(in_memory_transporter->reports().size() == 0);
+    CHECK(tracer->Flush());
+    in_memory_transporter->Write();
+    CHECK(in_memory_transporter->reports().size() == 1);
+  }
+
+  SECTION("Flush fails if a report is already being sent.") {
+    auto span1 = tracer->StartSpan("abc");
+    CHECK(span1);
+    span1->Finish();
+    CHECK(tracer->Flush());
+    auto span2 = tracer->StartSpan("xyz");
+    CHECK(span2);
+    span2->Finish();
+    CHECK(!tracer->Flush());
+  }
+
+  SECTION(
+      "If the tranporter fails, it's spans are reported as dropped in the "
+      "following report.") {
+    logger.set_level(spdlog::level::off);
+    auto span1 = tracer->StartSpan("abc");
+    CHECK(span1);
+    span1->Finish();
+    CHECK(tracer->Flush());
+    in_memory_transporter->Fail(
+        std::make_error_code(std::errc::network_unreachable));
+
+    auto span2 = tracer->StartSpan("xyz");
+    CHECK(span2);
+    span2->Finish();
+    CHECK(tracer->Flush());
+    in_memory_transporter->Write();
+    CHECK(LookupSpansDropped(in_memory_transporter->reports().at(0)) == 1);
+  }
+
+  SECTION("Flush is called when the tracer's buffer is filled.") {
+    for (size_t i = 0; i < options.max_buffered_spans; ++i) {
+      auto span = tracer->StartSpan("abc");
+      CHECK(span);
+      span->Finish();
+    }
+    in_memory_transporter->Write();
+    CHECK(in_memory_transporter->reports().size() == 1);
   }
 }

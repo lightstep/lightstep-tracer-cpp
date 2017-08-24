@@ -16,27 +16,29 @@ ManualRecorder::ManualRecorder(spdlog::logger& logger,
 // RecordSpan
 //------------------------------------------------------------------------------
 void ManualRecorder::RecordSpan(collector::Span&& span) noexcept {
-  // TODO(rnburn): Do we want to have any sort of locking here, or can we assum
-  // that spans are only recorded on a single thread?
   if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
     dropped_spans_++;
     return;
   }
   builder_.AddSpan(std::move(span));
+  if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
+    FlushOne();
+  }
 }
 
 //------------------------------------------------------------------------------
 // FlushOne
 //------------------------------------------------------------------------------
-void ManualRecorder::FlushOne() {
-  // If a report is currently in flight, do nothing.
+bool ManualRecorder::FlushOne() {
+  // If a report is currently in flight, do nothing; and if there are any
+  // pending spans, then the flush is considered to have failed.
   if (encoding_seqno_ > 1 + flushed_seqno_) {
-    return;
+    return builder_.num_pending_spans() == 0;
   }
 
   saved_pending_spans_ = builder_.num_pending_spans();
   if (saved_pending_spans_ == 0) {
-    return;
+    return true;
   }
   saved_dropped_spans_ = dropped_spans_;
   builder_.set_pending_client_dropped_spans(dropped_spans_);
@@ -45,6 +47,7 @@ void ManualRecorder::FlushOne() {
   ++encoding_seqno_;
   transporter_->Send(active_request_, active_response_, OnSuccessCallback,
                      OnFailureCallback, static_cast<void*>(this));
+  return true;
 }
 
 //------------------------------------------------------------------------------
@@ -52,8 +55,7 @@ void ManualRecorder::FlushOne() {
 //------------------------------------------------------------------------------
 bool ManualRecorder::FlushWithTimeout(
     std::chrono::system_clock::duration /*timeout*/) noexcept {
-  FlushOne();
-  return true;
+  return FlushOne();
 }
 
 //------------------------------------------------------------------------------
