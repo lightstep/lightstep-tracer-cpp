@@ -21,6 +21,9 @@ static std::string HostPortOf(const LightStepTracerOptions& options) {
 //------------------------------------------------------------------------------
 // MakeErrorCode
 //------------------------------------------------------------------------------
+// Try to map grpc::StatusCode to stanard POSIX error codes. Follows
+// descriptions from
+//    https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
 static std::error_code MakeErrorCode(grpc::StatusCode status_code) {
   switch (status_code) {
     case grpc::CANCELLED:
