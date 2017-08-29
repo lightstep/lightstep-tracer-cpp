@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <random>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
