@@ -110,9 +110,9 @@ static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
 }
 
 //------------------------------------------------------------------------------
-// MakeNonThreadedTracer
+// MakeSingleThreadedTracer
 //------------------------------------------------------------------------------
-static std::shared_ptr<LightStepTracer> MakeNonThreadedTracer(
+static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
     std::shared_ptr<spdlog::logger> logger, LightStepTracerOptions&& options) {
   std::unique_ptr<AsyncTransporter> transporter;
   if (options.transporter != nullptr) {
@@ -176,7 +176,7 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     }
 
     if (!options.use_thread) {
-      return MakeNonThreadedTracer(logger, std::move(options));
+      return MakeSingleThreadedTracer(logger, std::move(options));
     }
     return MakeThreadedTracer(logger, std::move(options));
   } catch (const std::exception& e) {
