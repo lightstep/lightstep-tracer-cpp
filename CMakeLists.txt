@@ -53,9 +53,9 @@ if (LS_WITH_GRPC)
   find_package(PkgConfig REQUIRED)
   pkg_search_module(GRPC REQUIRED grpc)
   pkg_search_module(GRPCPP REQUIRED grpc++)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  ${GRPC_CFLAGS_OTHER} \
-                       ${GRPCPP_CFLAGS_OTHER}")
-  list(APPEND LIGHTSTEP_LINK_LIBRARIES ${GRPC_LIBRARIES} ${GRPCPP_LIBRARIES})  
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  ${GRPC_CFLAGS} \
+                       ${GRPCPP_CFLAGS}")
+  list(APPEND LIGHTSTEP_LINK_LIBRARIES ${GRPC_LDFLAGS} ${GRPCPP_LDFLAGS})  
   include_directories(SYSTEM ${GRPC_INCLUDE_DIRS} ${GRPCPP_INCLUDE_DIRS})
 endif()
 
