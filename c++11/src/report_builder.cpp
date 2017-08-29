@@ -5,14 +5,16 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-ReportBuilder::ReportBuilder(const LightStepTracerOptions& options) {
+ReportBuilder::ReportBuilder(
+    const std::string& access_token,
+    const std::unordered_map<std::string, opentracing::Value>& tags) {
   // TODO(rnburn): Fill in any core internal_metrics.
   collector::Reporter* reporter = preamble_.mutable_reporter();
-  for (const auto& tag : options.tags) {
+  for (const auto& tag : tags) {
     *reporter->mutable_tags()->Add() = ToKeyValue(tag.first, tag.second);
   }
   reporter->set_reporter_id(GenerateId());
-  preamble_.mutable_auth()->set_access_token(options.access_token);
+  preamble_.mutable_auth()->set_access_token(access_token);
 }
 
 //------------------------------------------------------------------------------

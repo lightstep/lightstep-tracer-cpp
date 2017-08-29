@@ -3,6 +3,7 @@
 #include <collector.pb.h>
 #include <lightstep/spdlog/logger.h>
 #include <lightstep/tracer.h>
+#include <lightstep/transporter.h>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -10,28 +11,26 @@
 #include "condition_variable_wrapper.h"
 #include "recorder.h"
 #include "report_builder.h"
-#include "transporter.h"
 
 namespace lightstep {
-/**
- * BufferedRecorder buffers spans finished by a tracer and sends them over to
- * the provided Transporter.
- */
-class BufferedRecorder : public Recorder {
+// AutoRecorder buffers spans finished by a tracer and sends them over to
+// the provided SyncTransporter. It uses an internal thread to regularly send
+// the reports according to the rate specified by LightStepTracerOptions.
+class AutoRecorder : public Recorder {
  public:
-  BufferedRecorder(spdlog::logger& logger, LightStepTracerOptions options,
-                   std::unique_ptr<Transporter>&& transporter);
+  AutoRecorder(spdlog::logger& logger, LightStepTracerOptions&& options,
+               std::unique_ptr<SyncTransporter>&& transporter);
 
-  BufferedRecorder(spdlog::logger& logger, LightStepTracerOptions options,
-                   std::unique_ptr<Transporter>&& transporter,
-                   std::unique_ptr<ConditionVariableWrapper>&& write_cond);
+  AutoRecorder(spdlog::logger& logger, LightStepTracerOptions&& options,
+               std::unique_ptr<SyncTransporter>&& transporter,
+               std::unique_ptr<ConditionVariableWrapper>&& write_cond);
 
-  BufferedRecorder(const BufferedRecorder&) = delete;
-  BufferedRecorder(BufferedRecorder&&) = delete;
-  BufferedRecorder& operator=(const BufferedRecorder&) = delete;
-  BufferedRecorder& operator=(BufferedRecorder&&) = delete;
+  AutoRecorder(const AutoRecorder&) = delete;
+  AutoRecorder(AutoRecorder&&) = delete;
+  AutoRecorder& operator=(const AutoRecorder&) = delete;
+  AutoRecorder& operator=(AutoRecorder&&) = delete;
 
-  ~BufferedRecorder() override;
+  ~AutoRecorder() override;
 
   void RecordSpan(collector::Span&& span) noexcept override;
 
@@ -66,8 +65,8 @@ class BufferedRecorder : public Recorder {
   size_t encoding_seqno_ = 1;
   size_t dropped_spans_ = 0;
 
-  // Transporter through which to send span reports.
-  std::unique_ptr<Transporter> transporter_;
+  // SyncTransporter through which to send span reports.
+  std::unique_ptr<SyncTransporter> transporter_;
 
   std::unique_ptr<ConditionVariableWrapper> write_cond_;
 };

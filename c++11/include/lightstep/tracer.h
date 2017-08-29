@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lightstep/transporter.h>
 #include <opentracing/tracer.h>
 #include <opentracing/value.h>
 #include <array>
@@ -9,6 +10,11 @@
 #include <unordered_map>
 
 namespace lightstep {
+
+const std::string& CollectorServiceFullName();
+
+const std::string& CollectorMethodName();
+
 struct LightStepTracerOptions {
   // `component_name` is the human-readable identity of the instrumented
   // process. I.e., if one drew a block diagram of the distributed system,
@@ -20,7 +26,8 @@ struct LightStepTracerOptions {
   // available on your account page at https://app.lightstep.com/account
   std::string access_token;
 
-  // The host, port, and encryption option to use for the collector.
+  // The host, port, and encryption option to use for the collector. Ignored if
+  // a custom transporter is used.
   std::string collector_host = "collector-grpc.lightstep.com";
   uint32_t collector_port = 443;
   std::string collector_encryption = "tls";
@@ -40,12 +47,26 @@ struct LightStepTracerOptions {
   // before sending them to a collector.
   size_t max_buffered_spans = 2000;
 
-  // `reporting_period` is the maximum duration of time between sending spans
-  // to a collector.  If zero, the default will be used.
-  std::chrono::steady_clock::duration reporting_period =
-      std::chrono::milliseconds(500);
+  // If `use_thread` is true, then the tracer will internally manage a thread to
+  // regularly send reports to the collector; otherwise, if false,
+  // LightStepTracer::Flush must be manually invoked to send reports.
+  //
+  // Note: If `use_thread` is false, then the tracer doesn't do internal
+  // locking so as to be non-blocking; so if spans are started and finished
+  // concurrently, then the user is responsible for synchronization.
+  bool use_thread = true;
 
-  std::chrono::system_clock::duration report_timeout = std::chrono::seconds(5);
+  // `reporting_period` is the maximum duration of time between sending spans
+  // to a collector.  If zero, the default will be used; and ignored if
+  // `use_thread` is false.
+  std::chrono::steady_clock::duration reporting_period =
+      std::chrono::milliseconds{500};
+
+  // `report_timeout` is the timeout to use when sending a reports to the
+  // collector. Ignored if a custom transport is used.
+  std::chrono::system_clock::duration report_timeout = std::chrono::seconds{5};
+
+  std::unique_ptr<Transporter> transporter;
 };
 
 // The LightStepTracer interface can be used by custom carriers that need more
@@ -59,9 +80,11 @@ class LightStepTracer : public opentracing::Tracer {
   MakeSpanContext(uint64_t trace_id, uint64_t span_id,
                   std::unordered_map<std::string, std::string>&& baggage) const
       noexcept;
+
+  virtual bool Flush() noexcept = 0;
 };
 
 // Returns a std::shared_ptr to a LightStepTracer or nullptr on failure.
-std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
-    LightStepTracerOptions options) noexcept;
+std::shared_ptr<LightStepTracer> MakeLightStepTracer(
+    LightStepTracerOptions&& options) noexcept;
 }  // namespace lightstep

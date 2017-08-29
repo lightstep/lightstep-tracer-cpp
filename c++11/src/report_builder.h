@@ -2,15 +2,18 @@
 
 #include <collector.pb.h>
 #include <lightstep/tracer.h>
+#include <opentracing/value.h>
+#include <string>
+#include <unordered_map>
 
 namespace lightstep {
-/**
- * ReportBuilder helps construct lightstep::collector::ReportRequest messages.
- * Not thread-safe, thread compatible.
- */
+// ReportBuilder helps construct lightstep::collector::ReportRequest messages.
+// Not thread-safe, thread compatible.
 class ReportBuilder {
  public:
-  explicit ReportBuilder(const LightStepTracerOptions& options);
+  ReportBuilder(
+      const std::string& access_token,
+      const std::unordered_map<std::string, opentracing::Value>& tags);
 
   // AddSpan adds the span to the currently-building ReportRequest.
   void AddSpan(collector::Span&& span);

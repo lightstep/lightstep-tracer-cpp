@@ -9,15 +9,19 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include "buffered_recorder.h"
+#include "auto_recorder.h"
 #include "custom_logger_sink.h"
 #include "grpc_transporter.h"
 #include "lightstep_span_context.h"
 #include "lightstep_tracer_impl.h"
+#include "manual_recorder.h"
 #include "utility.h"
 
 namespace lightstep {
 const opentracing::string_view component_name_key = "lightstep.component_name";
+const opentracing::string_view collector_service_full_name =
+    "lightstep.collector.CollectorService";
+const opentracing::string_view collector_method_name = "Report";
 
 //------------------------------------------------------------------------------
 // GetDefaultTags
@@ -32,6 +36,22 @@ GetDefaultTags() {
                       {"lightstep.tracer_version", LIGHTSTEP_VERSION},
                       {"lightstep.opentracing_version", OPENTRACING_VERSION}};
   return default_tags;
+}
+
+//------------------------------------------------------------------------------
+// CollectorServiceFullName
+//------------------------------------------------------------------------------
+const std::string& CollectorServiceFullName() {
+  static std::string name = collector_service_full_name;
+  return name;
+}
+
+//------------------------------------------------------------------------------
+// CollectorMethodName
+//------------------------------------------------------------------------------
+const std::string& CollectorMethodName() {
+  static std::string name = collector_method_name;
+  return name;
 }
 
 //------------------------------------------------------------------------------
@@ -66,10 +86,60 @@ LightStepTracer::MakeSpanContext(
 }
 
 //------------------------------------------------------------------------------
+// MakeThreadedTracer
+//------------------------------------------------------------------------------
+static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
+    std::shared_ptr<spdlog::logger> logger, LightStepTracerOptions&& options) {
+  std::unique_ptr<SyncTransporter> transporter;
+  if (options.transporter != nullptr) {
+    transporter = std::unique_ptr<SyncTransporter>{
+        dynamic_cast<SyncTransporter*>(options.transporter.get())};
+    if (transporter == nullptr) {
+      logger->error(
+          "`options.transporter` must be derived from SyncTransporter");
+      return nullptr;
+    }
+    options.transporter.release();
+  } else {
+    transporter = MakeGrpcTransporter(*logger, options);
+  }
+  auto recorder = std::unique_ptr<Recorder>{
+      new AutoRecorder{*logger, std::move(options), std::move(transporter)}};
+  return std::shared_ptr<LightStepTracer>{
+      new LightStepTracerImpl{std::move(logger), std::move(recorder)}};
+}
+
+//------------------------------------------------------------------------------
+// MakeSingleThreadedTracer
+//------------------------------------------------------------------------------
+static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
+    std::shared_ptr<spdlog::logger> logger, LightStepTracerOptions&& options) {
+  std::unique_ptr<AsyncTransporter> transporter;
+  if (options.transporter != nullptr) {
+    transporter = std::unique_ptr<AsyncTransporter>{
+        dynamic_cast<AsyncTransporter*>(options.transporter.get())};
+    if (transporter == nullptr) {
+      logger->error(
+          "`options.transporter` must be derived from AsyncTransporter");
+      return nullptr;
+    }
+    options.transporter.release();
+  } else {
+    logger->error(
+        "`options.transporter` must be set if `options.use_thread` is false");
+    return nullptr;
+  }
+  auto recorder = std::unique_ptr<Recorder>{
+      new ManualRecorder{*logger, std::move(options), std::move(transporter)}};
+  return std::shared_ptr<LightStepTracer>{
+      new LightStepTracerImpl{std::move(logger), std::move(recorder)}};
+}
+
+//------------------------------------------------------------------------------
 // MakeLightStepTracer
 //------------------------------------------------------------------------------
-std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
-    LightStepTracerOptions options) noexcept try {
+std::shared_ptr<LightStepTracer> MakeLightStepTracer(
+    LightStepTracerOptions&& options) noexcept try {
   // Create and configure the logger.
   std::shared_ptr<spdlog::logger> logger;
   if (options.logger_sink) {
@@ -105,12 +175,10 @@ std::shared_ptr<opentracing::Tracer> MakeLightStepTracer(
       options.tags.emplace(component_name_key, options.component_name);
     }
 
-    auto transporter =
-        std::unique_ptr<Transporter>{new GrpcTransporter{*logger, options}};
-    auto recorder = std::unique_ptr<Recorder>{new BufferedRecorder{
-        *logger, std::move(options), std::move(transporter)}};
-    return std::shared_ptr<opentracing::Tracer>{
-        new LightStepTracerImpl{std::move(logger), std::move(recorder)}};
+    if (!options.use_thread) {
+      return MakeSingleThreadedTracer(logger, std::move(options));
+    }
+    return MakeThreadedTracer(logger, std::move(options));
   } catch (const std::exception& e) {
     logger->error("Failed to construct LightStep Tracer: {}", e.what());
     return nullptr;
