@@ -19,6 +19,26 @@ static std::string HostPortOf(const LightStepTracerOptions& options) {
 }
 
 //------------------------------------------------------------------------------
+// MakeErrorCode
+//------------------------------------------------------------------------------
+static std::error_code MakeErrorCode(grpc::StatusCode status_code) {
+  switch (status_code) {
+    case grpc::CANCELLED:
+      return std::make_error_code(std::errc::operation_canceled);
+    case grpc::DEADLINE_EXCEEDED:
+      return std::make_error_code(std::errc::timed_out);
+    case grpc::RESOURCE_EXHAUSTED:
+      return std::make_error_code(std::errc::resource_unavailable_try_again);
+    case grpc::UNIMPLEMENTED:
+      return std::make_error_code(std::errc::not_supported);
+    case grpc::UNAVAILABLE:
+      return std::make_error_code(std::errc::network_down);
+    default:
+      return std::error_code{};
+  }
+}
+
+//------------------------------------------------------------------------------
 // GrpcTransporter
 //------------------------------------------------------------------------------
 namespace {
@@ -46,9 +66,7 @@ class GrpcTransporter : public SyncTransporter {
         dynamic_cast<collector::ReportResponse*>(&response));
     if (!status.ok()) {
       logger_.error("Report RPC failed: {}", status.error_message());
-      // TODO(rnburn): Is there a better error code for this?
-      return opentracing::make_unexpected(
-          std::make_error_code(std::errc::network_unreachable));
+      return opentracing::make_unexpected(MakeErrorCode(status.error_code()));
     }
     return {};
   }
