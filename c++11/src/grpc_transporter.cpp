@@ -52,9 +52,9 @@ class GrpcTransporter : public SyncTransporter {
       : logger_{logger},
         client_{grpc::CreateChannel(
             HostPortOf(options),
-            (options.collector_encryption == "tls")
-                ? grpc::SslCredentials(grpc::SslCredentialsOptions())
-                : grpc::InsecureChannelCredentials())},
+            options.collector_plaintext
+                ? grpc::InsecureChannelCredentials()
+                : grpc::SslCredentials(grpc::SslCredentialsOptions()))},
         report_timeout_{options.report_timeout} {}
 
   opentracing::expected<void> Send(
