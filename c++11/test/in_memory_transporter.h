@@ -53,18 +53,13 @@ class InMemoryAsyncTransporter : public AsyncTransporter {
  public:
   void Send(const google::protobuf::Message& request,
             google::protobuf::Message& /*response*/,
-            void (*on_success)(void* context),
-            void (*on_failure)(std::error_code error, void* context),
-            void* context) override {
+            AsyncTransporter::Callback& callback) override {
     active_request_ = &request;
-    active_context_ = context;
-    on_success_ = on_success;
-    on_failure_ = on_failure;
+    active_callback_ = &callback;
   }
 
   void Write() {
-    if (active_request_ == nullptr || on_success_ == nullptr ||
-        active_context_ == nullptr) {
+    if (active_request_ == nullptr || active_callback_ == nullptr) {
       std::cerr << "No context, success callback, or request\n";
       std::terminate();
     }
@@ -77,16 +72,16 @@ class InMemoryAsyncTransporter : public AsyncTransporter {
       spans_.push_back(span);
     }
 
-    on_success_(active_context_);
+    active_callback_->OnSuccess();
   }
 
   void Fail(std::error_code error) {
-    if (on_failure_ == nullptr || active_context_ == nullptr) {
+    if (active_callback_ == nullptr) {
       std::cerr << "No context or failure callback\n";
       std::terminate();
     }
 
-    on_failure_(error, active_context_);
+    active_callback_->OnFailure(error);
   }
 
   const std::vector<collector::ReportRequest>& reports() const {
@@ -97,9 +92,7 @@ class InMemoryAsyncTransporter : public AsyncTransporter {
 
  private:
   const google::protobuf::Message* active_request_;
-  void* active_context_;
-  void (*on_success_)(void* context);
-  void (*on_failure_)(std::error_code error, void* context);
+  AsyncTransporter::Callback* active_callback_;
   std::vector<collector::ReportRequest> reports_;
   std::vector<collector::Span> spans_;
 };

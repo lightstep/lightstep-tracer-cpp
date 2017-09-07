@@ -8,7 +8,7 @@
 namespace lightstep {
 // ManualRecorder buffers spans finished by a tracer and sends them over to
 // the provided AsyncTransporter when FlushWithTimeout is called.
-class ManualRecorder : public Recorder {
+class ManualRecorder : public Recorder, private AsyncTransporter::Callback {
  public:
   ManualRecorder(spdlog::logger& logger, LightStepTracerOptions options,
                  std::unique_ptr<AsyncTransporter>&& transporter);
@@ -21,8 +21,8 @@ class ManualRecorder : public Recorder {
  private:
   bool FlushOne();
 
-  static void OnSuccessCallback(void* context);
-  static void OnFailureCallback(std::error_code error, void* context);
+  void OnSuccess() noexcept override;
+  void OnFailure(std::error_code error) noexcept override;
 
   spdlog::logger& logger_;
   LightStepTracerOptions options_;
