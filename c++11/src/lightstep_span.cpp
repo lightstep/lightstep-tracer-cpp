@@ -39,7 +39,7 @@ static std::tuple<SystemTime, SteadyTime> ComputeStartTimestamps(
 // SetSpanReference
 //------------------------------------------------------------------------------
 static bool SetSpanReference(
-    spdlog::logger& logger,
+    Logger& logger,
     const std::pair<opentracing::SpanReferenceType,
                     const opentracing::SpanContext*>& reference,
     std::unordered_map<std::string, std::string>& baggage,
@@ -54,13 +54,13 @@ static bool SetSpanReference(
       break;
   }
   if (reference.second == nullptr) {
-    logger.warn("Passed in null span reference.");
+    /* logger.warn("Passed in null span reference."); */
     return false;
   }
   auto referenced_context =
       dynamic_cast<const LightStepSpanContext*>(reference.second);
   if (referenced_context == nullptr) {
-    logger.warn("Passed in span reference of unexpected type.");
+    /* logger.warn("Passed in span reference of unexpected type."); */
     return false;
   }
   collector_reference.mutable_span_context()->set_trace_id(
@@ -81,7 +81,7 @@ static bool SetSpanReference(
 // Constructor
 //------------------------------------------------------------------------------
 LightStepSpan::LightStepSpan(
-    std::shared_ptr<const opentracing::Tracer>&& tracer, spdlog::logger& logger,
+    std::shared_ptr<const opentracing::Tracer>&& tracer, Logger& logger,
     Recorder& recorder, opentracing::string_view operation_name,
     const opentracing::StartSpanOptions& options)
     : tracer_{std::move(tracer)},
@@ -165,7 +165,7 @@ void LightStepSpan::FinishWithOptions(
       try {
         *tags->Add() = ToKeyValue(tag.first, tag.second);
       } catch (const std::exception& e) {
-        logger_.error(R"(Dropping tag for key "{}": {})", tag.first, e.what());
+        /* logger_.error(R"(Dropping tag for key "{}": {})", tag.first, e.what()); */
       }
     }
     auto logs = span.mutable_logs();
@@ -189,7 +189,7 @@ void LightStepSpan::FinishWithOptions(
   // Record the span
   recorder_.RecordSpan(std::move(span));
 } catch (const std::exception& e) {
-  logger_.error("FinishWithOptions failed: {}", e.what());
+  /* logger_.error("FinishWithOptions failed: {}", e.what()); */
 }
 
 //------------------------------------------------------------------------------
@@ -200,7 +200,7 @@ void LightStepSpan::SetOperationName(
   std::lock_guard<std::mutex> lock_guard{mutex_};
   operation_name_ = name;
 } catch (const std::exception& e) {
-  logger_.error("SetOperationName failed: {}", e.what());
+  /* logger_.error("SetOperationName failed: {}", e.what()); */
 }
 
 //------------------------------------------------------------------------------
@@ -211,7 +211,7 @@ void LightStepSpan::SetTag(opentracing::string_view key,
   std::lock_guard<std::mutex> lock_guard{mutex_};
   tags_[key] = value;
 } catch (const std::exception& e) {
-  logger_.error("SetTag failed: {}", e.what());
+  /* logger_.error("SetTag failed: {}", e.what()); */
 }
 
 //------------------------------------------------------------------------------
@@ -229,7 +229,7 @@ std::string LightStepSpan::BaggageItem(
     opentracing::string_view restricted_key) const noexcept try {
   return span_context_.baggage_item(restricted_key);
 } catch (const std::exception& e) {
-  logger_.error("BaggageItem failed, returning empty string: {}", e.what());
+  /* logger_.error("BaggageItem failed, returning empty string: {}", e.what()); */
   return {};
 }
 
@@ -247,12 +247,12 @@ void LightStepSpan::Log(std::initializer_list<
     try {
       *key_values->Add() = ToKeyValue(field.first, field.second);
     } catch (const std::exception& e) {
-      logger_.error(R"(Failed to log record for key "{}": {})",
-                    std::string{field.first}, e.what());
+      /* logger_.error(R"(Failed to log record for key "{}": {})", */
+      /*               std::string{field.first}, e.what()); */
     }
   }
   logs_.emplace_back(std::move(log));
 } catch (const std::exception& e) {
-  logger_.error("Log failed: {}", e.what());
+  /* logger_.error("Log failed: {}", e.what()); */
 }
 }  // namespace lightstep

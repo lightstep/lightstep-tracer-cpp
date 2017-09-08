@@ -5,7 +5,7 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-AutoRecorder::AutoRecorder(spdlog::logger& logger,
+AutoRecorder::AutoRecorder(Logger& logger,
                            LightStepTracerOptions&& options,
                            std::unique_ptr<SyncTransporter>&& transporter)
     : AutoRecorder{logger, std::move(options), std::move(transporter),
@@ -13,7 +13,7 @@ AutoRecorder::AutoRecorder(spdlog::logger& logger,
                        new StandardConditionVariableWrapper{}}} {}
 
 AutoRecorder::AutoRecorder(
-    spdlog::logger& logger, LightStepTracerOptions&& options,
+    Logger& logger, LightStepTracerOptions&& options,
     std::unique_ptr<SyncTransporter>&& transporter,
     std::unique_ptr<ConditionVariableWrapper>&& write_cond)
     : logger_{logger},
@@ -46,7 +46,7 @@ void AutoRecorder::RecordSpan(collector::Span&& span) noexcept try {
     write_cond_->NotifyAll();
   }
 } catch (const std::exception& e) {
-  logger_.error("Failed to record span: {}", e.what());
+  /* logger_.error("Failed to record span: {}", e.what()); */
 }
 
 //------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ bool AutoRecorder::FlushWithTimeout(
   }
   return this->flushed_seqno_ >= wait_seq;
 } catch (const std::exception& e) {
-  logger_.error("Failed to flush recorder: {}", e.what());
+  /* logger_.error("Failed to flush recorder: {}", e.what()); */
   return false;
 }
 
@@ -99,7 +99,7 @@ void AutoRecorder::Write() noexcept try {
   }
 } catch (const std::exception& e) {
   MakeWriterExit();
-  logger_.error("Fatal error shutting down writer thread: {}", e.what());
+  /* logger_.error("Fatal error shutting down writer thread: {}", e.what()); */
 }
 
 //------------------------------------------------------------------------------
@@ -112,7 +112,7 @@ bool AutoRecorder::WriteReport(const collector::ReportRequest& report) {
     return false;
   }
   if (options_.verbose) {
-    logger_.info(R"(Report: resp="{}")", response.ShortDebugString());
+    /* logger_.info(R"(Report: resp="{}")", response.ShortDebugString()); */
   }
   return true;
 }

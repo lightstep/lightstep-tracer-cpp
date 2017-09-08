@@ -1,9 +1,9 @@
 #pragma once
 
-#include <lightstep/spdlog/logger.h>
 #include <lightstep/tracer.h>
+#include "logger.h"
 
 namespace lightstep {
 std::unique_ptr<SyncTransporter> MakeGrpcTransporter(
-    spdlog::logger& logger, const LightStepTracerOptions& options);
+    Logger& logger, const LightStepTracerOptions& options);
 }  // namespace lightstep

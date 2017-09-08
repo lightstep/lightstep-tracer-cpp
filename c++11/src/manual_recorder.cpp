@@ -4,7 +4,7 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-ManualRecorder::ManualRecorder(spdlog::logger& logger,
+ManualRecorder::ManualRecorder(Logger& logger,
                                LightStepTracerOptions options,
                                std::unique_ptr<AsyncTransporter>&& transporter)
     : logger_{logger},
@@ -64,7 +64,7 @@ void ManualRecorder::OnSuccess() noexcept {
   ++flushed_seqno_;
   active_request_.Clear();
   if (options_.verbose) {
-    logger_.info(R"(Report: resp="{}")", active_response_.ShortDebugString());
+    /* logger_.info(R"(Report: resp="{}")", active_response_.ShortDebugString()); */
   }
 }
 
@@ -75,6 +75,6 @@ void ManualRecorder::OnFailure(std::error_code error) noexcept {
   ++flushed_seqno_;
   active_request_.Clear();
   dropped_spans_ += saved_dropped_spans_ + saved_pending_spans_;
-  logger_.error("Failed to send report: {}", error.message());
+  /* logger_.error("Failed to send report: {}", error.message()); */
 }
 }  // namespace lightstep
