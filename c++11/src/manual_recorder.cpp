@@ -45,8 +45,7 @@ bool ManualRecorder::FlushOne() {
   dropped_spans_ = 0;
   std::swap(builder_.pending(), active_request_);
   ++encoding_seqno_;
-  transporter_->Send(active_request_, active_response_, OnSuccessCallback,
-                     OnFailureCallback, static_cast<void*>(this));
+  transporter_->Send(active_request_, active_response_, *this);
   return true;
 }
 
@@ -59,27 +58,23 @@ bool ManualRecorder::FlushWithTimeout(
 }
 
 //------------------------------------------------------------------------------
-// OnSuccessCallback
+// OnSuccess
 //------------------------------------------------------------------------------
-void ManualRecorder::OnSuccessCallback(void* context) {
-  auto recorder = static_cast<ManualRecorder*>(context);
-  ++recorder->flushed_seqno_;
-  recorder->active_request_.Clear();
-  if (recorder->options_.verbose) {
-    recorder->logger_.info(R"(Report: resp="{}")",
-                           recorder->active_response_.ShortDebugString());
+void ManualRecorder::OnSuccess() noexcept {
+  ++flushed_seqno_;
+  active_request_.Clear();
+  if (options_.verbose) {
+    logger_.info(R"(Report: resp="{}")", active_response_.ShortDebugString());
   }
 }
 
 //------------------------------------------------------------------------------
-// OnFailureCallback
+// OnFailure
 //------------------------------------------------------------------------------
-void ManualRecorder::OnFailureCallback(std::error_code error, void* context) {
-  auto recorder = static_cast<ManualRecorder*>(context);
-  ++recorder->flushed_seqno_;
-  recorder->active_request_.Clear();
-  recorder->dropped_spans_ +=
-      recorder->saved_dropped_spans_ + recorder->saved_pending_spans_;
-  recorder->logger_.error("Failed to send report: {}", error.message());
+void ManualRecorder::OnFailure(std::error_code error) noexcept {
+  ++flushed_seqno_;
+  active_request_.Clear();
+  dropped_spans_ += saved_dropped_spans_ + saved_pending_spans_;
+  logger_.error("Failed to send report: {}", error.message());
 }
 }  // namespace lightstep
