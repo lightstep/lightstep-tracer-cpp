@@ -27,13 +27,19 @@ dependencies:
 
     # Note the similarities with lightstep-benchmarks/scripts/docker/Dockerfile.build_cpp
     # TODO publish a single build_cpp image (w/ prebuilt protobuf / gRPC) and use it here
-    - sudo apt-get update; sudo apt-get install autoconf cmake automake git-core libtool pkg-config wget curl unzip
+    - sudo apt-get update; sudo apt-get install autoconf automake git-core libtool pkg-config wget curl unzip
+
+    # CMake
+    - git clone -b v3.0.0 https://github.com/Kitware/CMake.git && cd CMake && ./bootstrap && make && make install prefix=${HOME}
 
     # Protobuf
-    - git clone -b 3.0.x https://github.com/google/protobuf && cd protobuf && ./autogen.sh && ./configure --enable-shared --prefix=${HOME} && make && make install
+    - git clone -b 3.0.x https://github.com/google/protobuf && cd protobuf && ./autogen.sh && ./configure --enable-shared --prefix=${HOME} && make && make install prefix=${HOME}
 
     # gRPC
     - git clone -b v1.0.1 https://github.com/grpc/grpc && cd grpc && git submodule update --init && make && make install prefix=${HOME}
+
+    # OpenTracing (TODO: use version tag)
+    - git clone https://github.com/opentracing/opentracing-cpp.git && cd opentracing-cpp && cmake . && make && make install prefix=${HOME}
 
   cache_directories:
     - /opt/google-cloud-sdk
