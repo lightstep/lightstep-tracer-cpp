@@ -15,6 +15,8 @@ const std::string& CollectorServiceFullName();
 
 const std::string& CollectorMethodName();
 
+enum class LogLevel { debug, info, error };
+
 struct LightStepTracerOptions {
   // `component_name` is the human-readable identity of the instrumented
   // process. I.e., if one drew a block diagram of the distributed system,
@@ -41,7 +43,7 @@ struct LightStepTracerOptions {
 
   // Set `logger_sink` to a custom function to override where logging is
   // printed; otherwise, it defaults to stderr.
-  std::function<void(opentracing::string_view)> logger_sink;
+  std::function<void(LogLevel, opentracing::string_view)> logger_sink;
 
   // `max_buffered_spans` is the maximum number of spans that will be buffered
   // before sending them to a collector.
