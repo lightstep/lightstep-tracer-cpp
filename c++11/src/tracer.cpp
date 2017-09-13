@@ -51,6 +51,8 @@ static void LogDefault(LogLevel log_level,
       oss << "Debug: ";
     case LogLevel::info:
       oss << "Info: ";
+    case LogLevel::warn:
+      oss << "Warn: ";
     case LogLevel::error:
       oss << "Error: ";
   }

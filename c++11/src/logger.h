@@ -1,8 +1,19 @@
 #pragma once
 
 #include <lightstep/tracer.h>
+#include <exception>
+#include <sstream>
 
 namespace lightstep {
+inline void concatenate(std::ostringstream& /*oss*/) {}
+
+template <class TFirst, class... TRest>
+void concatenate(std::ostringstream& oss, const TFirst& tfirst,
+                 const TRest&... trest) {
+  oss << tfirst;
+  concatenate(oss, trest...);
+}
+
 class Logger {
  public:
   Logger() = default;
@@ -11,22 +22,25 @@ class Logger {
       std::function<void(LogLevel, opentracing::string_view)>&& logger_sink)
       : logger_sink_{std::move(logger_sink)} {}
 
-  void debug(opentracing::string_view message) {
+  void log(LogLevel level, opentracing::string_view message) try {
     if (logger_sink_) {
-      logger_sink_(LogLevel::debug, message);
+      logger_sink_(level, message);
     }
+  } catch (const std::exception& /*e*/) {
+    // Ignore exceptions.
   }
 
-  void info(opentracing::string_view message) {
-    if (logger_sink_) {
-      logger_sink_(LogLevel::info, message);
-    }
+  void log(LogLevel level, const char* message) {
+    log(level, opentracing::string_view{message});
   }
 
-  void error(opentracing::string_view message) {
-    if (logger_sink_) {
-      logger_sink_(LogLevel::error, message);
-    }
+  template <class... Tx>
+  void log(LogLevel level, const Tx&... tx) try {
+    std::ostringstream oss;
+    concatenate(oss, tx...);
+    log(level, opentracing::string_view{oss.str()});
+  } catch (const std::exception& /*e*/) {
+    // Ignore exceptions.
   }
 
  private:

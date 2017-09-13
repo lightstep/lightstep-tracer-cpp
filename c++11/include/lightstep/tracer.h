@@ -15,7 +15,7 @@ const std::string& CollectorServiceFullName();
 
 const std::string& CollectorMethodName();
 
-enum class LogLevel { debug, info, error };
+enum class LogLevel { debug, info, warn, error };
 
 struct LightStepTracerOptions {
   // `component_name` is the human-readable identity of the instrumented
