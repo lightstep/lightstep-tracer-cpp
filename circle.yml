@@ -26,7 +26,7 @@ dependencies:
     - sudo apt-get update; sudo apt-get install autoconf automake git-core libtool pkg-config wget curl unzip
 
     # CMake
-    - git clone -b v3.0.0 https://github.com/Kitware/CMake.git && cd CMake && ./bootstrap --prefix=${HOME} && make && make install
+    - git clone -b v3.1.0 https://github.com/Kitware/CMake.git && cd CMake && ./bootstrap --prefix=${HOME} && make && make install
 
     # Protobuf
     - git clone -b 3.0.x https://github.com/google/protobuf && cd protobuf && ./autogen.sh && ./configure --enable-shared --prefix=${HOME} && make && make install prefix=${HOME}
