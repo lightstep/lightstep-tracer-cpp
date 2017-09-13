@@ -69,7 +69,7 @@ opentracing::expected<void> InjectSpanContext(
   }
   if (!binary_carrier.SerializeToOstream(&carrier)) {
     return opentracing::make_unexpected(
-        std::make_error_code(std::io_errc::stream));
+        std::make_error_code(std::errc::io_error));
   }
 
   // Flush so that when we call carrier.good, we'll get an accurate view of the
@@ -77,7 +77,7 @@ opentracing::expected<void> InjectSpanContext(
   carrier.flush();
   if (!carrier.good()) {
     return opentracing::make_unexpected(
-        std::make_error_code(std::io_errc::stream));
+        std::make_error_code(std::errc::io_error));
   }
 
   return {};
@@ -149,7 +149,7 @@ opentracing::expected<bool> ExtractSpanContext(
   // state first before checking for an empty stream.
   if (!carrier.good()) {
     return opentracing::make_unexpected(
-        std::make_error_code(std::io_errc::stream));
+        std::make_error_code(std::errc::io_error));
   }
 
   // Check for the case when no span is encoded.
