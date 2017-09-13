@@ -50,6 +50,10 @@ set(LIGHTSTEP_LINK_LIBRARIES ${OPENTRACING_LIB}
                              ${PROTOBUF_LIBRARIES})
 
 if (LS_WITH_GRPC)                           
+  find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
+  if (NOT GRPC_CPP_PLUGIN)
+    message(FATAL_ERROR "grpc_cpp_plugin not found!")
+  endif()
   find_package(PkgConfig REQUIRED)
   pkg_search_module(GRPC REQUIRED grpc)
   pkg_search_module(GRPCPP REQUIRED grpc++)
