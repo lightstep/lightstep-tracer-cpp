@@ -15,10 +15,6 @@ dependencies:
   pre:
     # Pull submodules
     - git submodule init && git submodule update
-    # Pull scripts from a shared repo
-    - cd ${HOME} && git clone git@github.com:lightstep/prod.git
-    # Do this before the build so it can be cached
-    - ${HOME}/prod/scripts/circleci-init.sh
     # Move the build target into its proper Go place
     - mkdir -p ${GOPATH}/src/github.com/${CIRCLE_PROJECT_USERNAME}
     - mv ${HOME}/${CIRCLE_PROJECT_REPONAME} ${SRC_DIR}
