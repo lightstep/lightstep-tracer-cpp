@@ -10,12 +10,16 @@ static void LogDefault(LogLevel log_level,
   switch (log_level) {
     case LogLevel::debug:
       oss << "Debug: ";
+      break;
     case LogLevel::info:
       oss << "Info: ";
+      break;
     case LogLevel::warn:
       oss << "Warn: ";
+      break;
     case LogLevel::error:
       oss << "Error: ";
+      break;
     case LogLevel::off:
       /* This should never be reached. */
       return;
