@@ -44,8 +44,8 @@ dependencies:
 
 test:
   override:
-    - cd ${SRC_DIR} && mkdir build_with_grpc && cd build_with_grpc && cmake -DCMAKE_INSTALL_PREFIX=${HOME} -DLS_WITH_ASAN=ON -DLS_WITH_TSAN=ON .. && make && make test
-    - cd ${SRC_DIR} && mkdir build_no_grpc && cd build_no_grpc && cmake -DCMAKE_INSTALL_PREFIX=${HOME} -DLS_WITH_GRPC=OFF .. && make && make test
+    - cd ${SRC_DIR} && mkdir build_with_grpc && cd build_with_grpc && cmake -DCMAKE_INSTALL_PREFIX=${HOME} -DCMAKE_C_COMPILER=/usr/bin/gcc-6 -DCMAKE_CXX_COMPILER=/usr/bin/g++-6 -DLS_WITH_ASAN=ON -DLS_WITH_TSAN=ON .. && make && make test
+    - cd ${SRC_DIR} && mkdir build_no_grpc && cd build_no_grpc && cmake -DCMAKE_INSTALL_PREFIX=${HOME} -DCMAKE_C_COMPILER=/usr/bin/gcc-6 -DCMAKE_CXX_COMPILER=/usr/bin/g++-6 -DLS_WITH_GRPC=OFF .. && make && make test
 
 experimental:
   notify:
