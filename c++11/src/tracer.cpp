@@ -8,15 +8,16 @@
 #include <cstdio>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <vector>
 #include "auto_recorder.h"
 #include "custom_logger_sink.h"
 #include "grpc_transporter.h"
 #include "lightstep_span_context.h"
 #include "lightstep_tracer_impl.h"
+#include "logger.h"
 #include "manual_recorder.h"
 #include "utility.h"
-#include "logger.h"
 
 namespace lightstep {
 const opentracing::string_view component_name_key = "lightstep.component_name";
@@ -37,6 +38,26 @@ GetDefaultTags() {
                       {"lightstep.tracer_version", LIGHTSTEP_VERSION},
                       {"lightstep.opentracing_version", OPENTRACING_VERSION}};
   return default_tags;
+}
+
+//------------------------------------------------------------------------------
+// LogDefault
+//------------------------------------------------------------------------------
+static void LogDefault(LogLevel log_level,
+                       opentracing::string_view message) noexcept try {
+  std::ostringstream oss;
+  switch (log_level) {
+    case LogLevel::debug:
+      oss << "Debug: ";
+    case LogLevel::info:
+      oss << "Info: ";
+    case LogLevel::error:
+      oss << "Error: ";
+  }
+  oss << message << "\n";
+  std::cerr << oss.str();
+} catch (const std::exception& /*e*/) {
+  // Ignore errors.
 }
 
 //------------------------------------------------------------------------------
@@ -127,7 +148,8 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
     options.transporter.release();
   } else {
     /* logger->error( */
-    /*     "`options.transporter` must be set if `options.use_thread` is false"); */
+    /*     "`options.transporter` must be set if `options.use_thread` is
+     * false"); */
     return nullptr;
   }
   auto recorder = std::unique_ptr<Recorder>{
@@ -142,17 +164,10 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
 std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     LightStepTracerOptions&& options) noexcept try {
   // Create and configure the logger.
-  std::shared_ptr<Logger> logger;
-  if (options.logger_sink) {
-    logger = std::make_shared<Logger>();
-    /* logger = std::make_shared<Logger>( */
-    /*     "lightstep", */
-    /*     std::make_shared<CustomLoggerSink>(std::move(options.logger_sink))); */
-  } else {
-    logger = std::make_shared<Logger>();
-    /* logger = std::make_shared<Logger>( */
-    /*     "lightstep", spdlog::sinks::stderr_sink_mt::instance()); */
+  if (!options.logger_sink) {
+    options.logger_sink = LogDefault;
   }
+  auto logger = std::make_shared<Logger>(std::move(options.logger_sink));
   try {
     /* if (options.verbose) { */
     /*   logger->set_level(spdlog::level::info); */
@@ -186,7 +201,7 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     /* logger->error("Failed to construct LightStep Tracer: {}", e.what()); */
     return nullptr;
   }
-} catch (const /*spdlog::spdlog_ex&*/std::exception& e) {
+} catch (const /*spdlog::spdlog_ex&*/ std::exception& e) {
   // Use fprintf to print the error because std::cerr can throw the user
   // configures by calling std::cerr::exceptions.
   std::fprintf(stderr, "Failed to initialize logger: %s\n", e.what());
