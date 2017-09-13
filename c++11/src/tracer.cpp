@@ -40,28 +40,6 @@ GetDefaultTags() {
 }
 
 //------------------------------------------------------------------------------
-// LogDefault
-//------------------------------------------------------------------------------
-static void LogDefault(LogLevel log_level,
-                       opentracing::string_view message) noexcept try {
-  std::ostringstream oss;
-  switch (log_level) {
-    case LogLevel::debug:
-      oss << "Debug: ";
-    case LogLevel::info:
-      oss << "Info: ";
-    case LogLevel::warn:
-      oss << "Warn: ";
-    case LogLevel::error:
-      oss << "Error: ";
-  }
-  oss << message << "\n";
-  std::cerr << oss.str();
-} catch (const std::exception& /*e*/) {
-  // Ignore errors.
-}
-
-//------------------------------------------------------------------------------
 // CollectorServiceFullName
 //------------------------------------------------------------------------------
 const std::string& CollectorServiceFullName() {
