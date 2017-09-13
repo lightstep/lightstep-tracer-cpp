@@ -15,7 +15,9 @@ const std::string& CollectorServiceFullName();
 
 const std::string& CollectorMethodName();
 
-enum class LogLevel { debug, info, warn, error };
+// Follows log level ordering defined in spdlog.
+//  See https://github.com/gabime/spdlog/blob/master/include/spdlog/common.h
+enum class LogLevel { debug = 1, info = 2, warn = 3, error = 4, off = 6 };
 
 struct LightStepTracerOptions {
   // `component_name` is the human-readable identity of the instrumented

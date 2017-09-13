@@ -11,7 +11,6 @@
 #include <sstream>
 #include <vector>
 #include "auto_recorder.h"
-#include "custom_logger_sink.h"
 #include "grpc_transporter.h"
 #include "lightstep_span_context.h"
 #include "lightstep_tracer_impl.h"
@@ -119,8 +118,8 @@ static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
     transporter = std::unique_ptr<SyncTransporter>{
         dynamic_cast<SyncTransporter*>(options.transporter.get())};
     if (transporter == nullptr) {
-      /* logger->error( */
-      /*     "`options.transporter` must be derived from SyncTransporter"); */
+      logger->Error(
+          "`options.transporter` must be derived from SyncTransporter");
       return nullptr;
     }
     options.transporter.release();
@@ -143,15 +142,14 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
     transporter = std::unique_ptr<AsyncTransporter>{
         dynamic_cast<AsyncTransporter*>(options.transporter.get())};
     if (transporter == nullptr) {
-      /* logger->error( */
-      /*     "`options.transporter` must be derived from AsyncTransporter"); */
+      logger->Error(
+          "`options.transporter` must be derived from AsyncTransporter");
       return nullptr;
     }
     options.transporter.release();
   } else {
-    /* logger->error( */
-    /*     "`options.transporter` must be set if `options.use_thread` is
-     * false"); */
+    logger->Error(
+        "`options.transporter` must be set if `options.use_thread` is false");
     return nullptr;
   }
   auto recorder = std::unique_ptr<Recorder>{
@@ -166,20 +164,17 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
 std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     LightStepTracerOptions&& options) noexcept try {
   // Create and configure the logger.
-  if (!options.logger_sink) {
-    options.logger_sink = LogDefault;
-  }
   auto logger = std::make_shared<Logger>(std::move(options.logger_sink));
   try {
-    /* if (options.verbose) { */
-    /*   logger->set_level(spdlog::level::info); */
-    /* } else { */
-    /*   logger->set_level(spdlog::level::err); */
-    /* } */
+    if (options.verbose) {
+      logger->set_level(LogLevel::info);
+    } else {
+      logger->set_level(LogLevel::error);
+    }
 
     // Validate `options`.
     if (options.access_token.empty()) {
-      /* logger->error("Must provide an access_token!"); */
+      logger->Error("Must provide an access_token!");
       return nullptr;
     }
 
@@ -200,7 +195,7 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     }
     return MakeThreadedTracer(logger, std::move(options));
   } catch (const std::exception& e) {
-    /* logger->error("Failed to construct LightStep Tracer: {}", e.what()); */
+    logger->Error("Failed to construct LightStep Tracer: ", e.what());
     return nullptr;
   }
 } catch (const /*spdlog::spdlog_ex&*/ std::exception& e) {

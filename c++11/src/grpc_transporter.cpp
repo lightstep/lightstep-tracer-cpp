@@ -68,7 +68,7 @@ class GrpcTransporter : public SyncTransporter {
         &context, dynamic_cast<const collector::ReportRequest&>(request),
         dynamic_cast<collector::ReportResponse*>(&response));
     if (!status.ok()) {
-      /* logger_.error("Report RPC failed: {}", status.error_message()); */
+      logger_.Error("Report RPC failed: ", status.error_message());
       return opentracing::make_unexpected(MakeErrorCode(status.error_code()));
     }
     return {};

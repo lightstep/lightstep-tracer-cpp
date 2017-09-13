@@ -7,8 +7,8 @@
 #include <memory>
 #include <mutex>
 #include <thread>
-#include "logger.h"
 #include "condition_variable_wrapper.h"
+#include "logger.h"
 #include "recorder.h"
 #include "report_builder.h"
 

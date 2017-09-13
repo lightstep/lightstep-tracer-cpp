@@ -32,7 +32,8 @@ static int LookupSpansDropped(const collector::ReportRequest& report) {
 }
 
 TEST_CASE("auto_recorder") {
-  /* spdlog::logger logger{"lightstep", spdlog::sinks::stderr_sink_mt::instance()}; */
+  /* spdlog::logger logger{"lightstep",
+   * spdlog::sinks::stderr_sink_mt::instance()}; */
   Logger logger{};
   LightStepTracerOptions options;
   options.reporting_period = std::chrono::milliseconds{2};
@@ -151,7 +152,6 @@ TEST_CASE("auto_recorder") {
 }
 
 TEST_CASE("manual_recorder") {
-  /* spdlog::logger logger{"lightstep", spdlog::sinks::stderr_sink_mt::instance()}; */
   Logger logger{};
   LightStepTracerOptions options;
   options.max_buffered_spans = 5;
@@ -187,7 +187,7 @@ TEST_CASE("manual_recorder") {
   SECTION(
       "If the tranporter fails, it's spans are reported as dropped in the "
       "following report.") {
-    /* logger.set_level(spdlog::level::off); */
+    logger.set_level(LogLevel::off);
     auto span1 = tracer->StartSpan("abc");
     CHECK(span1);
     span1->Finish();

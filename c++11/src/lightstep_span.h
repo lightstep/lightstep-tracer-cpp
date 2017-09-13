@@ -5,8 +5,8 @@
 #include <atomic>
 #include <mutex>
 #include <vector>
-#include "logger.h"
 #include "lightstep_span_context.h"
+#include "logger.h"
 #include "recorder.h"
 
 namespace lightstep {
