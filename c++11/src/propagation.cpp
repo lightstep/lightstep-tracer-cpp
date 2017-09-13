@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <functional>
 #include <iomanip>
+#include <ios>
 #include <sstream>
 
 namespace lightstep {
