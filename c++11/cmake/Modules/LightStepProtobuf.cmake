@@ -34,7 +34,7 @@ if (LS_WITH_GRPC)
       COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
       ARGS "--proto_path=${PROTO_PATH}"
            "--grpc_out=${GENERATED_PROTOBUF_PATH}"
-           "--plugin=protoc-gen-grpc=/usr/local/bin/GRPC_CPP_PLUGIN"
+           "--plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN}"
            "${COLLECTOR_PROTO}"
       )
   include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH})
