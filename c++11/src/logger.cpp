@@ -24,7 +24,7 @@ static void LogDefault(LogLevel log_level,
       /* This should never be reached. */
       return;
   }
-  oss << message << "\n";
+  oss << message << '\n';
   std::cerr << oss.str();
 } catch (const std::exception& /*e*/) {
   // Ignore errors.

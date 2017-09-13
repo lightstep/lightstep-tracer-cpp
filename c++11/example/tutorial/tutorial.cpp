@@ -16,7 +16,7 @@ int main() {
   // from the LightStep tracer are recorded.
   options.logger_sink = [](lightstep::LogLevel /*level*/,
                            opentracing::string_view message) {
-    std::cout << "Tracer's Log: " << message << "\n";
+    std::cout << "Tracer's Log: " << message << '\n';
   };
 
   if (const char* access_token = std::getenv("LIGHTSTEP_ACCESS_TOKEN")) {
