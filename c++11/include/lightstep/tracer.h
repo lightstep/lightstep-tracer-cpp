@@ -70,6 +70,11 @@ struct LightStepTracerOptions {
   // collector. Ignored if a custom transport is used.
   std::chrono::system_clock::duration report_timeout = std::chrono::seconds{5};
 
+  // `transporter` customizes how spans are sent when flushed. If null, then a
+  // default transporter is used.
+  //
+  // If `use_thread` is true, `transporter` should be derived from
+  // AsyncTransporter; otherwise, it should be derived from SyncTransporter.
   std::unique_ptr<Transporter> transporter;
 };
 
