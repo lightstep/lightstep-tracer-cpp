@@ -31,4 +31,12 @@ TEST_CASE("logger") {
     CHECK(logged_level == LogLevel::error);
     CHECK(logged_message == "t2");
   }
+
+  SECTION("Multiple arguments are concatenated together") {
+    logger.Warn("a", "bc");
+    CHECK(logged_message == "abc");
+
+    logger.Warn("a", "bc", 123);
+    CHECK(logged_message == "abc123");
+  }
 }
