@@ -19,7 +19,7 @@ ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
 //------------------------------------------------------------------------------
 // RecordSpan
 //------------------------------------------------------------------------------
-void ManualRecorder::RecordSpan(collector::Span&& span) noexcept {
+void ManualRecorder::RecordSpan(collector::Span&& span) noexcept try {
   if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
     dropped_spans_++;
     options_.metrics_observer->OnSpansDropped(1);
@@ -29,12 +29,14 @@ void ManualRecorder::RecordSpan(collector::Span&& span) noexcept {
   if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
     FlushOne();
   }
+} catch (const std::exception& e) {
+  logger_.Error("Failed to record span: ", e.what());
 }
 
 //------------------------------------------------------------------------------
 // FlushOne
 //------------------------------------------------------------------------------
-bool ManualRecorder::FlushOne() {
+bool ManualRecorder::FlushOne() noexcept try {
   options_.metrics_observer->OnFlush();
 
   // If a report is currently in flight, do nothing; and if there are any
@@ -54,6 +56,12 @@ bool ManualRecorder::FlushOne() {
   ++encoding_seqno_;
   transporter_->Send(active_request_, active_response_, *this);
   return true;
+} catch (const std::exception& e) {
+  logger_.Error("Failed to Flush: ", e.what());
+  options_.metrics_observer->OnSpansDropped(saved_pending_spans_);
+  dropped_spans_ += saved_pending_spans_;
+  active_request_.Clear();
+  return false;
 }
 
 //------------------------------------------------------------------------------
