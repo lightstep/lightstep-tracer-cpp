@@ -32,8 +32,6 @@ static int LookupSpansDropped(const collector::ReportRequest& report) {
 }
 
 TEST_CASE("auto_recorder") {
-  /* spdlog::logger logger{"lightstep",
-   * spdlog::sinks::stderr_sink_mt::instance()}; */
   Logger logger{};
   LightStepTracerOptions options;
   options.reporting_period = std::chrono::milliseconds{2};
@@ -97,7 +95,7 @@ TEST_CASE("auto_recorder") {
   SECTION(
       "If the transporter's SendReport function throws, we drop all subsequent "
       "spans.") {
-    /* logger.set_level(spdlog::level::off); */
+    logger.set_level(LogLevel::off);
     in_memory_transporter->set_should_throw(true);
 
     // Wait until the writer thread is ready to run.
