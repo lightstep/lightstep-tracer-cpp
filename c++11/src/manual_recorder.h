@@ -19,7 +19,7 @@ class ManualRecorder : public Recorder, private AsyncTransporter::Callback {
       std::chrono::system_clock::duration timeout) noexcept override;
 
  private:
-  bool FlushOne();
+  bool FlushOne() noexcept;
 
   void OnSuccess() noexcept override;
   void OnFailure(std::error_code error) noexcept override;
