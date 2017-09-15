@@ -48,7 +48,7 @@ namespace {
 // GrpcTransporter sends ReportRequests to the specified host via gRPC.
 class GrpcTransporter : public SyncTransporter {
  public:
-  GrpcTransporter(spdlog::logger& logger, const LightStepTracerOptions& options)
+  GrpcTransporter(Logger& logger, const LightStepTracerOptions& options)
       : logger_{logger},
         client_{grpc::CreateChannel(
             HostPortOf(options),
@@ -68,14 +68,14 @@ class GrpcTransporter : public SyncTransporter {
         &context, dynamic_cast<const collector::ReportRequest&>(request),
         dynamic_cast<collector::ReportResponse*>(&response));
     if (!status.ok()) {
-      logger_.error("Report RPC failed: {}", status.error_message());
+      logger_.Error("Report RPC failed: ", status.error_message());
       return opentracing::make_unexpected(MakeErrorCode(status.error_code()));
     }
     return {};
   }
 
  private:
-  spdlog::logger& logger_;
+  Logger& logger_;
   // Collector service stub.
   collector::CollectorService::Stub client_;
   std::chrono::system_clock::duration report_timeout_;
@@ -86,7 +86,7 @@ class GrpcTransporter : public SyncTransporter {
 // MakeGrpcTransporter
 //------------------------------------------------------------------------------
 std::unique_ptr<SyncTransporter> MakeGrpcTransporter(
-    spdlog::logger& logger, const LightStepTracerOptions& options) {
+    Logger& logger, const LightStepTracerOptions& options) {
   return std::unique_ptr<SyncTransporter>{new GrpcTransporter{logger, options}};
 }
 }  // namespace lightstep
@@ -94,7 +94,7 @@ std::unique_ptr<SyncTransporter> MakeGrpcTransporter(
 #include <stdexcept>
 namespace lightstep {
 std::unique_ptr<SyncTransporter> MakeGrpcTransporter(
-    spdlog::logger& logger, const LightStepTracerOptions& options) {
+    Logger& logger, const LightStepTracerOptions& options) {
   throw std::runtime_error{
       "LightStep was not built with gRPC support, so a transporter must be "
       "supplied."};

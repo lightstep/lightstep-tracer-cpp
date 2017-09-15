@@ -8,12 +8,13 @@
 #include <cstdio>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <vector>
 #include "auto_recorder.h"
-#include "custom_logger_sink.h"
 #include "grpc_transporter.h"
 #include "lightstep_span_context.h"
 #include "lightstep_tracer_impl.h"
+#include "logger.h"
 #include "manual_recorder.h"
 #include "utility.h"
 
@@ -89,13 +90,13 @@ LightStepTracer::MakeSpanContext(
 // MakeThreadedTracer
 //------------------------------------------------------------------------------
 static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
-    std::shared_ptr<spdlog::logger> logger, LightStepTracerOptions&& options) {
+    std::shared_ptr<Logger> logger, LightStepTracerOptions&& options) {
   std::unique_ptr<SyncTransporter> transporter;
   if (options.transporter != nullptr) {
     transporter = std::unique_ptr<SyncTransporter>{
         dynamic_cast<SyncTransporter*>(options.transporter.get())};
     if (transporter == nullptr) {
-      logger->error(
+      logger->Error(
           "`options.transporter` must be derived from SyncTransporter");
       return nullptr;
     }
@@ -113,19 +114,19 @@ static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
 // MakeSingleThreadedTracer
 //------------------------------------------------------------------------------
 static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
-    std::shared_ptr<spdlog::logger> logger, LightStepTracerOptions&& options) {
+    std::shared_ptr<Logger> logger, LightStepTracerOptions&& options) {
   std::unique_ptr<AsyncTransporter> transporter;
   if (options.transporter != nullptr) {
     transporter = std::unique_ptr<AsyncTransporter>{
         dynamic_cast<AsyncTransporter*>(options.transporter.get())};
     if (transporter == nullptr) {
-      logger->error(
+      logger->Error(
           "`options.transporter` must be derived from AsyncTransporter");
       return nullptr;
     }
     options.transporter.release();
   } else {
-    logger->error(
+    logger->Error(
         "`options.transporter` must be set if `options.use_thread` is false");
     return nullptr;
   }
@@ -141,25 +142,17 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
 std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     LightStepTracerOptions&& options) noexcept try {
   // Create and configure the logger.
-  std::shared_ptr<spdlog::logger> logger;
-  if (options.logger_sink) {
-    logger = std::make_shared<spdlog::logger>(
-        "lightstep",
-        std::make_shared<CustomLoggerSink>(std::move(options.logger_sink)));
-  } else {
-    logger = std::make_shared<spdlog::logger>(
-        "lightstep", spdlog::sinks::stderr_sink_mt::instance());
-  }
+  auto logger = std::make_shared<Logger>(std::move(options.logger_sink));
   try {
     if (options.verbose) {
-      logger->set_level(spdlog::level::info);
+      logger->set_level(LogLevel::info);
     } else {
-      logger->set_level(spdlog::level::err);
+      logger->set_level(LogLevel::error);
     }
 
     // Validate `options`.
     if (options.access_token.empty()) {
-      logger->error("Must provide an access_token!");
+      logger->Error("Must provide an access_token!");
       return nullptr;
     }
 
@@ -180,10 +173,10 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     }
     return MakeThreadedTracer(logger, std::move(options));
   } catch (const std::exception& e) {
-    logger->error("Failed to construct LightStep Tracer: {}", e.what());
+    logger->Error("Failed to construct LightStep Tracer: ", e.what());
     return nullptr;
   }
-} catch (const spdlog::spdlog_ex& e) {
+} catch (const /*spdlog::spdlog_ex&*/ std::exception& e) {
   // Use fprintf to print the error because std::cerr can throw the user
   // configures by calling std::cerr::exceptions.
   std::fprintf(stderr, "Failed to initialize logger: %s\n", e.what());
