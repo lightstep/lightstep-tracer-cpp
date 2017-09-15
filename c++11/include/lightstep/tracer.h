@@ -2,7 +2,6 @@
 
 #include <lightstep/metrics_observer.h>
 #include <lightstep/transporter.h>
-#include <lightstep/metrics_observer.h>
 #include <opentracing/tracer.h>
 #include <opentracing/value.h>
 #include <array>
