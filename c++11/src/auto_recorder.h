@@ -1,6 +1,7 @@
 #pragma once
 
 #include <collector.pb.h>
+#include <lightstep/spdlog/logger.h>
 #include <lightstep/tracer.h>
 #include <lightstep/transporter.h>
 #include <condition_variable>
@@ -8,7 +9,6 @@
 #include <mutex>
 #include <thread>
 #include "condition_variable_wrapper.h"
-#include "logger.h"
 #include "recorder.h"
 #include "report_builder.h"
 
@@ -18,10 +18,10 @@ namespace lightstep {
 // the reports according to the rate specified by LightStepTracerOptions.
 class AutoRecorder : public Recorder {
  public:
-  AutoRecorder(Logger& logger, LightStepTracerOptions&& options,
+  AutoRecorder(spdlog::logger& logger, LightStepTracerOptions&& options,
                std::unique_ptr<SyncTransporter>&& transporter);
 
-  AutoRecorder(Logger& logger, LightStepTracerOptions&& options,
+  AutoRecorder(spdlog::logger& logger, LightStepTracerOptions&& options,
                std::unique_ptr<SyncTransporter>&& transporter,
                std::unique_ptr<ConditionVariableWrapper>&& write_cond);
 
@@ -50,8 +50,8 @@ class AutoRecorder : public Recorder {
   // should exit.
   bool WaitForNextWrite(const std::chrono::steady_clock::time_point& next);
 
-  Logger& logger_;
-  LightStepTracerOptions options_;
+  spdlog::logger& logger_;
+  const LightStepTracerOptions options_;
 
   // Writer state.
   std::mutex write_mutex_;

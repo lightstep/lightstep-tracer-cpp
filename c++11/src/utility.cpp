@@ -1,5 +1,6 @@
 #include "utility.h"
 #include <collector.pb.h>
+#include <lightstep/spdlog/logger.h>
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>
 #include <unistd.h>

@@ -3,7 +3,6 @@
 #include "../src/auto_recorder.h"
 #include "../src/lightstep_tracer_impl.h"
 #include "../src/manual_recorder.h"
-#include "counting_metrics_observer.h"
 #include "in_memory_transporter.h"
 #include "testing_condition_variable_wrapper.h"
 
@@ -33,12 +32,10 @@ static int LookupSpansDropped(const collector::ReportRequest& report) {
 }
 
 TEST_CASE("auto_recorder") {
-  Logger logger{};
-  auto metrics_observer = new CountingMetricsObserver{};
+  spdlog::logger logger{"lightstep", spdlog::sinks::stderr_sink_mt::instance()};
   LightStepTracerOptions options;
   options.reporting_period = std::chrono::milliseconds{2};
   options.max_buffered_spans = 5;
-  options.metrics_observer.reset(metrics_observer);
   auto in_memory_transporter = new InMemorySyncTransporter{};
   auto condition_variable = new TestingConditionVariableWrapper{};
   auto recorder = new AutoRecorder{
@@ -98,7 +95,7 @@ TEST_CASE("auto_recorder") {
   SECTION(
       "If the transporter's SendReport function throws, we drop all subsequent "
       "spans.") {
-    logger.set_level(LogLevel::off);
+    logger.set_level(spdlog::level::off);
     in_memory_transporter->set_should_throw(true);
 
     // Wait until the writer thread is ready to run.
@@ -150,50 +147,12 @@ TEST_CASE("auto_recorder") {
     CHECK(LookupSpansDropped(reports.at(1)) == 0);
     CHECK(reports.at(1).spans_size() == 1);
   }
-
-  SECTION(
-      "MetricsObserver::OnFlush gets called whenever the recorder is "
-      "successfully flushed.") {
-    auto span = tracer->StartSpan("abc");
-    span->Finish();
-    condition_variable->Step();
-    tracer->Close();
-    CHECK(metrics_observer->num_flushes == 1);
-  }
-
-  SECTION(
-      "MetricsObserver::OnSpansSent gets called with the number of spans "
-      "successfully transported") {
-    auto span1 = tracer->StartSpan("abc");
-    span1->Finish();
-    auto span2 = tracer->StartSpan("abc");
-    span2->Finish();
-    condition_variable->Step();
-    tracer->Close();
-    CHECK(metrics_observer->num_spans_sent == 2);
-  }
-
-  SECTION(
-      "MetricsObserver::OnSpansDropped gets called when spans are dropped.") {
-    condition_variable->set_block_notify_all(true);
-    for (size_t i = 0; i < options.max_buffered_spans + 1; ++i) {
-      auto span = tracer->StartSpan("abc");
-      CHECK(span);
-      span->Finish();
-    }
-    condition_variable->set_block_notify_all(false);
-    condition_variable->Step();
-    tracer->Close();
-    CHECK(metrics_observer->num_spans_dropped == 1);
-  }
 }
 
 TEST_CASE("manual_recorder") {
-  Logger logger{};
-  auto metrics_observer = new CountingMetricsObserver{};
+  spdlog::logger logger{"lightstep", spdlog::sinks::stderr_sink_mt::instance()};
   LightStepTracerOptions options;
   options.max_buffered_spans = 5;
-  options.metrics_observer.reset(metrics_observer);
   auto in_memory_transporter = new InMemoryAsyncTransporter{};
   auto recorder = new ManualRecorder{
       logger, std::move(options),
@@ -226,7 +185,7 @@ TEST_CASE("manual_recorder") {
   SECTION(
       "If the tranporter fails, it's spans are reported as dropped in the "
       "following report.") {
-    logger.set_level(LogLevel::off);
+    logger.set_level(spdlog::level::off);
     auto span1 = tracer->StartSpan("abc");
     CHECK(span1);
     span1->Finish();
@@ -250,40 +209,5 @@ TEST_CASE("manual_recorder") {
     }
     in_memory_transporter->Write();
     CHECK(in_memory_transporter->reports().size() == 1);
-  }
-
-  SECTION(
-      "MetricsObserver::OnFlush gets called whenever the recorder is "
-      "successfully flushed.") {
-    auto span = tracer->StartSpan("abc");
-    span->Finish();
-    tracer->Flush();
-    in_memory_transporter->Write();
-    CHECK(metrics_observer->num_flushes == 1);
-  }
-
-  SECTION(
-      "MetricsObserver::OnSpansSent gets called with the number of spans "
-      "successfully transported") {
-    auto span1 = tracer->StartSpan("abc");
-    span1->Finish();
-    auto span2 = tracer->StartSpan("abc");
-    span2->Finish();
-    tracer->Flush();
-    in_memory_transporter->Write();
-    CHECK(metrics_observer->num_spans_sent == 2);
-  }
-
-  SECTION(
-      "MetricsObserver::OnSpansDropped gets called when spans are dropped.") {
-    logger.set_level(LogLevel::off);
-    auto span1 = tracer->StartSpan("abc");
-    span1->Finish();
-    auto span2 = tracer->StartSpan("abc");
-    span2->Finish();
-    tracer->Flush();
-    in_memory_transporter->Fail(
-        std::make_error_code(std::errc::network_unreachable));
-    CHECK(metrics_observer->num_spans_dropped == 2);
   }
 }

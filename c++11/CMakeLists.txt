@@ -40,7 +40,6 @@ include(LightStepProtobuf)
 include(LightStepClangTidy)
 
 set(LIGHTSTEP_SRCS src/utility.cpp
-                   src/logger.cpp
                    src/propagation.cpp
                    src/binary_carrier.cpp
                    src/grpc_transporter.cpp

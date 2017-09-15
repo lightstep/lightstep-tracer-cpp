@@ -1,6 +1,5 @@
 #pragma once
 
-#include <lightstep/metrics_observer.h>
 #include <lightstep/transporter.h>
 #include <opentracing/tracer.h>
 #include <opentracing/value.h>
@@ -15,10 +14,6 @@ namespace lightstep {
 const std::string& CollectorServiceFullName();
 
 const std::string& CollectorMethodName();
-
-// Follows log level ordering defined in spdlog.
-//  See https://github.com/gabime/spdlog/blob/master/include/spdlog/common.h
-enum class LogLevel { debug = 1, info = 2, warn = 3, error = 4, off = 6 };
 
 struct LightStepTracerOptions {
   // `component_name` is the human-readable identity of the instrumented
@@ -46,7 +41,7 @@ struct LightStepTracerOptions {
 
   // Set `logger_sink` to a custom function to override where logging is
   // printed; otherwise, it defaults to stderr.
-  std::function<void(LogLevel, opentracing::string_view)> logger_sink;
+  std::function<void(opentracing::string_view)> logger_sink;
 
   // `max_buffered_spans` is the maximum number of spans that will be buffered
   // before sending them to a collector.
@@ -71,16 +66,7 @@ struct LightStepTracerOptions {
   // collector. Ignored if a custom transport is used.
   std::chrono::system_clock::duration report_timeout = std::chrono::seconds{5};
 
-  // `transporter` customizes how spans are sent when flushed. If null, then a
-  // default transporter is used.
-  //
-  // If `use_thread` is true, `transporter` should be derived from
-  // AsyncTransporter; otherwise, it must be derived from SyncTransporter.
   std::unique_ptr<Transporter> transporter;
-
-  // `metrics_observer` can be optionally provided to track LightStep tracer
-  // events. See MetricsObserver.
-  std::unique_ptr<MetricsObserver> metrics_observer;
 };
 
 // The LightStepTracer interface can be used by custom carriers that need more

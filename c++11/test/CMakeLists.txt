@@ -27,7 +27,6 @@ endmacro()
 
 _lightstep_test(tracer_test tracer_test.cpp)
 _lightstep_test(utility_test utility_test.cpp)
-_lightstep_test(logger_test logger_test.cpp)
 _lightstep_test(propagation_test propagation_test.cpp)
 _lightstep_test(recorder_test recorder_test.cpp
                               testing_condition_variable_wrapper.cpp)
