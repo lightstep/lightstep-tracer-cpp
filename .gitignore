@@ -38,4 +38,3 @@ test-driver
 *.log
 *.trs
 linux
-*.gch
