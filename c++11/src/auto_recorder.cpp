@@ -5,15 +5,14 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-AutoRecorder::AutoRecorder(spdlog::logger& logger,
-                           LightStepTracerOptions&& options,
+AutoRecorder::AutoRecorder(Logger& logger, LightStepTracerOptions&& options,
                            std::unique_ptr<SyncTransporter>&& transporter)
     : AutoRecorder{logger, std::move(options), std::move(transporter),
                    std::unique_ptr<ConditionVariableWrapper>{
                        new StandardConditionVariableWrapper{}}} {}
 
 AutoRecorder::AutoRecorder(
-    spdlog::logger& logger, LightStepTracerOptions&& options,
+    Logger& logger, LightStepTracerOptions&& options,
     std::unique_ptr<SyncTransporter>&& transporter,
     std::unique_ptr<ConditionVariableWrapper>&& write_cond)
     : logger_{logger},
@@ -21,6 +20,10 @@ AutoRecorder::AutoRecorder(
       builder_{options_.access_token, options_.tags},
       transporter_{std::move(transporter)},
       write_cond_{std::move(write_cond)} {
+  // If no MetricsObserver was provided, use a default one that does nothing.
+  if (options_.metrics_observer == nullptr) {
+    options_.metrics_observer.reset(new MetricsObserver{});
+  }
   writer_ = std::thread(&AutoRecorder::Write, this);
 }
 
@@ -39,6 +42,7 @@ void AutoRecorder::RecordSpan(collector::Span&& span) noexcept try {
   std::lock_guard<std::mutex> lock_guard{write_mutex_};
   if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
     dropped_spans_++;
+    options_.metrics_observer->OnSpansDropped(1);
     return;
   }
   builder_.AddSpan(std::move(span));
@@ -46,7 +50,7 @@ void AutoRecorder::RecordSpan(collector::Span&& span) noexcept try {
     write_cond_->NotifyAll();
   }
 } catch (const std::exception& e) {
-  logger_.error("Failed to record span: {}", e.what());
+  logger_.Error("Failed to record span: ", e.what());
 }
 
 //------------------------------------------------------------------------------
@@ -75,7 +79,7 @@ bool AutoRecorder::FlushWithTimeout(
   }
   return this->flushed_seqno_ >= wait_seq;
 } catch (const std::exception& e) {
-  logger_.error("Failed to flush recorder: {}", e.what());
+  logger_.Error("Failed to flush recorder: ", e.what());
   return false;
 }
 
@@ -99,7 +103,7 @@ void AutoRecorder::Write() noexcept try {
   }
 } catch (const std::exception& e) {
   MakeWriterExit();
-  logger_.error("Fatal error shutting down writer thread: {}", e.what());
+  logger_.Error("Fatal error shutting down writer thread: ", e.what());
 }
 
 //------------------------------------------------------------------------------
@@ -112,7 +116,7 @@ bool AutoRecorder::WriteReport(const collector::ReportRequest& report) {
     return false;
   }
   if (options_.verbose) {
-    logger_.info(R"(Report: resp="{}")", response.ShortDebugString());
+    logger_.Info(R"(Report: resp=")", response.ShortDebugString(), R"(")");
   }
   return true;
 }
@@ -121,6 +125,8 @@ bool AutoRecorder::WriteReport(const collector::ReportRequest& report) {
 // FlushOne
 //------------------------------------------------------------------------------
 void AutoRecorder::FlushOne() {
+  options_.metrics_observer->OnFlush();
+
   size_t save_dropped;
   size_t save_pending;
   {
@@ -146,7 +152,10 @@ void AutoRecorder::FlushOne() {
     write_cond_->NotifyAll();
     inflight_.Clear();
 
-    if (!success) {
+    if (success) {
+      options_.metrics_observer->OnSpansSent(save_pending);
+    } else {
+      options_.metrics_observer->OnSpansDropped(save_pending);
       dropped_spans_ += save_dropped + save_pending;
     }
   }

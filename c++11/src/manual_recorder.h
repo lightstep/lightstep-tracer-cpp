@@ -1,7 +1,7 @@
 #pragma once
 
-#include <lightstep/spdlog/logger.h>
 #include <lightstep/transporter.h>
+#include "logger.h"
 #include "recorder.h"
 #include "report_builder.h"
 
@@ -10,7 +10,7 @@ namespace lightstep {
 // the provided AsyncTransporter when FlushWithTimeout is called.
 class ManualRecorder : public Recorder, private AsyncTransporter::Callback {
  public:
-  ManualRecorder(spdlog::logger& logger, LightStepTracerOptions options,
+  ManualRecorder(Logger& logger, LightStepTracerOptions options,
                  std::unique_ptr<AsyncTransporter>&& transporter);
 
   void RecordSpan(collector::Span&& span) noexcept override;
@@ -19,12 +19,12 @@ class ManualRecorder : public Recorder, private AsyncTransporter::Callback {
       std::chrono::system_clock::duration timeout) noexcept override;
 
  private:
-  bool FlushOne();
+  bool FlushOne() noexcept;
 
   void OnSuccess() noexcept override;
   void OnFailure(std::error_code error) noexcept override;
 
-  spdlog::logger& logger_;
+  Logger& logger_;
   LightStepTracerOptions options_;
 
   // Buffer state (protected by write_mutex_).

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <lightstep/spdlog/logger.h>
 #include <memory>
+#include "logger.h"
 #include "recorder.h"
 
 namespace lightstep {
@@ -11,7 +11,7 @@ class LightStepTracerImpl
  public:
   LightStepTracerImpl(std::unique_ptr<Recorder>&& recorder) noexcept;
 
-  LightStepTracerImpl(std::shared_ptr<spdlog::logger> logger,
+  LightStepTracerImpl(std::shared_ptr<Logger> logger,
                       std::unique_ptr<Recorder>&& recorder) noexcept;
 
   std::unique_ptr<opentracing::Span> StartSpanWithOptions(
@@ -44,7 +44,7 @@ class LightStepTracerImpl
   void Close() noexcept override;
 
  private:
-  std::shared_ptr<spdlog::logger> logger_;
+  std::shared_ptr<Logger> logger_;
   std::unique_ptr<Recorder> recorder_;
 };
 }  // namespace lightstep

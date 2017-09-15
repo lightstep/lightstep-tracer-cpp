@@ -23,10 +23,9 @@ dependencies:
 
     # Note the similarities with lightstep-benchmarks/scripts/docker/Dockerfile.build_cpp
     # TODO publish a single build_cpp image (w/ prebuilt protobuf / gRPC) and use it here
-    - sudo apt-get update; sudo apt-get install autoconf automake git-core libtool pkg-config wget curl unzip gcc-5 g++-5 libstdc++6
+    - sudo apt-get update; sudo apt-get install autoconf automake git-core libtool pkg-config wget curl unzip gcc-5 g++-5
     - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 100
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 100
-    - sudo ldconfig
 
     # CMake
     - git clone -b v3.9.1 https://github.com/Kitware/CMake.git && cd CMake && ./bootstrap --prefix=${HOME} && make && make install
