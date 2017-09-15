@@ -1,4 +1,6 @@
 #include "logger.h"
+#include <iostream>
+#include <sstream>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
