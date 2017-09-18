@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lightstep/metrics_observer.h>
 #include <lightstep/transporter.h>
 #include <opentracing/tracer.h>
 #include <opentracing/value.h>
@@ -74,8 +75,12 @@ struct LightStepTracerOptions {
   // default transporter is used.
   //
   // If `use_thread` is true, `transporter` should be derived from
-  // AsyncTransporter; otherwise, it should be derived from SyncTransporter.
+  // AsyncTransporter; otherwise, it must be derived from SyncTransporter.
   std::unique_ptr<Transporter> transporter;
+
+  // `metrics_observer` can be optionally provided to track LightStep tracer
+  // events. See MetricsObserver.
+  std::unique_ptr<MetricsObserver> metrics_observer;
 };
 
 // The LightStepTracer interface can be used by custom carriers that need more

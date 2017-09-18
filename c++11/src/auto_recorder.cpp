@@ -20,6 +20,10 @@ AutoRecorder::AutoRecorder(
       builder_{options_.access_token, options_.tags},
       transporter_{std::move(transporter)},
       write_cond_{std::move(write_cond)} {
+  // If no MetricsObserver was provided, use a default one that does nothing.
+  if (options_.metrics_observer == nullptr) {
+    options_.metrics_observer.reset(new MetricsObserver{});
+  }
   writer_ = std::thread(&AutoRecorder::Write, this);
 }
 
@@ -38,6 +42,7 @@ void AutoRecorder::RecordSpan(collector::Span&& span) noexcept try {
   std::lock_guard<std::mutex> lock_guard{write_mutex_};
   if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
     dropped_spans_++;
+    options_.metrics_observer->OnSpansDropped(1);
     return;
   }
   builder_.AddSpan(std::move(span));
@@ -120,6 +125,8 @@ bool AutoRecorder::WriteReport(const collector::ReportRequest& report) {
 // FlushOne
 //------------------------------------------------------------------------------
 void AutoRecorder::FlushOne() {
+  options_.metrics_observer->OnFlush();
+
   size_t save_dropped;
   size_t save_pending;
   {
@@ -145,7 +152,10 @@ void AutoRecorder::FlushOne() {
     write_cond_->NotifyAll();
     inflight_.Clear();
 
-    if (!success) {
+    if (success) {
+      options_.metrics_observer->OnSpansSent(save_pending);
+    } else {
+      options_.metrics_observer->OnSpansDropped(save_pending);
       dropped_spans_ += save_dropped + save_pending;
     }
   }

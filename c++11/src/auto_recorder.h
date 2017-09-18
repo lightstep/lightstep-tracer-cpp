@@ -51,7 +51,7 @@ class AutoRecorder : public Recorder {
   bool WaitForNextWrite(const std::chrono::steady_clock::time_point& next);
 
   Logger& logger_;
-  const LightStepTracerOptions options_;
+  LightStepTracerOptions options_;
 
   // Writer state.
   std::mutex write_mutex_;
