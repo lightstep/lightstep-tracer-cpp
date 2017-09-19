@@ -20,13 +20,13 @@ ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
 // RecordSpan
 //------------------------------------------------------------------------------
 void ManualRecorder::RecordSpan(collector::Span&& span) noexcept try {
-  if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
+  if (builder_.num_pending_spans() >= options_.max_buffered_spans()) {
     dropped_spans_++;
     options_.metrics_observer->OnSpansDropped(1);
     return;
   }
   builder_.AddSpan(std::move(span));
-  if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
+  if (builder_.num_pending_spans() >= options_.max_buffered_spans()) {
     FlushOne();
   }
 } catch (const std::exception& e) {

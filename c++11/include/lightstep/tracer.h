@@ -50,7 +50,7 @@ struct LightStepTracerOptions {
 
   // `max_buffered_spans` is the maximum number of spans that will be buffered
   // before sending them to a collector.
-  size_t max_buffered_spans = 2000;
+  std::function<size_t()> max_buffered_spans = [] { return 2000; };
 
   // If `use_thread` is true, then the tracer will internally manage a thread to
   // regularly send reports to the collector; otherwise, if false,
