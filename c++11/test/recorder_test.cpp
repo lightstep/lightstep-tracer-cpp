@@ -37,7 +37,7 @@ TEST_CASE("auto_recorder") {
   auto metrics_observer = new CountingMetricsObserver{};
   LightStepTracerOptions options;
   options.reporting_period = std::chrono::milliseconds{2};
-  options.max_buffered_spans = [] { return 5; };
+  options.max_buffered_spans = 5;
   options.metrics_observer.reset(metrics_observer);
   auto in_memory_transporter = new InMemorySyncTransporter{};
   auto condition_variable = new TestingConditionVariableWrapper{};
@@ -122,7 +122,7 @@ TEST_CASE("auto_recorder") {
       "Dropped spans counts get sent in the next ReportRequest, and cleared in "
       "the following ReportRequest.") {
     condition_variable->set_block_notify_all(true);
-    for (size_t i = 0; i < options.max_buffered_spans() + 1; ++i) {
+    for (size_t i = 0; i < options.max_buffered_spans.value() + 1; ++i) {
       auto span = tracer->StartSpan("abc");
       CHECK(span);
       span->Finish();
@@ -146,7 +146,7 @@ TEST_CASE("auto_recorder") {
     auto reports = in_memory_transporter->reports();
     CHECK(reports.size() == 2);
     CHECK(LookupSpansDropped(reports.at(0)) == 1);
-    CHECK(reports.at(0).spans_size() == options.max_buffered_spans());
+    CHECK(reports.at(0).spans_size() == options.max_buffered_spans.value());
     CHECK(LookupSpansDropped(reports.at(1)) == 0);
     CHECK(reports.at(1).spans_size() == 1);
   }
@@ -176,7 +176,7 @@ TEST_CASE("auto_recorder") {
   SECTION(
       "MetricsObserver::OnSpansDropped gets called when spans are dropped.") {
     condition_variable->set_block_notify_all(true);
-    for (size_t i = 0; i < options.max_buffered_spans() + 1; ++i) {
+    for (size_t i = 0; i < options.max_buffered_spans.value() + 1; ++i) {
       auto span = tracer->StartSpan("abc");
       CHECK(span);
       span->Finish();
@@ -192,7 +192,7 @@ TEST_CASE("manual_recorder") {
   Logger logger{};
   auto metrics_observer = new CountingMetricsObserver{};
   LightStepTracerOptions options;
-  options.max_buffered_spans = [] { return 5; };
+  options.max_buffered_spans = 5;
   options.metrics_observer.reset(metrics_observer);
   auto in_memory_transporter = new InMemoryAsyncTransporter{};
   auto recorder = new ManualRecorder{
@@ -243,7 +243,7 @@ TEST_CASE("manual_recorder") {
   }
 
   SECTION("Flush is called when the tracer's buffer is filled.") {
-    for (size_t i = 0; i < options.max_buffered_spans(); ++i) {
+    for (size_t i = 0; i < options.max_buffered_spans.value(); ++i) {
       auto span = tracer->StartSpan("abc");
       CHECK(span);
       span->Finish();

@@ -24,6 +24,7 @@ AutoRecorder::AutoRecorder(
   if (options_.metrics_observer == nullptr) {
     options_.metrics_observer.reset(new MetricsObserver{});
   }
+  max_buffered_spans_snapshot_ = options_.max_buffered_spans.value();
   writer_ = std::thread(&AutoRecorder::Write, this);
 }
 
@@ -40,13 +41,13 @@ AutoRecorder::~AutoRecorder() {
 //------------------------------------------------------------------------------
 void AutoRecorder::RecordSpan(collector::Span&& span) noexcept try {
   std::lock_guard<std::mutex> lock_guard{write_mutex_};
-  if (builder_.num_pending_spans() >= options_.max_buffered_spans()) {
+  if (builder_.num_pending_spans() >= max_buffered_spans_snapshot_) {
     dropped_spans_++;
     options_.metrics_observer->OnSpansDropped(1);
     return;
   }
   builder_.AddSpan(std::move(span));
-  if (builder_.num_pending_spans() >= options_.max_buffered_spans()) {
+  if (builder_.num_pending_spans() >= max_buffered_spans_snapshot_) {
     write_cond_->NotifyAll();
   }
 } catch (const std::exception& e) {
@@ -176,9 +177,10 @@ void AutoRecorder::MakeWriterExit() {
 bool AutoRecorder::WaitForNextWrite(
     const std::chrono::steady_clock::time_point& next) {
   std::unique_lock<std::mutex> lock{write_mutex_};
+  max_buffered_spans_snapshot_ = options_.max_buffered_spans.value();
   write_cond_->WaitUntil(lock, next, [this]() {
     return this->write_exit_ ||
-           this->builder_.num_pending_spans() >= options_.max_buffered_spans();
+           this->builder_.num_pending_spans() >= max_buffered_spans_snapshot_;
   });
   return !write_exit_;
 }

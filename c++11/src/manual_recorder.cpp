@@ -20,17 +20,32 @@ ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
 // RecordSpan
 //------------------------------------------------------------------------------
 void ManualRecorder::RecordSpan(collector::Span&& span) noexcept try {
-  if (builder_.num_pending_spans() >= options_.max_buffered_spans()) {
-    dropped_spans_++;
-    options_.metrics_observer->OnSpansDropped(1);
-    return;
+  if (builder_.num_pending_spans() >= options_.max_buffered_spans.value()) {
+    // If there's no report in flight, flush the recoder. We can only get
+    // here if max_buffered_spans was dynamically decreased.
+    //
+    // Otherwise, drop the span.
+    if (!IsReportInProgress()) {
+      FlushOne();
+    } else {
+      dropped_spans_++;
+      options_.metrics_observer->OnSpansDropped(1);
+      return;
+    }
   }
   builder_.AddSpan(std::move(span));
-  if (builder_.num_pending_spans() >= options_.max_buffered_spans()) {
+  if (builder_.num_pending_spans() >= options_.max_buffered_spans.value()) {
     FlushOne();
   }
 } catch (const std::exception& e) {
   logger_.Error("Failed to record span: ", e.what());
+}
+
+//------------------------------------------------------------------------------
+// IsReportInProgress
+//------------------------------------------------------------------------------
+bool ManualRecorder::IsReportInProgress() const noexcept {
+  return encoding_seqno_ > 1 + flushed_seqno_;
 }
 
 //------------------------------------------------------------------------------
@@ -41,7 +56,7 @@ bool ManualRecorder::FlushOne() noexcept try {
 
   // If a report is currently in flight, do nothing; and if there are any
   // pending spans, then the flush is considered to have failed.
-  if (encoding_seqno_ > 1 + flushed_seqno_) {
+  if (IsReportInProgress()) {
     return builder_.num_pending_spans() == 0;
   }
 

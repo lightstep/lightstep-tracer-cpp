@@ -19,6 +19,8 @@ class ManualRecorder : public Recorder, private AsyncTransporter::Callback {
       std::chrono::system_clock::duration timeout) noexcept override;
 
  private:
+  bool IsReportInProgress() const noexcept;
+
   bool FlushOne() noexcept;
 
   void OnSuccess() noexcept override;
