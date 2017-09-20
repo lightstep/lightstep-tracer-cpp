@@ -51,6 +51,9 @@ TEST_CASE("auto_recorder") {
       new LightStepTracerImpl{std::unique_ptr<Recorder>{recorder}}};
   CHECK(tracer);
 
+  // Ensure that the writer thread is waiting.
+  condition_variable->WaitTillNextEvent();
+
   SECTION(
       "The writer thread waits until `now() + reporting_period` to "
       "send a report") {
@@ -102,18 +105,13 @@ TEST_CASE("auto_recorder") {
     logger.set_level(LogLevel::off);
     in_memory_transporter->set_should_throw(true);
 
-    // Wait until the writer thread is ready to run.
-    condition_variable->WaitTillNextEvent();
-
     auto span = tracer->StartSpan("abc");
     span->Finish();
     condition_variable->Step();
 
-    // Create another span
+    // Create another span.
     span = tracer->StartSpan("abc");
     span->Finish();
-
-    tracer->Close();
 
     // Verify no spans were transported.
     CHECK(in_memory_transporter->spans().size() == 0);
@@ -143,6 +141,7 @@ TEST_CASE("auto_recorder") {
     // Ensure that the second report gets sent.
     condition_variable->Step();
     condition_variable->Step();
+    condition_variable->WaitTillNextEvent();
 
     auto reports = in_memory_transporter->reports();
     CHECK(reports.size() == 2);
@@ -158,7 +157,7 @@ TEST_CASE("auto_recorder") {
     auto span = tracer->StartSpan("abc");
     span->Finish();
     condition_variable->Step();
-    tracer->Close();
+    condition_variable->WaitTillNextEvent();
     CHECK(metrics_observer->num_flushes == 1);
   }
 
@@ -170,7 +169,7 @@ TEST_CASE("auto_recorder") {
     auto span2 = tracer->StartSpan("abc");
     span2->Finish();
     condition_variable->Step();
-    tracer->Close();
+    condition_variable->WaitTillNextEvent();
     CHECK(metrics_observer->num_spans_sent == 2);
   }
 
@@ -184,7 +183,7 @@ TEST_CASE("auto_recorder") {
     }
     condition_variable->set_block_notify_all(false);
     condition_variable->Step();
-    tracer->Close();
+    condition_variable->WaitTillNextEvent();
     CHECK(metrics_observer->num_spans_dropped == 1);
   }
 }
