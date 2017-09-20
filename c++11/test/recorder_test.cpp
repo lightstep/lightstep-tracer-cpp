@@ -36,8 +36,10 @@ TEST_CASE("auto_recorder") {
   Logger logger{};
   auto metrics_observer = new CountingMetricsObserver{};
   LightStepTracerOptions options;
-  options.reporting_period = std::chrono::milliseconds{2};
-  options.max_buffered_spans = 5;
+  const auto reporting_period = std::chrono::milliseconds{2};
+  const auto max_buffered_spans = 5;
+  options.reporting_period = reporting_period;
+  options.max_buffered_spans = max_buffered_spans;
   options.metrics_observer.reset(metrics_observer);
   auto in_memory_transporter = new InMemorySyncTransporter{};
   auto condition_variable = new TestingConditionVariableWrapper{};
@@ -50,20 +52,20 @@ TEST_CASE("auto_recorder") {
   CHECK(tracer);
 
   SECTION(
-      "The writer thread waits until `now() + options.reporting_period` to "
+      "The writer thread waits until `now() + reporting_period` to "
       "send a report") {
     auto now = condition_variable->Now();
     condition_variable->WaitTillNextEvent();
     auto event = condition_variable->next_event();
     CHECK(dynamic_cast<const TestingConditionVariableWrapper::WaitEvent*>(
               event) != nullptr);
-    CHECK(event->timeout() == now + options.reporting_period);
+    CHECK(event->timeout() == now + reporting_period);
   }
 
   SECTION(
-      "If the writer thread takes longer than `options.reporting_period` to "
-      "run, then it runs again immediately upon finishing.") {
-    auto now = condition_variable->Now() + 2 * options.reporting_period;
+      "If the writer thread takes longer than `reporting_period` to run, then "
+      "it runs again immediately upon finishing.") {
+    auto now = condition_variable->Now() + 2 * reporting_period;
     condition_variable->WaitTillNextEvent();
     auto span = tracer->StartSpan("abc");
     span->Finish();
@@ -78,10 +80,9 @@ TEST_CASE("auto_recorder") {
   }
 
   SECTION(
-      "If the writer thread takes time between 0 and "
-      "`options.reporting_period` to run, then it subtracts the elapse time "
-      "from the next timeout") {
-    auto now = condition_variable->Now() + 3 * options.reporting_period / 2;
+      "If the writer thread takes time between 0 and `reporting_period` to "
+      "run, then it subtracts the elapse time from the next timeout") {
+    auto now = condition_variable->Now() + 3 * reporting_period / 2;
     condition_variable->WaitTillNextEvent();
     auto span = tracer->StartSpan("abc");
     span->Finish();
@@ -92,7 +93,7 @@ TEST_CASE("auto_recorder") {
     CHECK(dynamic_cast<const TestingConditionVariableWrapper::WaitEvent*>(
               event) != nullptr);
     CHECK(condition_variable->Now() == now);
-    CHECK(event->timeout() == now + options.reporting_period / 2);
+    CHECK(event->timeout() == now + reporting_period / 2);
   }
 
   SECTION(
@@ -122,7 +123,7 @@ TEST_CASE("auto_recorder") {
       "Dropped spans counts get sent in the next ReportRequest, and cleared in "
       "the following ReportRequest.") {
     condition_variable->set_block_notify_all(true);
-    for (size_t i = 0; i < options.max_buffered_spans.value() + 1; ++i) {
+    for (size_t i = 0; i < max_buffered_spans + 1; ++i) {
       auto span = tracer->StartSpan("abc");
       CHECK(span);
       span->Finish();
@@ -146,7 +147,7 @@ TEST_CASE("auto_recorder") {
     auto reports = in_memory_transporter->reports();
     CHECK(reports.size() == 2);
     CHECK(LookupSpansDropped(reports.at(0)) == 1);
-    CHECK(reports.at(0).spans_size() == options.max_buffered_spans.value());
+    CHECK(reports.at(0).spans_size() == max_buffered_spans);
     CHECK(LookupSpansDropped(reports.at(1)) == 0);
     CHECK(reports.at(1).spans_size() == 1);
   }
@@ -176,7 +177,7 @@ TEST_CASE("auto_recorder") {
   SECTION(
       "MetricsObserver::OnSpansDropped gets called when spans are dropped.") {
     condition_variable->set_block_notify_all(true);
-    for (size_t i = 0; i < options.max_buffered_spans.value() + 1; ++i) {
+    for (size_t i = 0; i < max_buffered_spans + 1; ++i) {
       auto span = tracer->StartSpan("abc");
       CHECK(span);
       span->Finish();
@@ -192,7 +193,8 @@ TEST_CASE("manual_recorder") {
   Logger logger{};
   auto metrics_observer = new CountingMetricsObserver{};
   LightStepTracerOptions options;
-  options.max_buffered_spans = 5;
+  const auto max_buffered_spans = 5;
+  options.max_buffered_spans = max_buffered_spans;
   options.metrics_observer.reset(metrics_observer);
   auto in_memory_transporter = new InMemoryAsyncTransporter{};
   auto recorder = new ManualRecorder{
@@ -243,7 +245,7 @@ TEST_CASE("manual_recorder") {
   }
 
   SECTION("Flush is called when the tracer's buffer is filled.") {
-    for (size_t i = 0; i < options.max_buffered_spans.value(); ++i) {
+    for (size_t i = 0; i < max_buffered_spans; ++i) {
       auto span = tracer->StartSpan("abc");
       CHECK(span);
       span->Finish();
