@@ -139,6 +139,7 @@ void AutoRecorder::FlushOne() {
     if (save_pending == 0) {
       return;
     }
+    options_.metrics_observer->OnSpansFlushed(save_pending);
     // TODO(rnburn): Compute and set timestamp_offset_micros
     save_dropped = dropped_spans_;
     builder_.set_pending_client_dropped_spans(save_dropped);

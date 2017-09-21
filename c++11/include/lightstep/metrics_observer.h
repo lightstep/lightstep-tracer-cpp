@@ -6,6 +6,9 @@ class MetricsObserver {
  public:
   virtual ~MetricsObserver() = default;
 
+  // OnSpansFlushed records spans flushed.
+  virtual void OnSpansFlushed(int num_spans) {}
+
   // OnSpansSent records spans successfully flushed.
   virtual void OnSpansSent(int num_spans) {}
 
