@@ -1,5 +1,6 @@
 #include <lightstep/tracer.h>
 #include <algorithm>
+#include <atomic>
 #include "../src/auto_recorder.h"
 #include "../src/lightstep_tracer_impl.h"
 #include "../src/manual_recorder.h"
@@ -37,9 +38,10 @@ TEST_CASE("auto_recorder") {
   auto metrics_observer = new CountingMetricsObserver{};
   LightStepTracerOptions options;
   const auto reporting_period = std::chrono::milliseconds{2};
-  const auto max_buffered_spans = 5;
+  std::atomic<size_t> max_buffered_spans{5};
   options.reporting_period = reporting_period;
-  options.max_buffered_spans = max_buffered_spans;
+  options.max_buffered_spans =
+      std::function<size_t()>{[&] { return size_t{max_buffered_spans}; }};
   options.metrics_observer.reset(metrics_observer);
   auto in_memory_transporter = new InMemorySyncTransporter{};
   auto condition_variable = new TestingConditionVariableWrapper{};
@@ -126,11 +128,11 @@ TEST_CASE("auto_recorder") {
       CHECK(span);
       span->Finish();
     }
-    // Check that a NotifyAllEvent gets added when the buffer overflows
+    // Check that a NotifyAllEvent gets added when the buffer overflows.
     CHECK(dynamic_cast<const TestingConditionVariableWrapper::NotifyAllEvent*>(
               condition_variable->next_event()) != nullptr);
 
-    // Wait until the first report gets sent
+    // Wait until the first report gets sent.
     condition_variable->Step();
     condition_variable->Step();
     condition_variable->set_block_notify_all(false);
@@ -187,14 +189,48 @@ TEST_CASE("auto_recorder") {
     CHECK(metrics_observer->num_spans_sent == max_buffered_spans);
     CHECK(metrics_observer->num_spans_dropped == 1);
   }
+
+  SECTION(
+      "If `max_buffered_spans` is changed dynamically, it will take effect "
+      "after the next Flush") {
+    condition_variable->set_block_notify_all(true);
+    size_t max_buffered_spans_old = max_buffered_spans;
+    size_t max_buffered_spans_new = max_buffered_spans_old - 1;
+    max_buffered_spans = max_buffered_spans_new;
+    for (size_t i = 0; i < max_buffered_spans_new; ++i) {
+      auto span = tracer->StartSpan("abc");
+      CHECK(span);
+      span->Finish();
+    }
+
+    // Check that no NotifyAllEvent was added.
+    CHECK(dynamic_cast<const TestingConditionVariableWrapper::NotifyAllEvent*>(
+              condition_variable->next_event()) == nullptr);
+    condition_variable->Step();
+    condition_variable->WaitTillNextEvent();
+
+    for (size_t i = 0; i < max_buffered_spans_new; ++i) {
+      auto span = tracer->StartSpan("abc");
+      CHECK(span);
+      span->Finish();
+    }
+
+    // Check that a NotifyAllEvent was added.
+    CHECK(dynamic_cast<const TestingConditionVariableWrapper::NotifyAllEvent*>(
+              condition_variable->next_event()) != nullptr);
+    condition_variable->set_block_notify_all(false);
+    condition_variable->Step();
+    condition_variable->WaitTillNextEvent();
+  }
 }
 
 TEST_CASE("manual_recorder") {
   Logger logger{};
   auto metrics_observer = new CountingMetricsObserver{};
   LightStepTracerOptions options;
-  const auto max_buffered_spans = 5;
-  options.max_buffered_spans = max_buffered_spans;
+  size_t max_buffered_spans{5};
+  options.max_buffered_spans =
+      std::function<size_t()>{[&] { return max_buffered_spans; }};
   options.metrics_observer.reset(metrics_observer);
   auto in_memory_transporter = new InMemoryAsyncTransporter{};
   auto recorder = new ManualRecorder{
@@ -288,5 +324,18 @@ TEST_CASE("manual_recorder") {
         std::make_error_code(std::errc::network_unreachable));
     CHECK(metrics_observer->num_spans_sent == 2);
     CHECK(metrics_observer->num_spans_dropped == 2);
+  }
+
+  SECTION(
+      "If `max_buffered_spans` is dynamically changed, it takes whenever the "
+      "recorder is next invoked.") {
+    max_buffered_spans -= 1;
+    for (size_t i = 0; i < max_buffered_spans; ++i) {
+      auto span = tracer->StartSpan("abc");
+      CHECK(span);
+      span->Finish();
+    }
+    in_memory_transporter->Write();
+    CHECK(in_memory_transporter->reports().size() == 1);
   }
 }
