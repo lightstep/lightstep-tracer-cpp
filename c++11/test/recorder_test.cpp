@@ -163,7 +163,7 @@ TEST_CASE("auto_recorder") {
 
   SECTION(
       "MetricsObserver::OnSpansSent gets called with the number of spans "
-      "successfully transported") {
+      "transported") {
     auto span1 = tracer->StartSpan("abc");
     span1->Finish();
     auto span2 = tracer->StartSpan("abc");
@@ -184,6 +184,7 @@ TEST_CASE("auto_recorder") {
     condition_variable->set_block_notify_all(false);
     condition_variable->Step();
     condition_variable->WaitTillNextEvent();
+    CHECK(metrics_observer->num_spans_sent == max_buffered_spans);
     CHECK(metrics_observer->num_spans_dropped == 1);
   }
 }
@@ -265,7 +266,7 @@ TEST_CASE("manual_recorder") {
 
   SECTION(
       "MetricsObserver::OnSpansSent gets called with the number of spans "
-      "successfully transported") {
+      "transported") {
     auto span1 = tracer->StartSpan("abc");
     span1->Finish();
     auto span2 = tracer->StartSpan("abc");
@@ -285,6 +286,7 @@ TEST_CASE("manual_recorder") {
     tracer->Flush();
     in_memory_transporter->Fail(
         std::make_error_code(std::errc::network_unreachable));
+    CHECK(metrics_observer->num_spans_sent == 2);
     CHECK(metrics_observer->num_spans_dropped == 2);
   }
 }

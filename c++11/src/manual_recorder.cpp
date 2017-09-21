@@ -65,7 +65,7 @@ bool ManualRecorder::FlushOne() noexcept try {
   if (saved_pending_spans_ == 0) {
     return true;
   }
-  options_.metrics_observer->OnSpansFlushed(saved_pending_spans_);
+  options_.metrics_observer->OnSpansSent(saved_pending_spans_);
   saved_dropped_spans_ = dropped_spans_;
   builder_.set_pending_client_dropped_spans(dropped_spans_);
   dropped_spans_ = 0;
@@ -95,7 +95,6 @@ bool ManualRecorder::FlushWithTimeout(
 void ManualRecorder::OnSuccess() noexcept {
   ++flushed_seqno_;
   active_request_.Clear();
-  options_.metrics_observer->OnSpansSent(saved_pending_spans_);
   if (options_.verbose) {
     logger_.Info(R"(Report: resp=")", active_response_.ShortDebugString(),
                  R"(")");
