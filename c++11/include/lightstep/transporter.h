@@ -42,6 +42,7 @@ class AsyncTransporter : public Transporter {
   //
   // On failure, `callback.OnFailure(error)` should be called.
   virtual void Send(const google::protobuf::Message& request,
-                    google::protobuf::Message& response, Callback& callback) {}
+                    google::protobuf::Message& response,
+                    Callback& callback) = 0;
 };
 }  // namespace lightstep

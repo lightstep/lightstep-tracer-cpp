@@ -139,7 +139,7 @@ void AutoRecorder::FlushOne() {
     if (save_pending == 0) {
       return;
     }
-    options_.metrics_observer->OnSpansSent(save_pending);
+    options_.metrics_observer->OnSpansSent(static_cast<int>(save_pending));
     // TODO(rnburn): Compute and set timestamp_offset_micros
     save_dropped = dropped_spans_;
     builder_.set_pending_client_dropped_spans(save_dropped);
@@ -155,7 +155,7 @@ void AutoRecorder::FlushOne() {
     inflight_.Clear();
 
     if (!success) {
-      options_.metrics_observer->OnSpansDropped(save_pending);
+      options_.metrics_observer->OnSpansDropped(static_cast<int>(save_pending));
       dropped_spans_ += save_dropped + save_pending;
     }
   }

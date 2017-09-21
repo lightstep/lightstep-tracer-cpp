@@ -65,7 +65,8 @@ bool ManualRecorder::FlushOne() noexcept try {
   if (saved_pending_spans_ == 0) {
     return true;
   }
-  options_.metrics_observer->OnSpansSent(saved_pending_spans_);
+  options_.metrics_observer->OnSpansSent(
+      static_cast<int>(saved_pending_spans_));
   saved_dropped_spans_ = dropped_spans_;
   builder_.set_pending_client_dropped_spans(dropped_spans_);
   dropped_spans_ = 0;
@@ -107,7 +108,8 @@ void ManualRecorder::OnSuccess() noexcept {
 void ManualRecorder::OnFailure(std::error_code error) noexcept {
   ++flushed_seqno_;
   active_request_.Clear();
-  options_.metrics_observer->OnSpansDropped(saved_pending_spans_);
+  options_.metrics_observer->OnSpansDropped(
+      static_cast<int>(saved_pending_spans_));
   dropped_spans_ += saved_dropped_spans_ + saved_pending_spans_;
   logger_.Error("Failed to send report: ", error.message());
 }

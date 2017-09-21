@@ -10,7 +10,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     -Wno-exit-time-destructors 
     -Wno-global-constructors 
     -Wno-sign-conversion
-    -Wno-padded)
+    -Wno-padded
+    -Wno-switch-enum
+    -Wno-disabled-macro-expansion)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(WARNING_CXX_FLAGS -Wall -Wextra)
 endif()
