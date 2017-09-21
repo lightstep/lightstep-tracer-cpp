@@ -159,7 +159,8 @@ opentracing::expected<bool> ExtractSpanContext(
 
   BinaryCarrier binary_carrier;
   if (!binary_carrier.ParseFromIstream(&carrier)) {
-    return false;
+    return opentracing::make_unexpected(
+        opentracing::span_context_corrupted_error);
   }
   return ExtractSpanContext(binary_carrier, trace_id, span_id, baggage);
 } catch (const std::bad_alloc&) {
