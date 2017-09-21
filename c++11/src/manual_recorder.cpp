@@ -20,7 +20,8 @@ ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
 // RecordSpan
 //------------------------------------------------------------------------------
 void ManualRecorder::RecordSpan(collector::Span&& span) noexcept try {
-  if (builder_.num_pending_spans() >= options_.max_buffered_spans.value()) {
+  auto max_buffered_spans = options_.max_buffered_spans.value();
+  if (builder_.num_pending_spans() >= max_buffered_spans) {
     // If there's no report in flight, flush the recoder. We can only get
     // here if max_buffered_spans was dynamically decreased.
     //
@@ -34,7 +35,7 @@ void ManualRecorder::RecordSpan(collector::Span&& span) noexcept try {
     }
   }
   builder_.AddSpan(std::move(span));
-  if (builder_.num_pending_spans() >= options_.max_buffered_spans.value()) {
+  if (builder_.num_pending_spans() >= max_buffered_spans) {
     FlushOne();
   }
 } catch (const std::exception& e) {
