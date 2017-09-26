@@ -20,17 +20,33 @@ ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
 // RecordSpan
 //------------------------------------------------------------------------------
 void ManualRecorder::RecordSpan(collector::Span&& span) noexcept try {
-  if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
-    dropped_spans_++;
-    options_.metrics_observer->OnSpansDropped(1);
-    return;
+  auto max_buffered_spans = options_.max_buffered_spans.value();
+  if (builder_.num_pending_spans() >= max_buffered_spans) {
+    // If there's no report in flight, flush the recoder. We can only get
+    // here if max_buffered_spans was dynamically decreased.
+    //
+    // Otherwise, drop the span.
+    if (!IsReportInProgress()) {
+      FlushOne();
+    } else {
+      dropped_spans_++;
+      options_.metrics_observer->OnSpansDropped(1);
+      return;
+    }
   }
   builder_.AddSpan(std::move(span));
-  if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
+  if (builder_.num_pending_spans() >= max_buffered_spans) {
     FlushOne();
   }
 } catch (const std::exception& e) {
   logger_.Error("Failed to record span: ", e.what());
+}
+
+//------------------------------------------------------------------------------
+// IsReportInProgress
+//------------------------------------------------------------------------------
+bool ManualRecorder::IsReportInProgress() const noexcept {
+  return encoding_seqno_ > 1 + flushed_seqno_;
 }
 
 //------------------------------------------------------------------------------
@@ -41,7 +57,7 @@ bool ManualRecorder::FlushOne() noexcept try {
 
   // If a report is currently in flight, do nothing; and if there are any
   // pending spans, then the flush is considered to have failed.
-  if (encoding_seqno_ > 1 + flushed_seqno_) {
+  if (IsReportInProgress()) {
     return builder_.num_pending_spans() == 0;
   }
 
@@ -49,6 +65,8 @@ bool ManualRecorder::FlushOne() noexcept try {
   if (saved_pending_spans_ == 0) {
     return true;
   }
+  options_.metrics_observer->OnSpansSent(
+      static_cast<int>(saved_pending_spans_));
   saved_dropped_spans_ = dropped_spans_;
   builder_.set_pending_client_dropped_spans(dropped_spans_);
   dropped_spans_ = 0;
@@ -78,7 +96,6 @@ bool ManualRecorder::FlushWithTimeout(
 void ManualRecorder::OnSuccess() noexcept {
   ++flushed_seqno_;
   active_request_.Clear();
-  options_.metrics_observer->OnSpansSent(saved_pending_spans_);
   if (options_.verbose) {
     logger_.Info(R"(Report: resp=")", active_response_.ShortDebugString(),
                  R"(")");
@@ -91,7 +108,8 @@ void ManualRecorder::OnSuccess() noexcept {
 void ManualRecorder::OnFailure(std::error_code error) noexcept {
   ++flushed_seqno_;
   active_request_.Clear();
-  options_.metrics_observer->OnSpansDropped(saved_pending_spans_);
+  options_.metrics_observer->OnSpansDropped(
+      static_cast<int>(saved_pending_spans_));
   dropped_spans_ += saved_dropped_spans_ + saved_pending_spans_;
   logger_.Error("Failed to send report: ", error.message());
 }

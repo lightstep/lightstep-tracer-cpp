@@ -20,6 +20,31 @@ const std::string& CollectorMethodName();
 //  See https://github.com/gabime/spdlog/blob/master/include/spdlog/common.h
 enum class LogLevel { debug = 1, info = 2, warn = 3, error = 4, off = 6 };
 
+// DynamicConfigurationValue is used for configuration values that can
+// be either fixed or changed at runtime. To specify a fixed value, just assign
+// a constant
+//    DynamicConfigurationValue<int> value = 123;
+// for a dynamic value, use a functor
+//    DynamicConfigurationValue<int> value = [] {
+//        int value = /* look up dynamically */
+//        return value;
+//     };
+template <class T>
+class DynamicConfigurationValue {
+ public:
+  DynamicConfigurationValue(std::function<T()> value_functor)
+      : value_functor_{std::move(value_functor)} {}
+
+  DynamicConfigurationValue(const T& value) {
+    value_functor_ = [value] { return value; };
+  }
+
+  T value() const { return value_functor_(); }
+
+ private:
+  std::function<T()> value_functor_;
+};
+
 struct LightStepTracerOptions {
   // `component_name` is the human-readable identity of the instrumented
   // process. I.e., if one drew a block diagram of the distributed system,
@@ -50,7 +75,7 @@ struct LightStepTracerOptions {
 
   // `max_buffered_spans` is the maximum number of spans that will be buffered
   // before sending them to a collector.
-  size_t max_buffered_spans = 2000;
+  DynamicConfigurationValue<size_t> max_buffered_spans = 2000;
 
   // If `use_thread` is true, then the tracer will internally manage a thread to
   // regularly send reports to the collector; otherwise, if false,

@@ -24,6 +24,7 @@ AutoRecorder::AutoRecorder(
   if (options_.metrics_observer == nullptr) {
     options_.metrics_observer.reset(new MetricsObserver{});
   }
+  max_buffered_spans_snapshot_ = options_.max_buffered_spans.value();
   writer_ = std::thread(&AutoRecorder::Write, this);
 }
 
@@ -40,13 +41,13 @@ AutoRecorder::~AutoRecorder() {
 //------------------------------------------------------------------------------
 void AutoRecorder::RecordSpan(collector::Span&& span) noexcept try {
   std::lock_guard<std::mutex> lock_guard{write_mutex_};
-  if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
+  if (builder_.num_pending_spans() >= max_buffered_spans_snapshot_) {
     dropped_spans_++;
     options_.metrics_observer->OnSpansDropped(1);
     return;
   }
   builder_.AddSpan(std::move(span));
-  if (builder_.num_pending_spans() >= options_.max_buffered_spans) {
+  if (builder_.num_pending_spans() >= max_buffered_spans_snapshot_) {
     write_cond_->NotifyAll();
   }
 } catch (const std::exception& e) {
@@ -138,6 +139,7 @@ void AutoRecorder::FlushOne() {
     if (save_pending == 0) {
       return;
     }
+    options_.metrics_observer->OnSpansSent(static_cast<int>(save_pending));
     // TODO(rnburn): Compute and set timestamp_offset_micros
     save_dropped = dropped_spans_;
     builder_.set_pending_client_dropped_spans(save_dropped);
@@ -152,10 +154,8 @@ void AutoRecorder::FlushOne() {
     write_cond_->NotifyAll();
     inflight_.Clear();
 
-    if (success) {
-      options_.metrics_observer->OnSpansSent(save_pending);
-    } else {
-      options_.metrics_observer->OnSpansDropped(save_pending);
+    if (!success) {
+      options_.metrics_observer->OnSpansDropped(static_cast<int>(save_pending));
       dropped_spans_ += save_dropped + save_pending;
     }
   }
@@ -176,9 +176,10 @@ void AutoRecorder::MakeWriterExit() {
 bool AutoRecorder::WaitForNextWrite(
     const std::chrono::steady_clock::time_point& next) {
   std::unique_lock<std::mutex> lock{write_mutex_};
+  max_buffered_spans_snapshot_ = options_.max_buffered_spans.value();
   write_cond_->WaitUntil(lock, next, [this]() {
     return this->write_exit_ ||
-           this->builder_.num_pending_spans() >= options_.max_buffered_spans;
+           this->builder_.num_pending_spans() >= max_buffered_spans_snapshot_;
   });
   return !write_exit_;
 }

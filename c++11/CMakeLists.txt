@@ -2,7 +2,7 @@
 # Configure compiler warnings
 
 set(CMAKE_CXX_STANDARD 11)
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(WARNING_CXX_FLAGS -Weverything 
     -Wno-c++98-compat 
     -Wno-c++98-compat-bind-to-temporary-copy 
@@ -10,7 +10,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     -Wno-exit-time-destructors 
     -Wno-global-constructors 
     -Wno-sign-conversion
-    -Wno-padded)
+    -Wno-padded
+    -Wno-switch-enum
+    -Wno-disabled-macro-expansion)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(WARNING_CXX_FLAGS -Wall -Wextra)
 endif()

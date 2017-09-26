@@ -61,6 +61,7 @@ class AutoRecorder : public Recorder {
   // Buffer state (protected by write_mutex_).
   ReportBuilder builder_;
   collector::ReportRequest inflight_;
+  size_t max_buffered_spans_snapshot_;
   size_t flushed_seqno_ = 0;
   size_t encoding_seqno_ = 1;
   size_t dropped_spans_ = 0;

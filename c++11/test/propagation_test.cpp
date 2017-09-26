@@ -184,6 +184,16 @@ TEST_CASE("propagation") {
     CHECK(!tracer->Extract(iss));
   }
 
+  SECTION(
+      "Extracting a span from an invalid binary blob returns "
+      "span_context_corrupted_error.") {
+    std::string invalid_context = "abc123";
+    std::istringstream iss{invalid_context, std::ios::binary};
+    auto span_context_maybe = tracer->Extract(iss);
+    CHECK(!span_context_maybe);
+    CHECK(span_context_maybe.error() == span_context_corrupted_error);
+  }
+
   SECTION("Calling Extract on an empty stream yields a nullptr.") {
     std::string blob;
     std::istringstream iss(blob, std::ios::binary);
