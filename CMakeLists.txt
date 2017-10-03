@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.0)
-enable_testing()
 
 project(lightstep-tracer)
 
@@ -172,5 +171,8 @@ endif()
 # ==============================================================================
 # Build tests and examples
 
-add_subdirectory(test)
+include(CTest)
+if (BUILD_TESTING)
+  add_subdirectory(test)
+endif()
 add_subdirectory(example)
