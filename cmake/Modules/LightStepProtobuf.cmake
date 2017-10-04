@@ -59,3 +59,7 @@ else()
   add_library(lightstep_protobuf OBJECT ${COLLECTOR_PB_CPP_FILE}
                                         ${LIGHTSTEP_CARRIER_PB_CPP_FILE})
 endif()
+
+if (BUILD_SHARED_LIBS)
+  set_property(TARGET lightstep_protobuf PROPERTY POSITION_INDEPENDENT_CODE ON)
+endif()

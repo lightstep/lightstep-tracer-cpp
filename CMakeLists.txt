@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.0)
-enable_testing()
 
 project(lightstep-tracer)
 
@@ -33,6 +32,7 @@ include(CPack)
 option(LS_WITH_ASAN "Generate tests using address-sanitizer." OFF)
 option(LS_WITH_TSAN "Generate tests using thread-sanitizer." OFF)
 option(LS_WITH_GRPC "Build with support for gRPC." ON)
+option(ENABLE_LINTING "Run clang-tidy on sources if available." ON)
 
 # ==============================================================================
 # Configure compiler warnings
@@ -122,7 +122,6 @@ install(DIRECTORY include/lightstep DESTINATION include)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 include(LightStepProtobuf)
-include(LightStepClangTidy)
 
 set(LIGHTSTEP_SRCS src/utility.cpp
                    src/logger.cpp
@@ -140,7 +139,10 @@ set(LIGHTSTEP_SRCS src/utility.cpp
 add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_protobuf>
                              ${LIGHTSTEP_SRCS})
 target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
-_apply_clang_tidy_if_available(lightstep_tracer)
+if (ENABLE_LINTING)
+  include(LightStepClangTidy)
+  _apply_clang_tidy_if_available(lightstep_tracer)
+endif()
 
 install(TARGETS lightstep_tracer
         LIBRARY DESTINATION lib 
@@ -172,5 +174,8 @@ endif()
 # ==============================================================================
 # Build tests and examples
 
-add_subdirectory(test)
+include(CTest)
+if (BUILD_TESTING)
+  add_subdirectory(test)
+endif()
 add_subdirectory(example)
