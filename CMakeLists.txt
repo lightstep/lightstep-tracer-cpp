@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 
 project(lightstep-tracer)
 
@@ -38,6 +38,7 @@ option(ENABLE_LINTING "Run clang-tidy on sources if available." ON)
 # Configure compiler warnings
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(WARNING_CXX_FLAGS -Weverything 
     -Wno-c++98-compat 
