@@ -52,14 +52,16 @@ class InMemorySyncTransporter : public SyncTransporter {
 class InMemoryAsyncTransporter : public AsyncTransporter {
  public:
   void Send(const google::protobuf::Message& request,
-            google::protobuf::Message& /*response*/,
+            google::protobuf::Message& response,
             AsyncTransporter::Callback& callback) override {
     active_request_ = &request;
+    active_response_ = &response;
     active_callback_ = &callback;
   }
 
   void Write() {
-    if (active_request_ == nullptr || active_callback_ == nullptr) {
+    if (active_request_ == nullptr || active_response_ == nullptr ||
+        active_callback_ == nullptr) {
       std::cerr << "No context, success callback, or request\n";
       std::terminate();
     }
@@ -72,6 +74,8 @@ class InMemoryAsyncTransporter : public AsyncTransporter {
       spans_.push_back(span);
     }
 
+    auto response = Transporter::MakeCollectorResponse(*active_request_);
+    active_response_->CopyFrom(*response);
     active_callback_->OnSuccess();
   }
 
@@ -92,6 +96,7 @@ class InMemoryAsyncTransporter : public AsyncTransporter {
 
  private:
   const google::protobuf::Message* active_request_;
+  google::protobuf::Message* active_response_;
   AsyncTransporter::Callback* active_callback_;
   std::vector<collector::ReportRequest> reports_;
   std::vector<collector::Span> spans_;
