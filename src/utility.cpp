@@ -216,4 +216,23 @@ collector::KeyValue ToKeyValue(opentracing::string_view key,
   apply_visitor(value_visitor, value);
   return key_value;
 }
+
+//------------------------------------------------------------------------------
+// LogReportResponse
+//------------------------------------------------------------------------------
+void LogReportResponse(Logger& logger, bool verbose,
+                       const collector::ReportResponse& response) {
+  for (auto& message : response.errors()) {
+    logger.Error(message);
+  }
+  for (auto& message : response.warnings()) {
+    logger.Warn(message);
+  }
+  if (verbose) {
+    logger.Info(R"(Report: resp=")", response.ShortDebugString(), R"(")");
+    for (auto& message : response.infos()) {
+      logger.Info(message);
+    }
+  }
+}
 }  // namespace lightstep

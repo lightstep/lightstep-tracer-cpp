@@ -243,7 +243,7 @@ void LightStepSpan::Log(std::initializer_list<
   auto timestamp = SystemClock::now();
   collector::Log log;
   *log.mutable_timestamp() = ToTimestamp(timestamp);
-  auto key_values = log.mutable_keyvalues();
+  auto key_values = log.mutable_fields();
   for (const auto& field : fields) {
     try {
       *key_values->Add() = ToKeyValue(field.first, field.second);
