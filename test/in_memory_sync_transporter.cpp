@@ -19,6 +19,12 @@ opentracing::expected<void> InMemorySyncTransporter::Send(
     spans_.push_back(span);
   }
   response.CopyFrom(*Transporter::MakeCollectorResponse(request));
+  if (should_disable_) {
+    collector::Command command;
+    command.set_disable(true);
+    auto& report_response = dynamic_cast<collector::ReportResponse&>(response);
+    *report_response.add_commands() = command;
+  }
   return {};
 }
 }  // namespace lightstep

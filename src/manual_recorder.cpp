@@ -21,6 +21,12 @@ ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
 // RecordSpan
 //------------------------------------------------------------------------------
 void ManualRecorder::RecordSpan(collector::Span&& span) noexcept try {
+  if (disabled_) {
+    dropped_spans_++;
+    options_.metrics_observer->OnSpansDropped(1);
+    return;
+  }
+
   auto max_buffered_spans = options_.max_buffered_spans.value();
   if (builder_.num_pending_spans() >= max_buffered_spans) {
     // If there's no report in flight, flush the recoder. We can only get
@@ -88,6 +94,9 @@ bool ManualRecorder::FlushOne() noexcept try {
 //------------------------------------------------------------------------------
 bool ManualRecorder::FlushWithTimeout(
     std::chrono::system_clock::duration /*timeout*/) noexcept {
+  if (disabled_) {
+    return false;
+  }
   return FlushOne();
 }
 
@@ -98,6 +107,12 @@ void ManualRecorder::OnSuccess() noexcept {
   ++flushed_seqno_;
   active_request_.Clear();
   LogReportResponse(logger_, options_.verbose, active_response_);
+  for (auto& command : active_response_.commands()) {
+    if (command.disable()) {
+      logger_.Warn("Tracer disabled by collector");
+      disabled_ = true;
+    }
+  }
 }
 
 //------------------------------------------------------------------------------

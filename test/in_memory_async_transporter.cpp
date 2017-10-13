@@ -32,6 +32,13 @@ void InMemoryAsyncTransporter::Write() {
 
   active_response_->CopyFrom(
       *Transporter::MakeCollectorResponse(*active_request_));
+  if (should_disable_) {
+    collector::Command command;
+    command.set_disable(true);
+    auto& report_response =
+        dynamic_cast<collector::ReportResponse&>(*active_response_);
+    *report_response.add_commands() = command;
+  }
   active_callback_->OnSuccess();
 }
 

@@ -24,7 +24,10 @@ class InMemoryAsyncTransporter : public AsyncTransporter {
 
   const std::vector<collector::Span>& spans() const { return spans_; }
 
+  void set_should_disable(bool value) { should_disable_ = value; }
+
  private:
+  bool should_disable_ = false;
   const google::protobuf::Message* active_request_;
   google::protobuf::Message* active_response_;
   AsyncTransporter::Callback* active_callback_;

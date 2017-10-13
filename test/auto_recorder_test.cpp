@@ -86,17 +86,30 @@ TEST_CASE("auto_recorder") {
       "spans.") {
     logger.set_level(LogLevel::off);
     in_memory_transporter->set_should_throw(true);
+    condition_variable->set_block_notify_all(true);
 
     auto span = tracer->StartSpan("abc");
     span->Finish();
     condition_variable->Step();
+    condition_variable->WaitTillNextEvent();
+    condition_variable->set_block_notify_all(false);
+    condition_variable->Step();
+    CHECK(!recorder->is_writer_running());
+  }
 
-    // Create another span.
-    span = tracer->StartSpan("abc");
+  SECTION(
+      "If a collector sends back a disable command, then the tracer stops "
+      "sending reports") {
+    in_memory_transporter->set_should_disable(true);
+    condition_variable->set_block_notify_all(true);
+
+    auto span = tracer->StartSpan("abc");
     span->Finish();
-
-    // Verify no spans were transported.
-    CHECK(in_memory_transporter->spans().size() == 0);
+    condition_variable->Step();
+    condition_variable->WaitTillNextEvent();
+    condition_variable->set_block_notify_all(false);
+    condition_variable->Step();
+    CHECK(!recorder->is_writer_running());
   }
 
   SECTION(

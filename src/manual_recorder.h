@@ -29,7 +29,9 @@ class ManualRecorder : public Recorder, private AsyncTransporter::Callback {
   Logger& logger_;
   LightStepTracerOptions options_;
 
-  // Buffer state (protected by write_mutex_).
+  bool disabled_ = false;
+
+  // Buffer state
   ReportBuilder builder_;
   collector::ReportRequest active_request_;
   collector::ReportResponse active_response_;

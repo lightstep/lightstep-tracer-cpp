@@ -69,6 +69,22 @@ TEST_CASE("manual_recorder") {
     CHECK(LookupSpansDropped(in_memory_transporter->reports().at(0)) == 1);
   }
 
+  SECTION(
+      "If a collector sends back a disable command, then the tracer stops "
+      "sending reports") {
+    in_memory_transporter->set_should_disable(true);
+
+    auto span = tracer->StartSpan("abc");
+    span->Finish();
+    CHECK(tracer->Flush());
+    in_memory_transporter->Write();
+
+    span = tracer->StartSpan("xyz");
+    CHECK(span);
+    span->Finish();
+    CHECK(!tracer->Flush());
+  }
+
   SECTION("Flush is called when the tracer's buffer is filled.") {
     for (size_t i = 0; i < max_buffered_spans; ++i) {
       auto span = tracer->StartSpan("abc");
