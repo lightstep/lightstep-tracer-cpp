@@ -118,6 +118,12 @@ bool AutoRecorder::WriteReport(const collector::ReportRequest& report) {
     return false;
   }
   LogReportResponse(logger_, options_.verbose, response);
+  for (auto& command : response.commands()) {
+    if (command.disable()) {
+      logger_.Warn("Tracer disabled by collector");
+      MakeWriterExit();
+    }
+  }
   return true;
 }
 
