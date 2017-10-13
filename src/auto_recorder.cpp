@@ -1,5 +1,6 @@
 #include "auto_recorder.h"
 #include <exception>
+#include "utility.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -116,9 +117,7 @@ bool AutoRecorder::WriteReport(const collector::ReportRequest& report) {
   if (!was_successful) {
     return false;
   }
-  if (options_.verbose) {
-    logger_.Info(R"(Report: resp=")", response.ShortDebugString(), R"(")");
-  }
+  LogReportResponse(logger_, options_.verbose, response);
   return true;
 }
 

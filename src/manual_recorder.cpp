@@ -1,4 +1,5 @@
 #include "manual_recorder.h"
+#include "utility.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -96,10 +97,7 @@ bool ManualRecorder::FlushWithTimeout(
 void ManualRecorder::OnSuccess() noexcept {
   ++flushed_seqno_;
   active_request_.Clear();
-  if (options_.verbose) {
-    logger_.Info(R"(Report: resp=")", active_response_.ShortDebugString(),
-                 R"(")");
-  }
+  LogReportResponse(logger_, options_.verbose, active_response_);
 }
 
 //------------------------------------------------------------------------------
