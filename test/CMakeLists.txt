@@ -25,9 +25,16 @@ macro(_lightstep_test TEST_NAME)
   endif()
 endmacro()
 
-_lightstep_test(tracer_test tracer_test.cpp)
+_lightstep_test(tracer_test tracer_test.cpp 
+                            utility.cpp)
 _lightstep_test(utility_test utility_test.cpp)
 _lightstep_test(logger_test logger_test.cpp)
 _lightstep_test(propagation_test propagation_test.cpp)
-_lightstep_test(recorder_test recorder_test.cpp
-                              testing_condition_variable_wrapper.cpp)
+_lightstep_test(auto_recorder_test auto_recorder_test.cpp
+                                   utility.cpp
+                                   in_memory_sync_transporter.cpp
+                                   testing_condition_variable_wrapper.cpp)
+_lightstep_test(manual_recorder_test manual_recorder_test.cpp
+                                     utility.cpp
+                                     in_memory_async_transporter.cpp
+                                     testing_condition_variable_wrapper.cpp)

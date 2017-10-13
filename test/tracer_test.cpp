@@ -1,56 +1,15 @@
-#include <google/protobuf/util/message_differencer.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
 #include "../src/lightstep_tracer_impl.h"
 #include "../src/utility.h"
 #include "in_memory_recorder.h"
+#include "utility.h"
 
 #define CATCH_CONFIG_MAIN
 #include <lightstep/catch/catch.hpp>
 using namespace lightstep;
 using namespace opentracing;
 
-//------------------------------------------------------------------------------
-// HasTag
-//------------------------------------------------------------------------------
-static bool HasTag(const collector::Span& span, string_view key,
-                   const Value& value) {
-  auto key_value = ToKeyValue(key, value);
-  return std::any_of(
-      std::begin(span.tags()), std::end(span.tags()),
-      [&](const collector::KeyValue& other) {
-        return google::protobuf::util::MessageDifferencer::Equals(key_value,
-                                                                  other);
-      });
-}
-
-//------------------------------------------------------------------------------
-// HasRelationship
-//------------------------------------------------------------------------------
-static bool HasRelationship(SpanReferenceType relationship,
-                            const collector::Span& span_a,
-                            const collector::Span& span_b) {
-  collector::Reference reference;
-  switch (relationship) {
-    case SpanReferenceType::ChildOfRef:
-      reference.set_relationship(collector::Reference::CHILD_OF);
-      break;
-    case SpanReferenceType::FollowsFromRef:
-      reference.set_relationship(collector::Reference::FOLLOWS_FROM);
-      break;
-  }
-  *reference.mutable_span_context() = span_b.span_context();
-  return std::any_of(
-      std::begin(span_a.references()), std::end(span_a.references()),
-      [&](const collector::Reference& other) {
-        return google::protobuf::util::MessageDifferencer::Equals(reference,
-                                                                  other);
-      });
-}
-
-//------------------------------------------------------------------------------
-// tests
-//------------------------------------------------------------------------------
 TEST_CASE("tracer") {
   auto recorder = new InMemoryRecorder();
   auto tracer = std::shared_ptr<opentracing::Tracer>{
