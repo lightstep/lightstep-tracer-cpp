@@ -37,6 +37,12 @@ class AutoRecorder : public Recorder {
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;
 
+  // used for testing only.
+  bool is_writer_running() const {
+    std::lock_guard<std::mutex> lock_guard{write_mutex_};
+    return !write_exit_;
+  }
+
  private:
   void Write() noexcept;
   bool WriteReport(const collector::ReportRequest& report);
@@ -54,7 +60,7 @@ class AutoRecorder : public Recorder {
   LightStepTracerOptions options_;
 
   // Writer state.
-  std::mutex write_mutex_;
+  mutable std::mutex write_mutex_;
   bool write_exit_ = false;
   std::thread writer_;
 

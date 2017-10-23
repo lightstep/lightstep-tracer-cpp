@@ -94,7 +94,7 @@ std::unique_ptr<SyncTransporter> MakeGrpcTransporter(
 #include <stdexcept>
 namespace lightstep {
 std::unique_ptr<SyncTransporter> MakeGrpcTransporter(
-    Logger& logger, const LightStepTracerOptions& options) {
+    Logger& /*logger*/, const LightStepTracerOptions& /*options*/) {
   throw std::runtime_error{
       "LightStep was not built with gRPC support, so a transporter must be "
       "supplied."};

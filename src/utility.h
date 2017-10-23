@@ -5,6 +5,7 @@
 #include <opentracing/value.h>
 #include <chrono>
 #include <string>
+#include "logger.h"
 
 namespace lightstep {
 // Convert a std::chrono::system_clock::time_point to the time value used
@@ -23,4 +24,8 @@ std::string GetProgramName();
 // protobuf data structures.
 collector::KeyValue ToKeyValue(opentracing::string_view key,
                                const opentracing::Value& value);
+
+// Logs any information returned by the collector.
+void LogReportResponse(Logger& logger, bool verbose,
+                       const collector::ReportResponse& response);
 }  // namespace lightstep

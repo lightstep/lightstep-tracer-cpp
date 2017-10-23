@@ -1,5 +1,6 @@
 #include "auto_recorder.h"
 #include <exception>
+#include "utility.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -41,7 +42,8 @@ AutoRecorder::~AutoRecorder() {
 //------------------------------------------------------------------------------
 void AutoRecorder::RecordSpan(collector::Span&& span) noexcept try {
   std::lock_guard<std::mutex> lock_guard{write_mutex_};
-  if (builder_.num_pending_spans() >= max_buffered_spans_snapshot_) {
+  if (builder_.num_pending_spans() >= max_buffered_spans_snapshot_ ||
+      write_exit_) {
     dropped_spans_++;
     options_.metrics_observer->OnSpansDropped(1);
     return;
@@ -116,8 +118,12 @@ bool AutoRecorder::WriteReport(const collector::ReportRequest& report) {
   if (!was_successful) {
     return false;
   }
-  if (options_.verbose) {
-    logger_.Info(R"(Report: resp=")", response.ShortDebugString(), R"(")");
+  LogReportResponse(logger_, options_.verbose, response);
+  for (auto& command : response.commands()) {
+    if (command.disable()) {
+      logger_.Warn("Tracer disabled by collector");
+      MakeWriterExit();
+    }
   }
   return true;
 }

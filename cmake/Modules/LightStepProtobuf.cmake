@@ -5,10 +5,18 @@ if( NOT EXISTS "${PROTO_PATH}/.git" )
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
+set(GOOGLE_API_HTTP_PROTO ${PROTO_PATH}/third_party/googleapis/google/api/http.proto)
+set(GOOGLE_API_ANNOTATIONS_PROTO ${PROTO_PATH}/third_party/googleapis/google/api/annotations.proto)
 set(COLLECTOR_PROTO ${PROTO_PATH}/collector.proto)
 set(LIGHTSTEP_CARRIER_PROTO ${PROTO_PATH}/lightstep_carrier.proto)
 set(GENERATED_PROTOBUF_PATH ${CMAKE_BINARY_DIR}/generated)
 file(MAKE_DIRECTORY ${GENERATED_PROTOBUF_PATH})
+
+set(GOOGLE_API_HTTP_PB_CPP_FILE ${GENERATED_PROTOBUF_PATH}/google/api/http.pb.cc)
+set(GOOGLE_API_HTTP_PB_H_FILE ${GENERATED_PROTOBUF_PATH}/google/api/http.pb.h)
+
+set(GOOGLE_API_ANNOTATIONS_PB_CPP_FILE ${GENERATED_PROTOBUF_PATH}/google/api/annotations.pb.cc)
+set(GOOGLE_API_ANNOTATIONS_PB_H_FILE ${GENERATED_PROTOBUF_PATH}/google/api/annotations.pb.h)
 
 set(COLLECTOR_PB_CPP_FILE ${GENERATED_PROTOBUF_PATH}/collector.pb.cc)
 set(COLLECTOR_PB_H_FILE ${GENERATED_PROTOBUF_PATH}/collector.pb.h)
@@ -18,45 +26,51 @@ set(COLLECTOR_GRPC_PB_H_FILE ${GENERATED_PROTOBUF_PATH}/collector.grpc.pb.h)
 set(LIGHTSTEP_CARRIER_PB_CPP_FILE ${GENERATED_PROTOBUF_PATH}/lightstep_carrier.pb.cc)
 set(LIGHTSTEP_CARRIER_PB_H_FILE ${GENERATED_PROTOBUF_PATH}/lightstep_carrier.pb.h)
 
+add_custom_command(
+  OUTPUT ${GOOGLE_API_HTTP_PB_H_FILE}
+         ${GOOGLE_API_HTTP_PB_CPP_FILE}
+         ${GOOGLE_API_ANNOTATIONS_PB_H_FILE}
+         ${GOOGLE_API_ANNOTATIONS_PB_CPP_FILE}
+         ${COLLECTOR_PB_H_FILE}
+         ${COLLECTOR_PB_CPP_FILE}
+         ${LIGHTSTEP_CARRIER_PB_H_FILE}
+         ${LIGHTSTEP_CARRIER_PB_CPP_FILE}
+ COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+ ARGS "--proto_path=${PROTO_PATH}/third_party/googleapis"
+      "--cpp_out=${GENERATED_PROTOBUF_PATH}"
+      ${GOOGLE_API_HTTP_PROTO}
+      ${GOOGLE_API_ANNOTATIONS_PROTO}
+ COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+ ARGS "--proto_path=${PROTO_PATH}"
+      "-I${PROTO_PATH}/third_party/googleapis"
+      "--cpp_out=${GENERATED_PROTOBUF_PATH}"
+      ${COLLECTOR_PROTO}
+      ${LIGHTSTEP_CARRIER_PROTO}
+)
+
+include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH})
+
 if (LS_WITH_GRPC)
   add_custom_command(
-      OUTPUT ${COLLECTOR_PB_H_FILE}
-             ${COLLECTOR_PB_CPP_FILE}
-             ${COLLECTOR_GRPC_PB_H_FILE}
+      OUTPUT ${COLLECTOR_GRPC_PB_H_FILE}
              ${COLLECTOR_GRPC_PB_CPP_FILE}
-             ${LIGHTSTEP_CARRIER_PB_H_FILE}
-             ${LIGHTSTEP_CARRIER_PB_CPP_FILE}
       COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
       ARGS "--proto_path=${PROTO_PATH}"
-           "--cpp_out=${GENERATED_PROTOBUF_PATH}"
-           "${COLLECTOR_PROTO}"
-           "${LIGHTSTEP_CARRIER_PROTO}"
-      COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-      ARGS "--proto_path=${PROTO_PATH}"
+           "--proto_path=${PROTO_PATH}/third_party/googleapis"
            "--grpc_out=${GENERATED_PROTOBUF_PATH}"
            "--plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN}"
            "${COLLECTOR_PROTO}"
       )
-  include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH})
   
-  add_library(lightstep_protobuf OBJECT ${COLLECTOR_PB_CPP_FILE}
+  add_library(lightstep_protobuf OBJECT ${GOOGLE_API_HTTP_PB_CPP_FILE}
+                                        ${GOOGLE_API_ANNOTATIONS_PB_CPP_FILE}
+                                        ${COLLECTOR_PB_CPP_FILE}
                                         ${COLLECTOR_GRPC_PB_CPP_FILE}
                                         ${LIGHTSTEP_CARRIER_PB_CPP_FILE})
 else()
-  add_custom_command(
-      OUTPUT ${COLLECTOR_PB_H_FILE}
-             ${COLLECTOR_PB_CPP_FILE}
-             ${LIGHTSTEP_CARRIER_PB_H_FILE}
-             ${LIGHTSTEP_CARRIER_PB_CPP_FILE}
-      COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-      ARGS "--proto_path=${PROTO_PATH}"
-           "--cpp_out=${GENERATED_PROTOBUF_PATH}"
-           "${COLLECTOR_PROTO}"
-           "${LIGHTSTEP_CARRIER_PROTO}"
-      )
-  include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH})
-  
-  add_library(lightstep_protobuf OBJECT ${COLLECTOR_PB_CPP_FILE}
+  add_library(lightstep_protobuf OBJECT ${GOOGLE_API_HTTP_PB_CPP_FILE}
+                                        ${GOOGLE_API_ANNOTATIONS_PB_CPP_FILE}
+                                        ${COLLECTOR_PB_CPP_FILE}
                                         ${LIGHTSTEP_CARRIER_PB_CPP_FILE})
 endif()
 
