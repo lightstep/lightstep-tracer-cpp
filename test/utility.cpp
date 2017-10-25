@@ -1,6 +1,8 @@
 #include "../src/utility.h"
 #include <google/protobuf/util/message_differencer.h>
 #include <algorithm>
+#include <exception>
+#include <iostream>
 #include "utility.h"
 
 namespace lightstep {
