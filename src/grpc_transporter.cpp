@@ -1,7 +1,7 @@
 #include "grpc_transporter.h"
 #include <lightstep/config.h>
 
-#ifdef LS_WITH_GRPC
+#ifdef LIGHTSTEP_USE_GRPC
 #include <collector.grpc.pb.h>
 #include <collector.pb.h>
 #include <grpc++/create_channel.h>

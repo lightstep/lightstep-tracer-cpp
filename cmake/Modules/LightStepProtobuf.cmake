@@ -50,7 +50,7 @@ add_custom_command(
 
 include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH})
 
-if (LS_WITH_GRPC)
+if (LIGHTSTEP_USE_GRPC)
   add_custom_command(
       OUTPUT ${COLLECTOR_GRPC_PB_H_FILE}
              ${COLLECTOR_GRPC_PB_CPP_FILE}

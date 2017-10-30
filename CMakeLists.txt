@@ -31,7 +31,7 @@ include(CPack)
 
 option(LS_WITH_ASAN "Generate tests using address-sanitizer." OFF)
 option(LS_WITH_TSAN "Generate tests using thread-sanitizer." OFF)
-option(LS_WITH_GRPC "Build with support for gRPC." ON)
+option(WITH_GRPC "Build with support for gRPC." ON)
 option(ENABLE_LINTING "Run clang-tidy on sources if available." ON)
 
 # ==============================================================================
@@ -68,7 +68,8 @@ include_directories(SYSTEM ${PROTOBUF_INCLUDE_DIRS})
 set(LIGHTSTEP_LINK_LIBRARIES ${OPENTRACING_LIB}
                              ${PROTOBUF_LIBRARIES})
 
-if (LS_WITH_GRPC)                           
+if (WITH_GRPC)                           
+  set(LIGHTSTEP_USE_GRPC 1)
   find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
   if (NOT GRPC_CPP_PLUGIN)
     message(FATAL_ERROR "grpc_cpp_plugin not found!")
