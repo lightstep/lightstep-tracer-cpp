@@ -29,8 +29,8 @@ include(CPack)
 # ==============================================================================
 # Set up options
 
-option(LS_WITH_ASAN "Generate tests using address-sanitizer." OFF)
-option(LS_WITH_TSAN "Generate tests using thread-sanitizer." OFF)
+option(WITH_ASAN "Generate tests using address-sanitizer." OFF)
+option(WITH_TSAN "Generate tests using thread-sanitizer." OFF)
 option(WITH_GRPC "Build with support for gRPC." ON)
 option(ENABLE_LINTING "Run clang-tidy on sources if available." ON)
 
@@ -84,20 +84,20 @@ endif()
 # ==============================================================================
 # Configure sanitizers
 
-set(WITH_ASAN OFF)
-if (LS_WITH_ASAN AND (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
+set(LIGHTSTEP_USE_ASAN OFF)
+if (WITH_ASAN AND (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
   ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND
    "${COMPILER_VERSION}" VERSION_GREATER "4.8")))
-   set(WITH_ASAN ON)
+   set(LIGHTSTEP_USE_ASAN ON)
    set(ASAN_CXX_FLAGS -O1 -g -fsanitize=address -fno-omit-frame-pointer)
    set(ASAN_LD_FLAGS -fsanitize=address)
 endif()
 
-set(WITH_TSAN OFF)
-if (LS_WITH_TSAN AND (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
+set(LIGHTSTEP_USE_TSAN OFF)
+if (WITH_TSAN AND (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
   ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND
    "${COMPILER_VERSION}" VERSION_GREATER "4.8")))
-   set(WITH_TSAN ON)
+   set(LIGHTSTEP_USE_TSAN ON)
    set(TSAN_CXX_FLAGS -O1 -g -fsanitize=thread)
    set(TSAN_LD_FLAGS -fsanitize=thread)
 endif()
@@ -156,7 +156,7 @@ target_link_libraries(lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
 # ==============================================================================
 # Build optional sanitized versions of the LightStep tracer
 
-if (WITH_ASAN)
+if (LIGHTSTEP_USE_ASAN)
   add_library(lightstep_tracer_asan $<TARGET_OBJECTS:lightstep_protobuf>
                                     ${LIGHTSTEP_SRCS})
   target_compile_options(lightstep_tracer_asan PUBLIC ${ASAN_CXX_FLAGS})
@@ -165,7 +165,7 @@ if (WITH_ASAN)
     PROPERTIES LINK_FLAGS "${ASAN_LD_FLAGS}")
 endif()
 
-if (WITH_TSAN)
+if (LIGHTSTEP_USE_TSAN)
   add_library(lightstep_tracer_tsan $<TARGET_OBJECTS:lightstep_protobuf>
                                     ${LIGHTSTEP_SRCS})
   target_compile_options(lightstep_tracer_tsan PUBLIC ${TSAN_CXX_FLAGS})
