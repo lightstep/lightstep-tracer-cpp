@@ -4,7 +4,7 @@ macro(_lightstep_test TEST_NAME)
   target_compile_options(${TEST_NAME} PUBLIC "-g")
   add_test(${TEST_NAME} ${TEST_NAME})
 
-  if (WITH_ASAN)
+  if (LIGHTSTEP_USE_ASAN)
     add_executable(${TEST_NAME}_asan ${ARGN})
     target_link_libraries(${TEST_NAME}_asan lightstep_tracer_asan 
                           ${LIGHTSTEP_LINK_LIBRARIES})
@@ -14,7 +14,7 @@ macro(_lightstep_test TEST_NAME)
     add_test(${TEST_NAME}_asan ${TEST_NAME}_asan)
   endif()
 
-  if (WITH_TSAN)
+  if (LIGHTSTEP_USE_TSAN)
     add_executable(${TEST_NAME}_tsan ${ARGN})
     target_link_libraries(${TEST_NAME}_tsan lightstep_tracer_tsan 
                           ${LIGHTSTEP_LINK_LIBRARIES})
