@@ -1,10 +1,5 @@
 set(PROTO_PATH "${CMAKE_SOURCE_DIR}/lightstep-tracer-common")
 
-if( NOT EXISTS "${PROTO_PATH}/.git" )
-  execute_process(COMMAND git submodule update --init --recursive
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-endif()
-
 set(GOOGLE_API_HTTP_PROTO ${PROTO_PATH}/third_party/googleapis/google/api/http.proto)
 set(GOOGLE_API_ANNOTATIONS_PROTO ${PROTO_PATH}/third_party/googleapis/google/api/annotations.proto)
 set(COLLECTOR_PROTO ${PROTO_PATH}/collector.proto)
