@@ -59,13 +59,18 @@ endif()
 
 find_package(Protobuf REQUIRED)
 
-find_path(OPENTRACING_INCLUDE_DIR NAMES opentracing/tracer.h)
-find_library(OPENTRACING_LIB opentracing)
+if (NOT DEFINED OPENTRACING_INCLUDE_DIR)
+  find_path(OPENTRACING_INCLUDE_DIR NAMES opentracing/tracer.h)
+endif()
+
+if (NOT DEFINED OPENTRACING_LIBRARY)
+  find_library(OPENTRACING_LIBRARY opentracing)
+endif()
 
 include_directories(SYSTEM ${OPENTRACING_INCLUDE_DIR})
 include_directories(SYSTEM ${PROTOBUF_INCLUDE_DIRS})
 
-set(LIGHTSTEP_LINK_LIBRARIES ${OPENTRACING_LIB}
+set(LIGHTSTEP_LINK_LIBRARIES ${OPENTRACING_LIBRARY}
                              ${PROTOBUF_LIBRARIES})
 
 if (WITH_GRPC)                           

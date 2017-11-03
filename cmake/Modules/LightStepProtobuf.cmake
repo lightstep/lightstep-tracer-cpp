@@ -1,10 +1,5 @@
 set(PROTO_PATH "${CMAKE_SOURCE_DIR}/lightstep-tracer-common")
 
-if( NOT EXISTS "${PROTO_PATH}/.git" )
-  execute_process(COMMAND git submodule update --init --recursive
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-endif()
-
 set(GOOGLE_API_HTTP_PROTO ${PROTO_PATH}/third_party/googleapis/google/api/http.proto)
 set(GOOGLE_API_ANNOTATIONS_PROTO ${PROTO_PATH}/third_party/googleapis/google/api/annotations.proto)
 set(COLLECTOR_PROTO ${PROTO_PATH}/collector.proto)
@@ -26,6 +21,11 @@ set(COLLECTOR_GRPC_PB_H_FILE ${GENERATED_PROTOBUF_PATH}/collector.grpc.pb.h)
 set(LIGHTSTEP_CARRIER_PB_CPP_FILE ${GENERATED_PROTOBUF_PATH}/lightstep_carrier.pb.cc)
 set(LIGHTSTEP_CARRIER_PB_H_FILE ${GENERATED_PROTOBUF_PATH}/lightstep_carrier.pb.h)
 
+set(PROTOBUF_INCLUDE_FLAGS "-I${PROTO_PATH}/third_party/googleapis")
+foreach(IMPORT_DIR ${PROTOBUF_IMPORT_DIRS})
+  list(APPEND PROTOBUF_INCLUDE_FLAGS "-I${IMPORT_DIR}")
+endforeach()
+
 add_custom_command(
   OUTPUT ${GOOGLE_API_HTTP_PB_H_FILE}
          ${GOOGLE_API_HTTP_PB_CPP_FILE}
@@ -37,12 +37,13 @@ add_custom_command(
          ${LIGHTSTEP_CARRIER_PB_CPP_FILE}
  COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
  ARGS "--proto_path=${PROTO_PATH}/third_party/googleapis"
+      ${PROTOBUF_INCLUDE_FLAGS}
       "--cpp_out=${GENERATED_PROTOBUF_PATH}"
       ${GOOGLE_API_HTTP_PROTO}
       ${GOOGLE_API_ANNOTATIONS_PROTO}
  COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
  ARGS "--proto_path=${PROTO_PATH}"
-      "-I${PROTO_PATH}/third_party/googleapis"
+      ${PROTOBUF_INCLUDE_FLAGS}
       "--cpp_out=${GENERATED_PROTOBUF_PATH}"
       ${COLLECTOR_PROTO}
       ${LIGHTSTEP_CARRIER_PROTO}
@@ -57,6 +58,7 @@ if (LIGHTSTEP_USE_GRPC)
       COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
       ARGS "--proto_path=${PROTO_PATH}"
            "--proto_path=${PROTO_PATH}/third_party/googleapis"
+           ${PROTOBUF_INCLUDE_FLAGS}
            "--grpc_out=${GENERATED_PROTOBUF_PATH}"
            "--plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN}"
            "${COLLECTOR_PROTO}"
