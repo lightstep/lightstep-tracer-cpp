@@ -37,6 +37,7 @@ add_custom_command(
          ${LIGHTSTEP_CARRIER_PB_CPP_FILE}
  COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
  ARGS "--proto_path=${PROTO_PATH}/third_party/googleapis"
+      ${PROTOBUF_INCLUDE_FLAGS}
       "--cpp_out=${GENERATED_PROTOBUF_PATH}"
       ${GOOGLE_API_HTTP_PROTO}
       ${GOOGLE_API_ANNOTATIONS_PROTO}
