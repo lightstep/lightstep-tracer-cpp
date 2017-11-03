@@ -31,7 +31,7 @@ void InMemoryAsyncTransporter::Write() {
   }
 
   active_response_->CopyFrom(
-      *Transporter::MakeCollectorResponse(*active_request_));
+      *Transporter::MakeCollectorResponse());
   if (should_disable_) {
     collector::Command command;
     command.set_disable(true);
