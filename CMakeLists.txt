@@ -129,6 +129,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 include(LightStepProtobuf)
 
 set(LIGHTSTEP_SRCS src/utility.cpp
+                   src/in_memory_stream.cpp
                    src/logger.cpp
                    src/propagation.cpp
                    src/binary_carrier.cpp

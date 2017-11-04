@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <ios>
 #include <sstream>
+#include "in_memory_stream.h"
 
 namespace lightstep {
 #define PREFIX_TRACER_STATE "ot-tracer-"
@@ -27,18 +28,18 @@ const opentracing::string_view PropagationSingleKey = "x-ot-span-context";
 // Uint64ToHex
 //------------------------------------------------------------------------------
 static std::string Uint64ToHex(uint64_t u) {
-  std::stringstream ss;
-  ss << std::setfill('0') << std::setw(16) << std::hex << u;
-  return ss.str();
+  std::ostringstream stream;
+  stream << std::setfill('0') << std::setw(16) << std::hex << u;
+  return stream.str();
 }
 
 //------------------------------------------------------------------------------
 // HexToUint64
 //------------------------------------------------------------------------------
-static uint64_t HexToUint64(const std::string& s) {
-  std::stringstream ss(s);
+static uint64_t HexToUint64(opentracing::string_view s) {
+  in_memory_stream stream{s.data(), s.size()};
   uint64_t x;
-  ss >> std::setw(16) >> std::hex >> x;
+  stream >> std::setw(16) >> std::hex >> x;
   return x;
 }
 
@@ -255,7 +256,7 @@ static opentracing::expected<bool> ExtractSpanContextSingleKey(
 
         // Decode `value` into `stream`.
         try {
-          std::istringstream istream{value};
+          in_memory_stream istream{value.data(), value.size()};
           base64::decoder decoder;
           decoder.decode(istream, stream);
 
