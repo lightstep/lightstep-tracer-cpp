@@ -1,4 +1,5 @@
 #include "propagation.h"
+#include <lightstep/base64/encode.h>
 #include <lightstep_carrier.pb.h>
 #include <algorithm>
 #include <cctype>
@@ -18,6 +19,8 @@ const opentracing::string_view FieldNameTraceID = PREFIX_TRACER_STATE "traceid";
 const opentracing::string_view FieldNameSpanID = PREFIX_TRACER_STATE "spanid";
 const opentracing::string_view FieldNameSampled = PREFIX_TRACER_STATE "sampled";
 #undef PREFIX_TRACER_STATE
+
+const opentracing::string_view PropagationSingleKey = "x-ot-span-context";
 
 //------------------------------------------------------------------------------
 // Uint64ToHex
@@ -39,53 +42,9 @@ static uint64_t HexToUint64(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-// InjectSpanContext
+// InjectSpanContextMultiHeader
 //------------------------------------------------------------------------------
-static opentracing::expected<void> InjectSpanContext(
-    BinaryCarrier& carrier, uint64_t trace_id, uint64_t span_id,
-    const std::unordered_map<std::string, std::string>& baggage) noexcept try {
-  carrier.Clear();
-  auto basic = carrier.mutable_basic_ctx();
-  basic->set_trace_id(trace_id);
-  basic->set_span_id(span_id);
-  basic->set_sampled(true);
-  auto mutable_baggage = basic->mutable_baggage_items();
-  for (auto& baggage_item : baggage) {
-    (*mutable_baggage)[baggage_item.first] = baggage_item.second;
-  }
-  return {};
-} catch (const std::bad_alloc&) {
-  return opentracing::make_unexpected(
-      std::make_error_code(std::errc::not_enough_memory));
-}
-
-opentracing::expected<void> InjectSpanContext(
-    const PropagationOptions& propagation_options, std::ostream& carrier,
-    uint64_t trace_id, uint64_t span_id,
-    const std::unordered_map<std::string, std::string>& baggage) {
-  BinaryCarrier binary_carrier;
-  auto result = InjectSpanContext(binary_carrier, trace_id, span_id, baggage);
-  if (!result) {
-    return result;
-  }
-  if (!binary_carrier.SerializeToOstream(&carrier)) {
-    return opentracing::make_unexpected(
-        std::make_error_code(std::errc::io_error));
-  }
-
-  // Flush so that when we call carrier.good, we'll get an accurate view of the
-  // error state.
-  carrier.flush();
-  if (!carrier.good()) {
-    return opentracing::make_unexpected(
-        std::make_error_code(std::errc::io_error));
-  }
-
-  return {};
-}
-
-opentracing::expected<void> InjectSpanContext(
-    const PropagationOptions& propagation_options,
+static opentracing::expected<void> InjectSpanContextMultiHeader(
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
     uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
@@ -127,6 +86,108 @@ opentracing::expected<void> InjectSpanContext(
 }
 
 //------------------------------------------------------------------------------
+// InjectSpanContextSingleHeader
+//------------------------------------------------------------------------------
+static opentracing::expected<void> InjectSpanContextSingleHeader(
+    const opentracing::TextMapWriter& carrier, uint64_t trace_id,
+    uint64_t span_id,
+    const std::unordered_map<std::string, std::string>& baggage) {
+  std::stringstream stream;
+  auto result = InjectSpanContext(PropagationOptions{}, stream, trace_id,
+                                  span_id, baggage);
+  if (!result) {
+    return result;
+  }
+  std::ostringstream ostream;
+  base64::encoder encoder;
+  try {
+    encoder.encode(stream, ostream);
+  } catch (const std::bad_alloc&) {
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::not_enough_memory));
+  }
+
+  // Flush so that when we call ostream.good(), we'll get an accurate view of
+  // the error state.
+  ostream.flush();
+  if (!ostream.good()) {
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::io_error));
+  }
+  std::string context_value;
+  try {
+    context_value = ostream.str();
+  } catch (const std::bad_alloc&) {
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::not_enough_memory));
+  }
+
+  result = carrier.Set(PropagationSingleKey, context_value);
+  if (!result) {
+    return result;
+  }
+  return {};
+}
+
+//------------------------------------------------------------------------------
+// InjectSpanContext
+//------------------------------------------------------------------------------
+static opentracing::expected<void> InjectSpanContext(
+    BinaryCarrier& carrier, uint64_t trace_id, uint64_t span_id,
+    const std::unordered_map<std::string, std::string>& baggage) noexcept try {
+  carrier.Clear();
+  auto basic = carrier.mutable_basic_ctx();
+  basic->set_trace_id(trace_id);
+  basic->set_span_id(span_id);
+  basic->set_sampled(true);
+  auto mutable_baggage = basic->mutable_baggage_items();
+  for (auto& baggage_item : baggage) {
+    (*mutable_baggage)[baggage_item.first] = baggage_item.second;
+  }
+  return {};
+} catch (const std::bad_alloc&) {
+  return opentracing::make_unexpected(
+      std::make_error_code(std::errc::not_enough_memory));
+}
+
+opentracing::expected<void> InjectSpanContext(
+    const PropagationOptions& /*propagation_options*/, std::ostream& carrier,
+    uint64_t trace_id, uint64_t span_id,
+    const std::unordered_map<std::string, std::string>& baggage) {
+  BinaryCarrier binary_carrier;
+  auto result = InjectSpanContext(binary_carrier, trace_id, span_id, baggage);
+  if (!result) {
+    return result;
+  }
+  if (!binary_carrier.SerializeToOstream(&carrier)) {
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::io_error));
+  }
+
+  // Flush so that when we call carrier.good(), we'll get an accurate view of
+  // the error state.
+  carrier.flush();
+  if (!carrier.good()) {
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::io_error));
+  }
+
+  return {};
+}
+
+opentracing::expected<void> InjectSpanContext(
+    const PropagationOptions& propagation_options,
+    const opentracing::TextMapWriter& carrier, uint64_t trace_id,
+    uint64_t span_id,
+    const std::unordered_map<std::string, std::string>& baggage) {
+  if (propagation_options.use_single_key) {
+    return InjectSpanContextSingleHeader(carrier, trace_id, span_id, baggage);
+  } else {
+    return InjectSpanContextMultiHeader(carrier, trace_id, span_id, baggage);
+  }
+}
+
+//------------------------------------------------------------------------------
 // ExtractSpanContext
 //------------------------------------------------------------------------------
 static opentracing::expected<bool> ExtractSpanContext(
@@ -145,7 +206,7 @@ static opentracing::expected<bool> ExtractSpanContext(
 }
 
 opentracing::expected<bool> ExtractSpanContext(
-    const PropagationOptions& propagation_options, std::istream& carrier,
+    const PropagationOptions& /*propagation_options*/, std::istream& carrier,
     uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) try {
   // istream::peek returns EOF if it's in an error state, so check for an error
