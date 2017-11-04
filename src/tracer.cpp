@@ -104,10 +104,12 @@ static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
   } else {
     transporter = MakeGrpcTransporter(*logger, options);
   }
+  PropagationOptions propagation_options{};
+  propagation_options.use_single_key = options.use_single_key_propagation;
   auto recorder = std::unique_ptr<Recorder>{
       new AutoRecorder{*logger, std::move(options), std::move(transporter)}};
-  return std::shared_ptr<LightStepTracer>{
-      new LightStepTracerImpl{std::move(logger), std::move(recorder)}};
+  return std::shared_ptr<LightStepTracer>{new LightStepTracerImpl{
+      std::move(logger), propagation_options, std::move(recorder)}};
 }
 
 //------------------------------------------------------------------------------
@@ -130,10 +132,12 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
         "`options.transporter` must be set if `options.use_thread` is false");
     return nullptr;
   }
+  PropagationOptions propagation_options{};
+  propagation_options.use_single_key = options.use_single_key_propagation;
   auto recorder = std::unique_ptr<Recorder>{
       new ManualRecorder{*logger, std::move(options), std::move(transporter)}};
-  return std::shared_ptr<LightStepTracer>{
-      new LightStepTracerImpl{std::move(logger), std::move(recorder)}};
+  return std::shared_ptr<LightStepTracer>{new LightStepTracerImpl{
+      std::move(logger), propagation_options, std::move(recorder)}};
 }
 
 //------------------------------------------------------------------------------

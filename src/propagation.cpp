@@ -60,7 +60,8 @@ static opentracing::expected<void> InjectSpanContext(
 }
 
 opentracing::expected<void> InjectSpanContext(
-    std::ostream& carrier, uint64_t trace_id, uint64_t span_id,
+    const PropagationOptions& propagation_options, std::ostream& carrier,
+    uint64_t trace_id, uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
   BinaryCarrier binary_carrier;
   auto result = InjectSpanContext(binary_carrier, trace_id, span_id, baggage);
@@ -84,6 +85,7 @@ opentracing::expected<void> InjectSpanContext(
 }
 
 opentracing::expected<void> InjectSpanContext(
+    const PropagationOptions& propagation_options,
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
     uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
@@ -143,7 +145,8 @@ static opentracing::expected<bool> ExtractSpanContext(
 }
 
 opentracing::expected<bool> ExtractSpanContext(
-    std::istream& carrier, uint64_t& trace_id, uint64_t& span_id,
+    const PropagationOptions& propagation_options, std::istream& carrier,
+    uint64_t& trace_id, uint64_t& span_id,
     std::unordered_map<std::string, std::string>& baggage) try {
   // istream::peek returns EOF if it's in an error state, so check for an error
   // state first before checking for an empty stream.
@@ -215,6 +218,7 @@ static opentracing::expected<bool> ExtractSpanContext(
 }
 
 opentracing::expected<bool> ExtractSpanContext(
+    const PropagationOptions& propagation_options,
     const opentracing::TextMapReader& carrier, uint64_t& trace_id,
     uint64_t& span_id, std::unordered_map<std::string, std::string>& baggage) {
   return ExtractSpanContext(carrier, trace_id, span_id, baggage,
@@ -226,6 +230,7 @@ opentracing::expected<bool> ExtractSpanContext(
 //
 // See https://stackoverflow.com/a/5259004/4447365
 opentracing::expected<bool> ExtractSpanContext(
+    const PropagationOptions& propagation_options,
     const opentracing::HTTPHeadersReader& carrier, uint64_t& trace_id,
     uint64_t& span_id, std::unordered_map<std::string, std::string>& baggage) {
   auto iequals = [](opentracing::string_view lhs,

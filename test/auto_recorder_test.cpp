@@ -29,8 +29,8 @@ TEST_CASE("auto_recorder") {
       logger, std::move(options),
       std::unique_ptr<SyncTransporter>{in_memory_transporter},
       std::unique_ptr<ConditionVariableWrapper>{condition_variable}};
-  auto tracer = std::shared_ptr<opentracing::Tracer>{
-      new LightStepTracerImpl{std::unique_ptr<Recorder>{recorder}}};
+  auto tracer = std::shared_ptr<opentracing::Tracer>{new LightStepTracerImpl{
+      PropagationOptions{}, std::unique_ptr<Recorder>{recorder}}};
   CHECK(tracer);
 
   // Ensure that the writer thread is waiting.

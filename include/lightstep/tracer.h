@@ -69,6 +69,10 @@ struct LightStepTracerOptions {
   // Set `verbose` to true to enable more text logging.
   bool verbose = false;
 
+  // Set `use_single_key_propagation` to Inject/Extract span context as a single
+  // key in TextMap and HTTPHeaders carriers.
+  bool use_single_key_propagation = false;
+
   // Set `logger_sink` to a custom function to override where logging is
   // printed; otherwise, it defaults to stderr.
   std::function<void(LogLevel, opentracing::string_view)> logger_sink;

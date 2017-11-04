@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "logger.h"
+#include "propagation.h"
 #include "recorder.h"
 
 namespace lightstep {
@@ -9,9 +10,11 @@ class LightStepTracerImpl
     : public LightStepTracer,
       public std::enable_shared_from_this<LightStepTracerImpl> {
  public:
-  LightStepTracerImpl(std::unique_ptr<Recorder>&& recorder) noexcept;
+  LightStepTracerImpl(const PropagationOptions& propagation_options,
+                      std::unique_ptr<Recorder>&& recorder) noexcept;
 
   LightStepTracerImpl(std::shared_ptr<Logger> logger,
+                      const PropagationOptions& propgation_options,
                       std::unique_ptr<Recorder>&& recorder) noexcept;
 
   std::unique_ptr<opentracing::Span> StartSpanWithOptions(
@@ -45,6 +48,7 @@ class LightStepTracerImpl
 
  private:
   std::shared_ptr<Logger> logger_;
+  PropagationOptions propagation_options_;
   std::unique_ptr<Recorder> recorder_;
 };
 }  // namespace lightstep

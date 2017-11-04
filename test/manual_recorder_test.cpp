@@ -25,8 +25,8 @@ TEST_CASE("manual_recorder") {
   auto recorder = new ManualRecorder{
       logger, std::move(options),
       std::unique_ptr<AsyncTransporter>{in_memory_transporter}};
-  auto tracer = std::shared_ptr<LightStepTracer>{
-      new LightStepTracerImpl{std::unique_ptr<Recorder>{recorder}}};
+  auto tracer = std::shared_ptr<LightStepTracer>{new LightStepTracerImpl{
+      PropagationOptions{}, std::unique_ptr<Recorder>{recorder}}};
   CHECK(tracer);
 
   SECTION("Buffered spans get transported after Flush is manually called.") {

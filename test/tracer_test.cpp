@@ -11,9 +11,9 @@ using namespace lightstep;
 using namespace opentracing;
 
 TEST_CASE("tracer") {
-  auto recorder = new InMemoryRecorder();
-  auto tracer = std::shared_ptr<opentracing::Tracer>{
-      new LightStepTracerImpl{std::unique_ptr<Recorder>{recorder}}};
+  auto recorder = new InMemoryRecorder{};
+  auto tracer = std::shared_ptr<opentracing::Tracer>{new LightStepTracerImpl{
+      PropagationOptions{}, std::unique_ptr<Recorder>{recorder}}};
 
   SECTION("StartSpan applies the provided tags.") {
     {

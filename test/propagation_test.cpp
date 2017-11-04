@@ -71,8 +71,8 @@ struct HTTPHeadersCarrier : HTTPHeadersReader, HTTPHeadersWriter {
 //------------------------------------------------------------------------------
 TEST_CASE("propagation") {
   auto recorder = new InMemoryRecorder();
-  auto tracer = std::shared_ptr<opentracing::Tracer>{
-      new LightStepTracerImpl{std::unique_ptr<Recorder>{recorder}}};
+  auto tracer = std::shared_ptr<opentracing::Tracer>{new LightStepTracerImpl{
+      PropagationOptions{}, std::unique_ptr<Recorder>{recorder}}};
   std::unordered_map<std::string, std::string> text_map;
   TextMapCarrier text_map_carrier(text_map);
   HTTPHeadersCarrier http_headers_carrier(text_map);

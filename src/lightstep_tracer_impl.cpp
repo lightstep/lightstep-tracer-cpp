@@ -9,6 +9,7 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 template <class Carrier>
 static opentracing::expected<void> InjectImpl(
+    const PropagationOptions& propagation_options,
     const opentracing::SpanContext& span_context, Carrier& writer) {
   auto lightstep_span_context =
       dynamic_cast<const LightStepSpanContext*>(&span_context);
@@ -16,7 +17,7 @@ static opentracing::expected<void> InjectImpl(
     return opentracing::make_unexpected(
         opentracing::invalid_span_context_error);
   }
-  return lightstep_span_context->Inject(writer);
+  return lightstep_span_context->Inject(propagation_options, writer);
 }
 
 //------------------------------------------------------------------------------
@@ -24,7 +25,7 @@ static opentracing::expected<void> InjectImpl(
 //------------------------------------------------------------------------------
 template <class Carrier>
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
-    Carrier& reader) {
+    const PropagationOptions& propagation_options, Carrier& reader) {
   auto lightstep_span_context = new (std::nothrow) LightStepSpanContext{};
   std::unique_ptr<opentracing::SpanContext> span_context(
       lightstep_span_context);
@@ -32,7 +33,7 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
     return opentracing::make_unexpected(
         make_error_code(std::errc::not_enough_memory));
   }
-  auto result = lightstep_span_context->Extract(reader);
+  auto result = lightstep_span_context->Extract(propagation_options, reader);
   if (!result) {
     return opentracing::make_unexpected(result.error());
   }
@@ -46,13 +47,19 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
 // Constructor
 //------------------------------------------------------------------------------
 LightStepTracerImpl::LightStepTracerImpl(
+    const PropagationOptions& propagation_options,
     std::unique_ptr<Recorder>&& recorder) noexcept
-    : logger_{std::make_shared<Logger>()}, recorder_{std::move(recorder)} {}
+    : logger_{std::make_shared<Logger>()},
+      propagation_options_{propagation_options},
+      recorder_{std::move(recorder)} {}
 
 LightStepTracerImpl::LightStepTracerImpl(
     std::shared_ptr<Logger> logger,
+    const PropagationOptions& propagation_options,
     std::unique_ptr<Recorder>&& recorder) noexcept
-    : logger_{std::move(logger)}, recorder_{std::move(recorder)} {}
+    : logger_{std::move(logger)},
+      propagation_options_{propagation_options},
+      recorder_{std::move(recorder)} {}
 
 //------------------------------------------------------------------------------
 // StartSpanWithOptions
@@ -72,19 +79,19 @@ std::unique_ptr<opentracing::Span> LightStepTracerImpl::StartSpanWithOptions(
 //------------------------------------------------------------------------------
 opentracing::expected<void> LightStepTracerImpl::Inject(
     const opentracing::SpanContext& span_context, std::ostream& writer) const {
-  return InjectImpl(span_context, writer);
+  return InjectImpl(propagation_options_, span_context, writer);
 }
 
 opentracing::expected<void> LightStepTracerImpl::Inject(
     const opentracing::SpanContext& span_context,
     const opentracing::TextMapWriter& writer) const {
-  return InjectImpl(span_context, writer);
+  return InjectImpl(propagation_options_, span_context, writer);
 }
 
 opentracing::expected<void> LightStepTracerImpl::Inject(
     const opentracing::SpanContext& span_context,
     const opentracing::HTTPHeadersWriter& writer) const {
-  return InjectImpl(span_context, writer);
+  return InjectImpl(propagation_options_, span_context, writer);
 }
 
 //------------------------------------------------------------------------------
@@ -92,18 +99,18 @@ opentracing::expected<void> LightStepTracerImpl::Inject(
 //------------------------------------------------------------------------------
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
 LightStepTracerImpl::Extract(std::istream& reader) const {
-  return ExtractImpl(reader);
+  return ExtractImpl(propagation_options_, reader);
 }
 
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
 LightStepTracerImpl::Extract(const opentracing::TextMapReader& reader) const {
-  return ExtractImpl(reader);
+  return ExtractImpl(propagation_options_, reader);
 }
 
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
 LightStepTracerImpl::Extract(
     const opentracing::HTTPHeadersReader& reader) const {
-  return ExtractImpl(reader);
+  return ExtractImpl(propagation_options_, reader);
 }
 
 //------------------------------------------------------------------------------
