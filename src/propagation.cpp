@@ -1,4 +1,5 @@
 #include "propagation.h"
+#include <lightstep/base64/decode.h>
 #include <lightstep/base64/encode.h>
 #include <lightstep_carrier.pb.h>
 #include <algorithm>
@@ -42,9 +43,9 @@ static uint64_t HexToUint64(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-// InjectSpanContextMultiHeader
+// InjectSpanContextMultiKey
 //------------------------------------------------------------------------------
-static opentracing::expected<void> InjectSpanContextMultiHeader(
+static opentracing::expected<void> InjectSpanContextMultiKey(
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
     uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
@@ -86,9 +87,9 @@ static opentracing::expected<void> InjectSpanContextMultiHeader(
 }
 
 //------------------------------------------------------------------------------
-// InjectSpanContextSingleHeader
+// InjectSpanContextSingleKey
 //------------------------------------------------------------------------------
-static opentracing::expected<void> InjectSpanContextSingleHeader(
+static opentracing::expected<void> InjectSpanContextSingleKey(
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
     uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
@@ -99,8 +100,8 @@ static opentracing::expected<void> InjectSpanContextSingleHeader(
     return result;
   }
   std::ostringstream ostream;
-  base64::encoder encoder;
   try {
+    base64::encoder encoder;
     encoder.encode(stream, ostream);
   } catch (const std::bad_alloc&) {
     return opentracing::make_unexpected(
@@ -181,10 +182,106 @@ opentracing::expected<void> InjectSpanContext(
     uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
   if (propagation_options.use_single_key) {
-    return InjectSpanContextSingleHeader(carrier, trace_id, span_id, baggage);
+    return InjectSpanContextSingleKey(carrier, trace_id, span_id, baggage);
   } else {
-    return InjectSpanContextMultiHeader(carrier, trace_id, span_id, baggage);
+    return InjectSpanContextMultiKey(carrier, trace_id, span_id, baggage);
   }
+}
+
+//------------------------------------------------------------------------------
+// ExtractSpanContextMultiKey
+//------------------------------------------------------------------------------
+template <class KeyCompare>
+static opentracing::expected<bool> ExtractSpanContextMultiKey(
+    const opentracing::TextMapReader& carrier, uint64_t& trace_id,
+    uint64_t& span_id, std::unordered_map<std::string, std::string>& baggage,
+    KeyCompare key_compare) {
+  int count = 0;
+  auto result = carrier.ForeachKey(
+      [&](opentracing::string_view key,
+          opentracing::string_view value) -> opentracing::expected<void> {
+        try {
+          if (key_compare(key, FieldNameTraceID)) {
+            trace_id = HexToUint64(value);
+            count++;
+          } else if (key_compare(key, FieldNameSpanID)) {
+            span_id = HexToUint64(value);
+            count++;
+          } else if (key_compare(key, FieldNameSampled)) {
+            // Ignored
+            count++;
+          } else if (key.length() > PrefixBaggage.size() &&
+                     key_compare(opentracing::string_view{key.data(),
+                                                          PrefixBaggage.size()},
+                                 PrefixBaggage)) {
+            baggage.emplace(std::string{std::begin(key) + PrefixBaggage.size(),
+                                        std::end(key)},
+                            value);
+          }
+          return {};
+        } catch (const std::bad_alloc&) {
+          return opentracing::make_unexpected(
+              std::make_error_code(std::errc::not_enough_memory));
+        }
+      });
+  if (!result) {
+    return opentracing::make_unexpected(result.error());
+  }
+  if (count == 0) {
+    return false;
+  }
+  if (count > 0 && count != FieldCount) {
+    return opentracing::make_unexpected(
+        opentracing::span_context_corrupted_error);
+  }
+  return true;
+}
+
+//------------------------------------------------------------------------------
+// ExtractSpanContextSingleKey
+//------------------------------------------------------------------------------
+template <class KeyCompare>
+static opentracing::expected<bool> ExtractSpanContextSingleKey(
+    const opentracing::TextMapReader& carrier, uint64_t& trace_id,
+    uint64_t& span_id, std::unordered_map<std::string, std::string>& baggage,
+    KeyCompare key_compare) {
+  std::stringstream stream;
+  auto result = carrier.ForeachKey(
+      [&](opentracing::string_view key,
+          opentracing::string_view value) -> opentracing::expected<void> {
+        if (!key_compare(key, PropagationSingleKey)) {
+          return {};
+        }
+
+        // Decode `value` into `stream`.
+        try {
+          std::istringstream istream{value};
+          base64::decoder decoder;
+          decoder.decode(istream, stream);
+
+          // Flush so that when we call stream.good(), we'll get an accurate
+          // view of the error state.
+          stream.flush();
+          if (!stream.good()) {
+            return opentracing::make_unexpected(
+                std::make_error_code(std::errc::io_error));
+          }
+
+        } catch (const std::bad_alloc&) {
+          return opentracing::make_unexpected(
+              std::make_error_code(std::errc::not_enough_memory));
+        }
+
+        // Break out of the loop with success code.
+        return opentracing::make_unexpected(std::error_code{});
+      });
+
+  if (!result && result.error() != std::error_code{}) {
+    return opentracing::make_unexpected(result.error());
+  }
+
+  return ExtractSpanContext(PropagationOptions{}, stream, trace_id, span_id,
+                            baggage);
 }
 
 //------------------------------------------------------------------------------
@@ -234,56 +331,25 @@ opentracing::expected<bool> ExtractSpanContext(
 
 template <class KeyCompare>
 static opentracing::expected<bool> ExtractSpanContext(
+    const PropagationOptions& propagation_options,
     const opentracing::TextMapReader& carrier, uint64_t& trace_id,
     uint64_t& span_id, std::unordered_map<std::string, std::string>& baggage,
     KeyCompare key_compare) {
-  int count = 0;
-  auto result = carrier.ForeachKey(
-      [&](opentracing::string_view key,
-          opentracing::string_view value) -> opentracing::expected<void> {
-        try {
-          if (key_compare(key, FieldNameTraceID)) {
-            trace_id = HexToUint64(value);
-            count++;
-          } else if (key_compare(key, FieldNameSpanID)) {
-            span_id = HexToUint64(value);
-            count++;
-          } else if (key_compare(key, FieldNameSampled)) {
-            // Ignored
-            count++;
-          } else if (key.length() > PrefixBaggage.size() &&
-                     key_compare(opentracing::string_view{key.data(),
-                                                          PrefixBaggage.size()},
-                                 PrefixBaggage)) {
-            baggage.emplace(std::string{std::begin(key) + PrefixBaggage.size(),
-                                        std::end(key)},
-                            value);
-          }
-          return {};
-        } catch (const std::bad_alloc&) {
-          return opentracing::make_unexpected(
-              std::make_error_code(std::errc::not_enough_memory));
-        }
-      });
-  if (!result) {
-    return opentracing::make_unexpected(result.error());
+  if (propagation_options.use_single_key) {
+    return ExtractSpanContextSingleKey(carrier, trace_id, span_id, baggage,
+                                       key_compare);
+  } else {
+    return ExtractSpanContextMultiKey(carrier, trace_id, span_id, baggage,
+                                      key_compare);
   }
-  if (count == 0) {
-    return false;
-  }
-  if (count > 0 && count != FieldCount) {
-    return opentracing::make_unexpected(
-        opentracing::span_context_corrupted_error);
-  }
-  return true;
 }
 
 opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapReader& carrier, uint64_t& trace_id,
     uint64_t& span_id, std::unordered_map<std::string, std::string>& baggage) {
-  return ExtractSpanContext(carrier, trace_id, span_id, baggage,
-                            std::equal_to<opentracing::string_view>());
+  return ExtractSpanContext(propagation_options, carrier, trace_id, span_id,
+                            baggage, std::equal_to<opentracing::string_view>());
 }
 
 // HTTP header field names are case insensitive, so we need to ignore case when
@@ -302,6 +368,7 @@ opentracing::expected<bool> ExtractSpanContext(
                         return std::tolower(a) == std::tolower(b);
                       });
   };
-  return ExtractSpanContext(carrier, trace_id, span_id, baggage, iequals);
+  return ExtractSpanContext(propagation_options, carrier, trace_id, span_id,
+                            baggage, iequals);
 }
 }  // namespace lightstep

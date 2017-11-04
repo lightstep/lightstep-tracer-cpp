@@ -2,6 +2,7 @@
 #include <lightstep/binary_carrier.h>
 #include <lightstep/tracer.h>
 #include <opentracing/noop.h>
+#include <algorithm>
 #include <cctype>
 #include <sstream>
 #include <string>
@@ -200,5 +201,45 @@ TEST_CASE("propagation") {
     auto span_context_maybe = tracer->Extract(iss);
     CHECK(span_context_maybe);
     CHECK(span_context_maybe->get() == nullptr);
+  }
+}
+
+TEST_CASE("propagation - single key") {
+  auto recorder = new InMemoryRecorder();
+  PropagationOptions propagation_options;
+  propagation_options.use_single_key = true;
+  auto tracer = std::shared_ptr<opentracing::Tracer>{new LightStepTracerImpl{
+      propagation_options, std::unique_ptr<Recorder>{recorder}}};
+  std::unordered_map<std::string, std::string> text_map;
+  TextMapCarrier text_map_carrier(text_map);
+  auto span = tracer->StartSpan("a");
+  CHECK(span);
+  span->SetBaggageItem("abc", "123");
+  CHECK(tracer->Inject(span->context(), text_map_carrier));
+  CHECK(text_map.size() == 1);
+
+  for (auto& kv : text_map) std::cout << kv.first << ": " << kv.second << "\n";
+
+  SECTION("Inject, extract, inject yields the same text_map.") {
+    auto injection_map1 = text_map;
+    auto span_context_maybe = tracer->Extract(text_map_carrier);
+    CHECK((span_context_maybe && span_context_maybe->get()));
+    text_map.clear();
+    CHECK(tracer->Inject(*span_context_maybe->get(), text_map_carrier));
+    CHECK(injection_map1 == text_map);
+  }
+
+  SECTION("Verify only valid base64 characters are used.") {
+    // Follows the guidelines given in RFC-4648. See
+    //    http://www.rfc-editor.org/rfc/rfc4648.txt
+    auto iter = text_map.begin();
+    CHECK(iter != text_map.end());
+    auto value = iter->second;
+    auto is_base64_char = [](char c) {
+      return ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z') ||
+             ('0' <= c && c <= '9') || c == '+' || c == '/' || c == '=' ||
+             c == '\n';
+    };
+    CHECK(std::all_of(value.begin(), value.end(), is_base64_char));
   }
 }
