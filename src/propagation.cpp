@@ -44,6 +44,39 @@ static uint64_t HexToUint64(opentracing::string_view s) {
 }
 
 //------------------------------------------------------------------------------
+// LookupKey
+//------------------------------------------------------------------------------
+template <class KeyCompare>
+static opentracing::expected<opentracing::string_view> LookupKey(
+    const opentracing::TextMapReader& carrier, opentracing::string_view key,
+    KeyCompare key_compare) {
+  // First try carrier.LookupKey since that can potentially be the fastest
+  // approach.
+  auto result = carrier.LookupKey(key);
+  if (result || result.error() != opentracing::lookup_key_not_supported_error) {
+    return result;
+  }
+
+  // Fall back to iterating through all of the keys.
+  result = opentracing::make_unexpected(opentracing::key_not_found_error);
+  auto was_successful = carrier.ForeachKey(
+      [&](opentracing::string_view key,
+          opentracing::string_view value) -> opentracing::expected<void> {
+        if (!key_compare(key, key)) {
+          return {};
+        }
+        result = value;
+
+        // Found key, so bail out of the loop with a success error code.
+        return opentracing::make_unexpected(std::error_code{});
+      });
+  if (!was_successful && was_successful.error() != std::error_code{}) {
+    return opentracing::make_unexpected(was_successful.error());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // InjectSpanContextMultiKey
 //------------------------------------------------------------------------------
 static opentracing::expected<void> InjectSpanContextMultiKey(
@@ -246,41 +279,33 @@ static opentracing::expected<bool> ExtractSpanContextSingleKey(
     const opentracing::TextMapReader& carrier, uint64_t& trace_id,
     uint64_t& span_id, std::unordered_map<std::string, std::string>& baggage,
     KeyCompare key_compare) {
-  std::stringstream stream;
-  auto result = carrier.ForeachKey(
-      [&](opentracing::string_view key,
-          opentracing::string_view value) -> opentracing::expected<void> {
-        if (!key_compare(key, PropagationSingleKey)) {
-          return {};
-        }
-
-        // Decode `value` into `stream`.
-        try {
-          in_memory_stream istream{value.data(), value.size()};
-          base64::decoder decoder;
-          decoder.decode(istream, stream);
-
-          // Flush so that when we call stream.good(), we'll get an accurate
-          // view of the error state.
-          stream.flush();
-          if (!stream.good()) {
-            return opentracing::make_unexpected(
-                std::make_error_code(std::errc::io_error));
-          }
-
-        } catch (const std::bad_alloc&) {
-          return opentracing::make_unexpected(
-              std::make_error_code(std::errc::not_enough_memory));
-        }
-
-        // Break out of the loop with success code.
-        return opentracing::make_unexpected(std::error_code{});
-      });
-
-  if (!result && result.error() != std::error_code{}) {
-    return opentracing::make_unexpected(result.error());
+  auto value_maybe = LookupKey(carrier, PropagationSingleKey, key_compare);
+  if (!value_maybe) {
+    if (value_maybe.error() == opentracing::key_not_found_error) {
+      return false;
+    } else {
+      return opentracing::make_unexpected(value_maybe.error());
+    }
   }
+  auto value = *value_maybe;
+  std::stringstream stream;
+  try {
+    in_memory_stream istream{value.data(), value.size()};
+    base64::decoder decoder;
+    decoder.decode(istream, stream);
 
+    // Flush so that when we call stream.good(), we'll get an accurate
+    // view of the error state.
+    stream.flush();
+    if (!stream.good()) {
+      return opentracing::make_unexpected(
+          std::make_error_code(std::errc::io_error));
+    }
+
+  } catch (const std::bad_alloc&) {
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::not_enough_memory));
+  }
   return ExtractSpanContext(PropagationOptions{}, stream, trace_id, span_id,
                             baggage);
 }

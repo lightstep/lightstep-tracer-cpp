@@ -15,23 +15,40 @@
 #include <lightstep/catch/catch.hpp>
 
 using namespace lightstep;
-using namespace opentracing;
 
 //------------------------------------------------------------------------------
 // TextMapCarrier
 //------------------------------------------------------------------------------
-struct TextMapCarrier : TextMapReader, TextMapWriter {
+struct TextMapCarrier : opentracing::TextMapReader, opentracing::TextMapWriter {
   TextMapCarrier(std::unordered_map<std::string, std::string>& text_map_)
       : text_map(text_map_) {}
 
-  expected<void> Set(string_view key, string_view value) const override {
+  opentracing::expected<void> Set(
+      opentracing::string_view key,
+      opentracing::string_view value) const override {
     text_map[key] = value;
     return {};
   }
 
-  expected<void> ForeachKey(
-      std::function<expected<void>(string_view key, string_view value)> f)
-      const override {
+  opentracing::expected<opentracing::string_view> LookupKey(
+      opentracing::string_view key) const override {
+    if (!supports_lookup) {
+      return opentracing::make_unexpected(
+          opentracing::lookup_key_not_supported_error);
+    }
+    auto iter = text_map.find(key);
+    if (iter != text_map.end()) {
+      return opentracing::string_view{iter->second};
+    } else {
+      return opentracing::make_unexpected(opentracing::key_not_found_error);
+    }
+  }
+
+  opentracing::expected<void> ForeachKey(
+      std::function<opentracing::expected<void>(opentracing::string_view key,
+                                                opentracing::string_view value)>
+          f) const override {
+    ++foreach_key_call_count;
     for (const auto& key_value : text_map) {
       auto result = f(key_value.first, key_value.second);
       if (!result) return result;
@@ -39,24 +56,30 @@ struct TextMapCarrier : TextMapReader, TextMapWriter {
     return {};
   }
 
+  bool supports_lookup = false;
+  mutable int foreach_key_call_count = 0;
   std::unordered_map<std::string, std::string>& text_map;
 };
 
 //------------------------------------------------------------------------------
 // HTTPHeadersCarrier
 //------------------------------------------------------------------------------
-struct HTTPHeadersCarrier : HTTPHeadersReader, HTTPHeadersWriter {
+struct HTTPHeadersCarrier : opentracing::HTTPHeadersReader,
+                            opentracing::HTTPHeadersWriter {
   HTTPHeadersCarrier(std::unordered_map<std::string, std::string>& text_map_)
       : text_map(text_map_) {}
 
-  expected<void> Set(string_view key, string_view value) const override {
+  opentracing::expected<void> Set(
+      opentracing::string_view key,
+      opentracing::string_view value) const override {
     text_map[key] = value;
     return {};
   }
 
-  expected<void> ForeachKey(
-      std::function<expected<void>(string_view key, string_view value)> f)
-      const override {
+  opentracing::expected<void> ForeachKey(
+      std::function<opentracing::expected<void>(opentracing::string_view key,
+                                                opentracing::string_view value)>
+          f) const override {
     for (const auto& key_value : text_map) {
       auto result = f(key_value.first, key_value.second);
       if (!result) return result;
@@ -132,13 +155,13 @@ TEST_CASE("propagation") {
 
   SECTION(
       "Injecting a non-LightStep span returns invalid_span_context_error.") {
-    auto noop_tracer = MakeNoopTracer();
+    auto noop_tracer = opentracing::MakeNoopTracer();
     CHECK(noop_tracer);
     auto span = noop_tracer->StartSpan("a");
     CHECK(span);
     auto was_successful = tracer->Inject(span->context(), text_map_carrier);
     CHECK(!was_successful);
-    CHECK(was_successful.error() == invalid_span_context_error);
+    CHECK(was_successful.error() == opentracing::invalid_span_context_error);
   }
 
   SECTION(
@@ -152,7 +175,8 @@ TEST_CASE("propagation") {
     text_map.erase(std::begin(text_map));
     auto span_context_maybe = tracer->Extract(text_map_carrier);
     CHECK(!span_context_maybe);
-    CHECK(span_context_maybe.error() == span_context_corrupted_error);
+    CHECK(span_context_maybe.error() ==
+          opentracing::span_context_corrupted_error);
   }
 
   SECTION("Extract is insensitive to changes in case for http header fields") {
@@ -192,7 +216,8 @@ TEST_CASE("propagation") {
     std::istringstream iss{invalid_context, std::ios::binary};
     auto span_context_maybe = tracer->Extract(iss);
     CHECK(!span_context_maybe);
-    CHECK(span_context_maybe.error() == span_context_corrupted_error);
+    CHECK(span_context_maybe.error() ==
+          opentracing::span_context_corrupted_error);
   }
 
   SECTION("Calling Extract on an empty stream yields a nullptr.") {
@@ -218,8 +243,6 @@ TEST_CASE("propagation - single key") {
   CHECK(tracer->Inject(span->context(), text_map_carrier));
   CHECK(text_map.size() == 1);
 
-  for (auto& kv : text_map) std::cout << kv.first << ": " << kv.second << "\n";
-
   SECTION("Inject, extract, inject yields the same text_map.") {
     auto injection_map1 = text_map;
     auto span_context_maybe = tracer->Extract(text_map_carrier);
@@ -229,8 +252,26 @@ TEST_CASE("propagation - single key") {
     CHECK(injection_map1 == text_map);
   }
 
+  SECTION("If a carrier supports LookupKey, then ForeachKey won't be called") {
+    text_map_carrier.supports_lookup = true;
+    auto span_context_maybe = tracer->Extract(text_map_carrier);
+    CHECK((span_context_maybe && span_context_maybe->get()));
+    CHECK(text_map_carrier.foreach_key_call_count == 0);
+  }
+
+  SECTION(
+      "When LookupKey is used, a nullptr is returned if there is no "
+      "span_context") {
+    text_map.clear();
+    text_map_carrier.supports_lookup = true;
+    auto span_context_maybe = tracer->Extract(text_map_carrier);
+    CHECK((span_context_maybe && span_context_maybe->get() == nullptr));
+    CHECK(text_map_carrier.foreach_key_call_count == 0);
+  }
+
   SECTION("Verify only valid base64 characters are used.") {
-    // Follows the guidelines given in RFC-4648. See
+    // Follows the guidelines given in RFC-4648 on what characters are
+    // permissible. See
     //    http://www.rfc-editor.org/rfc/rfc4648.txt
     auto iter = text_map.begin();
     CHECK(iter != text_map.end());
