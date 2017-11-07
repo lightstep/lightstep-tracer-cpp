@@ -1,6 +1,5 @@
 #include "propagation.h"
-#include <lightstep/base64/decode.h>
-#include <lightstep/base64/encode.h>
+#include <lightstep/base64/base64.h>
 #include <lightstep_carrier.pb.h>
 #include <algorithm>
 #include <cctype>
@@ -127,31 +126,17 @@ static opentracing::expected<void> InjectSpanContextSingleKey(
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
     uint64_t span_id,
     const std::unordered_map<std::string, std::string>& baggage) {
-  std::stringstream stream;
-  auto result = InjectSpanContext(PropagationOptions{}, stream, trace_id,
+  std::ostringstream ostream;
+  auto result = InjectSpanContext(PropagationOptions{}, ostream, trace_id,
                                   span_id, baggage);
   if (!result) {
     return result;
   }
-  std::ostringstream ostream;
-  try {
-    base64::encoder encoder;
-    encoder.encode(stream, ostream);
-  } catch (const std::bad_alloc&) {
-    return opentracing::make_unexpected(
-        std::make_error_code(std::errc::not_enough_memory));
-  }
-
-  // Flush so that when we call ostream.good(), we'll get an accurate view of
-  // the error state.
-  ostream.flush();
-  if (!ostream.good()) {
-    return opentracing::make_unexpected(
-        std::make_error_code(std::errc::io_error));
-  }
   std::string context_value;
   try {
-    context_value = ostream.str();
+    auto binary_encoding = ostream.str();
+    context_value =
+        Base64::encode(binary_encoding.data(), binary_encoding.size());
   } catch (const std::bad_alloc&) {
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::not_enough_memory));
@@ -289,24 +274,19 @@ static opentracing::expected<bool> ExtractSpanContextSingleKey(
   }
   auto value = *value_maybe;
   std::stringstream stream;
+  std::string base64_decoding;
   try {
-    in_memory_stream istream{value.data(), value.size()};
-    base64::decoder decoder;
-    decoder.decode(istream, stream);
-
-    // Flush so that when we call stream.good(), we'll get an accurate
-    // view of the error state.
-    stream.flush();
-    if (!stream.good()) {
-      return opentracing::make_unexpected(
-          std::make_error_code(std::errc::io_error));
-    }
-
+    base64_decoding = Base64::decode(value.data(), value.size());
   } catch (const std::bad_alloc&) {
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::not_enough_memory));
   }
-  return ExtractSpanContext(PropagationOptions{}, stream, trace_id, span_id,
+  if (base64_decoding.empty()) {
+    return opentracing::make_unexpected(
+        opentracing::span_context_corrupted_error);
+  }
+  in_memory_stream istream{base64_decoding.data(), base64_decoding.size()};
+  return ExtractSpanContext(PropagationOptions{}, istream, trace_id, span_id,
                             baggage);
 }
 
