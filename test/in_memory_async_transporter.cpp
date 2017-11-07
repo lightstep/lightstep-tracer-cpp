@@ -30,8 +30,7 @@ void InMemoryAsyncTransporter::Write() {
     spans_.push_back(span);
   }
 
-  active_response_->CopyFrom(
-      *Transporter::MakeCollectorResponse(*active_request_));
+  active_response_->CopyFrom(*Transporter::MakeCollectorResponse());
   if (should_disable_) {
     collector::Command command;
     command.set_disable(true);

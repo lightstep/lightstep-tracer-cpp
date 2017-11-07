@@ -18,7 +18,7 @@ opentracing::expected<void> InMemorySyncTransporter::Send(
   for (auto& span : report.spans()) {
     spans_.push_back(span);
   }
-  response.CopyFrom(*Transporter::MakeCollectorResponse(request));
+  response.CopyFrom(*Transporter::MakeCollectorResponse());
   if (should_disable_) {
     collector::Command command;
     command.set_disable(true);

@@ -119,10 +119,8 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lightstep
 # ==============================================================================
 # Build LightStep tracer library
 
-include_directories(SYSTEM 3rd_party/include)
-
-# Needed to make some of the internal relative includes work.
-include_directories(SYSTEM 3rd_party/include/lightstep)
+add_subdirectory(3rd_party)
+include_directories(SYSTEM ${LIGHTSTEP_THIRD_PARTY_INCLUDES})
 
 include_directories(include)
 install(DIRECTORY include/lightstep DESTINATION include)
@@ -131,6 +129,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 include(LightStepProtobuf)
 
 set(LIGHTSTEP_SRCS src/utility.cpp
+                   src/in_memory_stream.cpp
                    src/logger.cpp
                    src/propagation.cpp
                    src/binary_carrier.cpp
@@ -145,6 +144,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/tracer.cpp)
 
 add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_protobuf>
+                             $<TARGET_OBJECTS:lightstep_3rd_party>
                              ${LIGHTSTEP_SRCS})
 target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
 if (ENABLE_LINTING)

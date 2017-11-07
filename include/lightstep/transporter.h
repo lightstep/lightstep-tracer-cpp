@@ -11,13 +11,11 @@ class Transporter {
  public:
   virtual ~Transporter() = default;
 
-  // Generates a valid artificial collector response for the given report
-  // request.
+  // Generates a valid artificial collector response.
   //
   // Can be used by testing code to to simulate the interaction with a LightStep
   // collector.
-  static std::unique_ptr<google::protobuf::Message> MakeCollectorResponse(
-      const google::protobuf::Message& request);
+  static std::unique_ptr<google::protobuf::Message> MakeCollectorResponse();
 };
 
 // SyncTransporter customizes how synchronous tracing reports are sent.

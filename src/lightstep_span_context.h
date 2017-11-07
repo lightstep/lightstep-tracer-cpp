@@ -34,15 +34,19 @@ class LightStepSpanContext : public opentracing::SpanContext {
       const override;
 
   template <class Carrier>
-  opentracing::expected<void> Inject(Carrier& writer) const {
+  opentracing::expected<void> Inject(
+      const PropagationOptions& propagation_options, Carrier& writer) const {
     std::lock_guard<std::mutex> lock_guard{baggage_mutex_};
-    return InjectSpanContext(writer, trace_id_, span_id_, baggage_);
+    return InjectSpanContext(propagation_options, writer, trace_id_, span_id_,
+                             baggage_);
   }
 
   template <class Carrier>
-  opentracing::expected<bool> Extract(Carrier& reader) {
+  opentracing::expected<bool> Extract(
+      const PropagationOptions& propagation_options, Carrier& reader) {
     std::lock_guard<std::mutex> lock_guard{baggage_mutex_};
-    return ExtractSpanContext(reader, trace_id_, span_id_, baggage_);
+    return ExtractSpanContext(propagation_options, reader, trace_id_, span_id_,
+                              baggage_);
   }
 
   uint64_t trace_id() const noexcept { return trace_id_; }

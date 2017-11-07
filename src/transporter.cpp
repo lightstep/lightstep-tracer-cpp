@@ -5,8 +5,8 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 // MakeCollectorResponse
 //------------------------------------------------------------------------------
-std::unique_ptr<google::protobuf::Message> Transporter::MakeCollectorResponse(
-    const google::protobuf::Message& /*request*/) {
+std::unique_ptr<google::protobuf::Message>
+Transporter::MakeCollectorResponse() {
   return std::unique_ptr<google::protobuf::Message>{
       new collector::ReportResponse{}};
 }
