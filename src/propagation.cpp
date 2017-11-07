@@ -273,7 +273,6 @@ static opentracing::expected<bool> ExtractSpanContextSingleKey(
     }
   }
   auto value = *value_maybe;
-  std::stringstream stream;
   std::string base64_decoding;
   try {
     base64_decoding = Base64::decode(value.data(), value.size());
