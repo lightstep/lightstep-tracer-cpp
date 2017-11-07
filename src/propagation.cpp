@@ -60,9 +60,9 @@ static opentracing::expected<opentracing::string_view> LookupKey(
   // Fall back to iterating through all of the keys.
   result = opentracing::make_unexpected(opentracing::key_not_found_error);
   auto was_successful = carrier.ForeachKey(
-      [&](opentracing::string_view key,
+      [&](opentracing::string_view carrier_key,
           opentracing::string_view value) -> opentracing::expected<void> {
-        if (!key_compare(key, key)) {
+        if (!key_compare(carrier_key, key)) {
           return {};
         }
         result = value;
