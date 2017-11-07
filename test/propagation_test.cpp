@@ -278,9 +278,9 @@ TEST_CASE("propagation - single key") {
     auto value = iter->second;
     auto is_base64_char = [](char c) {
       return ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z') ||
-             ('0' <= c && c <= '9') || c == '+' || c == '/' || c == '=' ||
-             c == '\n';
+             ('0' <= c && c <= '9') || c == '+' || c == '/' || c == '=';
     };
     CHECK(std::all_of(value.begin(), value.end(), is_base64_char));
+    CHECK(value.size() % 4 == 0);
   }
 }
