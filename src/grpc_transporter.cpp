@@ -2,9 +2,9 @@
 #include <lightstep/config.h>
 
 #ifdef LIGHTSTEP_USE_GRPC
-#include <collector.grpc.pb.h>
-#include <collector.pb.h>
 #include <grpc++/create_channel.h>
+#include "lightstep-tracer-common/collector.grpc.pb.h"
+#include "lightstep-tracer-common/collector.pb.h"
 #include <chrono>
 #include <sstream>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <collector.pb.h>
+#include "lightstep-tracer-common/collector.pb.h"
 #include <lightstep/tracer.h>
 #include <lightstep/transporter.h>
 #include <condition_variable>

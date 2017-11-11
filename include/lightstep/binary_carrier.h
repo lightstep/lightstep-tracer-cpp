@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lightstep_carrier.pb.h>
+#include "lightstep-tracer-common/lightstep_carrier.pb.h"
 #include <opentracing/propagation.h>
 
 namespace lightstep {

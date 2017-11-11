@@ -1,4 +1,4 @@
-#include <collector.pb.h>
+#include "lightstep-tracer-common/collector.pb.h"
 #include <lightstep/transporter.h>
 
 namespace lightstep {
