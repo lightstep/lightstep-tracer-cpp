@@ -4,7 +4,7 @@ set(GOOGLE_API_HTTP_PROTO ${PROTO_PATH}/third_party/googleapis/google/api/http.p
 set(GOOGLE_API_ANNOTATIONS_PROTO ${PROTO_PATH}/third_party/googleapis/google/api/annotations.proto)
 set(COLLECTOR_PROTO ${PROTO_PATH}/collector.proto)
 set(LIGHTSTEP_CARRIER_PROTO ${PROTO_PATH}/lightstep_carrier.proto)
-set(GENERATED_PROTOBUF_PATH ${CMAKE_BINARY_DIR}/generated)
+set(GENERATED_PROTOBUF_PATH ${CMAKE_BINARY_DIR}/generated/lightstep-tracer-common)
 file(MAKE_DIRECTORY ${GENERATED_PROTOBUF_PATH})
 
 set(GOOGLE_API_HTTP_PB_CPP_FILE ${GENERATED_PROTOBUF_PATH}/google/api/http.pb.cc)
@@ -50,6 +50,7 @@ add_custom_command(
 )
 
 include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH})
+include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH}/../)
 
 if (LIGHTSTEP_USE_GRPC)
   add_custom_command(

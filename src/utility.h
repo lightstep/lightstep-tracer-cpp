@@ -1,6 +1,6 @@
 #pragma once
 
-#include <collector.pb.h>
+#include <lightstep-tracer-common/collector.pb.h>
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>
 #include <chrono>
