@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lightstep-tracer-common/collector.pb.h>
+#include "lightstep-tracer-common/collector.pb.h"
 #include <opentracing/span.h>
 #include <atomic>
 #include <mutex>

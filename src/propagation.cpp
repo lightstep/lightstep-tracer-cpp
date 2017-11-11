@@ -1,5 +1,5 @@
 #include "propagation.h"
-#include <lightstep-tracer-common/lightstep_carrier.pb.h>
+#include "lightstep-tracer-common/lightstep_carrier.pb.h"
 #include <lightstep/base64/base64.h>
 #include <algorithm>
 #include <cctype>

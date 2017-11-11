@@ -1,4 +1,4 @@
-#include <lightstep-tracer-common/collector.pb.h>
+#include "lightstep-tracer-common/collector.pb.h"
 #include <lightstep/tracer.h>
 #include <lightstep/version.h>
 #include <opentracing/string_view.h>

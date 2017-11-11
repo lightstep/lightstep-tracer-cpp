@@ -11,6 +11,7 @@ proto_library(
 cc_proto_library(
     name = "collector_proto_cc",
     deps = [":collector_proto"],
+    visibility = ["//visibility:public"],
 )
 
 proto_library(
@@ -22,16 +23,5 @@ proto_library(
 cc_proto_library(
     name = "lightstep_carrier_proto_cc",
     deps = [":lightstep_carrier_proto"],
-)
-
-# FIXME: this rule allows `#include <collector.pb.h>` to work, but it
-# would be nicer to have properly prefixed include paths instead.
-cc_library(
-    name = "lightstep_protos",
-    deps = [
-        ":collector_proto_cc",
-        ":lightstep_carrier_proto_cc",
-    ],
     visibility = ["//visibility:public"],
-    includes = ["."]
 )

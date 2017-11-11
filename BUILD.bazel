@@ -11,7 +11,8 @@ cc_library(
     strip_include_prefix = "include",
     visibility = ["//visibility:public"],
     deps = [
-        "@com_lightstep_tracer_common//:lightstep_protos",
+        "//lightstep-tracer-common:collector_proto_cc",
+        "//lightstep-tracer-common:lightstep_carrier_proto_cc",
         ":3rd_party_base64",
         ":3rd_party_catch",
         # https://github.com/opentracing/opentracing-cpp
