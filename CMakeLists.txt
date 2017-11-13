@@ -25,7 +25,6 @@ set(CPACK_PACKAGE_VERSION_MINOR ${LIGHTSTEP_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${LIGHTSTEP_VERSION_PATCH})
 include(CPack)
 
-
 # ==============================================================================
 # Set up options
 
@@ -33,6 +32,24 @@ option(WITH_ASAN "Generate tests using address-sanitizer." OFF)
 option(WITH_TSAN "Generate tests using thread-sanitizer." OFF)
 option(WITH_GRPC "Build with support for gRPC." ON)
 option(ENABLE_LINTING "Run clang-tidy on sources if available." ON)
+option(HEADERS_ONLY "Only generate config.h and version.h." OFF)
+
+if (WITH_GRPC)
+  set(LIGHTSTEP_USE_GRPC 1)
+endif()
+
+# ==============================================================================
+# Set up generated header files config.h and version.h
+
+configure_file(version.h.in include/lightstep/version.h)
+configure_file(config.h.in include/lightstep/config.h)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lightstep 
+        DESTINATION include)
+
+if(HEADERS_ONLY)
+  return()
+endif()
 
 # ==============================================================================
 # Configure compiler warnings
@@ -74,7 +91,6 @@ set(LIGHTSTEP_LINK_LIBRARIES ${OPENTRACING_LIBRARY}
                              ${PROTOBUF_LIBRARIES})
 
 if (WITH_GRPC)                           
-  set(LIGHTSTEP_USE_GRPC 1)
   find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
   if (NOT GRPC_CPP_PLUGIN)
     message(FATAL_ERROR "grpc_cpp_plugin not found!")
@@ -89,7 +105,6 @@ endif()
 # ==============================================================================
 # Configure sanitizers
 
-set(LIGHTSTEP_USE_ASAN OFF)
 if (WITH_ASAN AND (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
   ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND
    "${COMPILER_VERSION}" VERSION_GREATER "4.8")))
@@ -98,7 +113,6 @@ if (WITH_ASAN AND (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
    set(ASAN_LD_FLAGS -fsanitize=address)
 endif()
 
-set(LIGHTSTEP_USE_TSAN OFF)
 if (WITH_TSAN AND (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
   ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND
    "${COMPILER_VERSION}" VERSION_GREATER "4.8")))
@@ -106,15 +120,6 @@ if (WITH_TSAN AND (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
    set(TSAN_CXX_FLAGS -O1 -g -fsanitize=thread)
    set(TSAN_LD_FLAGS -fsanitize=thread)
 endif()
-
-# ==============================================================================
-# Set up generated header files config.h and version.h
-
-configure_file(version.h.in include/lightstep/version.h)
-configure_file(config.h.in include/lightstep/config.h)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lightstep 
-        DESTINATION include)
 
 # ==============================================================================
 # Build LightStep tracer library
