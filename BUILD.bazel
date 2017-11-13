@@ -34,15 +34,21 @@ genrule(
         "include/lightstep/version.h",
     ],
     cmd = """
+    TEMP_DIR=$$(mktemp -d)
+    CONFIG_H_OUT=$${PWD}/$(location :include/lightstep/config.h)
+    VERSION_H_OUT=$${PWD}/$(location :include/lightstep/version.h)
+    LIGHTSTEP_ROOT=$$(dirname $${PWD}/$(location :CMakeLists.txt))
+    cd $$TEMP_DIR
     cmake \\
         -DBUILD_TESTING=OFF \\
         -DWITH_GRPC=OFF \\
         -DOPENTRACING_INCLUDE_DIR="" \\
         -DOPENTRACING_LIBRARY="" \\
         -L \\
-        $$(dirname $(location :CMakeLists.txt))
-    mv include/lightstep/config.h $(location :include/lightstep/config.h)
-    mv include/lightstep/version.h $(location :include/lightstep/version.h)
+        $$LIGHTSTEP_ROOT
+    mv include/lightstep/config.h $$CONFIG_H_OUT
+    mv include/lightstep/version.h $$VERSION_H_OUT
+    rm -rf $$TEMP_DIR
     """,
 )
 
