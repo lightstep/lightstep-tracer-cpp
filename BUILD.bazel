@@ -40,10 +40,8 @@ genrule(
     LIGHTSTEP_ROOT=$$(dirname $${PWD}/$(location :CMakeLists.txt))
     cd $$TEMP_DIR
     cmake \\
-        -DBUILD_TESTING=OFF \\
         -DWITH_GRPC=OFF \\
-        -DOPENTRACING_INCLUDE_DIR="" \\
-        -DOPENTRACING_LIBRARY="" \\
+        -DHEADERS_ONLY=ON \\
         -L \\
         $$LIGHTSTEP_ROOT
     mv include/lightstep/config.h $$CONFIG_H_OUT
