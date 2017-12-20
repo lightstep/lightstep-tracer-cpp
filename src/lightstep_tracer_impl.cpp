@@ -26,13 +26,15 @@ static opentracing::expected<void> InjectImpl(
 template <class Carrier>
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
     const PropagationOptions& propagation_options, Carrier& reader) {
-  auto lightstep_span_context = new (std::nothrow) LightStepSpanContext{};
-  std::unique_ptr<opentracing::SpanContext> span_context(
-      lightstep_span_context);
-  if (!span_context) {
+  LightStepSpanContext* lightstep_span_context;
+  try {
+    lightstep_span_context = new LightStepSpanContext{};
+  } catch (const std::bad_alloc&) {
     return opentracing::make_unexpected(
         make_error_code(std::errc::not_enough_memory));
   }
+  std::unique_ptr<opentracing::SpanContext> span_context(
+      lightstep_span_context);
   auto result = lightstep_span_context->Extract(propagation_options, reader);
   if (!result) {
     return opentracing::make_unexpected(result.error());

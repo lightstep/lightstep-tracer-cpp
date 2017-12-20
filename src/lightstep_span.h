@@ -1,10 +1,10 @@
 #pragma once
 
-#include "lightstep-tracer-common/collector.pb.h"
 #include <opentracing/span.h>
 #include <atomic>
 #include <mutex>
 #include <vector>
+#include "lightstep-tracer-common/collector.pb.h"
 #include "lightstep_span_context.h"
 #include "logger.h"
 #include "recorder.h"

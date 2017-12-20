@@ -1,10 +1,10 @@
 #pragma once
 
-#include "lightstep-tracer-common/collector.pb.h"
 #include <lightstep/tracer.h>
 #include <opentracing/value.h>
 #include <string>
 #include <unordered_map>
+#include "lightstep-tracer-common/collector.pb.h"
 
 namespace lightstep {
 // ReportBuilder helps construct lightstep::collector::ReportRequest messages.

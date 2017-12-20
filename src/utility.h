@@ -1,10 +1,10 @@
 #pragma once
 
-#include "lightstep-tracer-common/collector.pb.h"
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>
 #include <chrono>
 #include <string>
+#include "lightstep-tracer-common/collector.pb.h"
 #include "logger.h"
 
 namespace lightstep {

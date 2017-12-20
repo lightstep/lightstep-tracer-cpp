@@ -1,6 +1,5 @@
 #pragma once
 
-#include "lightstep-tracer-common/collector.pb.h"
 #include <lightstep/tracer.h>
 #include <lightstep/transporter.h>
 #include <condition_variable>
@@ -8,6 +7,7 @@
 #include <mutex>
 #include <thread>
 #include "condition_variable_wrapper.h"
+#include "lightstep-tracer-common/collector.pb.h"
 #include "logger.h"
 #include "recorder.h"
 #include "report_builder.h"

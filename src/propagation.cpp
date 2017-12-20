@@ -1,5 +1,4 @@
 #include "propagation.h"
-#include "lightstep-tracer-common/lightstep_carrier.pb.h"
 #include <lightstep/base64/base64.h>
 #include <algorithm>
 #include <cctype>
@@ -9,6 +8,7 @@
 #include <ios>
 #include <sstream>
 #include "in_memory_stream.h"
+#include "lightstep-tracer-common/lightstep_carrier.pb.h"
 
 namespace lightstep {
 #define PREFIX_TRACER_STATE "ot-tracer-"
