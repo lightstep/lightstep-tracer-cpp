@@ -10,7 +10,7 @@
 namespace lightstep {
 class LightStepSpanContext : public opentracing::SpanContext {
  public:
-  LightStepSpanContext() noexcept = default;
+  LightStepSpanContext() = default;
 
   LightStepSpanContext(
       uint64_t trace_id, uint64_t span_id,
