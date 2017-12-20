@@ -1,5 +1,4 @@
 #include "utility.h"
-#include "lightstep-tracer-common/collector.pb.h"
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>
 #include <unistd.h>
@@ -8,6 +7,7 @@
 #include <random>
 #include <sstream>
 #include <stdexcept>
+#include "lightstep-tracer-common/collector.pb.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "lightstep-tracer-common/collector.pb.h"
 #include <opentracing/tracer.h>
+#include "lightstep-tracer-common/collector.pb.h"
 
 namespace lightstep {
 int LookupSpansDropped(const collector::ReportRequest& report);

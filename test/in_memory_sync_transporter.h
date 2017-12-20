@@ -1,11 +1,11 @@
 #pragma once
 
-#include "lightstep-tracer-common/collector.pb.h"
 #include <lightstep/transporter.h>
 #include <exception>
 #include <iostream>
 #include <mutex>
 #include <vector>
+#include "lightstep-tracer-common/collector.pb.h"
 
 namespace lightstep {
 class InMemorySyncTransporter : public SyncTransporter {

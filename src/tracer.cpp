@@ -1,4 +1,3 @@
-#include "lightstep-tracer-common/collector.pb.h"
 #include <lightstep/tracer.h>
 #include <lightstep/version.h>
 #include <opentracing/string_view.h>
@@ -12,6 +11,7 @@
 #include <vector>
 #include "auto_recorder.h"
 #include "grpc_transporter.h"
+#include "lightstep-tracer-common/collector.pb.h"
 #include "lightstep_span_context.h"
 #include "lightstep_tracer_impl.h"
 #include "logger.h"

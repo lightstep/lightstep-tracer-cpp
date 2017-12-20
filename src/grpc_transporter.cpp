@@ -3,10 +3,10 @@
 
 #ifdef LIGHTSTEP_USE_GRPC
 #include <grpc++/create_channel.h>
-#include "lightstep-tracer-common/collector.grpc.pb.h"
-#include "lightstep-tracer-common/collector.pb.h"
 #include <chrono>
 #include <sstream>
+#include "lightstep-tracer-common/collector.grpc.pb.h"
+#include "lightstep-tracer-common/collector.pb.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------

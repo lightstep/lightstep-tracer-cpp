@@ -1,7 +1,7 @@
 #pragma once
 
-#include "lightstep-tracer-common/lightstep_carrier.pb.h"
 #include <opentracing/propagation.h>
+#include "lightstep-tracer-common/lightstep_carrier.pb.h"
 
 namespace lightstep {
 class LightStepBinaryReader : public opentracing::CustomCarrierReader {

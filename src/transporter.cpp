@@ -1,5 +1,5 @@
-#include "lightstep-tracer-common/collector.pb.h"
 #include <lightstep/transporter.h>
+#include "lightstep-tracer-common/collector.pb.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
