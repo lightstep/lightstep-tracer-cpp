@@ -128,4 +128,21 @@ TEST_CASE("tracer") {
     span->Finish();
     CHECK(HasTag(recorder->top(), "abc", 123));
   }
+
+  SECTION("Logs are appended and sent to the collector.") {
+    auto span = tracer->StartSpan("a");
+    CHECK(span);
+    span->Log({{"abc", 123}});
+    span->Finish();
+    CHECK(recorder->top().logs().size() == 1);
+  }
+
+  SECTION("Logs can be added with FinishSpanOptions.") {
+    auto span = tracer->StartSpan("a");
+    CHECK(span);
+    opentracing::FinishSpanOptions options;
+    options.log_records = {{SystemClock::now(), {{"abc", 123}}}};
+    span->FinishWithOptions(options);
+    CHECK(recorder->top().logs().size() == 1);
+  }
 }
