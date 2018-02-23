@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package lightstep.collector;
+
+option go_package = "collectorpb";
+option objc_class_prefix = "LSPB";
+option java_multiple_files = true;
+option java_package = "com.lightstep.tracer.grpc";
+
+message TracerConfiguration {
+  // `component_name` is the human-readable identity of the instrumented
+  // process. I.e., if one drew a block diagram of the distributed system,
+  // the component_name would be the name inside the box that includes this
+  // process.
+  string component_name = 1;
+
+  // `access_token` is the unique API key for your LightStep project. It is
+  // available on your account page at https://app.lightstep.com/account
+  string access_token = 2;
+
+  // The host, port, and whether or not to use plaintext communication for the
+  // collector. Ignored if a custom transporter is used.
+  string collector_host = 3;
+  uint32 collector_port = 4;
+  bool collector_plaintext = 5;
+
+  // Set `use_single_key_propagation` to Inject/Extract span context as a single
+  // key in TextMap and HTTPHeaders carriers.
+  bool use_single_key_propagation = 6;
+
+  // `max_buffered_spans` is the maximum number of spans that will be buffered
+  // before sending them to a collector.
+  uint32 max_buffered_spans = 7;
+
+  // `reporting_period` is the maximum duration of time between sending spans
+  // to a collector. (In microseconds). 
+  uint32 reporting_period = 8;
+
+  // `report_timeout` is the timeout to use when sending a reports to the
+  // collector. Ignored if a custom transport is used. (In microseconds).
+  uint32 report_timeout = 9;
+}
