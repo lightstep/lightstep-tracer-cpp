@@ -31,11 +31,15 @@ include(CPack)
 option(WITH_ASAN "Generate tests using address-sanitizer." OFF)
 option(WITH_TSAN "Generate tests using thread-sanitizer." OFF)
 option(WITH_GRPC "Build with support for gRPC." ON)
+option(WITH_DYNAMIC_LOAD "Build support for dynamic loading." ON)
 option(ENABLE_LINTING "Run clang-tidy on sources if available." ON)
 option(HEADERS_ONLY "Only generate config.h and version.h." OFF)
 
 if (WITH_GRPC)
   set(LIGHTSTEP_USE_GRPC 1)
+elseif(WITH_DYNAMIC_LOAD)
+  message(WARNING "WITH_GRPC is not set; building without dynamic loading support.")
+  set(WITH_DYNAMIC_LOAD 0)
 endif()
 
 # ==============================================================================
@@ -145,8 +149,12 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/lightstep_span_context.cpp
                    src/lightstep_span.cpp
                    src/lightstep_tracer_impl.cpp
+                   src/lightstep_tracer_factory.cpp
                    src/transporter.cpp
                    src/tracer.cpp)
+if (WITH_DYNAMIC_LOAD)
+  list(APPEND LIGHTSTEP_SRCS src/dynamic_load.cpp)
+endif()
 
 add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_protobuf>
                              $<TARGET_OBJECTS:lightstep_3rd_party>

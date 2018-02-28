@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package lightstep.collector;
+package lightstep.tracer_configuration;
 
-option go_package = "collectorpb";
+option go_package = "tracer_configurationpb";
 option objc_class_prefix = "LSPB";
 option java_multiple_files = true;
 option java_package = "com.lightstep.tracer.grpc";
