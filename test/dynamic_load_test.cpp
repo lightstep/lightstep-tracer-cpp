@@ -44,14 +44,13 @@ TEST_CASE("dynamic_load") {
 
     // Create a tracer.
     const char* config = R"(
-  {
-    "component_name" : "dynamic_load_test",
-    "access_token": "abc123",
-    "collector_host": "0.0.0.0",
-    "collector_port": 50051,
-    "collector_plaintext": true
-  }
-  )";
+    {
+      "component_name" : "dynamic_load_test",
+      "access_token": "abc123",
+      "collector_host": "0.0.0.0",
+      "collector_port": 50051,
+      "collector_plaintext": true
+    })";
     auto tracer_maybe = tracer_factory.MakeTracer(config, error_message);
     REQUIRE(error_message == "");
     REQUIRE(tracer_maybe);
