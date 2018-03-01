@@ -3,7 +3,6 @@ set(PROTO_PATH "${CMAKE_SOURCE_DIR}/lightstep-tracer-common")
 set(GOOGLE_API_HTTP_PROTO ${PROTO_PATH}/third_party/googleapis/google/api/http.proto)
 set(GOOGLE_API_ANNOTATIONS_PROTO ${PROTO_PATH}/third_party/googleapis/google/api/annotations.proto)
 set(COLLECTOR_PROTO ${PROTO_PATH}/collector.proto)
-set(TRACER_CONFIGURATION_PROTO ${PROTO_PATH}/tracer_configuration.proto)
 set(LIGHTSTEP_CARRIER_PROTO ${PROTO_PATH}/lightstep_carrier.proto)
 set(GENERATED_PROTOBUF_PATH ${CMAKE_BINARY_DIR}/generated/lightstep-tracer-common)
 file(MAKE_DIRECTORY ${GENERATED_PROTOBUF_PATH})
@@ -22,9 +21,6 @@ set(COLLECTOR_GRPC_PB_H_FILE ${GENERATED_PROTOBUF_PATH}/collector.grpc.pb.h)
 set(LIGHTSTEP_CARRIER_PB_CPP_FILE ${GENERATED_PROTOBUF_PATH}/lightstep_carrier.pb.cc)
 set(LIGHTSTEP_CARRIER_PB_H_FILE ${GENERATED_PROTOBUF_PATH}/lightstep_carrier.pb.h)
 
-set(TRACER_CONFIGURATION_PB_CPP_FILE ${GENERATED_PROTOBUF_PATH}/tracer_configuration.pb.cc)
-set(TRACER_CONFIGURATION_PB_H_FILE ${GENERATED_PROTOBUF_PATH}/tracer_configuration.pb.h)
-
 set(PROTOBUF_INCLUDE_FLAGS "-I${PROTO_PATH}/third_party/googleapis")
 foreach(IMPORT_DIR ${PROTOBUF_IMPORT_DIRS})
   list(APPEND PROTOBUF_INCLUDE_FLAGS "-I${IMPORT_DIR}")
@@ -39,8 +35,6 @@ add_custom_command(
          ${COLLECTOR_PB_CPP_FILE}
          ${LIGHTSTEP_CARRIER_PB_H_FILE}
          ${LIGHTSTEP_CARRIER_PB_CPP_FILE}
-         ${TRACER_CONFIGURATION_PB_CPP_FILE}
-         ${TRACER_CONFIGURATION_PB_H_FILE}
  COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
  ARGS "--proto_path=${PROTO_PATH}/third_party/googleapis"
       ${PROTOBUF_INCLUDE_FLAGS}
@@ -52,7 +46,6 @@ add_custom_command(
       ${PROTOBUF_INCLUDE_FLAGS}
       "--cpp_out=${GENERATED_PROTOBUF_PATH}"
       ${COLLECTOR_PROTO}
-      ${TRACER_CONFIGURATION_PROTO}
       ${LIGHTSTEP_CARRIER_PROTO}
 )
 
@@ -72,20 +65,18 @@ if (LIGHTSTEP_USE_GRPC)
            "${COLLECTOR_PROTO}"
       )
   
-  add_library(lightstep_protobuf OBJECT ${GOOGLE_API_HTTP_PB_CPP_FILE}
+  add_library(lightstep_tracer_common OBJECT ${GOOGLE_API_HTTP_PB_CPP_FILE}
                                         ${GOOGLE_API_ANNOTATIONS_PB_CPP_FILE}
                                         ${COLLECTOR_PB_CPP_FILE}
-                                        ${TRACER_CONFIGURATION_PB_CPP_FILE}
                                         ${COLLECTOR_GRPC_PB_CPP_FILE}
                                         ${LIGHTSTEP_CARRIER_PB_CPP_FILE})
 else()
-  add_library(lightstep_protobuf OBJECT ${GOOGLE_API_HTTP_PB_CPP_FILE}
+  add_library(lightstep_tracer_common OBJECT ${GOOGLE_API_HTTP_PB_CPP_FILE}
                                         ${GOOGLE_API_ANNOTATIONS_PB_CPP_FILE}
                                         ${COLLECTOR_PB_CPP_FILE}
-                                        ${TRACER_CONFIGURATION_PB_CPP_FILE}
                                         ${LIGHTSTEP_CARRIER_PB_CPP_FILE})
 endif()
 
 if (BUILD_SHARED_LIBS)
-  set_property(TARGET lightstep_protobuf PROPERTY POSITION_INDEPENDENT_CODE ON)
+  set_property(TARGET lightstep_tracer_common PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif()

@@ -135,7 +135,8 @@ include_directories(include)
 install(DIRECTORY include/lightstep DESTINATION include)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
-include(LightStepProtobuf)
+include(LightStepTracerCommon)
+include(LightStepTracerConfiguration)
 
 set(LIGHTSTEP_SRCS src/utility.cpp
                    src/in_memory_stream.cpp
@@ -156,7 +157,8 @@ if (WITH_DYNAMIC_LOAD)
   list(APPEND LIGHTSTEP_SRCS src/dynamic_load.cpp)
 endif()
 
-add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_protobuf>
+add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_tracer_common>
+                             $<TARGET_OBJECTS:lightstep_tracer_configuration>
                              $<TARGET_OBJECTS:lightstep_3rd_party>
                              ${LIGHTSTEP_SRCS})
 target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
@@ -175,7 +177,8 @@ target_link_libraries(lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
 # Build optional sanitized versions of the LightStep tracer
 
 if (LIGHTSTEP_USE_ASAN)
-  add_library(lightstep_tracer_asan $<TARGET_OBJECTS:lightstep_protobuf>
+  add_library(lightstep_tracer_asan $<TARGET_OBJECTS:lightstep_tracer_common>
+                                    $<TARGET_OBJECTS:lightstep_tracer_configuration>
                                     ${LIGHTSTEP_SRCS})
   target_compile_options(lightstep_tracer_asan PUBLIC ${ASAN_CXX_FLAGS})
   target_link_libraries(lightstep_tracer_asan ${LIGHTSTEP_LINK_LIBRARIES})
@@ -184,7 +187,8 @@ if (LIGHTSTEP_USE_ASAN)
 endif()
 
 if (LIGHTSTEP_USE_TSAN)
-  add_library(lightstep_tracer_tsan $<TARGET_OBJECTS:lightstep_protobuf>
+  add_library(lightstep_tracer_tsan $<TARGET_OBJECTS:lightstep_tracer_common>
+                                    $<TARGET_OBJECTS:lightstep_tracer_configuration>
                                     ${LIGHTSTEP_SRCS})
   target_compile_options(lightstep_tracer_tsan PUBLIC ${TSAN_CXX_FLAGS})
   target_link_libraries(lightstep_tracer_tsan ${LIGHTSTEP_LINK_LIBRARIES})

@@ -3,7 +3,7 @@ workspace(name = "com_lightstep_tracer_cpp")
 git_repository(
     name = "io_opentracing_cpp",
     remote = "https://github.com/opentracing/opentracing-cpp",
-    commit = "713c15d40ae63185d2bec99bf3b03823967d7108",
+    commit = "f3c1f42601d13504c68e2bc81c60604f0de055dd",
 )
 
 http_archive(
