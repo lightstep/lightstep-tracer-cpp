@@ -2,7 +2,7 @@ macro(_lightstep_test TEST_NAME)
   add_executable(${TEST_NAME} ${ARGN})
   target_link_libraries(${TEST_NAME} lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
   target_compile_options(${TEST_NAME} PUBLIC "-g")
-  add_test(${TEST_NAME} ${TEST_NAME})
+  add_test(${TEST_NAME} ${TEST_NAME} ${${TEST_NAME}_opts})
 
   if (LIGHTSTEP_USE_ASAN)
     add_executable(${TEST_NAME}_asan ${ARGN})
@@ -11,7 +11,7 @@ macro(_lightstep_test TEST_NAME)
     target_compile_options(${TEST_NAME}_asan PUBLIC ${ASAN_CXX_FLAGS})
     set_target_properties(${TEST_NAME}_asan 
       PROPERTIES LINK_FLAGS "${ASAN_LD_FLAGS}")
-    add_test(${TEST_NAME}_asan ${TEST_NAME}_asan)
+    add_test(${TEST_NAME}_asan ${TEST_NAME}_asan ${${TEST_NAME}_opts})
   endif()
 
   if (LIGHTSTEP_USE_TSAN)
@@ -21,7 +21,7 @@ macro(_lightstep_test TEST_NAME)
     target_compile_options(${TEST_NAME}_tsan PUBLIC ${TSAN_CXX_FLAGS})
     set_target_properties(${TEST_NAME}_tsan 
       PROPERTIES LINK_FLAGS "${TSAN_LD_FLAGS}")
-    add_test(${TEST_NAME}_tsan ${TEST_NAME}_tsan)
+    add_test(${TEST_NAME}_tsan ${TEST_NAME}_tsan ${${TEST_NAME}_opts})
   endif()
 endmacro()
 
@@ -38,3 +38,9 @@ _lightstep_test(manual_recorder_test manual_recorder_test.cpp
                                      utility.cpp
                                      in_memory_async_transporter.cpp
                                      testing_condition_variable_wrapper.cpp)
+if (WITH_DYNAMIC_LOAD AND BUILD_SHARED_LIBS)
+  set(dynamic_load_test_opts --lightstep_library 
+    ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}lightstep_tracer${CMAKE_SHARED_LIBRARY_SUFFIX})
+  _lightstep_test(dynamic_load_test dynamic_load_test.cpp
+                                    in_memory_collector.cpp)
+endif()

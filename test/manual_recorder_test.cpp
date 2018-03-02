@@ -8,7 +8,7 @@
 #include "utility.h"
 
 #define CATCH_CONFIG_MAIN
-#include <lightstep/catch/catch.hpp>
+#include <lightstep/catch2/catch.hpp>
 
 using namespace lightstep;
 using namespace opentracing;
