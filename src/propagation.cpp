@@ -80,7 +80,7 @@ static opentracing::expected<opentracing::string_view> LookupKey(
 //------------------------------------------------------------------------------
 static opentracing::expected<void> InjectSpanContextMultiKey(
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
-    uint64_t span_id,
+    uint64_t span_id, bool sampled,
     const std::unordered_map<std::string, std::string>& baggage) {
   std::string trace_id_hex, span_id_hex, baggage_key;
   try {
@@ -99,7 +99,11 @@ static opentracing::expected<void> InjectSpanContextMultiKey(
   if (!result) {
     return result;
   }
-  result = carrier.Set(FieldNameSampled, "true");
+  if (sampled) {
+    result = carrier.Set(FieldNameSampled, "true");
+  } else {
+    result = carrier.Set(FieldNameSampled, "false");
+  }
   if (!result) {
     return result;
   }
@@ -124,11 +128,11 @@ static opentracing::expected<void> InjectSpanContextMultiKey(
 //------------------------------------------------------------------------------
 static opentracing::expected<void> InjectSpanContextSingleKey(
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
-    uint64_t span_id,
+    uint64_t span_id, bool sampled,
     const std::unordered_map<std::string, std::string>& baggage) {
   std::ostringstream ostream;
   auto result = InjectSpanContext(PropagationOptions{}, ostream, trace_id,
-                                  span_id, baggage);
+                                  sampled, span_id, baggage);
   if (!result) {
     return result;
   }
@@ -153,13 +157,13 @@ static opentracing::expected<void> InjectSpanContextSingleKey(
 // InjectSpanContext
 //------------------------------------------------------------------------------
 static opentracing::expected<void> InjectSpanContext(
-    BinaryCarrier& carrier, uint64_t trace_id, uint64_t span_id,
+    BinaryCarrier& carrier, uint64_t trace_id, uint64_t span_id, bool sampled,
     const std::unordered_map<std::string, std::string>& baggage) noexcept try {
   carrier.Clear();
   auto basic = carrier.mutable_basic_ctx();
   basic->set_trace_id(trace_id);
   basic->set_span_id(span_id);
-  basic->set_sampled(true);
+  basic->set_sampled(sampled);
   auto mutable_baggage = basic->mutable_baggage_items();
   for (auto& baggage_item : baggage) {
     (*mutable_baggage)[baggage_item.first] = baggage_item.second;
@@ -172,10 +176,11 @@ static opentracing::expected<void> InjectSpanContext(
 
 opentracing::expected<void> InjectSpanContext(
     const PropagationOptions& /*propagation_options*/, std::ostream& carrier,
-    uint64_t trace_id, uint64_t span_id,
+    uint64_t trace_id, uint64_t span_id, bool sampled,
     const std::unordered_map<std::string, std::string>& baggage) {
   BinaryCarrier binary_carrier;
-  auto result = InjectSpanContext(binary_carrier, trace_id, span_id, baggage);
+  auto result =
+      InjectSpanContext(binary_carrier, trace_id, span_id, sampled, baggage);
   if (!result) {
     return result;
   }
@@ -198,12 +203,14 @@ opentracing::expected<void> InjectSpanContext(
 opentracing::expected<void> InjectSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
-    uint64_t span_id,
+    uint64_t span_id, bool sampled,
     const std::unordered_map<std::string, std::string>& baggage) {
   if (propagation_options.use_single_key) {
-    return InjectSpanContextSingleKey(carrier, trace_id, span_id, baggage);
+    return InjectSpanContextSingleKey(carrier, trace_id, span_id, sampled,
+                                      baggage);
   } else {
-    return InjectSpanContextMultiKey(carrier, trace_id, span_id, baggage);
+    return InjectSpanContextMultiKey(carrier, trace_id, span_id, sampled,
+                                     baggage);
   }
 }
 
@@ -213,7 +220,8 @@ opentracing::expected<void> InjectSpanContext(
 template <class KeyCompare>
 static opentracing::expected<bool> ExtractSpanContextMultiKey(
     const opentracing::TextMapReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, std::unordered_map<std::string, std::string>& baggage,
+    uint64_t& span_id, bool& sampled,
+    std::unordered_map<std::string, std::string>& baggage,
     KeyCompare key_compare) {
   int count = 0;
   auto result = carrier.ForeachKey(
@@ -227,7 +235,11 @@ static opentracing::expected<bool> ExtractSpanContextMultiKey(
             span_id = HexToUint64(value);
             count++;
           } else if (key_compare(key, FieldNameSampled)) {
-            // Ignored
+            if (value == "false" || value == "0") {
+              sampled = false;
+            } else {
+              sampled = true;
+            }
             count++;
           } else if (key.length() > PrefixBaggage.size() &&
                      key_compare(opentracing::string_view{key.data(),
@@ -262,7 +274,8 @@ static opentracing::expected<bool> ExtractSpanContextMultiKey(
 template <class KeyCompare>
 static opentracing::expected<bool> ExtractSpanContextSingleKey(
     const opentracing::TextMapReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, std::unordered_map<std::string, std::string>& baggage,
+    uint64_t& span_id, bool& sampled,
+    std::unordered_map<std::string, std::string>& baggage,
     KeyCompare key_compare) {
   auto value_maybe = LookupKey(carrier, PropagationSingleKey, key_compare);
   if (!value_maybe) {
@@ -286,7 +299,7 @@ static opentracing::expected<bool> ExtractSpanContextSingleKey(
   }
   in_memory_stream istream{base64_decoding.data(), base64_decoding.size()};
   return ExtractSpanContext(PropagationOptions{}, istream, trace_id, span_id,
-                            baggage);
+                            sampled, baggage);
 }
 
 //------------------------------------------------------------------------------
@@ -294,10 +307,12 @@ static opentracing::expected<bool> ExtractSpanContextSingleKey(
 //------------------------------------------------------------------------------
 static opentracing::expected<bool> ExtractSpanContext(
     const BinaryCarrier& carrier, uint64_t& trace_id, uint64_t& span_id,
+    bool& sampled,
     std::unordered_map<std::string, std::string>& baggage) noexcept try {
   auto& basic = carrier.basic_ctx();
   trace_id = basic.trace_id();
   span_id = basic.span_id();
+  sampled = basic.sampled();
   for (const auto& entry : basic.baggage_items()) {
     baggage.emplace(entry.first, entry.second);
   }
@@ -309,7 +324,7 @@ static opentracing::expected<bool> ExtractSpanContext(
 
 opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& /*propagation_options*/, std::istream& carrier,
-    uint64_t& trace_id, uint64_t& span_id,
+    uint64_t& trace_id, uint64_t& span_id, bool& sampled,
     std::unordered_map<std::string, std::string>& baggage) try {
   // istream::peek returns EOF if it's in an error state, so check for an error
   // state first before checking for an empty stream.
@@ -328,7 +343,8 @@ opentracing::expected<bool> ExtractSpanContext(
     return opentracing::make_unexpected(
         opentracing::span_context_corrupted_error);
   }
-  return ExtractSpanContext(binary_carrier, trace_id, span_id, baggage);
+  return ExtractSpanContext(binary_carrier, trace_id, span_id, sampled,
+                            baggage);
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(
       std::make_error_code(std::errc::not_enough_memory));
@@ -338,23 +354,26 @@ template <class KeyCompare>
 static opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, std::unordered_map<std::string, std::string>& baggage,
+    uint64_t& span_id, bool& sampled,
+    std::unordered_map<std::string, std::string>& baggage,
     KeyCompare key_compare) {
   if (propagation_options.use_single_key) {
-    return ExtractSpanContextSingleKey(carrier, trace_id, span_id, baggage,
-                                       key_compare);
+    return ExtractSpanContextSingleKey(carrier, trace_id, span_id, sampled,
+                                       baggage, key_compare);
   } else {
-    return ExtractSpanContextMultiKey(carrier, trace_id, span_id, baggage,
-                                      key_compare);
+    return ExtractSpanContextMultiKey(carrier, trace_id, span_id, sampled,
+                                      baggage, key_compare);
   }
 }
 
 opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, std::unordered_map<std::string, std::string>& baggage) {
+    uint64_t& span_id, bool& sampled,
+    std::unordered_map<std::string, std::string>& baggage) {
   return ExtractSpanContext(propagation_options, carrier, trace_id, span_id,
-                            baggage, std::equal_to<opentracing::string_view>());
+                            sampled, baggage,
+                            std::equal_to<opentracing::string_view>());
 }
 
 // HTTP header field names are case insensitive, so we need to ignore case when
@@ -364,7 +383,8 @@ opentracing::expected<bool> ExtractSpanContext(
 opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::HTTPHeadersReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, std::unordered_map<std::string, std::string>& baggage) {
+    uint64_t& span_id, bool& sampled,
+    std::unordered_map<std::string, std::string>& baggage) {
   auto iequals = [](opentracing::string_view lhs,
                     opentracing::string_view rhs) {
     return lhs.length() == rhs.length() &&
@@ -374,6 +394,6 @@ opentracing::expected<bool> ExtractSpanContext(
                       });
   };
   return ExtractSpanContext(propagation_options, carrier, trace_id, span_id,
-                            baggage, iequals);
+                            sampled, baggage, iequals);
 }
 }  // namespace lightstep
