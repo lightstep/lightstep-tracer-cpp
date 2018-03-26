@@ -47,7 +47,13 @@ dependencies:
 test:
   override:
     - cd ${SRC_DIR} && mkdir build_with_grpc && cd build_with_grpc && cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=${HOME} -DWITH_ASAN=ON -DWITH_TSAN=ON .. && make && make test
+    - store_artifacts:
+        path: Testing/Temporary/LastTest.log
+        destination: LastTest-with-grpc.log
     - cd ${SRC_DIR} && mkdir build_no_grpc && cd build_no_grpc && cmake -DCMAKE_INSTALL_PREFIX=${HOME} -DWITH_GRPC=OFF .. && make && make test
+    - store_artifacts:
+        path: Testing/Temporary/LastTest.log
+        destination: LastTest-no-grpc.log
 
 experimental:
   notify:
