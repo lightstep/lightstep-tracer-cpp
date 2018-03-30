@@ -8,10 +8,20 @@ jobs:
       - run: ./ci/setup_build_environment.sh
       - run: ./ci/install_grpc.sh
       - run: ./ci/install_opentracing.sh
-      - run: ./ci/do_ci.sh cmake.test
+      - run: ./ci/do_ci.sh cmake.asan
+  tsan:
+    docker:
+      - image: ubuntu:17.10
+    steps:
+      - checkout
+      - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_grpc.sh
+      - run: ./ci/install_opentracing.sh
+      - run: ./ci/do_ci.sh cmake.tsan
 
 workflows:
   version: 2
   build_test_and_deploy:
     jobs:
       - asan
+      - tsan
