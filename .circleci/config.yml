@@ -9,6 +9,9 @@ jobs:
       - run: ./ci/install_grpc.sh
       - run: ./ci/install_opentracing.sh
       - run: ./ci/do_ci.sh cmake.asan
+      - store_artifacts:
+          path: /build/Testing/Temporary/LastTest.log
+          destination: Test.log
   tsan:
     docker:
       - image: ubuntu:17.10
@@ -18,6 +21,9 @@ jobs:
       - run: ./ci/install_grpc.sh
       - run: ./ci/install_opentracing.sh
       - run: ./ci/do_ci.sh cmake.tsan
+      - store_artifacts:
+          path: /build/Testing/Temporary/LastTest.log
+          destination: Test.log
 
 workflows:
   version: 2

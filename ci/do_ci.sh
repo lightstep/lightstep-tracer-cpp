@@ -3,7 +3,8 @@
 set -e
 
 [ -z "${SRC_DIR}" ] && export SRC_DIR="`pwd`"
-[ -z "${BUILD_DIR}" ] && export BUILD_DIR="`mktemp -d`"
+[ -z "${BUILD_DIR}" ] && export BUILD_DIR=/build
+mkdir -p "${BUILD_DIR}"
 
 if [[ "$1" == "cmake.asan" ]]; then
   cd "${BUILD_DIR}"
