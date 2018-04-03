@@ -2,18 +2,15 @@
 
 set -e
 
+[ -z "${PROTOBUF_VERSION}" ] && export PROTOBUF_VERSION="3.5.1"
+
 apt-get update 
 apt-get install --no-install-recommends --no-install-suggests -y \
-         curl \
-         libprotobuf-dev \
-         unzip
+         curl
 
 # Make sure you grab the latest version
 cd /
-curl -OL https://github.com/google/protobuf/releases/download/v3.2.0/protoc-3.2.0-linux-x86_64.zip
-
-# Unzip
-unzip protoc-3.2.0-linux-x86_64.zip -d protoc3
-
-# Move only protoc* to /usr/bin/
-mv protoc3/bin/protoc /usr/bin/protoc
+curl -OL https://github.com/google/protobuf/releases/download/v${PROTOBUF_VERSION}/protobuf-cpp-${PROTOBUF_VERSION}.tar.gz
+cd protobuf-${PROTOBUF_VERSION}
+./configure
+make && make install
