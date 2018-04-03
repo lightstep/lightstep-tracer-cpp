@@ -58,6 +58,7 @@ class TestingConditionVariableWrapper : public ConditionVariableWrapper {
    public:
     using Event::Event;
     void Process(TestingConditionVariableWrapper& condition_variable) override;
+    void Notify() override;
   };
 
   class WaitEvent : public Event {

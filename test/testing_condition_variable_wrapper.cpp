@@ -19,6 +19,11 @@ void TestingConditionVariableWrapper::NotifyAllEvent::Process(
 }
 
 //------------------------------------------------------------------------------
+// NotifyAllEvent::Notify
+//------------------------------------------------------------------------------
+void TestingConditionVariableWrapper::NotifyAllEvent::Notify() { delete this; }
+
+//------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
 TestingConditionVariableWrapper::~TestingConditionVariableWrapper() {
