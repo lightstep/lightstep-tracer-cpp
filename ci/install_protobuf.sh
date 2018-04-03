@@ -15,3 +15,4 @@ tar zxf protobuf-cpp-${PROTOBUF_VERSION}.tar.gz
 cd protobuf-${PROTOBUF_VERSION}
 ./configure
 make && make install
+ldconfig

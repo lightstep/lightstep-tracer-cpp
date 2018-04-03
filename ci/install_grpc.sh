@@ -19,3 +19,4 @@ make HAS_SYSTEM_PROTOBUF=false && make install
 make && make install
 cd third_party/protobuf
 make install
+ldconfig
