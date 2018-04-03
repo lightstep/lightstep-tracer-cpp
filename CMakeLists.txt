@@ -28,8 +28,6 @@ include(CPack)
 # ==============================================================================
 # Set up options
 
-option(WITH_ASAN "Generate tests using address-sanitizer." OFF)
-option(WITH_TSAN "Generate tests using thread-sanitizer." OFF)
 option(WITH_GRPC "Build with support for gRPC." ON)
 option(WITH_DYNAMIC_LOAD "Build support for dynamic loading." ON)
 option(ENABLE_LINTING "Run clang-tidy on sources if available." ON)
@@ -172,29 +170,6 @@ install(TARGETS lightstep_tracer
         ARCHIVE DESTINATION lib)
 
 target_link_libraries(lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
-
-# ==============================================================================
-# Build optional sanitized versions of the LightStep tracer
-
-if (LIGHTSTEP_USE_ASAN)
-  add_library(lightstep_tracer_asan $<TARGET_OBJECTS:lightstep_tracer_common>
-                                    $<TARGET_OBJECTS:lightstep_tracer_configuration>
-                                    ${LIGHTSTEP_SRCS})
-  target_compile_options(lightstep_tracer_asan PUBLIC ${ASAN_CXX_FLAGS})
-  target_link_libraries(lightstep_tracer_asan ${LIGHTSTEP_LINK_LIBRARIES})
-  set_target_properties(lightstep_tracer_asan 
-    PROPERTIES LINK_FLAGS "${ASAN_LD_FLAGS}")
-endif()
-
-if (LIGHTSTEP_USE_TSAN)
-  add_library(lightstep_tracer_tsan $<TARGET_OBJECTS:lightstep_tracer_common>
-                                    $<TARGET_OBJECTS:lightstep_tracer_configuration>
-                                    ${LIGHTSTEP_SRCS})
-  target_compile_options(lightstep_tracer_tsan PUBLIC ${TSAN_CXX_FLAGS})
-  target_link_libraries(lightstep_tracer_tsan ${LIGHTSTEP_LINK_LIBRARIES})
-  set_target_properties(lightstep_tracer_tsan 
-    PROPERTIES LINK_FLAGS "${TSAN_LD_FLAGS}")
-endif()
 
 # ==============================================================================
 # Build tests and examples
