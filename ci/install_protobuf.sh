@@ -11,6 +11,7 @@ apt-get install --no-install-recommends --no-install-suggests -y \
 # Make sure you grab the latest version
 cd /
 curl -OL https://github.com/google/protobuf/releases/download/v${PROTOBUF_VERSION}/protobuf-cpp-${PROTOBUF_VERSION}.tar.gz
+tar zxf protobuf-${PROTOBUF_VERSION}
 cd protobuf-${PROTOBUF_VERSION}
 ./configure
 make && make install
