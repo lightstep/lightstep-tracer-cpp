@@ -41,4 +41,7 @@ elif [[ "$1" == "cmake.tsan" ]]; then
   make VERBOSE=1
   make test
   exit 0
+elif [[ "$1" == "bazel.build" ]]; then
+  bazel build //...
+  exit 0
 fi

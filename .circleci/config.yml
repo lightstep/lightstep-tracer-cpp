@@ -31,10 +31,19 @@ jobs:
       - checkout
       - run: ./ci/setup_build_environment.sh
       - run: ./ci/install_opentracing.sh
+      - run: ./ci/install_protobuf.sh
       - run: ./ci/do_ci.sh cmake.no_grpc
       - store_artifacts:
           path: /build/Testing/Temporary/LastTest.log
           destination: Test.log
+  build_bazel:
+    docker:
+      - image: ubuntu:17.10
+    steps:
+      - checkout
+      - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_bazel.sh
+      - run: ./ci/do_ci.sh bazel.build
 
 workflows:
   version: 2
@@ -43,3 +52,4 @@ workflows:
       - asan
       - tsan
       - build_with_no_grpc
+      - build_bazel
