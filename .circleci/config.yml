@@ -39,6 +39,7 @@ jobs:
   build_bazel:
     docker:
       - image: ubuntu:17.10
+    resource_class: large
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
