@@ -24,6 +24,17 @@ jobs:
       - store_artifacts:
           path: /build/Testing/Temporary/LastTest.log
           destination: Test.log
+  build_with_no_grpc:
+    docker:
+      - image: ubuntu:17.10
+    steps:
+      - checkout
+      - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_opentracing.sh
+      - run: ./ci/do_ci.sh cmake.no_grpc
+      - store_artifacts:
+          path: /build/Testing/Temporary/LastTest.log
+          destination: Test.log
 
 workflows:
   version: 2
@@ -31,3 +42,4 @@ workflows:
     jobs:
       - asan
       - tsan
+      - build_with_no_grpc

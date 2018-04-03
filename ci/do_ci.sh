@@ -6,7 +6,22 @@ set -e
 [ -z "${BUILD_DIR}" ] && export BUILD_DIR=/build
 mkdir -p "${BUILD_DIR}"
 
-if [[ "$1" == "cmake.asan" ]]; then
+if [[ "$1" == "cmake.debug" ]]; then
+  cd "${BUILD_DIR}"
+  cmake -DCMAKE_BUILD_TYPE=Debug  \
+        "${SRC_DIR}"
+  make
+  make test
+  exit 0
+elif [[ "$1" == "cmake.no_grpc" ]]; then
+  cd "${BUILD_DIR}"
+  cmake -DCMAKE_BUILD_TYPE=Debug  \
+        -DWITH_GRPC=OFF \
+        "${SRC_DIR}"
+  make
+  make test
+  exit 0
+elif [[ "$1" == "cmake.asan" ]]; then
   cd "${BUILD_DIR}"
   cmake -DCMAKE_BUILD_TYPE=Debug  \
         -DCMAKE_CXX_FLAGS="-fno-omit-frame-pointer -fsanitize=address"  \
