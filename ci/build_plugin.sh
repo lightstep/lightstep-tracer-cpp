@@ -16,6 +16,9 @@ git clone -b ${GRPC_VERSION} https://github.com/grpc/grpc
 cd grpc
 git submodule update --init
 make HAS_SYSTEM_PROTOBUF=false static
+# According to https://github.com/grpc/grpc/issues/7917#issuecomment-243800503
+# make install won't work with the static target, so manually copy in the files
+# needed.
 cp -r include/grpc /usr/local/include/
 cp -r include/grpc++ /usr/local/include/
 cp -r include/grpcpp /usr/local/include/
