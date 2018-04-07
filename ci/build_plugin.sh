@@ -72,8 +72,8 @@ all:
 			-Wl,--no-whole-archive \
       /usr/local/lib/libopentracing.a \
 			/usr/local/lib/libprotobuf.a \
-			/usr/local/lib/libgrpc.a \
 			/usr/local/lib/libgrpc++.a \
+			/usr/local/lib/libgrpc.a \
       -static-libstdc++ -static-libgcc
 EOF
 make
