@@ -26,6 +26,7 @@ cp libs/opt/*.a /usr/local/lib
 cp libs/opt/protobuf/*.a /usr/local/lib
 cp bins/opt/grpc_cpp_plugin /usr/local/bin
 mkdir -p /usr/local/lib/pkgconfig
+cp libs/opt/pkgconfig/*.pc /usr/local/lib/pkgconfig
 cd third_party/protobuf
 make install
 
