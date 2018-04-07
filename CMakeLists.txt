@@ -100,7 +100,7 @@ if (WITH_GRPC)
   find_package(PkgConfig REQUIRED)
   pkg_search_module(GRPC REQUIRED grpc)
   pkg_search_module(GRPCPP REQUIRED grpc++)
-  list(APPEND LIGHTSTEP_LINK_LIBRARIES ${GRPC_LDFLAGS} ${GRPCPP_LDFLAGS})  
+  list(APPEND LIGHTSTEP_LINK_LIBRARIES ${GRPCPP_LDFLAGS} ${GRPC_LDFLAGS})  
   include_directories(SYSTEM ${GRPC_INCLUDE_DIRS} ${GRPCPP_INCLUDE_DIRS})
 endif()
 
