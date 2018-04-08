@@ -46,9 +46,14 @@ make && make install
 # Build LightStep
 cd "${BUILD_DIR}"
 mkdir lightstep-tracer-cpp && cd lightstep-tracer-cpp
-cmake -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_CXX_FLAGS="-fPIC" \
-      -DBUILD_TESTING=OFF \
+# cmake -DCMAKE_BUILD_TYPE=Release \
+#       -DCMAKE_CXX_FLAGS="-fPIC" \
+#       -DBUILD_TESTING=OFF \
+#       "${SRC_DIR}"
+cmake -DCMAKE_BUILD_TYPE=Debug  \
+      -DCMAKE_CXX_FLAGS="-fPIC -fno-omit-frame-pointer -fsanitize=address"  \
+      -DCMAKE_SHARED_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=address" \
+      -DCMAKE_EXE_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=address" \
       "${SRC_DIR}"
 make && make install
 
