@@ -49,6 +49,7 @@ mkdir lightstep-tracer-cpp && cd lightstep-tracer-cpp
 cmake -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_CXX_FLAGS="-g -fPIC -fno-omit-frame-pointer" \
       -DBUILD_TESTING=OFF \
+      -DBUILD_SHARED_LIBS=OFF \
       "${SRC_DIR}"
 
 # cmake -DCMAKE_BUILD_TYPE=Debug  \
@@ -56,7 +57,7 @@ cmake -DCMAKE_BUILD_TYPE=Release \
 #       -DCMAKE_SHARED_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=address" \
 #       -DCMAKE_EXE_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=address" \
 #       "${SRC_DIR}"
-make && make install
+make VERBOSE=1 && make install
 
 # Create a plugin
 cd "${BUILD_DIR}"
@@ -81,7 +82,7 @@ all:
 			/usr/local/lib/libgrpc.a \
 			/usr/local/lib/libprotobuf.a \
       -fno-omit-frame-pointer \
-      -static-libstdc++ -static-libgcc
+      -pthread -static-libstdc++ -static-libgcc
 EOF
 make
 cp liblightstep_tracer_plugin.so /
