@@ -56,7 +56,7 @@ cmake -DCMAKE_BUILD_TYPE=Release \
 #       -DCMAKE_SHARED_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=address" \
 #       -DCMAKE_EXE_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=address" \
 #       "${SRC_DIR}"
-# make && make install
+make && make install
 
 # Create a plugin
 cd "${BUILD_DIR}"
