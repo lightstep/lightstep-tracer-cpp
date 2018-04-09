@@ -36,7 +36,7 @@ git clone -b ${OPENTRACING_VERSION} https://github.com/opentracing/opentracing-c
 cd opentracing-cpp
 mkdir .build && cd .build
 cmake -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_CXX_FLAGS="-fPIC" \
+      -DCMAKE_CXX_FLAGS="-g -fPIC -fno-omit-frame-pointer" \
       -DBUILD_SHARED_LIBS=OFF \
       -DBUILD_TESTING=OFF \
       -DBUILD_MOCKTRACER=OFF \
@@ -47,7 +47,7 @@ make && make install
 cd "${BUILD_DIR}"
 mkdir lightstep-tracer-cpp && cd lightstep-tracer-cpp
 cmake -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_CXX_FLAGS="-g -fPIC" \
+      -DCMAKE_CXX_FLAGS="-g -fPIC -fno-omit-frame-pointer" \
       -DBUILD_TESTING=OFF \
       "${SRC_DIR}"
 
@@ -71,15 +71,16 @@ EOF
 cat <<EOF > Makefile
 all:
 	gcc -shared -o liblightstep_tracer_plugin.so \
+      -fno-omit-frame-pointer \ 
       -Wl,--version-script=export.map \
 			-L/usr/local/lib \
 			-Wl,--whole-archive \
 			/usr/local/lib/liblightstep_tracer.a \
+			-Wl,--no-whole-archive \
       /usr/local/lib/libopentracing.a \
 			/usr/local/lib/libgrpc++.a \
 			/usr/local/lib/libgrpc.a \
 			/usr/local/lib/libprotobuf.a \
-			-Wl,--no-whole-archive \
       -pthread \
       -static-libstdc++ -static-libgcc
 EOF
