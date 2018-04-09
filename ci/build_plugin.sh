@@ -71,7 +71,6 @@ EOF
 cat <<EOF > Makefile
 all:
 	gcc -shared -o liblightstep_tracer_plugin.so \
-      -fno-omit-frame-pointer \ 
       -Wl,--version-script=export.map \
 			-L/usr/local/lib \
 			-Wl,--whole-archive \
@@ -81,6 +80,7 @@ all:
 			/usr/local/lib/libgrpc++.a \
 			/usr/local/lib/libgrpc.a \
 			/usr/local/lib/libprotobuf.a \
+      -fno-omit-frame-pointer \
       -pthread \
       -static-libstdc++ -static-libgcc
 EOF
