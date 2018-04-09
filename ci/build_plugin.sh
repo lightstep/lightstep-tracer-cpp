@@ -80,7 +80,7 @@ all:
 			/usr/local/lib/libprotobuf.a \
 			/usr/local/lib/libgrpc++.a \
 			/usr/local/lib/libgrpc.a \
-      -lpthread \
+      -pthread \
       -static-libstdc++ -static-libgcc
 EOF
 make
