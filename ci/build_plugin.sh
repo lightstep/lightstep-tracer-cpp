@@ -75,11 +75,11 @@ all:
 			-L/usr/local/lib \
 			-Wl,--whole-archive \
 			/usr/local/lib/liblightstep_tracer.a \
-			-Wl,--no-whole-archive \
       /usr/local/lib/libopentracing.a \
-			/usr/local/lib/libprotobuf.a \
 			/usr/local/lib/libgrpc++.a \
 			/usr/local/lib/libgrpc.a \
+			/usr/local/lib/libprotobuf.a \
+			-Wl,--no-whole-archive \
       -pthread \
       -static-libstdc++ -static-libgcc
 EOF
