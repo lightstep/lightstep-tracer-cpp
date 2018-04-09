@@ -81,7 +81,6 @@ all:
 			/usr/local/lib/libgrpc.a \
 			/usr/local/lib/libprotobuf.a \
       -fno-omit-frame-pointer \
-      -pthread \
       -static-libstdc++ -static-libgcc
 EOF
 make

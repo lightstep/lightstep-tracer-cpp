@@ -104,6 +104,11 @@ if (WITH_GRPC)
   include_directories(SYSTEM ${GRPC_INCLUDE_DIRS} ${GRPCPP_INCLUDE_DIRS})
 endif()
 
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads REQUIRED)
+list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
+
 # ==============================================================================
 # Configure sanitizers
 
