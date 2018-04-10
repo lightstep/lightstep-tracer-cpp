@@ -40,6 +40,13 @@ elseif(WITH_DYNAMIC_LOAD)
   set(WITH_DYNAMIC_LOAD 0)
 endif()
 
+option(BUILD_SHARED_LIBS "Build as a shared library" ON)
+option(BUILD_STATIC_LIBS "Build as a static library" ON)
+
+if (NOT BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)
+    message(FATAL_ERROR "One or both of BUILD_SHARED_LIBS or BUILD_STATIC_LIBS must be set to ON to build")
+endif()
+
 # ==============================================================================
 # Set up generated header files config.h and version.h
 
@@ -110,25 +117,6 @@ find_package(Threads REQUIRED)
 list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
 
 # ==============================================================================
-# Configure sanitizers
-
-if (WITH_ASAN AND (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
-  ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND
-   "${COMPILER_VERSION}" VERSION_GREATER "4.8")))
-   set(LIGHTSTEP_USE_ASAN ON)
-   set(ASAN_CXX_FLAGS -O1 -g -fsanitize=address -fno-omit-frame-pointer)
-   set(ASAN_LD_FLAGS -fsanitize=address)
-endif()
-
-if (WITH_TSAN AND (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
-  ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND
-   "${COMPILER_VERSION}" VERSION_GREATER "4.8")))
-   set(LIGHTSTEP_USE_TSAN ON)
-   set(TSAN_CXX_FLAGS -O1 -g -fsanitize=thread)
-   set(TSAN_LD_FLAGS -fsanitize=thread)
-endif()
-
-# ==============================================================================
 # Build LightStep tracer library
 
 add_subdirectory(3rd_party)
@@ -155,26 +143,40 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/lightstep_tracer_impl.cpp
                    src/lightstep_tracer_factory.cpp
                    src/transporter.cpp
-                   src/tracer.cpp)
+                   src/tracer.cpp
+                   3rd_party/base64/src/base64.cpp
+                   ${TRACER_CONFIGURATION_PB_CPP_FILE}
+                   ${LIGHTSTEP_TRACER_COMMON_SRCS}
+                   )
 if (WITH_DYNAMIC_LOAD)
   list(APPEND LIGHTSTEP_SRCS src/dynamic_load.cpp)
 endif()
 
-add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_tracer_common>
-                             $<TARGET_OBJECTS:lightstep_tracer_configuration>
-                             $<TARGET_OBJECTS:lightstep_3rd_party>
-                             ${LIGHTSTEP_SRCS})
-target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
-if (ENABLE_LINTING)
-  include(LightStepClangTidy)
-  _apply_clang_tidy_if_available(lightstep_tracer)
+if (BUILD_SHARED_LIBS)  
+  add_library(lightstep_tracer SHARED ${LIGHTSTEP_SRCS})
+  target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
+  if (ENABLE_LINTING)
+    include(LightStepClangTidy)
+    _apply_clang_tidy_if_available(lightstep_tracer)
+  endif()
+  target_link_libraries(lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
+  install(TARGETS lightstep_tracer
+          LIBRARY DESTINATION lib)
 endif()
 
-install(TARGETS lightstep_tracer
-        LIBRARY DESTINATION lib 
-        ARCHIVE DESTINATION lib)
+if (BUILD_STATIC_LIBS)  
+  add_library(lightstep_tracer-static STATIC ${LIGHTSTEP_SRCS})
+  set_target_properties(lightstep_tracer-static PROPERTIES OUTPUT_NAME lightstep_tracer)
+  target_compile_options(lightstep_tracer-static PUBLIC ${WARNING_CXX_FLAGS})
+  if (ENABLE_LINTING)
+    include(LightStepClangTidy)
+    _apply_clang_tidy_if_available(lightstep_tracer-static)
+  endif()
+  target_link_libraries(lightstep_tracer-static ${LIGHTSTEP_LINK_LIBRARIES})
+  install(TARGETS lightstep_tracer-static
+          ARCHIVE DESTINATION lib)
+endif()
 
-target_link_libraries(lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
 
 # ==============================================================================
 # Build tests and examples

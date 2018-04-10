@@ -65,18 +65,14 @@ if (LIGHTSTEP_USE_GRPC)
            "${COLLECTOR_PROTO}"
       )
   
-  add_library(lightstep_tracer_common OBJECT ${GOOGLE_API_HTTP_PB_CPP_FILE}
-                                        ${GOOGLE_API_ANNOTATIONS_PB_CPP_FILE}
-                                        ${COLLECTOR_PB_CPP_FILE}
-                                        ${COLLECTOR_GRPC_PB_CPP_FILE}
-                                        ${LIGHTSTEP_CARRIER_PB_CPP_FILE})
+    set(LIGHTSTEP_TRACER_COMMON_SRCS ${GOOGLE_API_HTTP_PB_CPP_FILE}
+                                    ${GOOGLE_API_ANNOTATIONS_PB_CPP_FILE}
+                                    ${COLLECTOR_PB_CPP_FILE}
+                                    ${COLLECTOR_GRPC_PB_CPP_FILE}
+                                    ${LIGHTSTEP_CARRIER_PB_CPP_FILE})
 else()
-  add_library(lightstep_tracer_common OBJECT ${GOOGLE_API_HTTP_PB_CPP_FILE}
+  set(LIGHTSTEP_TRACER_COMMON_SRCS ${GOOGLE_API_HTTP_PB_CPP_FILE}
                                         ${GOOGLE_API_ANNOTATIONS_PB_CPP_FILE}
                                         ${COLLECTOR_PB_CPP_FILE}
                                         ${LIGHTSTEP_CARRIER_PB_CPP_FILE})
-endif()
-
-if (BUILD_SHARED_LIBS)
-  set_property(TARGET lightstep_tracer_common PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif()

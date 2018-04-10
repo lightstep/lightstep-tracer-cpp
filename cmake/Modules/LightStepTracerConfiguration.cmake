@@ -18,9 +18,3 @@ add_custom_command(
 
 include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH})
 include_directories(SYSTEM ${GENERATED_PROTOBUF_PATH}/../)
-
-add_library(lightstep_tracer_configuration OBJECT ${TRACER_CONFIGURATION_PB_CPP_FILE})
-
-if (BUILD_SHARED_LIBS)
-  set_property(TARGET lightstep_tracer_configuration PROPERTY POSITION_INDEPENDENT_CODE ON)
-endif()
