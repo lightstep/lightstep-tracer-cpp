@@ -182,7 +182,7 @@ endif()
 # Build tests and examples
 
 include(CTest)
-if (BUILD_TESTING)
+if (BUILD_TESTING AND BUILD_SHARED_LIBS)
   add_subdirectory(test)
+  add_subdirectory(example)
 endif()
-add_subdirectory(example)
