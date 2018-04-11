@@ -43,6 +43,8 @@ cmake -DCMAKE_BUILD_TYPE=Release \
 make && make install
 
 # Build LightStep
+cd "${BUILD_DIR}"
+mkdir lightstep-tracer-cpp && cd lightstep-tracer-cpp
 cat <<EOF > export.map
 {
   global:
@@ -50,12 +52,10 @@ cat <<EOF > export.map
   local: *;
 };
 EOF
-cd "${BUILD_DIR}"
-mkdir lightstep-tracer-cpp && cd lightstep-tracer-cpp
 cmake -DCMAKE_BUILD_TYPE=Release \
       -DBUILD_TESTING=OFF \
       -DBUILD_STATIC_LIBS=OFF \
-      -DCMAKE_SHARED_LINKER_FLAGS="-static-libstdc++ -static-libgcc -Wl,--version-script=${PWD}/export.map"
+      -DCMAKE_SHARED_LINKER_FLAGS="-static-libstdc++ -static-libgcc -Wl,--version-script=${PWD}/export.map" \
       "${SRC_DIR}"
 
 # cmake -DCMAKE_BUILD_TYPE=Debug  \
