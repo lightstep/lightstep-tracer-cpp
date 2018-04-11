@@ -36,7 +36,6 @@ git clone -b ${OPENTRACING_VERSION} https://github.com/opentracing/opentracing-c
 cd opentracing-cpp
 mkdir .build && cd .build
 cmake -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_CXX_FLAGS="-g -fPIC -fno-omit-frame-pointer" \
       -DBUILD_SHARED_LIBS=OFF \
       -DBUILD_TESTING=OFF \
       -DBUILD_MOCKTRACER=OFF \
@@ -44,12 +43,19 @@ cmake -DCMAKE_BUILD_TYPE=Release \
 make && make install
 
 # Build LightStep
+cat <<EOF > export.map
+{
+  global:
+    OpenTracingMakeTracerFactory;
+  local: *;
+};
+EOF
 cd "${BUILD_DIR}"
 mkdir lightstep-tracer-cpp && cd lightstep-tracer-cpp
 cmake -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_CXX_FLAGS="-g -pthread -fPIC -fno-omit-frame-pointer" \
       -DBUILD_TESTING=OFF \
-      -DBUILD_SHARED_LIBS=OFF \
+      -DBUILD_STATIC_LIBS=OFF \
+      -DCMAKE_SHARED_LINKER_FLAGS="-static-libstdc++ -static-libgcc -Wl,--version-script=${PWD}/export.map"
       "${SRC_DIR}"
 
 # cmake -DCMAKE_BUILD_TYPE=Debug  \
@@ -58,31 +64,32 @@ cmake -DCMAKE_BUILD_TYPE=Release \
 #       -DCMAKE_EXE_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=address" \
 #       "${SRC_DIR}"
 make VERBOSE=1 && make install
+cp /usr/local/lib/liblightstep_tracer.so /liblightstep_tracer_plugin.so
 
 # Create a plugin
-cd "${BUILD_DIR}"
-mkdir lightstep-tracer-plugin && cd lightstep-tracer-plugin
-cat <<EOF > export.map
-{
-  global:
-    OpenTracingMakeTracerFactory;
-  local: *;
-};
-EOF
-cat <<EOF > Makefile
-all:
-	gcc -shared -o liblightstep_tracer_plugin.so \
-      -Wl,--version-script=export.map \
-			-L/usr/local/lib \
-			-Wl,--whole-archive \
-			/usr/local/lib/liblightstep_tracer.a \
-			-Wl,--no-whole-archive \
-      /usr/local/lib/libopentracing.a \
-			/usr/local/lib/libgrpc++.a \
-			/usr/local/lib/libgrpc.a \
-			/usr/local/lib/libprotobuf.a \
-      -fno-omit-frame-pointer \
-      -static-libstdc++ -static-libgcc
-EOF
-make
-cp liblightstep_tracer_plugin.so /
+#plugincd "${BUILD_DIR}"
+#pluginmkdir lightstep-tracer-plugin && cd lightstep-tracer-plugin
+#plugincat <<EOF > export.map
+#plugin{
+#plugin  global:
+#plugin    OpenTracingMakeTracerFactory;
+#plugin  local: *;
+#plugin};
+#pluginEOF
+#plugincat <<EOF > Makefile
+#pluginall:
+#plugin	gcc -shared -o liblightstep_tracer_plugin.so \
+#plugin      -Wl,--version-script=export.map \
+#plugin			-L/usr/local/lib \
+#plugin			-Wl,--whole-archive \
+#plugin			/usr/local/lib/liblightstep_tracer.a \
+#plugin			-Wl,--no-whole-archive \
+#plugin      /usr/local/lib/libopentracing.a \
+#plugin			/usr/local/lib/libgrpc++.a \
+#plugin			/usr/local/lib/libgrpc.a \
+#plugin			/usr/local/lib/libprotobuf.a \
+#plugin      -fno-omit-frame-pointer \
+#plugin      -static-libstdc++ -static-libgcc
+#pluginEOF
+#pluginmake
+#plugincp liblightstep_tracer_plugin.so /
