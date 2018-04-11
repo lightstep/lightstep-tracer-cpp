@@ -144,16 +144,16 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/lightstep_tracer_factory.cpp
                    src/transporter.cpp
                    src/tracer.cpp
-                   3rd_party/base64/src/base64.cpp
-                   ${TRACER_CONFIGURATION_PB_CPP_FILE}
-                   ${LIGHTSTEP_TRACER_COMMON_SRCS}
                    )
 if (WITH_DYNAMIC_LOAD)
   list(APPEND LIGHTSTEP_SRCS src/dynamic_load.cpp)
 endif()
 
 if (BUILD_SHARED_LIBS)  
-  add_library(lightstep_tracer SHARED ${LIGHTSTEP_SRCS})
+  add_library(lightstep_tracer SHARED $<TARGET_OBJECTS:lightstep_tracer_common>
+                                      $<TARGET_OBJECTS:lightstep_tracer_configuration>
+                                      $<TARGET_OBJECTS:lightstep_3rd_party>
+                                      ${LIGHTSTEP_SRCS})
   target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
   if (ENABLE_LINTING)
     include(LightStepClangTidy)
@@ -165,7 +165,10 @@ if (BUILD_SHARED_LIBS)
 endif()
 
 if (BUILD_STATIC_LIBS)  
-  add_library(lightstep_tracer-static STATIC ${LIGHTSTEP_SRCS})
+  add_library(lightstep_tracer-static STATIC $<TARGET_OBJECTS:lightstep_tracer_common>
+                                             $<TARGET_OBJECTS:lightstep_tracer_configuration>
+                                             $<TARGET_OBJECTS:lightstep_3rd_party>
+                                             ${LIGHTSTEP_SRCS})
   set_target_properties(lightstep_tracer-static PROPERTIES OUTPUT_NAME lightstep_tracer)
   target_compile_options(lightstep_tracer-static PUBLIC ${WARNING_CXX_FLAGS})
   if (ENABLE_LINTING)
