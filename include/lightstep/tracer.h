@@ -75,7 +75,7 @@ struct LightStepTracerOptions {
 
   // Set `ssl_root_certificates` to specify the CA certificates to use when
   // transporting spans to the collector.  If not set, LightStep will try to
-  // use CA certifications located in standard system locations.
+  // use CA certificates located in standard system locations.
   //
   // Note: `ssl_root_certificates` should follow the PEM format.
   std::string ssl_root_certificates;
