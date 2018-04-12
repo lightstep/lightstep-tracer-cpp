@@ -24,6 +24,9 @@ const opentracing::string_view collector_service_full_name =
     "lightstep.collector.CollectorService";
 const opentracing::string_view collector_method_name = "Report";
 
+extern const unsigned char default_ssl_roots_pem[];
+extern const int default_ssl_roots_pem_size;
+
 //------------------------------------------------------------------------------
 // GetDefaultTags
 //------------------------------------------------------------------------------
@@ -172,6 +175,15 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
       options.tags.emplace(component_name_key, options.component_name);
     }
 
+    if (options.ssl_root_certificates.empty()) {
+      // If default ssl root certificates were embeded in the library, then
+      // default_ssl_roots_pem will be set to them; otherwise, it will be the
+      // empty string and GRPC will attempt to apply its defaults.
+      options.ssl_root_certificates =
+          std::string{reinterpret_cast<const char*>(default_ssl_roots_pem),
+                      static_cast<size_t>(default_ssl_roots_pem_size)};
+    }
+
     if (!options.use_thread) {
       return MakeSingleThreadedTracer(logger, std::move(options));
     }
@@ -180,7 +192,7 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     logger->Error("Failed to construct LightStep Tracer: ", e.what());
     return nullptr;
   }
-} catch (const /*spdlog::spdlog_ex&*/ std::exception& e) {
+} catch (const std::exception& e) {
   // Use fprintf to print the error because std::cerr can throw the user
   // configures by calling std::cerr::exceptions.
   std::fprintf(stderr, "Failed to initialize logger: %s\n", e.what());

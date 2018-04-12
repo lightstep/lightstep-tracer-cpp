@@ -73,6 +73,13 @@ struct LightStepTracerOptions {
   // key in TextMap and HTTPHeaders carriers.
   bool use_single_key_propagation = false;
 
+  // Set `ssl_root_certificates` to specify the CA certificates to use when
+  // transporting spans to the collector.  If not set, LightStep will try to
+  // use CA certifications located in standard system locations.
+  //
+  // Note: `ssl_root_certificates` should follow the PEM format.
+  std::string ssl_root_certificates;
+
   // Set `logger_sink` to a custom function to override where logging is
   // printed; otherwise, it defaults to stderr.
   std::function<void(LogLevel, opentracing::string_view)> logger_sink;

@@ -33,6 +33,18 @@ option(WITH_DYNAMIC_LOAD "Build support for dynamic loading." ON)
 option(ENABLE_LINTING "Run clang-tidy on sources if available." ON)
 option(HEADERS_ONLY "Only generate config.h and version.h." OFF)
 
+# Allow a user to specify an optional default roots.pem file to embed into the 
+# library. 
+#
+# This is useful if the library is distributed to an environment where gRPC
+# hasn't been installed.
+#
+# To use, invoke cmake with 
+#   cmake -DDEFAULT_SSL_ROOTS_PEM:STRING=/path/to/roots.pem ...
+#
+# See also discussion on https://github.com/grpc/grpc/issues/4834
+set(DEFAULT_SSL_ROOTS_PEM "" CACHE STRING "Path to a default roots.pem file to embed")
+
 if (WITH_GRPC)
   set(LIGHTSTEP_USE_GRPC 1)
 elseif(WITH_DYNAMIC_LOAD)
@@ -151,8 +163,22 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/lightstep_tracer_factory.cpp
                    src/transporter.cpp
                    src/tracer.cpp)
+
 if (WITH_DYNAMIC_LOAD)
   list(APPEND LIGHTSTEP_SRCS src/dynamic_load.cpp)
+endif()
+
+if (DEFAULT_SSL_ROOTS_PEM STREQUAL "")
+  list(APPEND LIGHTSTEP_SRCS src/no_default_ssl_roots_pem.cpp)
+else()
+  # Follows the approach described in https://stackoverflow.com/a/11814544/4447365
+  set(EMBED_SSL_ROOTS_PEM_CPP_FILE ${CMAKE_BINARY_DIR}/default_ssl_roots_pem.cpp)
+  add_custom_command(
+    OUTPUT ${EMBED_SSL_ROOTS_PEM_CPP_FILE}
+    COMMAND embedfile default_ssl_roots_pem ${DEFAULT_SSL_ROOTS_PEM}
+    DEPENDS ${DEFAULT_ROOT_PEM}
+  )
+  list(APPEND LIGHTSTEP_SRCS ${EMBED_SSL_ROOTS_PEM_CPP_FILE})
 endif()
 
 add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_tracer_common>
