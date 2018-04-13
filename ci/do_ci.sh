@@ -37,6 +37,7 @@ elif [[ "$1" == "cmake.tsan" ]]; then
         -DCMAKE_CXX_FLAGS="-fno-omit-frame-pointer -fsanitize=thread"  \
         -DCMAKE_SHARED_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=thread" \
         -DCMAKE_EXE_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=thread" \
+        -DWITH_DYNAMIC_LOAD=OFF \
         "${SRC_DIR}"
   make VERBOSE=1
   make test
