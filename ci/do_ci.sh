@@ -33,6 +33,8 @@ elif [[ "$1" == "cmake.asan" ]]; then
   exit 0
 elif [[ "$1" == "cmake.tsan" ]]; then
   cd "${BUILD_DIR}"
+# Testing with dynamic load seems to have some issues with TSAN so turn off
+# dynamic loading in this test for now.
   cmake -DCMAKE_BUILD_TYPE=Debug  \
         -DCMAKE_CXX_FLAGS="-fno-omit-frame-pointer -fsanitize=thread"  \
         -DCMAKE_SHARED_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=thread" \
@@ -41,6 +43,10 @@ elif [[ "$1" == "cmake.tsan" ]]; then
         "${SRC_DIR}"
   make VERBOSE=1
   make test
+  exit 0
+elif [[ "$1" == "plugin" ]]; then
+  cd "${BUILD_DIR}"
+  "${SRC_DIR}"/ci//build_plugin.sh
   exit 0
 elif [[ "$1" == "bazel.build" ]]; then
   bazel build //...

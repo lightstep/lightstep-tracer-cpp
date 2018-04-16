@@ -176,7 +176,7 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     }
 
     if (options.ssl_root_certificates.empty()) {
-      // If default ssl root certificates were embeded in the library, then
+      // If default ssl root certificates were embedded in the library, then
       // default_ssl_roots_pem will be set to them; otherwise, it will be the
       // empty string and GRPC will attempt to apply its defaults.
       options.ssl_root_certificates =
