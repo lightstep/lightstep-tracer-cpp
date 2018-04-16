@@ -10,3 +10,5 @@ add_library(lightstep_3rd_party OBJECT base64/src/base64.cpp)
 if (BUILD_SHARED_LIBS)
   set_property(TARGET lightstep_3rd_party PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif()
+
+add_executable(embedfile embedfile/src/embedfile.c)

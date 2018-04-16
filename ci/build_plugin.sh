@@ -56,6 +56,7 @@ cmake -DCMAKE_BUILD_TYPE=Release \
       -DBUILD_TESTING=OFF \
       -DBUILD_STATIC_LIBS=OFF \
       -DCMAKE_SHARED_LINKER_FLAGS="-static-libstdc++ -static-libgcc -Wl,--version-script=${PWD}/export.map" \
+      -DDEFAULT_SSL_ROOTS_PEM:STRING=${BUILD_DIR}/grpc/etc/roots.pem \
       "${SRC_DIR}"
 
 make VERBOSE=1 && make install

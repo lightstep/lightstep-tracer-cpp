@@ -42,6 +42,23 @@ static std::error_code MakeErrorCode(grpc::StatusCode status_code) {
 }
 
 //------------------------------------------------------------------------------
+// MakeGrpcClient
+//------------------------------------------------------------------------------
+static collector::CollectorService::Stub MakeGrpcClient(
+    const LightStepTracerOptions& options) {
+  std::shared_ptr<grpc::ChannelCredentials> channel_credentials;
+  if (options.collector_plaintext) {
+    channel_credentials = grpc::InsecureChannelCredentials();
+  } else {
+    grpc::SslCredentialsOptions credentials_options;
+    credentials_options.pem_root_certs = options.ssl_root_certificates;
+    channel_credentials = grpc::SslCredentials(credentials_options);
+  }
+  return collector::CollectorService::Stub{
+      grpc::CreateChannel(HostPortOf(options), channel_credentials)};
+}
+
+//------------------------------------------------------------------------------
 // GrpcTransporter
 //------------------------------------------------------------------------------
 namespace {
@@ -50,11 +67,7 @@ class GrpcTransporter : public SyncTransporter {
  public:
   GrpcTransporter(Logger& logger, const LightStepTracerOptions& options)
       : logger_{logger},
-        client_{grpc::CreateChannel(
-            HostPortOf(options),
-            options.collector_plaintext
-                ? grpc::InsecureChannelCredentials()
-                : grpc::SslCredentials(grpc::SslCredentialsOptions()))},
+        client_{MakeGrpcClient(options)},
         report_timeout_{options.report_timeout} {}
 
   opentracing::expected<void> Send(
