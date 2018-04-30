@@ -39,4 +39,11 @@ message TracerConfiguration {
   // `report_timeout` is the timeout to use when sending a reports to the
   // collector. Ignored if a custom transport is used. (In microseconds).
   uint32 report_timeout = 9;
+
+  // `ssl_root_certificates` specifies the CA certificates to use when
+  // transporting spans to the collector.  If not set, LightStep will try to 
+  // use CA certificates located in standard system locations.
+  //
+  // Note: `ssl_root_certificates` should follow the PEM format.
+  string ssl_root_certificates = 10;
 }

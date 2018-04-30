@@ -199,8 +199,10 @@ TEST_CASE("auto_recorder") {
     // Check that no NotifyAllEvent was added.
     CHECK(dynamic_cast<const TestingConditionVariableWrapper::NotifyAllEvent*>(
               condition_variable->next_event()) == nullptr);
+    condition_variable->set_block_notify_all(false);
     condition_variable->Step();
     condition_variable->WaitTillNextEvent();
+    condition_variable->set_block_notify_all(true);
 
     for (size_t i = 0; i < max_buffered_spans_new; ++i) {
       auto span = tracer->StartSpan("abc");

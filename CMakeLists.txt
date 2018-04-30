@@ -28,18 +28,35 @@ include(CPack)
 # ==============================================================================
 # Set up options
 
-option(WITH_ASAN "Generate tests using address-sanitizer." OFF)
-option(WITH_TSAN "Generate tests using thread-sanitizer." OFF)
 option(WITH_GRPC "Build with support for gRPC." ON)
 option(WITH_DYNAMIC_LOAD "Build support for dynamic loading." ON)
 option(ENABLE_LINTING "Run clang-tidy on sources if available." ON)
 option(HEADERS_ONLY "Only generate config.h and version.h." OFF)
+
+# Allow a user to specify an optional default roots.pem file to embed into the 
+# library. 
+#
+# This is useful if the library is distributed to an environment where gRPC
+# hasn't been installed.
+#
+# To use, invoke cmake with 
+#   cmake -DDEFAULT_SSL_ROOTS_PEM:STRING=/path/to/roots.pem ...
+#
+# See also discussion on https://github.com/grpc/grpc/issues/4834
+set(DEFAULT_SSL_ROOTS_PEM "" CACHE STRING "Path to a default roots.pem file to embed")
 
 if (WITH_GRPC)
   set(LIGHTSTEP_USE_GRPC 1)
 elseif(WITH_DYNAMIC_LOAD)
   message(WARNING "WITH_GRPC is not set; building without dynamic loading support.")
   set(WITH_DYNAMIC_LOAD 0)
+endif()
+
+option(BUILD_SHARED_LIBS "Build as a shared library" ON)
+option(BUILD_STATIC_LIBS "Build as a static library" ON)
+
+if (NOT BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)
+    message(FATAL_ERROR "One or both of BUILD_SHARED_LIBS or BUILD_STATIC_LIBS must be set to ON to build")
 endif()
 
 # ==============================================================================
@@ -102,28 +119,14 @@ if (WITH_GRPC)
   find_package(PkgConfig REQUIRED)
   pkg_search_module(GRPC REQUIRED grpc)
   pkg_search_module(GRPCPP REQUIRED grpc++)
-  list(APPEND LIGHTSTEP_LINK_LIBRARIES ${GRPC_LDFLAGS} ${GRPCPP_LDFLAGS})  
+  list(APPEND LIGHTSTEP_LINK_LIBRARIES ${GRPCPP_LDFLAGS} ${GRPC_LDFLAGS})  
   include_directories(SYSTEM ${GRPC_INCLUDE_DIRS} ${GRPCPP_INCLUDE_DIRS})
 endif()
 
-# ==============================================================================
-# Configure sanitizers
-
-if (WITH_ASAN AND (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
-  ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND
-   "${COMPILER_VERSION}" VERSION_GREATER "4.8")))
-   set(LIGHTSTEP_USE_ASAN ON)
-   set(ASAN_CXX_FLAGS -O1 -g -fsanitize=address -fno-omit-frame-pointer)
-   set(ASAN_LD_FLAGS -fsanitize=address)
-endif()
-
-if (WITH_TSAN AND (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
-  ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND
-   "${COMPILER_VERSION}" VERSION_GREATER "4.8")))
-   set(LIGHTSTEP_USE_TSAN ON)
-   set(TSAN_CXX_FLAGS -O1 -g -fsanitize=thread)
-   set(TSAN_LD_FLAGS -fsanitize=thread)
-endif()
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads REQUIRED)
+list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
 
 # ==============================================================================
 # Build LightStep tracer library
@@ -152,55 +155,63 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/lightstep_tracer_impl.cpp
                    src/lightstep_tracer_factory.cpp
                    src/transporter.cpp
-                   src/tracer.cpp)
+                   src/tracer.cpp
+                   )
+
 if (WITH_DYNAMIC_LOAD)
   list(APPEND LIGHTSTEP_SRCS src/dynamic_load.cpp)
 endif()
 
-add_library(lightstep_tracer $<TARGET_OBJECTS:lightstep_tracer_common>
-                             $<TARGET_OBJECTS:lightstep_tracer_configuration>
-                             $<TARGET_OBJECTS:lightstep_3rd_party>
-                             ${LIGHTSTEP_SRCS})
-target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
-if (ENABLE_LINTING)
-  include(LightStepClangTidy)
-  _apply_clang_tidy_if_available(lightstep_tracer)
+if (DEFAULT_SSL_ROOTS_PEM STREQUAL "")
+  list(APPEND LIGHTSTEP_SRCS src/no_default_ssl_roots_pem.cpp)
+else()
+  # Follows the approach described in https://stackoverflow.com/a/11814544/4447365
+  set(EMBED_SSL_ROOTS_PEM_CPP_FILE ${CMAKE_BINARY_DIR}/default_ssl_roots_pem.cpp)
+  add_custom_command(
+    OUTPUT ${EMBED_SSL_ROOTS_PEM_CPP_FILE}
+    COMMAND embedfile default_ssl_roots_pem ${DEFAULT_SSL_ROOTS_PEM}
+    DEPENDS ${DEFAULT_ROOT_PEM}
+  )
+  list(APPEND LIGHTSTEP_SRCS ${EMBED_SSL_ROOTS_PEM_CPP_FILE})
 endif()
 
-install(TARGETS lightstep_tracer
-        LIBRARY DESTINATION lib 
-        ARCHIVE DESTINATION lib)
-
-target_link_libraries(lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
-
-# ==============================================================================
-# Build optional sanitized versions of the LightStep tracer
-
-if (LIGHTSTEP_USE_ASAN)
-  add_library(lightstep_tracer_asan $<TARGET_OBJECTS:lightstep_tracer_common>
-                                    $<TARGET_OBJECTS:lightstep_tracer_configuration>
-                                    ${LIGHTSTEP_SRCS})
-  target_compile_options(lightstep_tracer_asan PUBLIC ${ASAN_CXX_FLAGS})
-  target_link_libraries(lightstep_tracer_asan ${LIGHTSTEP_LINK_LIBRARIES})
-  set_target_properties(lightstep_tracer_asan 
-    PROPERTIES LINK_FLAGS "${ASAN_LD_FLAGS}")
+if (BUILD_SHARED_LIBS)  
+  add_library(lightstep_tracer SHARED $<TARGET_OBJECTS:lightstep_tracer_common>
+                                      $<TARGET_OBJECTS:lightstep_tracer_configuration>
+                                      $<TARGET_OBJECTS:lightstep_3rd_party>
+                                      ${LIGHTSTEP_SRCS})
+  target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
+  if (ENABLE_LINTING)
+    include(LightStepClangTidy)
+    _apply_clang_tidy_if_available(lightstep_tracer)
+  endif()
+  target_link_libraries(lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
+  install(TARGETS lightstep_tracer
+          LIBRARY DESTINATION lib)
 endif()
 
-if (LIGHTSTEP_USE_TSAN)
-  add_library(lightstep_tracer_tsan $<TARGET_OBJECTS:lightstep_tracer_common>
-                                    $<TARGET_OBJECTS:lightstep_tracer_configuration>
-                                    ${LIGHTSTEP_SRCS})
-  target_compile_options(lightstep_tracer_tsan PUBLIC ${TSAN_CXX_FLAGS})
-  target_link_libraries(lightstep_tracer_tsan ${LIGHTSTEP_LINK_LIBRARIES})
-  set_target_properties(lightstep_tracer_tsan 
-    PROPERTIES LINK_FLAGS "${TSAN_LD_FLAGS}")
+if (BUILD_STATIC_LIBS)  
+  add_library(lightstep_tracer-static STATIC $<TARGET_OBJECTS:lightstep_tracer_common>
+                                             $<TARGET_OBJECTS:lightstep_tracer_configuration>
+                                             $<TARGET_OBJECTS:lightstep_3rd_party>
+                                             ${LIGHTSTEP_SRCS})
+  set_target_properties(lightstep_tracer-static PROPERTIES OUTPUT_NAME lightstep_tracer)
+  target_compile_options(lightstep_tracer-static PUBLIC ${WARNING_CXX_FLAGS})
+  if (ENABLE_LINTING)
+    include(LightStepClangTidy)
+    _apply_clang_tidy_if_available(lightstep_tracer-static)
+  endif()
+  target_link_libraries(lightstep_tracer-static ${LIGHTSTEP_LINK_LIBRARIES})
+  install(TARGETS lightstep_tracer-static
+          ARCHIVE DESTINATION lib)
 endif()
+
 
 # ==============================================================================
 # Build tests and examples
 
 include(CTest)
-if (BUILD_TESTING)
+if (BUILD_TESTING AND BUILD_SHARED_LIBS)
   add_subdirectory(test)
+  add_subdirectory(example)
 endif()
-add_subdirectory(example)
