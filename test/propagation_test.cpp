@@ -92,6 +92,19 @@ struct HTTPHeadersCarrier : opentracing::HTTPHeadersReader,
 };
 
 //------------------------------------------------------------------------------
+// are_span_contexts_equivalent
+//------------------------------------------------------------------------------
+static bool are_span_contexts_equivalent(
+    const opentracing::Tracer& tracer, const opentracing::SpanContext& context1,
+    const opentracing::SpanContext& context2) {
+  BinaryCarrier binary_carrier1, binary_carrier2;
+  tracer.Inject(context1, LightStepBinaryWriter{binary_carrier1});
+  tracer.Inject(context2, LightStepBinaryWriter{binary_carrier2});
+  return google::protobuf::util::MessageDifferencer::Equals(binary_carrier1,
+                                                            binary_carrier2);
+}
+
+//------------------------------------------------------------------------------
 // make_test_span_contexts
 //------------------------------------------------------------------------------
 // A vector of different types of span contexts to test against.
@@ -148,29 +161,32 @@ TEST_CASE("propagation") {
   SECTION("Inject, extract, inject yields the same BinaryCarrier.") {
     for (auto& span_context : test_span_contexts) {
       CHECK(
-          tracer->Inject(*span_context, LightStepBinaryWriter(binary_carrier)));
+          tracer->Inject(*span_context, LightStepBinaryWriter{binary_carrier}));
       auto binary_carrier1 = binary_carrier;
       auto span_context_maybe =
-          tracer->Extract(LightStepBinaryReader(&binary_carrier));
+          tracer->Extract(LightStepBinaryReader{&binary_carrier});
       CHECK((span_context_maybe && span_context_maybe->get()));
       CHECK(tracer->Inject(*span_context_maybe->get(),
-                           LightStepBinaryWriter(binary_carrier)));
+                           LightStepBinaryWriter{binary_carrier}));
       CHECK(google::protobuf::util::MessageDifferencer::Equals(binary_carrier1,
                                                                binary_carrier));
     }
   }
 
-  SECTION("Inject, extract, inject yields the same binary blob.") {
+  SECTION(
+      "Inject, extract, inject into binary produces the same span context.") {
     for (auto& span_context : test_span_contexts) {
-      std::ostringstream oss(std::ios::binary);
+      std::ostringstream oss;
       CHECK(tracer->Inject(*span_context, oss));
       auto blob = oss.str();
-      std::istringstream iss(blob, std::ios::binary);
+      std::istringstream iss{blob};
       auto span_context_maybe = tracer->Extract(iss);
       CHECK((span_context_maybe && span_context_maybe->get()));
-      std::ostringstream oss2(std::ios::binary);
-      CHECK(tracer->Inject(*span_context_maybe->get(), oss2));
-      CHECK(blob == oss2.str());
+
+      // Use BinaryCarrier to ceck for equality. The blobs need to represent
+      // equivalent spans, but needn't be the same bitwise.
+      CHECK(are_span_contexts_equivalent(*tracer, *span_context,
+                                         *span_context_maybe->get()));
     }
   }
 
