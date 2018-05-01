@@ -1,4 +1,5 @@
 #include "lightstep_span.h"
+#include <opentracing/ext/tags.h>
 #include "utility.h"
 
 using opentracing::SystemTime;
@@ -7,6 +8,13 @@ using opentracing::SteadyClock;
 using opentracing::SteadyTime;
 
 namespace lightstep {
+//------------------------------------------------------------------------------
+// is_sampled
+//------------------------------------------------------------------------------
+static bool is_sampled(const opentracing::Value& value) {
+  return value != opentracing::Value{0} && value != opentracing::Value{0u};
+}
+
 //------------------------------------------------------------------------------
 // ComputeStartTimestamps
 //------------------------------------------------------------------------------
@@ -43,7 +51,7 @@ static bool SetSpanReference(
     const std::pair<opentracing::SpanReferenceType,
                     const opentracing::SpanContext*>& reference,
     std::unordered_map<std::string, std::string>& baggage,
-    collector::Reference& collector_reference) {
+    collector::Reference& collector_reference, bool& sampled) {
   collector_reference.Clear();
   switch (reference.first) {
     case opentracing::SpanReferenceType::ChildOfRef:
@@ -67,6 +75,7 @@ static bool SetSpanReference(
       referenced_context->trace_id());
   collector_reference.mutable_span_context()->set_span_id(
       referenced_context->span_id());
+  sampled = sampled || referenced_context->sampled();
 
   referenced_context->ForeachBaggageItem(
       [&baggage](const std::string& key, const std::string& value) {
@@ -96,11 +105,19 @@ LightStepSpan::LightStepSpan(
   std::unordered_map<std::string, std::string> baggage;
   references_.reserve(options.references.size());
   collector::Reference collector_reference;
+  bool sampled = false;
   for (auto& reference : options.references) {
-    if (!SetSpanReference(logger_, reference, baggage, collector_reference)) {
+    if (!SetSpanReference(logger_, reference, baggage, collector_reference,
+                          sampled)) {
       continue;
     }
     references_.push_back(collector_reference);
+  }
+
+  // If there are any span references, sampled should be true if any of the
+  // references are sampled; with no refences, we set sampled to true.
+  if (references_.empty()) {
+    sampled = true;
   }
 
   // Set tags.
@@ -108,12 +125,20 @@ LightStepSpan::LightStepSpan(
     tags_[tag.first] = tag.second;
   }
 
+  // If sampling_priority is set, it overrides whatever sampling decision was
+  // derived from the referenced spans.
+  auto sampling_priority_tag = tags_.find(opentracing::ext::sampling_priority);
+  if (sampling_priority_tag != tags_.end()) {
+    sampled = is_sampled(sampling_priority_tag->second);
+  }
+
   // Set opentracing::SpanContext.
   auto trace_id = references_.empty()
                       ? GenerateId()
                       : references_[0].span_context().trace_id();
   auto span_id = GenerateId();
-  span_context_ = LightStepSpanContext{trace_id, span_id, std::move(baggage)};
+  span_context_ =
+      LightStepSpanContext{trace_id, span_id, sampled, std::move(baggage)};
 }
 
 //------------------------------------------------------------------------------
@@ -132,6 +157,11 @@ void LightStepSpan::FinishWithOptions(
     const opentracing::FinishSpanOptions& options) noexcept try {
   // Ensure the span is only finished once.
   if (is_finished_.exchange(true)) {
+    return;
+  }
+
+  // If the span isn't sampled do nothing.
+  if (!span_context_.sampled()) {
     return;
   }
 
@@ -230,6 +260,10 @@ void LightStepSpan::SetTag(opentracing::string_view key,
                            const opentracing::Value& value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   tags_[key] = value;
+
+  if (key == opentracing::ext::sampling_priority) {
+    span_context_.set_sampled(is_sampled(value));
+  }
 } catch (const std::exception& e) {
   logger_.Error("SetTag failed: ", e.what());
 }

@@ -1,4 +1,5 @@
 #include <lightstep/tracer.h>
+#include <opentracing/ext/tags.h>
 #include <opentracing/noop.h>
 #include "../src/lightstep_tracer_impl.h"
 #include "../src/utility.h"
@@ -26,6 +27,43 @@ TEST_CASE("tracer") {
     CHECK(span.operation_name() == "a");
     CHECK(HasTag(span, "abc", 123));
     CHECK(HasTag(span, "xyz", true));
+  }
+
+  SECTION(
+      "Sampling of a span can be turned off by setting the sampling_priority "
+      "tag to 0.") {
+    {
+      auto span = tracer->StartSpan(
+          "a", {SetTag(opentracing::ext::sampling_priority, 0u)});
+      CHECK(span);
+    }
+    {
+      auto span = tracer->StartSpan("a");
+      span->SetTag(opentracing::ext::sampling_priority, 0);
+      CHECK(span);
+    }
+    CHECK(recorder->size() == 0);
+  }
+
+  SECTION(
+      "If a span's parent isn't sampled, then it also isn't sampled unless "
+      "sampling priority is overwritten.") {
+    auto parent_span = tracer->StartSpan(
+        "a", {SetTag(opentracing::ext::sampling_priority, 0u)});
+    CHECK(parent_span);
+    {
+      auto child_span = tracer->StartSpan(
+          "b", {opentracing::ChildOf(&parent_span->context())});
+      CHECK(child_span);
+    }
+    CHECK(recorder->size() == 0);
+    {
+      auto child_span = tracer->StartSpan(
+          "b", {opentracing::ChildOf(&parent_span->context())});
+      CHECK(child_span);
+      child_span->SetTag(opentracing::ext::sampling_priority, 1);
+    }
+    CHECK(recorder->size() == 1);
   }
 
   SECTION("You can set a single child-of reference when starting a span.") {
