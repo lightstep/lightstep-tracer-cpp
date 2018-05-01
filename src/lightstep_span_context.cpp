@@ -79,6 +79,7 @@ bool LightStepSpanContext::sampled() const noexcept {
 // set_sampled
 //------------------------------------------------------------------------------
 void LightStepSpanContext::set_sampled(bool sampled) noexcept {
+  std::lock_guard<std::mutex> lock_guard{mutex_};
   sampled_ = sampled;
 }
 }  // namespace lightstep
