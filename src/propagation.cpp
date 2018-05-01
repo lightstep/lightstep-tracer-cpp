@@ -358,12 +358,18 @@ static opentracing::expected<bool> ExtractSpanContext(
     std::unordered_map<std::string, std::string>& baggage,
     KeyCompare key_compare) {
   if (propagation_options.use_single_key) {
-    return ExtractSpanContextSingleKey(carrier, trace_id, span_id, sampled,
-                                       baggage, key_compare);
-  } else {
-    return ExtractSpanContextMultiKey(carrier, trace_id, span_id, sampled,
-                                      baggage, key_compare);
+    auto span_context_maybe = ExtractSpanContextSingleKey(
+        carrier, trace_id, span_id, sampled, baggage, key_compare);
+
+    // If no span context was found, fall back to multikey extraction so as to
+    // support interoperability with other tracers.
+    if (!span_context_maybe || *span_context_maybe) {
+      return span_context_maybe;
+    }
   }
+
+  return ExtractSpanContextMultiKey(carrier, trace_id, span_id, sampled,
+                                    baggage, key_compare);
 }
 
 opentracing::expected<bool> ExtractSpanContext(

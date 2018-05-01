@@ -274,11 +274,15 @@ TEST_CASE("propagation") {
 }
 
 TEST_CASE("propagation - single key") {
-  auto recorder = new InMemoryRecorder();
+  auto recorder = new InMemoryRecorder{};
   PropagationOptions propagation_options;
   propagation_options.use_single_key = true;
   auto tracer = std::shared_ptr<opentracing::Tracer>{new LightStepTracerImpl{
       propagation_options, std::unique_ptr<Recorder>{recorder}}};
+  auto multikey_tracer =
+      std::shared_ptr<opentracing::Tracer>{new LightStepTracerImpl{
+          PropagationOptions{},
+          std::unique_ptr<Recorder>{new InMemoryRecorder{}}}};
   std::unordered_map<std::string, std::string> text_map;
   TextMapCarrier text_map_carrier(text_map);
   auto span = tracer->StartSpan("a");
@@ -304,13 +308,26 @@ TEST_CASE("propagation - single key") {
   }
 
   SECTION(
+      "Extract falls back to the multikey format if it doesn't find a "
+      "single-key header") {
+    text_map.clear();
+    CHECK(multikey_tracer->Inject(span->context(), text_map_carrier));
+    CHECK(text_map.size() > 1);
+    auto span_context_maybe = tracer->Extract(text_map_carrier);
+    CHECK((span_context_maybe && span_context_maybe->get()));
+  }
+
+  SECTION(
       "When LookupKey is used, a nullptr is returned if there is no "
       "span_context") {
     text_map.clear();
     text_map_carrier.supports_lookup = true;
     auto span_context_maybe = tracer->Extract(text_map_carrier);
     CHECK((span_context_maybe && span_context_maybe->get() == nullptr));
-    CHECK(text_map_carrier.foreach_key_call_count == 0);
+
+    // We have to iterate through all of the keys once when extraction falls
+    // back to the multikey format.
+    CHECK(text_map_carrier.foreach_key_call_count == 1);
   }
 
   SECTION("Verify only valid base64 characters are used.") {
