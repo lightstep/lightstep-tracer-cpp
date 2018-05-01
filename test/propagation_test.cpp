@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include "../src/lightstep_span_context.h"
 #include "../src/lightstep_tracer_impl.h"
 #include "../src/utility.h"
 #include "in_memory_recorder.h"
@@ -91,6 +92,47 @@ struct HTTPHeadersCarrier : opentracing::HTTPHeadersReader,
 };
 
 //------------------------------------------------------------------------------
+// are_span_contexts_equivalent
+//------------------------------------------------------------------------------
+static bool are_span_contexts_equivalent(
+    const opentracing::Tracer& tracer, const opentracing::SpanContext& context1,
+    const opentracing::SpanContext& context2) {
+  BinaryCarrier binary_carrier1, binary_carrier2;
+  tracer.Inject(context1, LightStepBinaryWriter{binary_carrier1});
+  tracer.Inject(context2, LightStepBinaryWriter{binary_carrier2});
+  return google::protobuf::util::MessageDifferencer::Equals(binary_carrier1,
+                                                            binary_carrier2);
+}
+
+//------------------------------------------------------------------------------
+// make_test_span_contexts
+//------------------------------------------------------------------------------
+// A vector of different types of span contexts to test against.
+static std::vector<std::unique_ptr<opentracing::SpanContext>>
+make_test_span_contexts() {
+  std::vector<std::unique_ptr<opentracing::SpanContext>> result;
+  // most basic span context
+  result.push_back(
+      std::unique_ptr<opentracing::SpanContext>{new LightStepSpanContext{
+          123, 456, std::unordered_map<std::string, std::string>{}}});
+
+  // span context with single baggage item
+  result.push_back(std::unique_ptr<opentracing::SpanContext>{
+      new LightStepSpanContext{123, 456, {{"abc", "123"}}}});
+
+  // span context with multiple baggage items
+  result.push_back(std::unique_ptr<opentracing::SpanContext>{
+      new LightStepSpanContext{123, 456, {{"abc", "123"}, {"xyz", "qrz"}}}});
+
+  // unsampled span context
+  result.push_back(
+      std::unique_ptr<opentracing::SpanContext>{new LightStepSpanContext{
+          123, 456, false, std::unordered_map<std::string, std::string>{}}});
+
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // tests
 //------------------------------------------------------------------------------
 TEST_CASE("propagation") {
@@ -102,48 +144,50 @@ TEST_CASE("propagation") {
   HTTPHeadersCarrier http_headers_carrier(text_map);
   BinaryCarrier binary_carrier;
 
+  auto test_span_contexts = make_test_span_contexts();
+
   SECTION("Inject, extract, inject yields the same text_map.") {
-    auto span = tracer->StartSpan("a");
-    CHECK(span);
-    span->SetBaggageItem("abc", "123");
-    CHECK(tracer->Inject(span->context(), text_map_carrier));
-    auto injection_map1 = text_map;
-    auto span_context_maybe = tracer->Extract(text_map_carrier);
-    CHECK((span_context_maybe && span_context_maybe->get()));
-    text_map.clear();
-    CHECK(tracer->Inject(*span_context_maybe->get(), text_map_carrier));
-    CHECK(injection_map1 == text_map);
+    for (auto& span_context : test_span_contexts) {
+      CHECK(tracer->Inject(*span_context, text_map_carrier));
+      auto injection_map1 = text_map;
+      auto span_context_maybe = tracer->Extract(text_map_carrier);
+      CHECK((span_context_maybe && span_context_maybe->get()));
+      text_map.clear();
+      CHECK(tracer->Inject(*span_context_maybe->get(), text_map_carrier));
+      CHECK(injection_map1 == text_map);
+    }
   }
 
   SECTION("Inject, extract, inject yields the same BinaryCarrier.") {
-    auto span = tracer->StartSpan("a");
-    CHECK(span);
-    span->SetBaggageItem("abc", "123");
-    CHECK(
-        tracer->Inject(span->context(), LightStepBinaryWriter(binary_carrier)));
-    auto binary_carrier1 = binary_carrier;
-    auto span_context_maybe =
-        tracer->Extract(LightStepBinaryReader(&binary_carrier));
-    CHECK((span_context_maybe && span_context_maybe->get()));
-    CHECK(tracer->Inject(*span_context_maybe->get(),
-                         LightStepBinaryWriter(binary_carrier)));
-    CHECK(google::protobuf::util::MessageDifferencer::Equals(binary_carrier1,
-                                                             binary_carrier));
+    for (auto& span_context : test_span_contexts) {
+      CHECK(
+          tracer->Inject(*span_context, LightStepBinaryWriter{binary_carrier}));
+      auto binary_carrier1 = binary_carrier;
+      auto span_context_maybe =
+          tracer->Extract(LightStepBinaryReader{&binary_carrier});
+      CHECK((span_context_maybe && span_context_maybe->get()));
+      CHECK(tracer->Inject(*span_context_maybe->get(),
+                           LightStepBinaryWriter{binary_carrier}));
+      CHECK(google::protobuf::util::MessageDifferencer::Equals(binary_carrier1,
+                                                               binary_carrier));
+    }
   }
 
-  SECTION("Inject, extract, inject yields the same binary blob.") {
-    std::ostringstream oss(std::ios::binary);
-    auto span = tracer->StartSpan("a");
-    CHECK(span);
-    span->SetBaggageItem("abc", "123");
-    CHECK(tracer->Inject(span->context(), oss));
-    auto blob = oss.str();
-    std::istringstream iss(blob, std::ios::binary);
-    auto span_context_maybe = tracer->Extract(iss);
-    CHECK((span_context_maybe && span_context_maybe->get()));
-    std::ostringstream oss2(std::ios::binary);
-    CHECK(tracer->Inject(*span_context_maybe->get(), oss2));
-    CHECK(blob == oss2.str());
+  SECTION(
+      "Inject, extract, inject into binary produces the same span context.") {
+    for (auto& span_context : test_span_contexts) {
+      std::ostringstream oss;
+      CHECK(tracer->Inject(*span_context, oss));
+      auto blob = oss.str();
+      std::istringstream iss{blob};
+      auto span_context_maybe = tracer->Extract(iss);
+      CHECK((span_context_maybe && span_context_maybe->get()));
+
+      // Use BinaryCarrier to ceck for equality. The blobs need to represent
+      // equivalent spans, but needn't be the same bitwise.
+      CHECK(are_span_contexts_equivalent(*tracer, *span_context,
+                                         *span_context_maybe->get()));
+    }
   }
 
   SECTION(
