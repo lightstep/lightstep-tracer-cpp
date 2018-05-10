@@ -46,9 +46,13 @@ elif [[ "$1" == "cmake.tsan" ]]; then
   exit 0
 elif [[ "$1" == "plugin" ]]; then
   cd "${BUILD_DIR}"
-  "${SRC_DIR}"/ci//build_plugin.sh
+  "${SRC_DIR}"/ci/build_plugin.sh
   exit 0
 elif [[ "$1" == "bazel.build" ]]; then
   bazel build //...
+  exit 0
+elif [[ "$1" == "release" ]]; then
+  "${SRC_DIR}"/ci/build_plugin.sh
+  "${SRC_DIR}"/ci/release.sh
   exit 0
 fi

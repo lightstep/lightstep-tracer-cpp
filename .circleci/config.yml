@@ -55,11 +55,24 @@ jobs:
       - run: ./ci/setup_build_environment.sh
       - run: ./ci/install_bazel.sh
       - run: ./ci/do_ci.sh bazel.build
+  release:
+    docker:
+      - image: ubuntu:17.10
+    steps:
+      - checkout
+      - run: ./ci/setup_build_environment.sh
+      - run: ./ci/do_ci.sh release
 
 workflows:
   version: 2
   build_test_and_deploy:
     jobs:
+      - release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
       - asan
       - tsan
       - build_with_no_grpc

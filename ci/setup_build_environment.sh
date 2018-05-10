@@ -11,4 +11,5 @@ apt-get install --no-install-recommends --no-install-suggests -y \
                 automake \
                 autogen \
                 autoconf \
-                libtool
+                libtool \
+                ssh
