@@ -37,7 +37,7 @@ message TracerConfiguration {
   uint32 reporting_period = 8;
 
   // `report_timeout` is the timeout to use when sending a reports to the
-  // collector. Ignored if a custom transport is used. (In microseconds).
+  // collector. (In microseconds).
   uint32 report_timeout = 9;
 
   // `ssl_root_certificates` specifies the CA certificates to use when
