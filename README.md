@@ -38,3 +38,7 @@ int main() {
 ```
 
 For instrumentation documentation, see the [opentracing-cpp docs](https://github.com/opentracing/opentracing-cpp).
+
+## Dynamic loading
+
+The LightStep tracer supports dynamic loading and construction from a JSON configuration. See the [schema](lightstep-tracer-configuration/tracer_configuration.schema.json) for details on the JSON format.
