@@ -67,4 +67,12 @@ class LightStepSpanContext : public opentracing::SpanContext {
   bool sampled_ = true;
   std::unordered_map<std::string, std::string> baggage_;
 };
+
+bool operator==(const LightStepSpanContext& lhs,
+                const LightStepSpanContext& rhs);
+
+inline bool operator!=(const LightStepSpanContext& lhs,
+                       const LightStepSpanContext& rhs) {
+  return !(lhs == rhs);
+}
 }  // namespace lightstep

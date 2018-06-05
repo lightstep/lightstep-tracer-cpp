@@ -123,11 +123,16 @@ struct LightStepTracerOptions {
 // direct access to a span context's data so as to propagate more efficiently.
 class LightStepTracer : public opentracing::Tracer {
  public:
-  opentracing::expected<std::array<uint64_t, 2>> GetTraceSpanIds(
+  opentracing::expected<std::array<uint64_t, 3>> GetTraceSpanIdsSampled(
       const opentracing::SpanContext& span_context) const noexcept;
 
   opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
   MakeSpanContext(uint64_t trace_id, uint64_t span_id,
+                  std::unordered_map<std::string, std::string>&& baggage) const
+      noexcept;
+
+  opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
+  MakeSpanContext(uint64_t trace_id, uint64_t span_id, bool sampled,
                   std::unordered_map<std::string, std::string>&& baggage) const
       noexcept;
 

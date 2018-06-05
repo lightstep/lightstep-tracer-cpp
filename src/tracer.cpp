@@ -59,9 +59,10 @@ const std::string& CollectorMethodName() {
 }
 
 //------------------------------------------------------------------------------
-// GetTraceSpanIds
+// GetTraceSpanIdsSampled
 //------------------------------------------------------------------------------
-opentracing::expected<std::array<uint64_t, 2>> LightStepTracer::GetTraceSpanIds(
+opentracing::expected<std::array<uint64_t, 3>>
+LightStepTracer::GetTraceSpanIdsSampled(
     const opentracing::SpanContext& span_context) const noexcept {
   auto lightstep_span_context =
       dynamic_cast<const LightStepSpanContext*>(&span_context);
@@ -69,8 +70,9 @@ opentracing::expected<std::array<uint64_t, 2>> LightStepTracer::GetTraceSpanIds(
     return opentracing::make_unexpected(
         opentracing::invalid_span_context_error);
   }
-  std::array<uint64_t, 2> result = {
-      {lightstep_span_context->trace_id(), lightstep_span_context->span_id()}};
+  std::array<uint64_t, 3> result = {
+      {lightstep_span_context->trace_id(), lightstep_span_context->span_id(),
+       static_cast<uint64_t>(lightstep_span_context->sampled())}};
   return result;
 }
 
@@ -79,10 +81,10 @@ opentracing::expected<std::array<uint64_t, 2>> LightStepTracer::GetTraceSpanIds(
 //------------------------------------------------------------------------------
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
 LightStepTracer::MakeSpanContext(
-    uint64_t trace_id, uint64_t span_id,
+    uint64_t trace_id, uint64_t span_id, bool sampled,
     std::unordered_map<std::string, std::string>&& baggage) const noexcept try {
   std::unique_ptr<opentracing::SpanContext> result{
-      new LightStepSpanContext{trace_id, span_id, std::move(baggage)}};
+      new LightStepSpanContext{trace_id, span_id, sampled, std::move(baggage)}};
   return std::move(result);
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(

@@ -92,24 +92,31 @@ struct HTTPHeadersCarrier : opentracing::HTTPHeadersReader,
 };
 
 //------------------------------------------------------------------------------
-// are_span_contexts_equivalent
+// LightStepBinaryReaderWriter
 //------------------------------------------------------------------------------
-static bool are_span_contexts_equivalent(
-    const opentracing::Tracer& tracer, const opentracing::SpanContext& context1,
+class LightStepBinaryReaderWriter : public LightStepBinaryReader,
+                                    public LightStepBinaryWriter {
+ public:
+  explicit LightStepBinaryReaderWriter(lightstep::BinaryCarrier& carrier)
+      : LightStepBinaryReader{&carrier}, LightStepBinaryWriter{carrier} {}
+};
+
+//------------------------------------------------------------------------------
+// AreSpanContextsEquivalent
+//------------------------------------------------------------------------------
+static bool AreSpanContextsEquivalent(
+    const opentracing::SpanContext& context1,
     const opentracing::SpanContext& context2) {
-  BinaryCarrier binary_carrier1, binary_carrier2;
-  tracer.Inject(context1, LightStepBinaryWriter{binary_carrier1});
-  tracer.Inject(context2, LightStepBinaryWriter{binary_carrier2});
-  return google::protobuf::util::MessageDifferencer::Equals(binary_carrier1,
-                                                            binary_carrier2);
+  return dynamic_cast<const lightstep::LightStepSpanContext&>(context1) ==
+         dynamic_cast<const lightstep::LightStepSpanContext&>(context2);
 }
 
 //------------------------------------------------------------------------------
-// make_test_span_contexts
+// MakeTestSpanContexts
 //------------------------------------------------------------------------------
 // A vector of different types of span contexts to test against.
 static std::vector<std::unique_ptr<opentracing::SpanContext>>
-make_test_span_contexts() {
+MakeTestSpanContexts() {
   std::vector<std::unique_ptr<opentracing::SpanContext>> result;
   // most basic span context
   result.push_back(
@@ -133,6 +140,29 @@ make_test_span_contexts() {
 }
 
 //------------------------------------------------------------------------------
+// VerifyInjectExtract
+//------------------------------------------------------------------------------
+template <class Carrier>
+static void VerifyInjectExtract(const opentracing::Tracer& tracer,
+                                const opentracing::SpanContext& span_context,
+                                Carrier& carrier) {
+  auto rcode = tracer.Inject(span_context, carrier);
+  if (!rcode) {
+    throw std::runtime_error{"failed to inject span context: " +
+                             rcode.error().message()};
+  }
+  auto span_context_maybe = tracer.Extract(carrier);
+  if (!span_context_maybe || *span_context_maybe == nullptr) {
+    throw std::runtime_error{"failed to extract span context: " +
+                             span_context_maybe.error().message()};
+  }
+
+  if (!AreSpanContextsEquivalent(span_context, **span_context_maybe)) {
+    throw std::runtime_error{"span contexts not equal"};
+  }
+}
+
+//------------------------------------------------------------------------------
 // tests
 //------------------------------------------------------------------------------
 TEST_CASE("propagation") {
@@ -140,53 +170,33 @@ TEST_CASE("propagation") {
   auto tracer = std::shared_ptr<opentracing::Tracer>{new LightStepTracerImpl{
       PropagationOptions{}, std::unique_ptr<Recorder>{recorder}}};
   std::unordered_map<std::string, std::string> text_map;
-  TextMapCarrier text_map_carrier(text_map);
-  HTTPHeadersCarrier http_headers_carrier(text_map);
+  TextMapCarrier text_map_carrier{text_map};
+  HTTPHeadersCarrier http_headers_carrier{text_map};
   BinaryCarrier binary_carrier;
+  LightStepBinaryReaderWriter binary_reader_writer{binary_carrier};
 
-  auto test_span_contexts = make_test_span_contexts();
-
-  SECTION("Inject, extract, inject yields the same text_map.") {
+  SECTION("Inject, extract yields the same span context.") {
+    auto test_span_contexts = MakeTestSpanContexts();
     for (auto& span_context : test_span_contexts) {
-      CHECK(tracer->Inject(*span_context, text_map_carrier));
-      auto injection_map1 = text_map;
-      auto span_context_maybe = tracer->Extract(text_map_carrier);
-      CHECK((span_context_maybe && span_context_maybe->get()));
+      // text map carrier
+      CHECK_NOTHROW(
+          VerifyInjectExtract(*tracer, *span_context, text_map_carrier));
       text_map.clear();
-      CHECK(tracer->Inject(*span_context_maybe->get(), text_map_carrier));
-      CHECK(injection_map1 == text_map);
-    }
-  }
 
-  SECTION("Inject, extract, inject yields the same BinaryCarrier.") {
-    for (auto& span_context : test_span_contexts) {
-      CHECK(
-          tracer->Inject(*span_context, LightStepBinaryWriter{binary_carrier}));
-      auto binary_carrier1 = binary_carrier;
-      auto span_context_maybe =
-          tracer->Extract(LightStepBinaryReader{&binary_carrier});
-      CHECK((span_context_maybe && span_context_maybe->get()));
-      CHECK(tracer->Inject(*span_context_maybe->get(),
-                           LightStepBinaryWriter{binary_carrier}));
-      CHECK(google::protobuf::util::MessageDifferencer::Equals(binary_carrier1,
-                                                               binary_carrier));
-    }
-  }
+      // http headers carrier
+      CHECK_NOTHROW(
+          VerifyInjectExtract(*tracer, *span_context, http_headers_carrier));
+      text_map.clear();
 
-  SECTION(
-      "Inject, extract, inject into binary produces the same span context.") {
-    for (auto& span_context : test_span_contexts) {
-      std::ostringstream oss;
-      CHECK(tracer->Inject(*span_context, oss));
-      auto blob = oss.str();
-      std::istringstream iss{blob};
-      auto span_context_maybe = tracer->Extract(iss);
-      CHECK((span_context_maybe && span_context_maybe->get()));
+      // iostream carrier
+      std::stringstream ss;
+      CHECK_NOTHROW(VerifyInjectExtract(*tracer, *span_context, ss));
 
-      // Use BinaryCarrier to ceck for equality. The blobs need to represent
-      // equivalent spans, but needn't be the same bitwise.
-      CHECK(are_span_contexts_equivalent(*tracer, *span_context,
-                                         *span_context_maybe->get()));
+      // binary carrier
+      text_map.clear();
+      CHECK_NOTHROW(
+          VerifyInjectExtract(*tracer, *span_context, binary_reader_writer));
+      // Note: binary injection clears the existing values so no need to reset.
     }
   }
 
@@ -284,21 +294,29 @@ TEST_CASE("propagation - single key") {
           PropagationOptions{},
           std::unique_ptr<Recorder>{new InMemoryRecorder{}}}};
   std::unordered_map<std::string, std::string> text_map;
-  TextMapCarrier text_map_carrier(text_map);
+  TextMapCarrier text_map_carrier{text_map};
+  HTTPHeadersCarrier http_headers_carrier{text_map};
+
+  SECTION("Inject, extract yields the same span context.") {
+    auto test_span_contexts = MakeTestSpanContexts();
+    for (auto& span_context : test_span_contexts) {
+      // text map carrier
+      CHECK_NOTHROW(
+          VerifyInjectExtract(*tracer, *span_context, text_map_carrier));
+      text_map.clear();
+
+      // http headers carrier
+      CHECK_NOTHROW(
+          VerifyInjectExtract(*tracer, *span_context, http_headers_carrier));
+      text_map.clear();
+    }
+  }
+
   auto span = tracer->StartSpan("a");
   CHECK(span);
   span->SetBaggageItem("abc", "123");
   CHECK(tracer->Inject(span->context(), text_map_carrier));
   CHECK(text_map.size() == 1);
-
-  SECTION("Inject, extract, inject yields the same text_map.") {
-    auto injection_map1 = text_map;
-    auto span_context_maybe = tracer->Extract(text_map_carrier);
-    CHECK((span_context_maybe && span_context_maybe->get()));
-    text_map.clear();
-    CHECK(tracer->Inject(*span_context_maybe->get(), text_map_carrier));
-    CHECK(injection_map1 == text_map);
-  }
 
   SECTION("If a carrier supports LookupKey, then ForeachKey won't be called") {
     text_map_carrier.supports_lookup = true;
