@@ -1,4 +1,4 @@
-FROM ubuntu:17.10
+FROM ubuntu:18.04
 
 WORKDIR /3rd_party
 
@@ -8,4 +8,5 @@ ADD install_grpc.sh /3rd_party
 
 RUN /3rd_party/setup_build_environment.sh \
  && /3rd_party/install_opentracing.sh \
- && /3rd_party/install_grpc.sh
+ && /3rd_party/install_grpc.sh \
+ && /3rd_party/install_clang.sh

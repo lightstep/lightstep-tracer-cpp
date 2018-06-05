@@ -1,4 +1,4 @@
-find_program(CLANG_TIDY_EXE NAMES "clang-tidy" 
+find_program(CLANG_TIDY_EXE NAMES "clang-tidy" "clang-tidy-5.0" "clang-tidy-6.0" "clang-tidy-7.0"
                             DOC "Path to clang-tidy executable")
 if(NOT CLANG_TIDY_EXE)
   message(STATUS "clang-tidy not found.")
@@ -10,7 +10,7 @@ else()
 -llvm-include-order,\
 -google-runtime-references,\
 -google-build-using-namespace,\
--cppcoreguidelines-pro-type-vararg")
+-cppcoreguidelines-pro-type-vararg;-warnings-as-errors=*")
 endif()
 
 macro(_apply_clang_tidy_if_available TARGET)
