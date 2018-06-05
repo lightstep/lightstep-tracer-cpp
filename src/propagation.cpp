@@ -132,7 +132,7 @@ static opentracing::expected<void> InjectSpanContextSingleKey(
     const std::unordered_map<std::string, std::string>& baggage) {
   std::ostringstream ostream;
   auto result = InjectSpanContext(PropagationOptions{}, ostream, trace_id,
-                                  sampled, span_id, baggage);
+                                  span_id, sampled, baggage);
   if (!result) {
     return result;
   }
