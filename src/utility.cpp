@@ -44,7 +44,7 @@ std::string GetProgramName() {
   }
   std::string path(exe_path.get(), size);
   size_t lslash = path.rfind('/');
-  if (lslash != path.npos) {
+  if (lslash != std::string::npos) {
     return path.substr(lslash + 1);
   }
   return path;

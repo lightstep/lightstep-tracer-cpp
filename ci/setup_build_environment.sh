@@ -12,4 +12,5 @@ apt-get install --no-install-recommends --no-install-suggests -y \
                 autogen \
                 autoconf \
                 libtool \
+                gnupg2 \
                 ssh

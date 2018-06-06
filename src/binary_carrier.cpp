@@ -20,7 +20,7 @@ LightStepBinaryReader::Extract(const opentracing::Tracer& tracer) const try {
     baggage.emplace(entry.first, entry.second);
   }
   return lightstep_tracer->MakeSpanContext(basic.trace_id(), basic.span_id(),
-                                           std::move(baggage));
+                                           basic.sampled(), std::move(baggage));
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(
       std::make_error_code(std::errc::not_enough_memory));
@@ -36,16 +36,17 @@ opentracing::expected<void> LightStepBinaryWriter::Inject(
   if (lightstep_tracer == nullptr) {
     return opentracing::make_unexpected(opentracing::invalid_carrier_error);
   }
-  auto trace_span_ids_maybe = lightstep_tracer->GetTraceSpanIds(span_context);
-  if (!trace_span_ids_maybe) {
-    return opentracing::make_unexpected(trace_span_ids_maybe.error());
+  auto trace_span_ids_sampled_maybe =
+      lightstep_tracer->GetTraceSpanIdsSampled(span_context);
+  if (!trace_span_ids_sampled_maybe) {
+    return opentracing::make_unexpected(trace_span_ids_sampled_maybe.error());
   }
-  auto& trace_span_ids = *trace_span_ids_maybe;
+  auto& trace_span_ids_sampled = *trace_span_ids_sampled_maybe;
   carrier_.Clear();
   auto basic = carrier_.mutable_basic_ctx();
-  basic->set_trace_id(trace_span_ids[0]);
-  basic->set_span_id(trace_span_ids[1]);
-  basic->set_sampled(true);
+  basic->set_trace_id(trace_span_ids_sampled[0]);
+  basic->set_span_id(trace_span_ids_sampled[1]);
+  basic->set_sampled(static_cast<bool>(trace_span_ids_sampled[2]));
 
   auto baggage = basic->mutable_baggage_items();
 

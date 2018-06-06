@@ -30,7 +30,7 @@ include(CPack)
 
 option(WITH_GRPC "Build with support for gRPC." ON)
 option(WITH_DYNAMIC_LOAD "Build support for dynamic loading." ON)
-option(ENABLE_LINTING "Run clang-tidy on sources if available." ON)
+option(ENABLE_LINTING "Run clang-tidy on sources if available." OFF)
 option(HEADERS_ONLY "Only generate config.h and version.h." OFF)
 
 # Allow a user to specify an optional default roots.pem file to embed into the 

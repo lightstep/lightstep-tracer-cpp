@@ -2,7 +2,7 @@ version: 2
 jobs:
   asan:
     docker:
-      - image: ubuntu:17.10
+      - image: ubuntu:18.04
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
@@ -14,7 +14,7 @@ jobs:
           destination: Test.log
   tsan:
     docker:
-      - image: ubuntu:17.10
+      - image: ubuntu:18.04
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
@@ -24,9 +24,22 @@ jobs:
       - store_artifacts:
           path: /build/Testing/Temporary/LastTest.log
           destination: Test.log
+  clang_tidy:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_grpc.sh
+      - run: ./ci/install_opentracing.sh
+      - run: ./ci/install_clang.sh
+      - run: ./ci/do_ci.sh cmake.clang-tidy
+      - store_artifacts:
+          path: /build/Testing/Temporary/LastTest.log
+          destination: Test.log
   build_with_no_grpc:
     docker:
-      - image: ubuntu:17.10
+      - image: ubuntu:18.04
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
@@ -38,7 +51,7 @@ jobs:
           destination: Test.log
   build_plugin:
     docker:
-      - image: ubuntu:17.10
+      - image: ubuntu:18.04
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
@@ -48,7 +61,7 @@ jobs:
           destination: liblightstep_tracer_plugin.so
   build_bazel:
     docker:
-      - image: ubuntu:17.10
+      - image: ubuntu:18.04
     resource_class: large
     steps:
       - checkout
@@ -57,7 +70,7 @@ jobs:
       - run: ./ci/do_ci.sh bazel.build
   release:
     docker:
-      - image: ubuntu:17.10
+      - image: ubuntu:18.04
     steps:
       - run: apt-get -qq update; apt-get -y install git ssh
       - checkout
@@ -76,6 +89,7 @@ workflows:
               only: /^v[0-9]+(\.[0-9]+)*$/
       - asan
       - tsan
+      - clang_tidy
       - build_with_no_grpc
       - build_plugin
       - build_bazel
