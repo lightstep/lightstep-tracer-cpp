@@ -152,9 +152,12 @@ static void VerifyInjectExtract(const opentracing::Tracer& tracer,
                              rcode.error().message()};
   }
   auto span_context_maybe = tracer.Extract(carrier);
-  if (!span_context_maybe || *span_context_maybe == nullptr) {
+  if (!span_context_maybe) {
     throw std::runtime_error{"failed to extract span context: " +
                              span_context_maybe.error().message()};
+  }
+  if (*span_context_maybe == nullptr) {
+    throw std::runtime_error{"no span context extracted"};
   }
 
   if (!AreSpanContextsEquivalent(span_context, **span_context_maybe)) {
