@@ -208,10 +208,9 @@ opentracing::expected<void> InjectSpanContext(
   if (propagation_options.use_single_key) {
     return InjectSpanContextSingleKey(carrier, trace_id, span_id, sampled,
                                       baggage);
-  } else {
-    return InjectSpanContextMultiKey(carrier, trace_id, span_id, sampled,
-                                     baggage);
   }
+  return InjectSpanContextMultiKey(carrier, trace_id, span_id, sampled,
+                                   baggage);
 }
 
 //------------------------------------------------------------------------------
@@ -235,11 +234,7 @@ static opentracing::expected<bool> ExtractSpanContextMultiKey(
             span_id = HexToUint64(value);
             count++;
           } else if (key_compare(key, FieldNameSampled)) {
-            if (value == "false" || value == "0") {
-              sampled = false;
-            } else {
-              sampled = true;
-            }
+            sampled = !(value == "false" || value == "0");
             count++;
           } else if (key.length() > PrefixBaggage.size() &&
                      key_compare(opentracing::string_view{key.data(),
@@ -281,9 +276,8 @@ static opentracing::expected<bool> ExtractSpanContextSingleKey(
   if (!value_maybe) {
     if (value_maybe.error() == opentracing::key_not_found_error) {
       return false;
-    } else {
-      return opentracing::make_unexpected(value_maybe.error());
     }
+    return opentracing::make_unexpected(value_maybe.error());
   }
   auto value = *value_maybe;
   std::string base64_decoding;

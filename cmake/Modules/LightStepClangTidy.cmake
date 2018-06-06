@@ -11,7 +11,13 @@ else()
 -llvm-include-order,\
 -google-runtime-references,\
 -google-build-using-namespace,\
--cppcoreguidelines-pro-type-vararg;-warnings-as-errors=*")
+-modernize-make-unique,\
+-hicpp-vararg,\
+-cppcoreguidelines-owning-memory,\
+-cppcoreguidelines-pro-type-reinterpret-cast,\
+-cppcoreguidelines-pro-type-const-cast,\
+-cppcoreguidelines-pro-type-vararg;\
+-warnings-as-errors=*")
 endif()
 
 macro(_apply_clang_tidy_if_available TARGET)
