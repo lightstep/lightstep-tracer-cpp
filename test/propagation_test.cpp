@@ -196,7 +196,6 @@ TEST_CASE("propagation") {
       CHECK_NOTHROW(VerifyInjectExtract(*tracer, *span_context, ss));
 
       // binary carrier
-      text_map.clear();
       CHECK_NOTHROW(
           VerifyInjectExtract(*tracer, *span_context, binary_reader_writer));
       // Note: binary injection clears the existing values so no need to reset.
