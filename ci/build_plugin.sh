@@ -2,7 +2,7 @@
 
 set -e
 
-[ -z "${OPENTRACING_VERSION}" ] && export OPENTRACING_VERSION="v1.4.0"
+[ -z "${OPENTRACING_VERSION}" ] && export OPENTRACING_VERSION="v1.5.0"
 [ -z "${GRPC_VERSION}" ] && export GRPC_VERSION="v1.10.0"
 
 # Compile for a portable cpu architecture
