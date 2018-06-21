@@ -3,11 +3,10 @@
 #include <exception>
 #include "lightstep_tracer_factory.h"
 
-static int OpenTracingMakeTracerFactoryFct(const char* opentracing_version,
-                                           const char* opentracing_abi_version,
-                                           const void** error_category,
-                                           void* error_message,
-                                           void** tracer_factory) try {
+static int OpenTracingMakeTracerFactoryFunction(
+    const char* opentracing_version, const char* opentracing_abi_version,
+    const void** error_category, void* error_message,
+    void** tracer_factory) try {
   if (opentracing_version == nullptr || opentracing_abi_version == nullptr ||
       error_message == nullptr || error_category == nullptr ||
       tracer_factory == nullptr) {
@@ -37,4 +36,4 @@ static int OpenTracingMakeTracerFactoryFct(const char* opentracing_version,
   return static_cast<int>(std::errc::not_enough_memory);
 }
 
-OPENTRACING_DECLARE_IMPL_FACTORY(OpenTracingMakeTracerFactoryFct)
+OPENTRACING_DECLARE_IMPL_FACTORY(OpenTracingMakeTracerFactoryFunction)
