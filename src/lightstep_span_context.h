@@ -42,8 +42,12 @@ class LightStepSpanContext : public opentracing::SpanContext {
   opentracing::expected<void> Inject(
       const PropagationOptions& propagation_options, Carrier& writer) const {
     std::lock_guard<std::mutex> lock_guard{mutex_};
+    std::unordered_map<std::string, std::string> baggage;
+    for (auto& baggage_item : data_.baggage()) {
+      baggage.emplace(baggage_item.first, baggage_item.second);
+    }
     return InjectSpanContext(propagation_options, writer, this->trace_id(),
-                             this->span_id(), sampled_, baggage_);
+                             this->span_id(), sampled_, baggage);
   }
 
   template <class Carrier>
@@ -51,13 +55,20 @@ class LightStepSpanContext : public opentracing::SpanContext {
       const PropagationOptions& propagation_options, Carrier& reader) {
     std::lock_guard<std::mutex> lock_guard{mutex_};
     uint64_t trace_id, span_id;
+    std::unordered_map<std::string, std::string> baggage;
     auto result = ExtractSpanContext(propagation_options, reader, trace_id,
-                                     span_id, sampled_, baggage_);
+                                     span_id, sampled_, baggage);
     if (!result) {
       return result;
     }
     data_.set_trace_id(trace_id);
     data_.set_span_id(span_id);
+
+    using StringMap = google::protobuf::Map<std::string, std::string>;
+    auto& baggage_data = *data_.mutable_baggage();
+    for (auto& baggage_item : baggage)
+      baggage_data.insert(
+          StringMap::value_type(baggage_item.first, baggage_item.second));
     return result;
   }
 
@@ -71,7 +82,6 @@ class LightStepSpanContext : public opentracing::SpanContext {
   mutable std::mutex mutex_;
   collector::SpanContext data_;
   bool sampled_ = true;
-  std::unordered_map<std::string, std::string> baggage_;
 };
 
 bool operator==(const LightStepSpanContext& lhs,

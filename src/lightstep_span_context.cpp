@@ -14,10 +14,10 @@ LightStepSpanContext::LightStepSpanContext(
 LightStepSpanContext::LightStepSpanContext(
     uint64_t trace_id, uint64_t span_id, bool sampled,
     std::unordered_map<std::string, std::string>&& baggage) noexcept
-    : sampled_{sampled}, baggage_{std::move(baggage)} {
+    : sampled_{sampled} {
   data_.set_trace_id(trace_id);
   data_.set_span_id(span_id);
-  auto baggage_data = *data_.mutable_baggage();
+  auto& baggage_data = *data_.mutable_baggage();
   for (auto& baggage_item : baggage)
     baggage_data.insert(
         StringMap::value_type(baggage_item.first, baggage_item.second));
@@ -29,10 +29,7 @@ LightStepSpanContext::LightStepSpanContext(
 LightStepSpanContext& LightStepSpanContext::operator=(
     LightStepSpanContext&& other) noexcept {
   sampled_ = other.sampled_;
-  baggage_ = std::move(other.baggage_);
-
   data_ = std::move(other.data_);
-
   return *this;
 }
 
@@ -42,7 +39,8 @@ LightStepSpanContext& LightStepSpanContext::operator=(
 void LightStepSpanContext::set_baggage_item(
     opentracing::string_view key, opentracing::string_view value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  baggage_.emplace(key, value);
+  auto& baggage_data = *data_.mutable_baggage();
+  baggage_data.insert(StringMap::value_type(key, value));
 } catch (const std::exception&) {
   // Drop baggage item upon error.
 }
@@ -53,8 +51,9 @@ void LightStepSpanContext::set_baggage_item(
 std::string LightStepSpanContext::baggage_item(
     opentracing::string_view key) const {
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  auto lookup = baggage_.find(key);
-  if (lookup != baggage_.end()) {
+  auto& baggage = data_.baggage();
+  auto lookup = baggage.find(key);
+  if (lookup != baggage.end()) {
     return lookup->second;
   }
   return {};
@@ -67,7 +66,7 @@ void LightStepSpanContext::ForeachBaggageItem(
     std::function<bool(const std::string& key, const std::string& value)> f)
     const {
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  for (const auto& baggage_item : baggage_) {
+  for (const auto& baggage_item : data_.baggage()) {
     if (!f(baggage_item.first, baggage_item.second)) {
       return;
     }
