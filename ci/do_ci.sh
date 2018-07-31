@@ -46,6 +46,14 @@ elif [[ "$1" == "cmake.tsan" ]]; then
   make VERBOSE=1
   make test
   exit 0
+elif [[ "$1" == "coverage" ]]; then
+  cd "${BUILD_DIR}"
+  cmake -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fPIC -O0" \
+    "$SRC_DIR"
+  make VERBOSE=1
+  make test
+  exit 0
 elif [[ "$1" == "cmake.clang-tidy" ]]; then
   cd "${BUILD_DIR}"
   cmake -DCMAKE_BUILD_TYPE=Debug  \
