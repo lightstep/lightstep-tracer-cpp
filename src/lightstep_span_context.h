@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 #include "propagation.h"
+#include "lightstep-tracer-common/collector.pb.h"
 
 namespace lightstep {
 class LightStepSpanContext : public opentracing::SpanContext {
@@ -41,29 +42,34 @@ class LightStepSpanContext : public opentracing::SpanContext {
   opentracing::expected<void> Inject(
       const PropagationOptions& propagation_options, Carrier& writer) const {
     std::lock_guard<std::mutex> lock_guard{mutex_};
-    return InjectSpanContext(propagation_options, writer, trace_id_, span_id_,
-                             sampled_, baggage_);
+    return InjectSpanContext(propagation_options, writer, this->trace_id(),
+                             this->span_id(), sampled_, baggage_);
   }
 
   template <class Carrier>
   opentracing::expected<bool> Extract(
       const PropagationOptions& propagation_options, Carrier& reader) {
     std::lock_guard<std::mutex> lock_guard{mutex_};
-    return ExtractSpanContext(propagation_options, reader, trace_id_, span_id_,
-                              sampled_, baggage_);
+    uint64_t trace_id, span_id;
+    auto result = ExtractSpanContext(propagation_options, reader, trace_id,
+                                     span_id, sampled_, baggage_);
+    if (!result) {
+      return result;
+    }
+    data_.set_trace_id(trace_id);
+    data_.set_span_id(span_id);
+    return result;
   }
 
-  uint64_t trace_id() const noexcept { return trace_id_; }
-  uint64_t span_id() const noexcept { return span_id_; }
+  uint64_t trace_id() const noexcept { return data_.trace_id(); }
+  uint64_t span_id() const noexcept { return data_.span_id(); }
 
   bool sampled() const noexcept;
   void set_sampled(bool sampled) noexcept;
 
  private:
-  uint64_t trace_id_ = 0;
-  uint64_t span_id_ = 0;
-
   mutable std::mutex mutex_;
+  collector::SpanContext data_;
   bool sampled_ = true;
   std::unordered_map<std::string, std::string> baggage_;
 };

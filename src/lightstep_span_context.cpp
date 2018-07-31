@@ -1,5 +1,7 @@
 #include "lightstep_span_context.h"
 
+using StringMap = google::protobuf::Map<std::string, std::string>;
+
 namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
@@ -7,25 +9,30 @@ namespace lightstep {
 LightStepSpanContext::LightStepSpanContext(
     uint64_t trace_id, uint64_t span_id,
     std::unordered_map<std::string, std::string>&& baggage) noexcept
-    : trace_id_{trace_id}, span_id_{span_id}, baggage_{std::move(baggage)} {}
+    : LightStepSpanContext{trace_id, span_id, true, std::move(baggage)} {}
 
 LightStepSpanContext::LightStepSpanContext(
     uint64_t trace_id, uint64_t span_id, bool sampled,
     std::unordered_map<std::string, std::string>&& baggage) noexcept
-    : trace_id_{trace_id},
-      span_id_{span_id},
-      sampled_{sampled},
-      baggage_{std::move(baggage)} {}
+    : sampled_{sampled}, baggage_{std::move(baggage)} {
+  data_.set_trace_id(trace_id);
+  data_.set_span_id(span_id);
+  auto baggage_data = *data_.mutable_baggage();
+  for (auto& baggage_item : baggage)
+    baggage_data.insert(
+        StringMap::value_type(baggage_item.first, baggage_item.second));
+}
 
 //------------------------------------------------------------------------------
 // operator=
 //------------------------------------------------------------------------------
 LightStepSpanContext& LightStepSpanContext::operator=(
     LightStepSpanContext&& other) noexcept {
-  trace_id_ = other.trace_id_;
-  span_id_ = other.span_id_;
   sampled_ = other.sampled_;
   baggage_ = std::move(other.baggage_);
+
+  data_ = std::move(other.data_);
+
   return *this;
 }
 
