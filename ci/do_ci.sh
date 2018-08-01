@@ -53,7 +53,7 @@ elif [[ "$1" == "coverage" ]]; then
     "$SRC_DIR"
   make VERBOSE=1
   make test
-  cd build/CMakeFiles/lightstep_tracer.dir/src
+  cd CMakeFiles/lightstep_tracer.dir/src
   gcovr -r "$SRC_DIR" . --html --html-details -o coverage.html
   mkdir /coverage
   cp *.html /coverage/
