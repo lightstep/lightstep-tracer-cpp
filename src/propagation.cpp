@@ -81,7 +81,7 @@ static opentracing::expected<opentracing::string_view> LookupKey(
 static opentracing::expected<void> InjectSpanContextMultiKey(
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
     uint64_t span_id, bool sampled,
-    const std::unordered_map<std::string, std::string>& baggage) {
+    const BaggageMap& baggage) {
   std::string trace_id_hex, span_id_hex, baggage_key;
   try {
     trace_id_hex = Uint64ToHex(trace_id);
@@ -129,7 +129,7 @@ static opentracing::expected<void> InjectSpanContextMultiKey(
 static opentracing::expected<void> InjectSpanContextSingleKey(
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
     uint64_t span_id, bool sampled,
-    const std::unordered_map<std::string, std::string>& baggage) {
+    const BaggageMap& baggage) {
   std::ostringstream ostream;
   auto result = InjectSpanContext(PropagationOptions{}, ostream, trace_id,
                                   span_id, sampled, baggage);
@@ -158,7 +158,7 @@ static opentracing::expected<void> InjectSpanContextSingleKey(
 //------------------------------------------------------------------------------
 static opentracing::expected<void> InjectSpanContext(
     BinaryCarrier& carrier, uint64_t trace_id, uint64_t span_id, bool sampled,
-    const std::unordered_map<std::string, std::string>& baggage) noexcept try {
+    const BaggageMap& baggage) noexcept try {
   carrier.Clear();
   auto basic = carrier.mutable_basic_ctx();
   basic->set_trace_id(trace_id);
@@ -177,7 +177,7 @@ static opentracing::expected<void> InjectSpanContext(
 opentracing::expected<void> InjectSpanContext(
     const PropagationOptions& /*propagation_options*/, std::ostream& carrier,
     uint64_t trace_id, uint64_t span_id, bool sampled,
-    const std::unordered_map<std::string, std::string>& baggage) {
+    const BaggageMap& baggage) {
   BinaryCarrier binary_carrier;
   auto result =
       InjectSpanContext(binary_carrier, trace_id, span_id, sampled, baggage);
@@ -204,7 +204,7 @@ opentracing::expected<void> InjectSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
     uint64_t span_id, bool sampled,
-    const std::unordered_map<std::string, std::string>& baggage) {
+    const BaggageMap& baggage) {
   if (propagation_options.use_single_key) {
     return InjectSpanContextSingleKey(carrier, trace_id, span_id, sampled,
                                       baggage);

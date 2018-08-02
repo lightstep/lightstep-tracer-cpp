@@ -42,12 +42,8 @@ class LightStepSpanContext : public opentracing::SpanContext {
   opentracing::expected<void> Inject(
       const PropagationOptions& propagation_options, Carrier& writer) const {
     std::lock_guard<std::mutex> lock_guard{mutex_};
-    std::unordered_map<std::string, std::string> baggage;
-    for (auto& baggage_item : data_.baggage()) {
-      baggage.emplace(baggage_item.first, baggage_item.second);
-    }
     return InjectSpanContext(propagation_options, writer, this->trace_id(),
-                             this->span_id(), sampled_, baggage);
+                             this->span_id(), sampled_, data_.baggage());
   }
 
   template <class Carrier>
