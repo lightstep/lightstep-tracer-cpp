@@ -11,6 +11,10 @@ LightStepSpanContext::LightStepSpanContext(
     std::unordered_map<std::string, std::string>&& baggage) noexcept
     : LightStepSpanContext{trace_id, span_id, true, std::move(baggage)} {}
 
+LightStepSpanContext::LightStepSpanContext(uint64_t trace_id, uint64_t span_id,
+                                           BaggageMap&& baggage) noexcept
+    : LightStepSpanContext{trace_id, span_id, true, std::move(baggage)} {}
+
 LightStepSpanContext::LightStepSpanContext(
     uint64_t trace_id, uint64_t span_id, bool sampled,
     std::unordered_map<std::string, std::string>&& baggage) noexcept
@@ -21,6 +25,15 @@ LightStepSpanContext::LightStepSpanContext(
   for (auto& baggage_item : baggage)
     baggage_data.insert(
         StringMap::value_type(baggage_item.first, baggage_item.second));
+}
+
+LightStepSpanContext::LightStepSpanContext(
+    uint64_t trace_id, uint64_t span_id, bool sampled,
+    BaggageMap&& baggage) noexcept
+    : sampled_{sampled} {
+  data_.set_trace_id(trace_id);
+  data_.set_span_id(span_id);
+  *data_.mutable_baggage() = std::move(baggage);
 }
 
 //------------------------------------------------------------------------------

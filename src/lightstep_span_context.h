@@ -17,9 +17,15 @@ class LightStepSpanContext : public opentracing::SpanContext {
       uint64_t trace_id, uint64_t span_id,
       std::unordered_map<std::string, std::string>&& baggage) noexcept;
 
+  LightStepSpanContext(uint64_t trace_id, uint64_t span_id,
+                       BaggageMap&& baggage) noexcept;
+
   LightStepSpanContext(
       uint64_t trace_id, uint64_t span_id, bool sampled,
       std::unordered_map<std::string, std::string>&& baggage) noexcept;
+
+  LightStepSpanContext(uint64_t trace_id, uint64_t span_id, bool sampled,
+                       BaggageMap&& baggage) noexcept;
 
   LightStepSpanContext(const LightStepSpanContext&) = delete;
   LightStepSpanContext(LightStepSpanContext&&) = delete;
