@@ -64,6 +64,5 @@ class LightStepSpan : public opentracing::Span {
   std::mutex mutex_;
   collector::Span data_;
   std::unordered_map<std::string, opentracing::Value> tags_;
-  std::vector<collector::Log> logs_;
 };
 }  // namespace lightstep

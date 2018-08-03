@@ -190,16 +190,8 @@ void LightStepSpan::FinishWithOptions(
                       R"(": )", e.what());
       }
     }
-    auto logs = data_.mutable_logs();
-    logs->Reserve(static_cast<int>(logs_.size()) +
-                  static_cast<int>(options.log_records.size()));
-    for (auto& log : logs_) {
-      try {
-        *logs->Add() = std::move(log);
-      } catch (const std::exception& e) {
-        logger_.Error("Dropping log record: ", e.what());
-      }
-    }
+    auto& logs = *data_.mutable_logs();
+    logs.Reserve(logs.size() + static_cast<int>(options.log_records.size()));
     for (auto& log_record : options.log_records) {
       try {
         collector::Log log;
@@ -208,7 +200,7 @@ void LightStepSpan::FinishWithOptions(
         for (auto& field : log_record.fields) {
           *key_values->Add() = ToKeyValue(field.first, field.second);
         }
-        *logs->Add() = std::move(log);
+        *logs.Add() = std::move(log);
       } catch (const std::exception& e) {
         logger_.Error("Dropping log record: ", e.what());
       }
@@ -291,7 +283,7 @@ void LightStepSpan::Log(std::initializer_list<
   for (const auto& field : fields) {
     *key_values->Add() = ToKeyValue(field.first, field.second);
   }
-  logs_.emplace_back(std::move(log));
+  *data_.mutable_logs()->Add() = std::move(log);
 } catch (const std::exception& e) {
   logger_.Error("Log failed: ", e.what());
 }
