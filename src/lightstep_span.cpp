@@ -50,7 +50,7 @@ static bool SetSpanReference(
     Logger& logger,
     const std::pair<opentracing::SpanReferenceType,
                     const opentracing::SpanContext*>& reference,
-    std::unordered_map<std::string, std::string>& baggage,
+    BaggageMap& baggage,
     collector::Reference& collector_reference, bool& sampled) {
   collector_reference.Clear();
   switch (reference.first) {
@@ -102,7 +102,7 @@ LightStepSpan::LightStepSpan(
       options.start_system_timestamp, options.start_steady_timestamp);
 
   // Set any span references.
-  std::unordered_map<std::string, std::string> baggage;
+  BaggageMap baggage;
   references_.reserve(options.references.size());
   collector::Reference collector_reference;
   bool sampled = false;
