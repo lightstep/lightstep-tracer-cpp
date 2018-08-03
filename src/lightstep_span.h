@@ -54,7 +54,6 @@ class LightStepSpan : public opentracing::Span {
   std::shared_ptr<const opentracing::Tracer> tracer_;
   Logger& logger_;
   Recorder& recorder_;
-  std::vector<collector::Reference> references_;
   std::chrono::system_clock::time_point start_timestamp_;
   std::chrono::steady_clock::time_point start_steady_;
   LightStepSpanContext span_context_;
@@ -63,6 +62,7 @@ class LightStepSpan : public opentracing::Span {
 
   // Mutex protects tags_, logs_, and operation_name_.
   std::mutex mutex_;
+  collector::Span data_;
   std::string operation_name_;
   std::unordered_map<std::string, opentracing::Value> tags_;
   std::vector<collector::Log> logs_;
