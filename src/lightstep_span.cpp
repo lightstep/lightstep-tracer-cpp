@@ -178,22 +178,20 @@ void LightStepSpan::FinishWithOptions(
   *data_.mutable_start_timestamp() = ToTimestamp(start_timestamp_);
 
   // Set tags, logs, and operation name.
-  {
-    std::lock_guard<std::mutex> lock_guard{mutex_};
-    auto& logs = *data_.mutable_logs();
-    logs.Reserve(logs.size() + static_cast<int>(options.log_records.size()));
-    for (auto& log_record : options.log_records) {
-      try {
-        collector::Log log;
-        *log.mutable_timestamp() = ToTimestamp(log_record.timestamp);
-        auto key_values = log.mutable_fields();
-        for (auto& field : log_record.fields) {
-          *key_values->Add() = ToKeyValue(field.first, field.second);
-        }
-        *logs.Add() = std::move(log);
-      } catch (const std::exception& e) {
-        logger_.Error("Dropping log record: ", e.what());
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  auto& logs = *data_.mutable_logs();
+  logs.Reserve(logs.size() + static_cast<int>(options.log_records.size()));
+  for (auto& log_record : options.log_records) {
+    try {
+      collector::Log log;
+      *log.mutable_timestamp() = ToTimestamp(log_record.timestamp);
+      auto key_values = log.mutable_fields();
+      for (auto& field : log_record.fields) {
+        *key_values->Add() = ToKeyValue(field.first, field.second);
       }
+      *logs.Add() = std::move(log);
+    } catch (const std::exception& e) {
+      logger_.Error("Dropping log record: ", e.what());
     }
   }
 
