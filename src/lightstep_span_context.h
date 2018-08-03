@@ -57,7 +57,7 @@ class LightStepSpanContext : public opentracing::SpanContext {
       const PropagationOptions& propagation_options, Carrier& reader) {
     std::lock_guard<std::mutex> lock_guard{mutex_};
     uint64_t trace_id, span_id;
-    std::unordered_map<std::string, std::string> baggage;
+    BaggageMap baggage;
     auto result = ExtractSpanContext(propagation_options, reader, trace_id,
                                      span_id, sampled_, baggage);
     if (!result) {
@@ -65,12 +65,8 @@ class LightStepSpanContext : public opentracing::SpanContext {
     }
     data_.set_trace_id(trace_id);
     data_.set_span_id(span_id);
+    *data_.mutable_baggage() = std::move(baggage);
 
-    using StringMap = google::protobuf::Map<std::string, std::string>;
-    auto& baggage_data = *data_.mutable_baggage();
-    for (auto& baggage_item : baggage)
-      baggage_data.insert(
-          StringMap::value_type(baggage_item.first, baggage_item.second));
     return result;
   }
 

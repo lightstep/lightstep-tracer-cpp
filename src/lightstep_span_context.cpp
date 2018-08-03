@@ -1,7 +1,5 @@
 #include "lightstep_span_context.h"
 
-using StringMap = google::protobuf::Map<std::string, std::string>;
-
 namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
@@ -24,7 +22,7 @@ LightStepSpanContext::LightStepSpanContext(
   auto& baggage_data = *data_.mutable_baggage();
   for (auto& baggage_item : baggage)
     baggage_data.insert(
-        StringMap::value_type(baggage_item.first, baggage_item.second));
+        BaggageMap::value_type(baggage_item.first, baggage_item.second));
 }
 
 LightStepSpanContext::LightStepSpanContext(
@@ -53,7 +51,7 @@ void LightStepSpanContext::set_baggage_item(
     opentracing::string_view key, opentracing::string_view value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   auto& baggage_data = *data_.mutable_baggage();
-  baggage_data.insert(StringMap::value_type(key, value));
+  baggage_data.insert(BaggageMap::value_type(key, value));
 } catch (const std::exception&) {
   // Drop baggage item upon error.
 }
