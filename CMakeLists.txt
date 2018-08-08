@@ -146,6 +146,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/logger.cpp
                    src/propagation.cpp
                    src/binary_carrier.cpp
+                   src/circular_buffer.cpp
                    src/grpc_transporter.cpp
                    src/report_builder.cpp
                    src/manual_recorder.cpp
