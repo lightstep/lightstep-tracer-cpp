@@ -15,6 +15,11 @@ class ReportBuilder {
       const std::string& access_token,
       const std::unordered_map<std::string, opentracing::Value>& tags);
 
+  // Reserves memory for pending spans.
+  void Reserve(size_t num_spans) {
+    pending_.mutable_spans()->Reserve(static_cast<int>(num_spans));
+  }
+
   // AddSpan adds the span to the currently-building ReportRequest.
   void AddSpan(collector::Span&& span);
 

@@ -26,7 +26,7 @@ void ReportBuilder::AddSpan(collector::Span&& span) {
     pending_.CopyFrom(preamble_);
     reset_next_ = false;
   }
-  *pending_.mutable_spans()->Add() = span;
+  *pending_.mutable_spans()->Add() = std::move(span);
 }
 
 //------------------------------------------------------------------------------
