@@ -15,9 +15,9 @@ class AtomicBitSet {
 
   bool Test(int bit_index) const noexcept;
 
-  void Reset(int bit_index) noexcept;
+  bool Reset(int bit_index) noexcept;
 
-  void Set(int bit_index) noexcept;
+  bool Set(int bit_index) noexcept;
 
  private:
 

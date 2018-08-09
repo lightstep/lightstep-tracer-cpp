@@ -34,16 +34,16 @@ bool AtomicBitSet::Test(int bit_index) const noexcept {
 //------------------------------------------------------------------------------
 // Reset
 //------------------------------------------------------------------------------
-void AtomicBitSet::Reset(int bit_index) noexcept {
+bool AtomicBitSet::Reset(int bit_index) noexcept {
   auto mask = one << ComputeBitOffSet(bit_index);
-  blocks_[ComputeBlockIndex(bit_index)].fetch_and(~mask);
+  return blocks_[ComputeBlockIndex(bit_index)].fetch_and(~mask) & mask;
 }
 
 //------------------------------------------------------------------------------
 // Set
 //------------------------------------------------------------------------------
-void AtomicBitSet::Set(int bit_index) noexcept {
+bool AtomicBitSet::Set(int bit_index) noexcept {
   auto mask = one << ComputeBitOffSet(bit_index);
-  blocks_[ComputeBlockIndex(bit_index)].fetch_or(mask);
+  return blocks_[ComputeBlockIndex(bit_index)].fetch_or(mask) & mask;
 }
 }  // namespace lightstep

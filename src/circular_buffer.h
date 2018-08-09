@@ -20,6 +20,8 @@ class CircularBuffer {
 
   void Consume(size_t num_bytes) noexcept;
 
+  const char* data() const noexcept { return data_.get(); }
+
   const char* tail_data() const noexcept { return data_.get() + tail_; }
 
   ptrdiff_t tail_index() const noexcept { return tail_; }

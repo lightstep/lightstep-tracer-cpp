@@ -8,13 +8,20 @@
 namespace lightstep {
 class SpanBuffer {
  public:
-   explicit SpanBuffer(size_t num_bytes);
+  using ConsumerFunction = size_t (*)(void* context, const char* data,
+                                      size_t num_bytes);
 
+  explicit SpanBuffer(size_t num_bytes);
 
-   bool Add(const google::protobuf::Message& message) noexcept;
+  bool Add(const google::protobuf::Message& message) noexcept;
+
+  void Consume(ConsumerFunction consumer, void* context) noexcept;
 
  private:
    CircularBuffer buffer_;
    AtomicBitSet ready_flags_;
+   size_t consumer_allotment_ = 0;
+
+   void GrowConsumerAllotment() noexcept;
 };
 } // namespace lightstep
