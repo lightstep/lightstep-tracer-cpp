@@ -15,7 +15,7 @@ static size_t ComputeFreeSpace(ptrdiff_t head, ptrdiff_t tail,
 CircularBuffer::CircularBuffer(size_t capacity)
     : data_{new char[capacity]}, capacity_{capacity}, head_{0}, tail_{0} {}
 
-CircularBufferReservation CircularBuffer::Reserve(size_t num_bytes) noexcept {
+CircularBufferPlacement CircularBuffer::Reserve(size_t num_bytes) noexcept {
   ptrdiff_t new_head;
   ptrdiff_t head = head_;
   while (1) {

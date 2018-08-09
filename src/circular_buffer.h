@@ -5,7 +5,7 @@
 #include <memory>
 
 namespace lightstep {
-struct CircularBufferReservation {
+struct CircularBufferPlacement {
   char* data1;
   size_t size1;
   char* data2;
@@ -16,7 +16,7 @@ class CircularBuffer {
  public:
   explicit CircularBuffer(size_t capacity);
 
-  CircularBufferReservation Reserve(size_t num_bytes) noexcept;
+  CircularBufferPlacement Reserve(size_t num_bytes) noexcept;
 
   void Consume(size_t num_bytes) noexcept;
 
