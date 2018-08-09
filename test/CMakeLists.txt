@@ -8,6 +8,7 @@ endmacro()
 _lightstep_test(tracer_test tracer_test.cpp 
                             utility.cpp)
 _lightstep_test(bipart_ostream_buffer_test bipart_ostream_buffer_test.cpp)
+_lightstep_test(bipart_memory_stream_test bipart_memory_stream_test.cpp)
 _lightstep_test(utility_test utility_test.cpp)
 _lightstep_test(circular_buffer_test circular_buffer_test.cpp)
 _lightstep_test(packet_header_test packet_header_test.cpp)

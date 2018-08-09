@@ -151,6 +151,7 @@ include(LightStepTracerConfiguration)
 set(LIGHTSTEP_SRCS src/utility.cpp
                    src/in_memory_stream.cpp
                    src/bipart_ostream_buffer.cpp
+                   src/bipart_memory_stream.cpp
                    src/logger.cpp
                    src/propagation.cpp
                    src/binary_carrier.cpp
