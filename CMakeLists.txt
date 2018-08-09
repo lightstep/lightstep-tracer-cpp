@@ -60,6 +60,13 @@ if (NOT BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)
 endif()
 
 # ==============================================================================
+# Determine the endianness of our architecture
+include (TestBigEndian)
+if(IS_BIG_ENDIAN)
+  set(LIGHTSTEP_BIG_ENDIAN 1)
+endif()
+
+# ==============================================================================
 # Set up generated header files config.h and version.h
 
 configure_file(version.h.in include/lightstep/version.h)
@@ -147,6 +154,8 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/propagation.cpp
                    src/binary_carrier.cpp
                    src/circular_buffer.cpp
+                   src/packet_header.cpp
+                   src/span_buffer.cpp
                    src/atomic_bit_set.cpp
                    src/grpc_transporter.cpp
                    src/report_builder.cpp

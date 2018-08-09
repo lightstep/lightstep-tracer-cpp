@@ -4,6 +4,8 @@
 #include <opentracing/value.h>
 #include <chrono>
 #include <string>
+#include <algorithm>
+#include <type_traits>
 #include "lightstep-tracer-common/collector.pb.h"
 #include "logger.h"
 
@@ -28,4 +30,11 @@ collector::KeyValue ToKeyValue(opentracing::string_view key,
 // Logs any information returned by the collector.
 void LogReportResponse(Logger& logger, bool verbose,
                        const collector::ReportResponse& response);
+
+template <class T>
+inline void ReverseEndianness(T& t) {
+  static_assert(std::is_integral<T>::value, "Must be integral type");
+  char* data = reinterpret_cast<char*>(&t);
+  std::reverse(data, data + sizeof(T));
+}
 }  // namespace lightstep

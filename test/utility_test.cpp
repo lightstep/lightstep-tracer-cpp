@@ -55,3 +55,13 @@ TEST_CASE("Json") {
     CHECK(key_value1.json_value() == "[null]");
   }
 }
+
+TEST_CASE("ReverseEndianness") {
+  uint16_t x;
+  char* x_data = reinterpret_cast<char*>(&x);
+  x_data[0] = 1;
+  x_data[1] = 2;
+  ReverseEndianness(x);
+  CHECK(x_data[0] == 2);
+  CHECK(x_data[1] == 1);
+}
