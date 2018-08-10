@@ -1,8 +1,12 @@
 #include "circular_buffer.h"
 
 #include <cassert>
+#include <algorithm>
 
 namespace lightstep {
+//------------------------------------------------------------------------------
+// ComputeFreeSpace
+//------------------------------------------------------------------------------
 static size_t ComputeFreeSpace(ptrdiff_t head, ptrdiff_t tail,
                                size_t capacity) noexcept {
   if (head >= tail) {
@@ -12,9 +16,15 @@ static size_t ComputeFreeSpace(ptrdiff_t head, ptrdiff_t tail,
   }
 }
 
+//------------------------------------------------------------------------------
+// constructor
+//------------------------------------------------------------------------------
 CircularBuffer::CircularBuffer(size_t capacity)
     : data_{new char[capacity]}, capacity_{capacity}, head_{0}, tail_{0} {}
 
+//------------------------------------------------------------------------------
+// Reserve
+//------------------------------------------------------------------------------
 CircularBufferPlacement CircularBuffer::Reserve(size_t num_bytes) noexcept {
   ptrdiff_t new_head;
   ptrdiff_t head = head_;
@@ -40,6 +50,25 @@ CircularBufferPlacement CircularBuffer::Reserve(size_t num_bytes) noexcept {
           static_cast<size_t>(new_head)};
 }
 
+//------------------------------------------------------------------------------
+// Peek
+//------------------------------------------------------------------------------
+CircularBufferConstPlacement CircularBuffer::Peek(ptrdiff_t index,
+                                                  size_t num_bytes) const
+    noexcept {
+  assert(index + num_bytes <= size());
+  ptrdiff_t tail = tail_;
+  auto first_index = (tail + index) % capacity_;
+  auto data1 = data_.get() + first_index;
+  auto size1 = std::min(static_cast<size_t>(capacity_ - first_index), num_bytes);
+  auto data2 = data_.get();
+  auto size2 = num_bytes - size1;
+  return {data1, size1, data2, size2};
+}
+
+//------------------------------------------------------------------------------
+// Consume
+//------------------------------------------------------------------------------
 void CircularBuffer::Consume(size_t num_bytes) noexcept {
   ptrdiff_t new_tail;
   ptrdiff_t tail = tail_;
@@ -53,6 +82,9 @@ void CircularBuffer::Consume(size_t num_bytes) noexcept {
   }
 }
 
+//------------------------------------------------------------------------------
+// size
+//------------------------------------------------------------------------------
 size_t CircularBuffer::size() const noexcept {
   ptrdiff_t head = head_;
   ptrdiff_t tail = tail_;

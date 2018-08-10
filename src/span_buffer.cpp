@@ -75,11 +75,12 @@ void SpanBuffer::GrowConsumerAllotment() noexcept {
         (buffer_.tail_index() + consumer_allotment_) % buffer_.capacity();
 
     // Return if the next packet isn't ready to send.
-    if (!ready_flags_.Reset(next_packet_index)) {
+    if (!ready_flags_.Reset(static_cast<int>(next_packet_index))) {
       return;
     }
 
     // Deserialize the packet header so that we can determine how big it is.
+    /* auto head_placement = buffer_.Peek */
   }
 }
 }  // namespace lightstep

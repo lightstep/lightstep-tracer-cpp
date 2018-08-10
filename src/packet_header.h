@@ -3,9 +3,13 @@
 #include <cstdint>
 #include <cstddef>
 
+#include <google/protobuf/io/coded_stream.h>
+
 namespace lightstep {
 class PacketHeader {
  public:
+   explicit PacketHeader(google::protobuf::io::CodedInputStream& istream) noexcept;
+
    explicit PacketHeader(const char* data) noexcept;
 
     PacketHeader(uint8_t version, uint32_t body_size) noexcept;

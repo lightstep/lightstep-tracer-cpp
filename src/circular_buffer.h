@@ -12,11 +12,21 @@ struct CircularBufferPlacement {
   size_t size2;
 };
 
+struct CircularBufferConstPlacement {
+  const char* data1;
+  size_t size1;
+  const char* data2;
+  size_t size2;
+};
+
 class CircularBuffer {
  public:
   explicit CircularBuffer(size_t capacity);
 
   CircularBufferPlacement Reserve(size_t num_bytes) noexcept;
+
+  CircularBufferConstPlacement Peek(ptrdiff_t index, size_t num_bytes) const
+      noexcept;
 
   void Consume(size_t num_bytes) noexcept;
 
