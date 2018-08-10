@@ -1,4 +1,5 @@
 #include "utility.h"
+#include <lightstep/randutils.h>
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>
 #include <unistd.h>
@@ -28,8 +29,8 @@ google::protobuf::Timestamp ToTimestamp(
 // GenerateId
 //------------------------------------------------------------------------------
 uint64_t GenerateId() {
-  static thread_local std::mt19937_64 rand_source{std::random_device()()};
-  return rand_source();
+  static thread_local lightstep::randutils::mt19937_64_rng rand_source{};
+  return rand_source.engine()();
 }
 
 //------------------------------------------------------------------------------
