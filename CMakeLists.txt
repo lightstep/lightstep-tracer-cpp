@@ -86,6 +86,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     -Wno-global-constructors 
     -Wno-sign-conversion
     -Wno-padded
+    -Wno-date-time
     -Wno-switch-enum
     -Wno-disabled-macro-expansion)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
