@@ -1,7 +1,7 @@
 #include "span_buffer.h"
 
 #include "packet_header.h"
-#include "bipart_ostream_buffer.h"
+#include "bipart_memory_stream.h"
 #include <array>
 
 #include <google/protobuf/io/zero_copy_stream.h>
@@ -25,7 +25,7 @@ static void SerializePacketHeader(
 static void SerializePacket(const PacketHeader& header,
                             const google::protobuf::Message& message,
                             const CircularBufferPlacement& placement) noexcept {
-  BipartOstreamBuffer stream_buffer{placement.data1, placement.size1,
+  BipartMemoryOutputStream stream_buffer{placement.data1, placement.size1,
                                     placement.data2, placement.size2};
   google::protobuf::io::CodedOutputStream stream{&stream_buffer};
   SerializePacketHeader(header, stream);
@@ -62,8 +62,18 @@ bool SpanBuffer::Add(const google::protobuf::Message& message) noexcept {
 //------------------------------------------------------------------------------
 // Consume
 //------------------------------------------------------------------------------
-void SpanBuffer::Consume(ConsumerFunction consumer, void* context) noexcept {
-  
+bool SpanBuffer::Consume(ConsumerFunction consumer, void* context) noexcept {
+  GrowConsumerAllotment();
+  if (consumer_allotment_ == 0) {
+    return false;
+  }
+  auto max_num_consumption_bytes =
+      std::min(consumer_allotment_, buffer_.capacity() - buffer_.tail_index());
+  auto num_bytes_consumed =
+      consumer(context, buffer_.tail_data(), max_num_consumption_bytes);
+  buffer_.Consume(num_bytes_consumed);
+  consumer_allotment_ -= num_bytes_consumed;
+  return true;
 }
 
 //------------------------------------------------------------------------------
@@ -80,7 +90,17 @@ void SpanBuffer::GrowConsumerAllotment() noexcept {
     }
 
     // Deserialize the packet header so that we can determine how big it is.
-    /* auto head_placement = buffer_.Peek */
+    auto placement = buffer_.Peek(consumer_allotment_, PacketHeader::size);
+    BipartMemoryInputStream stream_buffer{placement.data1, placement.size1,
+                                          placement.data2, placement.size2};
+    google::protobuf::io::CodedInputStream stream{&stream_buffer};
+    std::array<char, PacketHeader::size> buffer;
+    stream.ReadRaw(static_cast<void*>(buffer.data()),
+                   static_cast<int>(PacketHeader::size));
+    PacketHeader header{buffer.data()};
+
+    // Add the packet to the consumer allotment
+    consumer_allotment_ += PacketHeader::size + header.body_size();
   }
 }
 }  // namespace lightstep
