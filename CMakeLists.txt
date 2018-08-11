@@ -163,6 +163,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/report_builder.cpp
                    src/manual_recorder.cpp
                    src/auto_recorder.cpp
+                   src/streaming_recorder.cpp
                    src/lightstep_span_context.cpp
                    src/lightstep_span.cpp
                    src/lightstep_tracer_impl.cpp
