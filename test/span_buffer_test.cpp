@@ -72,5 +72,27 @@ TEST_CASE("SpanBuffer") {
   SECTION(
       "If the circular buffer wraps, we're only allowed to consume the largest "
       "contiguous block of memory") {
+    for (int i = 0; i < static_cast<int>(max_spans); ++i) {
+      CHECK(span_buffer.Add(span));
+    }
+    span_buffer.Consume(
+        [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
+          CHECK(num_bytes == max_spans * packet_size);
+          return packet_size;
+        },
+        nullptr);
+    CHECK(span_buffer.Add(span));
+    span_buffer.Consume(
+        [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
+          CHECK(num_bytes == (max_spans - 1) * packet_size + 1);
+          return num_bytes;
+        },
+        nullptr);
+    span_buffer.Consume(
+        [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
+          CHECK(num_bytes == packet_size - 1);
+          return num_bytes;
+        },
+        nullptr);
   }
 }
