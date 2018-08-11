@@ -73,7 +73,7 @@ void CircularBuffer::Consume(size_t num_bytes) noexcept {
   ptrdiff_t new_tail;
   ptrdiff_t tail = tail_;
   while (1) {
-    assert(num_bytes <= ComputeFreeSpace(head_, tail, capacity_));
+    assert(num_bytes <= size());
     new_tail = (tail + num_bytes) % capacity_;
     if (tail_.compare_exchange_weak(tail, new_tail, std::memory_order_release,
                                     std::memory_order_relaxed)) {
