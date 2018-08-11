@@ -95,4 +95,23 @@ TEST_CASE("SpanBuffer") {
         },
         nullptr);
   }
+
+  SECTION(
+      "If we consume are partial packet, the next packet added can still be "
+      "allotted to the consumer.") {
+    CHECK(span_buffer.Add(span));
+    span_buffer.Consume(
+        [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
+          CHECK(num_bytes == packet_size);
+          return packet_size / 2;
+        },
+        nullptr);
+    CHECK(span_buffer.Add(span));
+    span_buffer.Consume(
+        [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
+          CHECK(num_bytes == 2 * packet_size - packet_size / 2);
+          return num_bytes;
+        },
+        nullptr);
+  }
 }
