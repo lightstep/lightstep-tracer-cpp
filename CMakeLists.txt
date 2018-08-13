@@ -169,6 +169,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/lightstep_tracer_impl.cpp
                    src/lightstep_tracer_factory.cpp
                    src/transporter.cpp
+                   src/satellite_stream_transporter.cpp
                    src/tracer.cpp
                    )
 

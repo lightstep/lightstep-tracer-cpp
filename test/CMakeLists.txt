@@ -17,6 +17,7 @@ _lightstep_test(atomic_bit_set_test atomic_bit_set_test.cpp)
 _lightstep_test(logger_test logger_test.cpp)
 _lightstep_test(propagation_test propagation_test.cpp)
 _lightstep_test(streaming_recorder_test streaming_recorder_test.cpp)
+_lightstep_test(satellite_stream_transporter_test satellite_stream_transporter_test.cpp)
 _lightstep_test(auto_recorder_test auto_recorder_test.cpp
                                    utility.cpp
                                    in_memory_sync_transporter.cpp

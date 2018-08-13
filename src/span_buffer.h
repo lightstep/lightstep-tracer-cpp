@@ -15,7 +15,7 @@ class SpanBuffer {
 
   bool Add(const google::protobuf::Message& message) noexcept;
 
-  bool Consume(ConsumerFunction consumer, void* context) noexcept;
+  bool Consume(ConsumerFunction consumer, void* context);
 
  private:
    CircularBuffer buffer_;

@@ -62,7 +62,7 @@ bool SpanBuffer::Add(const google::protobuf::Message& message) noexcept {
 //------------------------------------------------------------------------------
 // Consume
 //------------------------------------------------------------------------------
-bool SpanBuffer::Consume(ConsumerFunction consumer, void* context) noexcept {
+bool SpanBuffer::Consume(ConsumerFunction consumer, void* context) {
   GrowConsumerAllotment();
   if (consumer_allotment_ == 0) {
     return false;

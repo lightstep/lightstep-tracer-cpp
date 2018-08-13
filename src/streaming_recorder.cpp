@@ -46,8 +46,10 @@ void StreamingRecorder::RunStreamer() noexcept {
 // MakeStreamerExit
 //------------------------------------------------------------------------------
 void StreamingRecorder::MakeStreamerExit() noexcept {
-  std::unique_lock<std::mutex> lock{mutex_};
-  exit_streamer_ = true;
+  {
+    std::unique_lock<std::mutex> lock{mutex_};
+    exit_streamer_ = true;
+  }
   condition_variable_.notify_all();
 }
 

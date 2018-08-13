@@ -51,4 +51,12 @@ class AsyncTransporter : public Transporter {
                     google::protobuf::Message& response,
                     Callback& callback) = 0;
 };
+
+class StreamTransporter {
+ public:
+   virtual ~StreamTransporter() = default;
+
+   virtual size_t Write(const char* buffer, size_t size) = 0;
+
+};
 }  // namespace lightstep
