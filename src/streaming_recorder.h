@@ -11,7 +11,8 @@
 namespace lightstep {
 class StreamingRecorder : public Recorder {
  public:
-  StreamingRecorder(Logger& logger, LightStepTracerOptions&& options);
+  StreamingRecorder(Logger& logger, LightStepTracerOptions&& options,
+                    std::unique_ptr<StreamTransporter>&& transporter);
 
   ~StreamingRecorder();
 
@@ -22,9 +23,11 @@ class StreamingRecorder : public Recorder {
 
  private:
   Logger& logger_;
+  std::unique_ptr<StreamTransporter> transporter_;
   std::thread streamer_thread_;
   std::mutex mutex_;
   std::condition_variable condition_variable_;
+  SpanBuffer span_buffer_;
 
   bool exit_streamer_{false};
 
@@ -33,5 +36,7 @@ class StreamingRecorder : public Recorder {
   void MakeStreamerExit() noexcept;
 
   bool SleepForNextPoll();
+
+  static size_t Consume(void* context, const char* data, size_t num_bytes);
 };
 } // namespace lightstep
