@@ -1,5 +1,7 @@
 #pragma once
 
+#include "socket.h"
+
 #include <lightstep/transporter.h>
 #include <lightstep/tracer.h>
 
@@ -11,11 +13,6 @@ class SatelliteStreamTransporter : public StreamTransporter {
    size_t Write(const char* buffer, size_t size) final;
    
  private:
-   struct Socket {
-     Socket();
-     ~Socket();
-     int file_descriptor;
-   };
    Socket socket_;
 };
 } // namespace lightstep

@@ -17,15 +17,6 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 // constructor
 //------------------------------------------------------------------------------
-SatelliteStreamTransporter::Socket::Socket() {
-  file_descriptor = socket(AF_INET, SOCK_STREAM, 0);
-  if (file_descriptor < 0) {
-    throw std::runtime_error{"failed to create socket"};
-  }
-}
-
-SatelliteStreamTransporter::Socket::~Socket() { close(file_descriptor); }
-
 SatelliteStreamTransporter::SatelliteStreamTransporter(
     const LightStepTracerOptions& options) {
   sockaddr_in satellite_address = {};
@@ -38,7 +29,7 @@ SatelliteStreamTransporter::SatelliteStreamTransporter(
     throw std::runtime_error{"inet_pton failed"};
   }
 
-  rcode = connect(socket_.file_descriptor,
+  rcode = connect(socket_.file_descriptor(),
                   reinterpret_cast<sockaddr*>(&satellite_address),
                   sizeof(satellite_address));
   if (rcode < 0) {
@@ -50,7 +41,8 @@ SatelliteStreamTransporter::SatelliteStreamTransporter(
 // Write
 //------------------------------------------------------------------------------
 size_t SatelliteStreamTransporter::Write(const char* buffer, size_t size) {
-  auto result = write(socket_.file_descriptor, buffer, static_cast<int>(size));
+  auto result =
+      write(socket_.file_descriptor(), buffer, static_cast<int>(size));
   if (result < 0) {
     throw std::runtime_error{"failed to write to socket"};
   }

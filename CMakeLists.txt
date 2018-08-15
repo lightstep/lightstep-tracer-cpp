@@ -153,6 +153,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/bipart_ostream_buffer.cpp
                    src/bipart_memory_stream.cpp
                    src/logger.cpp
+                   src/socket.cpp
                    src/propagation.cpp
                    src/binary_carrier.cpp
                    src/circular_buffer.cpp
