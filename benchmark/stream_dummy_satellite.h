@@ -1,5 +1,7 @@
 #include "dummy_satellite.h"
 
+#include <string>
+
 namespace lightstep {
 class StreamDummySatellite : public DummySatellite {
  public:
@@ -11,5 +13,9 @@ class StreamDummySatellite : public DummySatellite {
 
   void Reserve(size_t num_span_ids) override;
  private:
+  std::string host_;
+  int port_;
+
+  void ProcessConnections();
 };
 } // namespace lightstep
