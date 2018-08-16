@@ -34,6 +34,7 @@ static bool ReadData(int file_descriptor, char* data, size_t size) {
       std::cerr << "Read failed\n";
       std::terminate();
     }
+    num_read += rcode;
   }
   return true;
 }
@@ -87,6 +88,7 @@ StreamDummySatellite::StreamDummySatellite(const char* host, int port)
 //------------------------------------------------------------------------------
 StreamDummySatellite::~StreamDummySatellite() {
   running_ = false;
+  thread_.join();
 }
 
 //------------------------------------------------------------------------------
@@ -96,15 +98,17 @@ void StreamDummySatellite::ProcessConnections() {
   while (running_) {
     auto file_descriptor =
         accept(listen_socket_.file_descriptor(), nullptr, nullptr);
-    if (file_descriptor == EAGAIN || file_descriptor == EWOULDBLOCK) {
-      std::this_thread::sleep_for(std::chrono::microseconds{1});
-      continue;
-    } else if (file_descriptor < 0) {
-      throw std::runtime_error{"accept failed"};
+    if (file_descriptor < 0) {
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        std::this_thread::sleep_for(std::chrono::microseconds{1});
+        continue;
+      } else {
+        throw std::runtime_error{"accept failed"};
+      }
     }
 
     Socket socket{file_descriptor};
-
+    socket.SetBlocking();
 
     ProcessSession(socket);
   }
@@ -132,6 +136,9 @@ void StreamDummySatellite::ProcessSession(const Socket& socket) {
       std::cerr << "Failed to Parse span\n";
       std::terminate();
     }
+  std::unique_lock<std::mutex> lock{mutex_};
+  span_ids_.push_back(span.span_context().span_id());
+  /* std::cout << "span_id = " << span.span_context().span_id() << "\n"; */
   }
 }
 
@@ -139,12 +146,15 @@ void StreamDummySatellite::ProcessSession(const Socket& socket) {
 // span_ids
 //------------------------------------------------------------------------------
 std::vector<uint64_t> StreamDummySatellite::span_ids() const {
-  return {};
+  std::unique_lock<std::mutex> lock{mutex_};
+  return span_ids_;
 }
 
 //------------------------------------------------------------------------------
 // Reserve
 //------------------------------------------------------------------------------
 void StreamDummySatellite::Reserve(size_t num_span_ids) {
+  std::unique_lock<std::mutex> lock{mutex_};
+  span_ids_.reserve(num_span_ids);
 }
 }  // namespace lightstep

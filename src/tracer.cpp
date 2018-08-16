@@ -156,6 +156,10 @@ static std::shared_ptr<LightStepTracer> MakeStreamingTracer(
     logger->Error("use_thread required for streaming recorder");
     return nullptr;
   }
+  if (!options.collector_plaintext) {
+    logger->Error("collector_plaintext must be true for streaming recorder");
+    return nullptr;
+  }
   std::unique_ptr<StreamTransporter> transporter;
   if (options.transporter != nullptr) {
     transporter = std::unique_ptr<StreamTransporter>{

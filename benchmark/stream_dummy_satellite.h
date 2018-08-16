@@ -18,6 +18,8 @@ class StreamDummySatellite : public DummySatellite {
   void Reserve(size_t num_span_ids) override;
  private:
   std::thread thread_;
+  mutable std::mutex mutex_;
+  std::vector<uint64_t> span_ids_;
   Socket listen_socket_;
   std::atomic<bool> running_{true};
 

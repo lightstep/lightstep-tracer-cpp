@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <algorithm>
+#include <iostream>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -56,7 +57,7 @@ CircularBufferPlacement CircularBuffer::Reserve(size_t num_bytes) noexcept {
 CircularBufferConstPlacement CircularBuffer::Peek(ptrdiff_t index,
                                                   size_t num_bytes) const
     noexcept {
-  assert(index - tail_ + num_bytes <= size());
+  assert(index + num_bytes <= size());
   ptrdiff_t tail = tail_;
   auto first_index = (tail + index) % capacity_;
   auto data1 = data_.get() + first_index;

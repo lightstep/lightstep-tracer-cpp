@@ -24,6 +24,7 @@ StreamingRecorder::StreamingRecorder(Logger& logger,
 //------------------------------------------------------------------------------
 StreamingRecorder::~StreamingRecorder() {
   MakeStreamerExit();
+  streamer_thread_.join();
 }
 
 //------------------------------------------------------------------------------

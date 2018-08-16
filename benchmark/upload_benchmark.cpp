@@ -1,4 +1,5 @@
 #include "grpc_dummy_satellite.h"
+#include "stream_dummy_satellite.h"
 #include "../src/lightstep_span.h"
 
 #include <lightstep/tracer.h>
@@ -89,6 +90,16 @@ static std::shared_ptr<opentracing::Tracer> SetupGrpcTracer(
 //------------------------------------------------------------------------------
 static std::shared_ptr<opentracing::Tracer> SetupStreamingTracer(
     std::unique_ptr<DummySatellite>& satellite) {
+  LightStepTracerOptions options{};
+  options.component_name = "test";
+  options.access_token = "abc123";
+  options.collector_host = "127.0.0.1";
+  options.collector_port = 9000;
+  options.collector_plaintext = true;
+  options.use_streaming_recorder = true;
+  auto stream_satellite = new StreamDummySatellite{"127.0.0.1", 9000};
+  satellite.reset(stream_satellite);
+  return MakeLightStepTracer(std::move(options));
 }
 
 //------------------------------------------------------------------------------
@@ -104,7 +115,8 @@ int main(int argc, char* argv[]) {
   /* const char* server_address = "localhost:9000"; */
 
   std::unique_ptr<DummySatellite> satellite;
-  auto tracer = SetupGrpcTracer(satellite);
+  /* auto tracer = SetupGrpcTracer(satellite); */
+  auto tracer = SetupStreamingTracer(satellite);
   /* auto report1 = RunBenchmark1(*satellite, *tracer, std::chrono::minutes{1}); */
   auto report1 = RunBenchmark1(*satellite, *tracer, std::chrono::seconds{1});
   std::cout << report1.total_spans << " / " << report1.num_spans_dropped << "\n";
