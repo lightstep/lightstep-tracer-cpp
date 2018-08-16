@@ -650,7 +650,7 @@ private:
 public:
     template <typename Seeding = default_seed_type,
               typename... Params>
-    random_generator(Seeding&& seeding = default_seed_type{})
+    random_generator(Seeding&& seeding = default_seed_type{}) noexcept
         : engine_{seed_seq_cast(std::forward<Seeding>(seeding))}
     {
         // Nothing (else) to do
@@ -662,7 +662,7 @@ public:
     //     https://llvm.org/bugs/show_bug.cgi?id=23029
     template <typename Seeding,
               typename... Params>
-    random_generator(Seeding&& seeding, Params&&... params)
+    random_generator(Seeding&& seeding, Params&&... params) noexcept
         : engine_{seed_seq_cast(std::forward<Seeding>(seeding)),
                   std::forward<Params>(params)...}
     {
@@ -671,7 +671,7 @@ public:
 
     template <typename Seeding = default_seed_type,
               typename... Params>
-    void seed(Seeding&& seeding = default_seed_type{})
+    void seed(Seeding&& seeding = default_seed_type{}) noexcept
     {
         engine_.seed(seed_seq_cast(seeding));
     }
