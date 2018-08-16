@@ -4,7 +4,7 @@
 
 namespace lightstep {
 static const std::chrono::steady_clock::duration polling_interval =
-    std::chrono::milliseconds{1};
+    std::chrono::microseconds{10};
 
 //------------------------------------------------------------------------------
 // constructor

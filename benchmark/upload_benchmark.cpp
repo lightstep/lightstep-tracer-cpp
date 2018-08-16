@@ -31,14 +31,30 @@ static UploadReport MakeReport(const std::vector<uint64_t>& sent_span_ids,
   result.num_spans_dropped = result.total_spans - result.num_spans_received;
 
   // Sanity check
-  /* std::set<uint64_t> span_ids{sent_span_ids.begin(), sent_span_ids.end()}; */
-  /* for (auto id : received_span_ids) { */
-  /*   if (span_ids.find(id) == span_ids.end()) { */
-  /*     std::cerr << id << " not sent\n"; */
-  /*     std::terminate(); */
-  /*   } */
-  /* } */
+  std::set<uint64_t> span_ids{sent_span_ids.begin(), sent_span_ids.end()};
+  for (auto id : received_span_ids) {
+    if (span_ids.find(id) == span_ids.end()) {
+      std::cerr << id << " not sent\n";
+      std::terminate();
+    }
+  }
   return result;
+}
+
+//------------------------------------------------------------------------------
+// GenerateSpans
+//------------------------------------------------------------------------------
+static void GenerateSpans(
+    opentracing::Tracer& tracer,
+    int num_spans,
+    uint64_t* output) {
+  for (int i=0; i<num_spans; ++i) {
+    auto span = tracer.StartSpan("abc");
+    auto lightstep_span = static_cast<LightStepSpan*>(span.get());
+    *output++ =
+        static_cast<const LightStepSpanContext&>(lightstep_span->context())
+            .span_id();
+  }
 }
 
 //------------------------------------------------------------------------------
