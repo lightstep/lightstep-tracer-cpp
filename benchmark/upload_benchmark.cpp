@@ -87,6 +87,9 @@ static std::shared_ptr<opentracing::Tracer> SetupGrpcTracer(
 //------------------------------------------------------------------------------
 // SetupStreammingTracer
 //------------------------------------------------------------------------------
+static std::shared_ptr<opentracing::Tracer> SetupStreamingTracer(
+    std::unique_ptr<DummySatellite>& satellite) {
+}
 
 //------------------------------------------------------------------------------
 // main

@@ -104,7 +104,7 @@ struct LightStepTracerOptions {
   bool use_thread = true;
 
   // Exprimental: Enable streaming recorder for faster uploading of spans.
-  bool use_stream_recorder = false;
+  bool use_streaming_recorder = false;
 
   // `reporting_period` is the maximum duration of time between sending spans
   // to a collector.  If zero, the default will be used; and ignored if

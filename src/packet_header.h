@@ -8,6 +8,8 @@
 namespace lightstep {
 class PacketHeader {
  public:
+   PacketHeader() = default;
+
    explicit PacketHeader(google::protobuf::io::CodedInputStream& istream) noexcept;
 
    explicit PacketHeader(const char* data) noexcept;

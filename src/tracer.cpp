@@ -11,11 +11,13 @@
 #include <vector>
 #include "auto_recorder.h"
 #include "grpc_transporter.h"
+#include "satellite_stream_transporter.h"
 #include "lightstep-tracer-common/collector.pb.h"
 #include "lightstep_span_context.h"
 #include "lightstep_tracer_impl.h"
 #include "logger.h"
 #include "manual_recorder.h"
+#include "streaming_recorder.h"
 #include "utility.h"
 
 namespace lightstep {
@@ -146,6 +148,37 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
 }
 
 //------------------------------------------------------------------------------
+// MakeStreamingTracer
+//------------------------------------------------------------------------------
+static std::shared_ptr<LightStepTracer> MakeStreamingTracer(
+    std::shared_ptr<Logger> logger, LightStepTracerOptions&& options) {
+  if (!options.use_thread) {
+    logger->Error("use_thread required for streaming recorder");
+    return nullptr;
+  }
+  std::unique_ptr<StreamTransporter> transporter;
+  if (options.transporter != nullptr) {
+    transporter = std::unique_ptr<StreamTransporter>{
+        dynamic_cast<StreamTransporter*>(options.transporter.get())};
+    if (transporter == nullptr) {
+      logger->Error(
+          "`options.transporter` must be derived from StreamTransporter");
+      return nullptr;
+    }
+    options.transporter.release();
+  } else {
+    transporter.reset(new SatelliteStreamTransporter{options});
+  }
+
+  PropagationOptions propagation_options{};
+  propagation_options.use_single_key = options.use_single_key_propagation;
+  auto recorder = std::unique_ptr<Recorder>{new StreamingRecorder{
+      *logger, std::move(options), std::move(transporter)}};
+  return std::shared_ptr<LightStepTracer>{new LightStepTracerImpl{
+      std::move(logger), propagation_options, std::move(recorder)}};
+}
+
+//------------------------------------------------------------------------------
 // MakeLightStepTracer
 //------------------------------------------------------------------------------
 std::shared_ptr<LightStepTracer> MakeLightStepTracer(
@@ -184,6 +217,10 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
       options.ssl_root_certificates =
           std::string{reinterpret_cast<const char*>(default_ssl_roots_pem),
                       static_cast<size_t>(default_ssl_roots_pem_size)};
+    }
+
+    if (options.use_streaming_recorder) {
+      return MakeStreamingTracer(logger, std::move(options));
     }
 
     if (!options.use_thread) {
