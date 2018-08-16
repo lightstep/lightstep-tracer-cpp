@@ -9,6 +9,7 @@ _lightstep_test(tracer_test tracer_test.cpp
                             utility.cpp)
 _lightstep_test(utility_test utility_test.cpp)
 _lightstep_test(logger_test logger_test.cpp)
+_lightstep_test(fork_id_test fork_id_test.cpp)
 _lightstep_test(propagation_test propagation_test.cpp)
 _lightstep_test(auto_recorder_test auto_recorder_test.cpp
                                    utility.cpp
