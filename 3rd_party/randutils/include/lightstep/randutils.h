@@ -540,13 +540,13 @@ public:
         return *this;
     }
 
-    auto_seeded(default_seeds seeds)
+    auto_seeded(default_seeds seeds) noexcept
         : SeedSeq(seeds.begin(), seeds.end())
     {
         // Nothing else to do
     }
 
-    auto_seeded()
+    auto_seeded() noexcept
         : auto_seeded(local_entropy())
     {
         // Nothing else to do

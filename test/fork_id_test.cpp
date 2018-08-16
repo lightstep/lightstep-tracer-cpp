@@ -1,7 +1,6 @@
 // Verifies that IDs don't clash after forking the process.
 //
 // See https://github.com/opentracing-contrib/nginx-opentracing/issues/52
-//
 #include "../src/utility.h"
 
 #include <stdio.h>
@@ -18,6 +17,8 @@ static uint64_t* child_id;
 int main() {
   GenerateId();
 
+  // Set up shared memory to communicate between parent and child processes.
+  //
   // See https://stackoverflow.com/a/13274800/4447365
   child_id = static_cast<uint64_t*>(mmap(nullptr, sizeof(*child_id),
                                          PROT_READ | PROT_WRITE,
