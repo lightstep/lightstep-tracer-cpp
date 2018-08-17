@@ -2,13 +2,16 @@
 #include <lightstep/randutils.h>
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>
+#include "lightstep-tracer-common/collector.pb.h"
+
 #include <unistd.h>
 #include <cmath>
 #include <iomanip>
 #include <random>
 #include <sstream>
 #include <stdexcept>
-#include "lightstep-tracer-common/collector.pb.h"
+
+#include <pthread.h>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -26,11 +29,36 @@ google::protobuf::Timestamp ToTimestamp(
 }
 
 //------------------------------------------------------------------------------
+// TlsRandomNumberGenerator
+//------------------------------------------------------------------------------
+// Wraps a thread_local random number generator, but adds a fork handler so that
+// the generator will be correctly seeded after forking.
+//
+// See https://stackoverflow.com/q/51882689/4447365 and
+//     https://github.com/opentracing-contrib/nginx-opentracing/issues/52
+namespace {
+class TlsRandomNumberGenerator {
+ public:
+  TlsRandomNumberGenerator() { pthread_atfork(nullptr, nullptr, OnFork); }
+
+  static std::mt19937_64& engine() { return base_generator_.engine(); }
+
+ private:
+  static thread_local lightstep::randutils::mt19937_64_rng base_generator_;
+
+  static void OnFork() { base_generator_.seed(); }
+};
+
+thread_local lightstep::randutils::mt19937_64_rng
+    TlsRandomNumberGenerator::base_generator_{};
+}  // namespace
+
+//------------------------------------------------------------------------------
 // GenerateId
 //------------------------------------------------------------------------------
 uint64_t GenerateId() {
-  static thread_local lightstep::randutils::mt19937_64_rng rand_source{};
-  return rand_source.engine()();
+  static TlsRandomNumberGenerator random_number_generator;
+  return TlsRandomNumberGenerator::engine()();
 }
 
 //------------------------------------------------------------------------------
