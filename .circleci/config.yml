@@ -77,6 +77,15 @@ jobs:
       - run: ./ci/setup_build_environment.sh
       - run: ./ci/do_ci.sh release
 
+  benchmark:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_benchmark.sh
+      - run: ./ci/do_ci.sh benchmark
+
   coverage:
     docker:
       - image: ubuntu:18.04
@@ -107,3 +116,4 @@ workflows:
       - build_plugin
       - build_bazel
       - coverage
+      - benchmark

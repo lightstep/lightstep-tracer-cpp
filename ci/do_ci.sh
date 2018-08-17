@@ -58,6 +58,16 @@ elif [[ "$1" == "coverage" ]]; then
   mkdir /coverage
   cp *.html /coverage/
   exit 0
+elif [[ "$1" == "benchmark" ]]; then
+  cd "${BUILD_DIR}"
+  cmake -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_BENCHMARKING=ON \
+        -DBUILD_TESTING=OFF \
+        "${SRC_DIR}"
+  make VERBOSE=1
+  mkdir /benchmark
+  ./benchmark/span_operations_benchmark > /benchmark/span_operations_benchmark.out
+  exit 0
 elif [[ "$1" == "cmake.clang-tidy" ]]; then
   cd "${BUILD_DIR}"
   cmake -DCMAKE_BUILD_TYPE=Debug  \
