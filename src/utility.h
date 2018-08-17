@@ -14,7 +14,7 @@ google::protobuf::Timestamp ToTimestamp(
     const std::chrono::system_clock::time_point& t);
 
 // Generates a random uint64_t.
-uint64_t GenerateId() noexcept;
+uint64_t GenerateId();
 
 // Attempts to determine the name of the executable invoked.  Returns
 // "c++-program" if unsuccessful.

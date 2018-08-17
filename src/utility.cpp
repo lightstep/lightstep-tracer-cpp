@@ -56,7 +56,7 @@ thread_local lightstep::randutils::mt19937_64_rng
 //------------------------------------------------------------------------------
 // GenerateId
 //------------------------------------------------------------------------------
-uint64_t GenerateId() noexcept {
+uint64_t GenerateId() {
   static TlsRandomNumberGenerator random_number_generator;
   return TlsRandomNumberGenerator::engine()();
 }
