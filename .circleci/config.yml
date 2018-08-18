@@ -85,6 +85,7 @@ jobs:
       - run: ./ci/setup_build_environment.sh
       - run: ./ci/install_grpc.sh
       - run: ./ci/install_benchmark.sh
+      - run: ./ci/install_opentracing.sh
       - run: ./ci/do_ci.sh benchmark
 
   coverage:
