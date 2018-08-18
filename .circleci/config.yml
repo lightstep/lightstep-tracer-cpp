@@ -87,6 +87,9 @@ jobs:
       - run: ./ci/install_benchmark.sh
       - run: ./ci/install_opentracing.sh
       - run: ./ci/do_ci.sh benchmark
+      - store_artifacts:
+          path: /benchmark-results
+          desination: benchmark-results
 
   coverage:
     docker:
