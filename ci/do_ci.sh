@@ -66,7 +66,7 @@ elif [[ "$1" == "benchmark" ]]; then
         "${SRC_DIR}"
   make VERBOSE=1
   mkdir /benchmark-results
-  ./benchmark/span_operations_benchmark > /benchmark-results/span_operations_benchmark.out
+  ./benchmark/span_operations_benchmark --benchmark_color=false > /benchmark-results/span_operations_benchmark.out 2>&1
   exit 0
 elif [[ "$1" == "cmake.clang-tidy" ]]; then
   cd "${BUILD_DIR}"
