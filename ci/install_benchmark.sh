@@ -7,6 +7,6 @@ git clone -b $BENCHMARK_VERSION https://github.com/google/benchmark.git google-b
 cd google-benchmark
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=RELEASE
+cmake .. -DBENCHMARK_ENABLE_GTEST_TESTS=OFF -DCMAKE_BUILD_TYPE=RELEASE
 make
 make install

@@ -14,6 +14,5 @@ apt-get install --no-install-recommends --no-install-suggests -y \
                 libtool \
                 gnupg2 \
                 ssh \
-                libgtest-dev \
                 python python-setuptools python-pip
 pip install gcovr
