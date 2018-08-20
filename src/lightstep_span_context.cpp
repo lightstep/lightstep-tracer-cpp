@@ -20,9 +20,10 @@ LightStepSpanContext::LightStepSpanContext(
   data_.set_trace_id(trace_id);
   data_.set_span_id(span_id);
   auto& baggage_data = *data_.mutable_baggage();
-  for (auto& baggage_item : baggage)
+  for (auto& baggage_item : baggage) {
     baggage_data.insert(
         BaggageMap::value_type(baggage_item.first, baggage_item.second));
+  }
 }
 
 LightStepSpanContext::LightStepSpanContext(uint64_t trace_id, uint64_t span_id,
