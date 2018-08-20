@@ -46,6 +46,28 @@ elif [[ "$1" == "cmake.tsan" ]]; then
   make VERBOSE=1
   make test
   exit 0
+elif [[ "$1" == "coverage" ]]; then
+  cd "${BUILD_DIR}"
+  cmake -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fPIC -O0" \
+    "$SRC_DIR"
+  make VERBOSE=1
+  make test
+  cd CMakeFiles/lightstep_tracer.dir/src
+  gcovr -r "$SRC_DIR" . --html --html-details -o coverage.html
+  mkdir /coverage
+  cp *.html /coverage/
+  exit 0
+elif [[ "$1" == "benchmark" ]]; then
+  cd "${BUILD_DIR}"
+  cmake -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_BENCHMARKING=ON \
+        -DBUILD_TESTING=OFF \
+        "${SRC_DIR}"
+  make VERBOSE=1
+  mkdir /benchmark-results
+  ./benchmark/span_operations_benchmark --benchmark_color=false > /benchmark-results/span_operations_benchmark.out 2>&1
+  exit 0
 elif [[ "$1" == "cmake.clang-tidy" ]]; then
   cd "${BUILD_DIR}"
   cmake -DCMAKE_BUILD_TYPE=Debug  \

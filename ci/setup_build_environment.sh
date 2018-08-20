@@ -13,4 +13,6 @@ apt-get install --no-install-recommends --no-install-suggests -y \
                 autoconf \
                 libtool \
                 gnupg2 \
-                ssh
+                ssh \
+                python python-setuptools python-pip
+pip install gcovr
