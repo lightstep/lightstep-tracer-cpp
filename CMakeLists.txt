@@ -32,6 +32,7 @@ option(WITH_GRPC "Build with support for gRPC." ON)
 option(WITH_DYNAMIC_LOAD "Build support for dynamic loading." ON)
 option(ENABLE_LINTING "Run clang-tidy on sources if available." OFF)
 option(HEADERS_ONLY "Only generate config.h and version.h." OFF)
+option(BUILD_BENCHMARKING "Build benchmarks." OFF)
 
 # Allow a user to specify an optional default roots.pem file to embed into the 
 # library. 
@@ -129,6 +130,10 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
 
+if (BUILD_BENCHMARKING)
+  find_package(benchmark REQUIRED)
+endif()
+
 # ==============================================================================
 # Build LightStep tracer library
 
@@ -215,4 +220,8 @@ include(CTest)
 if (BUILD_TESTING AND BUILD_SHARED_LIBS)
   add_subdirectory(test)
   add_subdirectory(example)
+endif()
+
+if (BUILD_BENCHMARKING)
+  add_subdirectory(benchmark)
 endif()
