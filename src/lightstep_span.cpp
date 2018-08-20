@@ -50,8 +50,8 @@ static bool SetSpanReference(
     Logger& logger,
     const std::pair<opentracing::SpanReferenceType,
                     const opentracing::SpanContext*>& reference,
-    BaggageMap& baggage,
-    collector::Reference& collector_reference, bool& sampled) {
+    BaggageMap& baggage, collector::Reference& collector_reference,
+    bool& sampled) {
   collector_reference.Clear();
   switch (reference.first) {
     case opentracing::SpanReferenceType::ChildOfRef:
@@ -134,9 +134,8 @@ LightStepSpan::LightStepSpan(
   }
 
   // Set opentracing::SpanContext.
-  auto trace_id = references.empty()
-                      ? GenerateId()
-                      : references[0].span_context().trace_id();
+  auto trace_id = references.empty() ? GenerateId()
+                                     : references[0].span_context().trace_id();
   auto span_id = GenerateId();
   span_context_ =
       LightStepSpanContext{trace_id, span_id, sampled, std::move(baggage)};

@@ -183,7 +183,6 @@ bool AutoRecorder::WaitForNextWrite(
     const std::chrono::steady_clock::time_point& next) {
   std::unique_lock<std::mutex> lock{write_mutex_};
   max_buffered_spans_snapshot_ = options_.max_buffered_spans.value();
-  builder_.Reserve(max_buffered_spans_snapshot_);
   write_cond_->WaitUntil(lock, next, [this]() {
     return this->write_exit_ ||
            this->builder_.num_pending_spans() >= max_buffered_spans_snapshot_;

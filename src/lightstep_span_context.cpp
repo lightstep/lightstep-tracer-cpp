@@ -25,9 +25,9 @@ LightStepSpanContext::LightStepSpanContext(
         BaggageMap::value_type(baggage_item.first, baggage_item.second));
 }
 
-LightStepSpanContext::LightStepSpanContext(
-    uint64_t trace_id, uint64_t span_id, bool sampled,
-    BaggageMap&& baggage) noexcept
+LightStepSpanContext::LightStepSpanContext(uint64_t trace_id, uint64_t span_id,
+                                           bool sampled,
+                                           BaggageMap&& baggage) noexcept
     : sampled_{sampled} {
   data_.set_trace_id(trace_id);
   data_.set_span_id(span_id);
