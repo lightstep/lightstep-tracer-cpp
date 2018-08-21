@@ -44,8 +44,15 @@ static void BM_SpanSetTag2(benchmark::State& state) {
   assert(tracer != nullptr);
   for (auto _ : state) {
     auto span = tracer->StartSpan("abc123");
+    char key[5];
+    key[0] = 'a';
+    key[1] = 'b';
+    key[2] = 'c';
+    key[3] = '0';
+    key[4] = '\0';
     for (int i = 0; i < 10; ++i) {
-      span->SetTag("abc", "123");
+      span->SetTag(opentracing::string_view{key, 4}, "123");
+      ++key[3];
     }
   }
 }
