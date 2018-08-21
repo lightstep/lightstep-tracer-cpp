@@ -20,7 +20,8 @@ ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
 //------------------------------------------------------------------------------
 // RecordSpan
 //------------------------------------------------------------------------------
-void ManualRecorder::RecordSpan(collector::Span&& span) noexcept try {
+void ManualRecorder::RecordSpan(
+    std::unique_ptr<collector::Span>&& span) noexcept try {
   if (disabled_) {
     dropped_spans_++;
     options_.metrics_observer->OnSpansDropped(1);

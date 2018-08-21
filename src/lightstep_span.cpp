@@ -112,9 +112,12 @@ LightStepSpan::LightStepSpan(
     std::shared_ptr<const opentracing::Tracer>&& tracer, Logger& logger,
     Recorder& recorder, opentracing::string_view operation_name,
     const opentracing::StartSpanOptions& options)
-    : tracer_{std::move(tracer)}, logger_{logger}, recorder_{recorder} {
+    : tracer_{std::move(tracer)},
+      logger_{logger},
+      recorder_{recorder},
+      data_{new collector::Span} {
   // Set operation name
-  data_.set_operation_name(operation_name.data(), operation_name.size());
+  data_->set_operation_name(operation_name.data(), operation_name.size());
 
   // Set the start timestamps.
   std::tie(start_timestamp_, start_steady_) = ComputeStartTimestamps(
@@ -122,7 +125,7 @@ LightStepSpan::LightStepSpan(
 
   // Set any span references.
   BaggageMap baggage;
-  auto& references = *data_.mutable_references();
+  auto& references = *data_->mutable_references();
   references.Reserve(static_cast<int>(options.references.size()));
   bool sampled = false;
   for (auto& reference : options.references) {
@@ -142,7 +145,7 @@ LightStepSpan::LightStepSpan(
   }
 
   // Set tags.
-  auto& tags = *data_.mutable_tags();
+  auto& tags = *data_->mutable_tags();
   tags.Reserve(static_cast<int>(options.tags.size()));
   for (auto& tag : options.tags) {
     std::unique_ptr<collector::KeyValue> key_value{new collector::KeyValue{}};
@@ -194,13 +197,13 @@ void LightStepSpan::FinishWithOptions(
 
   // Set timing information.
   auto duration = finish_timestamp - start_steady_;
-  data_.set_duration_micros(
+  data_->set_duration_micros(
       std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
-  *data_.mutable_start_timestamp() = ToTimestamp(start_timestamp_);
+  *data_->mutable_start_timestamp() = ToTimestamp(start_timestamp_);
 
   // Set Logs
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  auto& logs = *data_.mutable_logs();
+  auto& logs = *data_->mutable_logs();
   logs.Reserve(logs.size() + static_cast<int>(options.log_records.size()));
   for (auto& log_record : options.log_records) {
     try {
@@ -213,7 +216,7 @@ void LightStepSpan::FinishWithOptions(
   }
 
   // Set the span context.
-  auto span_context = data_.mutable_span_context();
+  auto span_context = data_->mutable_span_context();
   span_context->set_trace_id(span_context_.trace_id());
   span_context->set_span_id(span_context_.span_id());
   auto baggage = span_context->mutable_baggage();
@@ -236,7 +239,10 @@ void LightStepSpan::FinishWithOptions(
 void LightStepSpan::SetOperationName(
     opentracing::string_view name) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  data_.set_operation_name(name.data(), name.size());
+  if (data_ == nullptr) {
+    return;
+  }
+  data_->set_operation_name(name.data(), name.size());
 } catch (const std::exception& e) {
   logger_.Error("SetOperationName failed: ", e.what());
 }
@@ -250,7 +256,10 @@ void LightStepSpan::SetTag(opentracing::string_view key,
     std::unique_ptr<collector::KeyValue> key_value{new collector::KeyValue{}};
     ToKeyValue(key, value, *key_value);
     std::lock_guard<std::mutex> lock_guard{mutex_};
-    data_.mutable_tags()->AddAllocated(key_value.release());
+    if (data_ == nullptr) {
+      return;
+    }
+    data_->mutable_tags()->AddAllocated(key_value.release());
   }
 
   if (key == opentracing::ext::sampling_priority) {
@@ -288,7 +297,10 @@ void LightStepSpan::Log(std::initializer_list<
   auto timestamp = SystemClock::now();
   auto log = ToLog(timestamp, std::begin(fields), std::end(fields));
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  data_.mutable_logs()->AddAllocated(log.release());
+  if (data_ == nullptr) {
+    return;
+  }
+  data_->mutable_logs()->AddAllocated(log.release());
 } catch (const std::exception& e) {
   logger_.Error("Log failed: ", e.what());
 }
