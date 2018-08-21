@@ -237,12 +237,17 @@ struct ValueVisitor {
 };
 }  // anonymous namespace
 
-collector::KeyValue ToKeyValue(opentracing::string_view key,
-                               const opentracing::Value& value) {
-  collector::KeyValue key_value;
+void ToKeyValue(opentracing::string_view key, const opentracing::Value& value,
+                collector::KeyValue& key_value) {
   key_value.set_key(key);
   ValueVisitor value_visitor{key_value, value};
   apply_visitor(value_visitor, value);
+}
+
+collector::KeyValue ToKeyValue(opentracing::string_view key,
+                               const opentracing::Value& value) {
+  collector::KeyValue key_value;
+  ToKeyValue(key, value, key_value);
   return key_value;
 }
 
