@@ -71,7 +71,6 @@ static bool SetSpanReference(
                     const opentracing::SpanContext*>& reference,
     BaggageMap& baggage, collector::Reference& collector_reference,
     bool& sampled) {
-  collector_reference.Clear();
   switch (reference.first) {
     case opentracing::SpanReferenceType::ChildOfRef:
       collector_reference.set_relationship(collector::Reference::CHILD_OF);
