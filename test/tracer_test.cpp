@@ -30,6 +30,16 @@ TEST_CASE("tracer") {
   }
 
   SECTION(
+      "Operations can be safely called on a span after it's been finished.") {
+    auto span = tracer->StartSpan("a");
+    CHECK(span);
+    span->Finish();
+    span->SetOperationName("b");
+    span->SetTag("abc", 123);
+    span->Log({{"abc", 123}});
+  }
+
+  SECTION(
       "Sampling of a span can be turned off by setting the sampling_priority "
       "tag to 0.") {
     {

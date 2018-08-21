@@ -13,7 +13,7 @@ class ManualRecorder : public Recorder, private AsyncTransporter::Callback {
   ManualRecorder(Logger& logger, LightStepTracerOptions options,
                  std::unique_ptr<AsyncTransporter>&& transporter);
 
-  void RecordSpan(collector::Span&& span) noexcept override;
+  void RecordSpan(std::unique_ptr<collector::Span>&& span) noexcept override;
 
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;

@@ -32,7 +32,7 @@ class AutoRecorder : public Recorder {
 
   ~AutoRecorder() override;
 
-  void RecordSpan(collector::Span&& span) noexcept override;
+  void RecordSpan(std::unique_ptr<collector::Span>&& span) noexcept override;
 
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;

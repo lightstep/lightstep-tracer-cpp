@@ -20,13 +20,13 @@ ReportBuilder::ReportBuilder(
 //------------------------------------------------------------------------------
 // AddSpan
 //------------------------------------------------------------------------------
-void ReportBuilder::AddSpan(collector::Span&& span) {
+void ReportBuilder::AddSpan(std::unique_ptr<collector::Span>&& span) {
   if (reset_next_) {
     pending_.Clear();
     pending_.CopyFrom(preamble_);
     reset_next_ = false;
   }
-  *pending_.mutable_spans()->Add() = span;
+  pending_.mutable_spans()->AddAllocated(span.release());
 }
 
 //------------------------------------------------------------------------------

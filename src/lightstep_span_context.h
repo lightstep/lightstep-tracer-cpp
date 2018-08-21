@@ -5,6 +5,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include "lightstep-tracer-common/collector.pb.h"
 #include "propagation.h"
 
 namespace lightstep {
@@ -16,9 +17,15 @@ class LightStepSpanContext : public opentracing::SpanContext {
       uint64_t trace_id, uint64_t span_id,
       std::unordered_map<std::string, std::string>&& baggage) noexcept;
 
+  LightStepSpanContext(uint64_t trace_id, uint64_t span_id,
+                       BaggageMap&& baggage) noexcept;
+
   LightStepSpanContext(
       uint64_t trace_id, uint64_t span_id, bool sampled,
       std::unordered_map<std::string, std::string>&& baggage) noexcept;
+
+  LightStepSpanContext(uint64_t trace_id, uint64_t span_id, bool sampled,
+                       BaggageMap&& baggage) noexcept;
 
   LightStepSpanContext(const LightStepSpanContext&) = delete;
   LightStepSpanContext(LightStepSpanContext&&) = delete;
@@ -41,31 +48,38 @@ class LightStepSpanContext : public opentracing::SpanContext {
   opentracing::expected<void> Inject(
       const PropagationOptions& propagation_options, Carrier& writer) const {
     std::lock_guard<std::mutex> lock_guard{mutex_};
-    return InjectSpanContext(propagation_options, writer, trace_id_, span_id_,
-                             sampled_, baggage_);
+    return InjectSpanContext(propagation_options, writer, this->trace_id(),
+                             this->span_id(), sampled_, data_.baggage());
   }
 
   template <class Carrier>
   opentracing::expected<bool> Extract(
       const PropagationOptions& propagation_options, Carrier& reader) {
     std::lock_guard<std::mutex> lock_guard{mutex_};
-    return ExtractSpanContext(propagation_options, reader, trace_id_, span_id_,
-                              sampled_, baggage_);
+    uint64_t trace_id, span_id;
+    BaggageMap baggage;
+    auto result = ExtractSpanContext(propagation_options, reader, trace_id,
+                                     span_id, sampled_, baggage);
+    if (!result) {
+      return result;
+    }
+    data_.set_trace_id(trace_id);
+    data_.set_span_id(span_id);
+    *data_.mutable_baggage() = std::move(baggage);
+
+    return result;
   }
 
-  uint64_t trace_id() const noexcept { return trace_id_; }
-  uint64_t span_id() const noexcept { return span_id_; }
+  uint64_t trace_id() const noexcept { return data_.trace_id(); }
+  uint64_t span_id() const noexcept { return data_.span_id(); }
 
   bool sampled() const noexcept;
   void set_sampled(bool sampled) noexcept;
 
  private:
-  uint64_t trace_id_ = 0;
-  uint64_t span_id_ = 0;
-
   mutable std::mutex mutex_;
+  collector::SpanContext data_;
   bool sampled_ = true;
-  std::unordered_map<std::string, std::string> baggage_;
 };
 
 bool operator==(const LightStepSpanContext& lhs,
