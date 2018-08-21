@@ -124,14 +124,15 @@ LightStepSpan::LightStepSpan(
   BaggageMap baggage;
   auto& references = *data_.mutable_references();
   references.Reserve(static_cast<int>(options.references.size()));
-  collector::Reference collector_reference;
   bool sampled = false;
   for (auto& reference : options.references) {
-    if (!SetSpanReference(logger_, reference, baggage, collector_reference,
+    std::unique_ptr<collector::Reference> collector_reference{
+        new collector::Reference{}};
+    if (!SetSpanReference(logger_, reference, baggage, *collector_reference,
                           sampled)) {
       continue;
     }
-    *references.Add() = collector_reference;
+    references.AddAllocated(collector_reference.release());
   }
 
   // If there are any span references, sampled should be true if any of the
@@ -144,7 +145,9 @@ LightStepSpan::LightStepSpan(
   auto& tags = *data_.mutable_tags();
   tags.Reserve(static_cast<int>(options.tags.size()));
   for (auto& tag : options.tags) {
-    *tags.Add() = ToKeyValue(tag.first, tag.second);
+    std::unique_ptr<collector::KeyValue> key_value{new collector::KeyValue{}};
+    ToKeyValue(tag.first, tag.second, *key_value);
+    tags.AddAllocated(key_value.release());
     // If sampling_priority is set, it overrides whatever sampling decision was
     // derived from the referenced spans.
     if (tag.first == opentracing::ext::sampling_priority) {
