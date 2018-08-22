@@ -1,5 +1,6 @@
 #include "lightstep_span.h"
 #include <opentracing/ext/tags.h>
+#include <iostream>
 #include "utility.h"
 
 using opentracing::SystemTime;
@@ -50,9 +51,8 @@ static bool SetSpanReference(
     Logger& logger,
     const std::pair<opentracing::SpanReferenceType,
                     const opentracing::SpanContext*>& reference,
-    std::unordered_map<std::string, std::string>& baggage,
-    collector::Reference& collector_reference, bool& sampled) {
-  collector_reference.Clear();
+    BaggageMap& baggage, collector::Reference& collector_reference,
+    bool& sampled) {
   switch (reference.first) {
     case opentracing::SpanReferenceType::ChildOfRef:
       collector_reference.set_relationship(collector::Reference::CHILD_OF);
@@ -66,11 +66,12 @@ static bool SetSpanReference(
     return false;
   }
   auto referenced_context =
-      dynamic_cast<const LightStepSpanContext*>(reference.second);
+      dynamic_cast<const LightStepSpanContextBase*>(reference.second);
   if (referenced_context == nullptr) {
     logger.Warn("Passed in span reference of unexpected type.");
     return false;
   }
+  std::cout << "trace_id = " << referenced_context->trace_id() << std::endl;
   collector_reference.mutable_span_context()->set_trace_id(
       referenced_context->trace_id());
   collector_reference.mutable_span_context()->set_span_id(
@@ -94,8 +95,9 @@ LightStepSpan::LightStepSpan(
     Recorder& recorder, opentracing::string_view operation_name,
     const opentracing::StartSpanOptions& options)
     : tracer_{std::move(tracer)}, logger_{logger}, recorder_{recorder} {
-
   span_.set_operation_name(operation_name.data(), operation_name.size());
+  auto& span_context = *span_.mutable_span_context();
+  auto& baggage = *span_context.mutable_baggage();
 
   // Set the start timestamps.
   std::chrono::system_clock::time_point start_timestamp;
@@ -104,13 +106,12 @@ LightStepSpan::LightStepSpan(
   *span_.mutable_start_timestamp() = ToTimestamp(start_timestamp);
 
   // Set any span references.
-  std::unordered_map<std::string, std::string> baggage;
   references_.reserve(options.references.size());
   collector::Reference collector_reference;
-  bool sampled = false;
+  sampled_ = false;
   for (auto& reference : options.references) {
     if (!SetSpanReference(logger_, reference, baggage, collector_reference,
-                          sampled)) {
+                          sampled_)) {
       continue;
     }
     references_.push_back(collector_reference);
@@ -119,7 +120,7 @@ LightStepSpan::LightStepSpan(
   // If there are any span references, sampled should be true if any of the
   // references are sampled; with no refences, we set sampled to true.
   if (references_.empty()) {
-    sampled = true;
+    sampled_ = true;
   }
 
   // Set tags.
@@ -131,7 +132,7 @@ LightStepSpan::LightStepSpan(
   // derived from the referenced spans.
   auto sampling_priority_tag = tags_.find(opentracing::ext::sampling_priority);
   if (sampling_priority_tag != tags_.end()) {
-    sampled = is_sampled(sampling_priority_tag->second);
+    sampled_ = is_sampled(sampling_priority_tag->second);
   }
 
   // Set opentracing::SpanContext.
@@ -139,8 +140,8 @@ LightStepSpan::LightStepSpan(
                       ? GenerateId()
                       : references_[0].span_context().trace_id();
   auto span_id = GenerateId();
-  span_context_ =
-      LightStepSpanContext{trace_id, span_id, sampled, std::move(baggage)};
+  span_context.set_trace_id(trace_id);
+  span_context.set_span_id(span_id);
 }
 
 //------------------------------------------------------------------------------
@@ -162,8 +163,8 @@ void LightStepSpan::FinishWithOptions(
     return;
   }
 
-  // If the span isn't sampled do nothing.
-  if (!span_context_.sampled()) {
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  if (!sampled_) {
     return;
   }
 
@@ -186,7 +187,6 @@ void LightStepSpan::FinishWithOptions(
 
   // Set tags, logs, and operation name.
   {
-    std::lock_guard<std::mutex> lock_guard{mutex_};
     auto tags = span_.mutable_tags();
     tags->Reserve(static_cast<int>(tags_.size()));
     for (const auto& tag : tags_) {
@@ -222,20 +222,8 @@ void LightStepSpan::FinishWithOptions(
     }
   }
 
-  // Set the span context.
-  auto span_context = span_.mutable_span_context();
-  span_context->set_trace_id(span_context_.trace_id());
-  span_context->set_span_id(span_context_.span_id());
-  auto baggage = span_context->mutable_baggage();
-  span_context_.ForeachBaggageItem(
-      [baggage](const std::string& key, const std::string& value) {
-        using StringMap = google::protobuf::Map<std::string, std::string>;
-        baggage->insert(StringMap::value_type(key, value));
-        return true;
-      });
-
   // Record the span
-  recorder_.RecordSpan(std::move(span_));
+  recorder_.RecordSpan(span_);
 } catch (const std::exception& e) {
   logger_.Error("FinishWithOptions failed: ", e.what());
 }
@@ -260,7 +248,7 @@ void LightStepSpan::SetTag(opentracing::string_view key,
   tags_[key] = value;
 
   if (key == opentracing::ext::sampling_priority) {
-    span_context_.set_sampled(is_sampled(value));
+    sampled_ = is_sampled(value);
   }
 } catch (const std::exception& e) {
   logger_.Error("SetTag failed: ", e.what());
@@ -271,7 +259,9 @@ void LightStepSpan::SetTag(opentracing::string_view key,
 //------------------------------------------------------------------------------
 void LightStepSpan::SetBaggageItem(opentracing::string_view restricted_key,
                                    opentracing::string_view value) noexcept {
-  span_context_.set_baggage_item(restricted_key, value);
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  auto& baggage = *span_.mutable_span_context()->mutable_baggage();
+  baggage.insert(BaggageMap::value_type(restricted_key, value));
 }
 
 //------------------------------------------------------------------------------
@@ -279,7 +269,13 @@ void LightStepSpan::SetBaggageItem(opentracing::string_view restricted_key,
 //------------------------------------------------------------------------------
 std::string LightStepSpan::BaggageItem(
     opentracing::string_view restricted_key) const noexcept try {
-  return span_context_.baggage_item(restricted_key);
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  auto& baggage = span_.span_context().baggage();
+  auto lookup = baggage.find(restricted_key);
+  if (lookup != baggage.end()) {
+    return lookup->second;
+  }
+  return {};
 } catch (const std::exception& e) {
   logger_.Error("BaggageItem failed, returning empty string: ", e.what());
   return {};
@@ -301,5 +297,27 @@ void LightStepSpan::Log(std::initializer_list<
   logs_.emplace_back(std::move(log));
 } catch (const std::exception& e) {
   logger_.Error("Log failed: ", e.what());
+}
+
+//------------------------------------------------------------------------------
+// ForeachBaggageItem
+//------------------------------------------------------------------------------
+void LightStepSpan::ForeachBaggageItem(
+    std::function<bool(const std::string& key, const std::string& value)> f)
+    const {
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  for (const auto& baggage_item : span_.span_context().baggage()) {
+    if (!f(baggage_item.first, baggage_item.second)) {
+      return;
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// sampled
+//------------------------------------------------------------------------------
+bool LightStepSpan::sampled() const noexcept {
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  return sampled_;
 }
 }  // namespace lightstep

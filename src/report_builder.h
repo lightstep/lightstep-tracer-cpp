@@ -16,7 +16,7 @@ class ReportBuilder {
       const std::unordered_map<std::string, opentracing::Value>& tags);
 
   // AddSpan adds the span to the currently-building ReportRequest.
-  void AddSpan(collector::Span&& span);
+  void AddSpan(const collector::Span& span);
 
   // num_pending_spans() is the number of pending spans.
   size_t num_pending_spans() const { return pending_.spans_size(); }

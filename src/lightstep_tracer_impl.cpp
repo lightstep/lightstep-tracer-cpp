@@ -12,7 +12,7 @@ static opentracing::expected<void> InjectImpl(
     const PropagationOptions& propagation_options,
     const opentracing::SpanContext& span_context, Carrier& writer) {
   auto lightstep_span_context =
-      dynamic_cast<const LightStepSpanContext*>(&span_context);
+      dynamic_cast<const LightStepSpanContextBase*>(&span_context);
   if (lightstep_span_context == nullptr) {
     return opentracing::make_unexpected(
         opentracing::invalid_span_context_error);

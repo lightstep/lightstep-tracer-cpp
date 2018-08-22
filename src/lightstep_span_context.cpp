@@ -86,9 +86,9 @@ void LightStepSpanContext::set_sampled(bool sampled) noexcept {
 //------------------------------------------------------------------------------
 // operator==
 //------------------------------------------------------------------------------
-bool operator==(const LightStepSpanContext& lhs,
-                const LightStepSpanContext& rhs) {
-  auto extract_baggage = [](const LightStepSpanContext& span_context) {
+bool operator==(const LightStepSpanContextBase& lhs,
+                const LightStepSpanContextBase& rhs) {
+  auto extract_baggage = [](const LightStepSpanContextBase& span_context) {
     std::unordered_map<std::string, std::string> baggage;
     span_context.ForeachBaggageItem(
         [&](const std::string& key, const std::string& value) {
