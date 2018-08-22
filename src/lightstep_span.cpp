@@ -9,6 +9,23 @@ using opentracing::SteadyTime;
 
 namespace lightstep {
 //------------------------------------------------------------------------------
+// ToLog
+//------------------------------------------------------------------------------
+template <class Iterator>
+static collector::Log ToLog(std::chrono::system_clock::time_point timestamp,
+                            Iterator field_first, Iterator field_last) {
+  collector::Log result;
+  *result.mutable_timestamp() = ToTimestamp(timestamp);
+  auto& key_values = *result.mutable_fields();
+  key_values.Reserve(static_cast<int>(std::distance(field_first, field_last)));
+  for (Iterator field_iter = field_first; field_iter != field_last;
+       ++field_iter) {
+    *key_values.Add() = ToKeyValue(field_iter->first, field_iter->second);
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // is_sampled
 //------------------------------------------------------------------------------
 static bool is_sampled(const opentracing::Value& value) {
@@ -177,30 +194,15 @@ void LightStepSpan::FinishWithOptions(
   span_.set_duration_micros(
       std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
 
-  // Set tags, logs, and operation name.
-  {
-    auto logs = span_.mutable_logs();
-    logs->Reserve(static_cast<int>(logs_.size()) +
-                  static_cast<int>(options.log_records.size()));
-    for (auto& log : logs_) {
-      try {
-        *logs->Add() = std::move(log);
-      } catch (const std::exception& e) {
-        logger_.Error("Dropping log record: ", e.what());
-      }
-    }
-    for (auto& log_record : options.log_records) {
-      try {
-        collector::Log log;
-        *log.mutable_timestamp() = ToTimestamp(log_record.timestamp);
-        auto key_values = log.mutable_fields();
-        for (auto& field : log_record.fields) {
-          *key_values->Add() = ToKeyValue(field.first, field.second);
-        }
-        *logs->Add() = std::move(log);
-      } catch (const std::exception& e) {
-        logger_.Error("Dropping log record: ", e.what());
-      }
+  // Set logs
+  auto& logs = *span_.mutable_logs();
+  logs.Reserve(logs.size() + static_cast<int>(options.log_records.size()));
+  for (auto& log_record : options.log_records) {
+    try {
+      *logs.Add() = ToLog(log_record.timestamp, std::begin(log_record.fields),
+                          std::end(log_record.fields));
+    } catch (const std::exception& e) {
+      logger_.Error("Dropping log record: ", e.what());
     }
   }
 
@@ -270,13 +272,9 @@ void LightStepSpan::Log(std::initializer_list<
                         std::pair<opentracing::string_view, opentracing::Value>>
                             fields) noexcept try {
   auto timestamp = SystemClock::now();
-  collector::Log log;
-  *log.mutable_timestamp() = ToTimestamp(timestamp);
-  auto key_values = log.mutable_fields();
-  for (const auto& field : fields) {
-    *key_values->Add() = ToKeyValue(field.first, field.second);
-  }
-  logs_.emplace_back(std::move(log));
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  *span_.mutable_logs()->Add() =
+      ToLog(timestamp, std::begin(fields), std::end(fields));
 } catch (const std::exception& e) {
   logger_.Error("Log failed: ", e.what());
 }

@@ -94,9 +94,6 @@ class LightStepSpan final : public opentracing::Span,
 
   std::atomic<bool> is_finished_{false};
 
-  // Mutex protects tags_, logs_, and operation_name_.
-  std::vector<collector::Log> logs_;
-
   template <class Carrier>
   opentracing::expected<void> InjectImpl(
       const PropagationOptions& propagation_options, Carrier& writer) const {
