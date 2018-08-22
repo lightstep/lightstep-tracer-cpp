@@ -91,7 +91,6 @@ class LightStepSpan final : public opentracing::Span,
   std::shared_ptr<const opentracing::Tracer> tracer_;
   Logger& logger_;
   Recorder& recorder_;
-  std::vector<collector::Reference> references_;
 
   std::atomic<bool> is_finished_{false};
 

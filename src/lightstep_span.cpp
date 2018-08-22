@@ -104,20 +104,21 @@ LightStepSpan::LightStepSpan(
   *span_.mutable_start_timestamp() = ToTimestamp(start_timestamp);
 
   // Set any span references.
-  references_.reserve(options.references.size());
-  collector::Reference collector_reference;
   sampled_ = false;
+  collector::Reference collector_reference;
+  auto& references = *span_.mutable_references();
+  references.Reserve(static_cast<int>(options.references.size()));
   for (auto& reference : options.references) {
     if (!SetSpanReference(logger_, reference, baggage, collector_reference,
                           sampled_)) {
       continue;
     }
-    references_.push_back(collector_reference);
+    *references.Add() = collector_reference;
   }
 
   // If there are any span references, sampled should be true if any of the
   // references are sampled; with no refences, we set sampled to true.
-  if (references_.empty()) {
+  if (references.empty()) {
     sampled_ = true;
   }
 
@@ -135,9 +136,8 @@ LightStepSpan::LightStepSpan(
   }
 
   // Set opentracing::SpanContext.
-  auto trace_id = references_.empty()
-                      ? GenerateId()
-                      : references_[0].span_context().trace_id();
+  auto trace_id = references.empty() ? GenerateId()
+                                     : references[0].span_context().trace_id();
   auto span_id = GenerateId();
   span_context.set_trace_id(trace_id);
   span_context.set_span_id(span_id);
@@ -176,13 +176,6 @@ void LightStepSpan::FinishWithOptions(
   auto duration = finish_timestamp - start_steady_;
   span_.set_duration_micros(
       std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
-
-  // Set references.
-  auto references = span_.mutable_references();
-  references->Reserve(static_cast<int>(references_.size()));
-  for (const auto& reference : references_) {
-    *references->Add() = reference;
-  }
 
   // Set tags, logs, and operation name.
   {

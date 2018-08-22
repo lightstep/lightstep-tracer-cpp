@@ -7,7 +7,7 @@ class LightStepImmutableSpanContext final : public LightStepSpanContext {
  public:
   LightStepImmutableSpanContext(
       uint64_t trace_id, uint64_t span_id, bool sampled,
-      std::unordered_map<std::string, std::string>&& baggage);
+      const std::unordered_map<std::string, std::string>& baggage);
 
   LightStepImmutableSpanContext(uint64_t trace_id, uint64_t span_id,
                                 bool sampled, BaggageMap&& baggage) noexcept;
