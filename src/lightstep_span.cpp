@@ -93,10 +93,10 @@ LightStepSpan::LightStepSpan(
     std::shared_ptr<const opentracing::Tracer>&& tracer, Logger& logger,
     Recorder& recorder, opentracing::string_view operation_name,
     const opentracing::StartSpanOptions& options)
-    : tracer_{std::move(tracer)},
-      logger_{logger},
-      recorder_{recorder},
-      operation_name_{operation_name} {
+    : tracer_{std::move(tracer)}, logger_{logger}, recorder_{recorder} {
+
+  span_.set_operation_name(operation_name.data(), operation_name.size());
+
   // Set the start timestamps.
   std::tie(start_timestamp_, start_steady_) = ComputeStartTimestamps(
       options.start_system_timestamp, options.start_steady_timestamp);
@@ -170,8 +170,6 @@ void LightStepSpan::FinishWithOptions(
     finish_timestamp = SteadyClock::now();
   }
 
-  collector::Span span_;
-
   // Set timing information.
   auto duration = finish_timestamp - start_steady_;
   span_.set_duration_micros(
@@ -188,7 +186,6 @@ void LightStepSpan::FinishWithOptions(
   // Set tags, logs, and operation name.
   {
     std::lock_guard<std::mutex> lock_guard{mutex_};
-    span_.set_operation_name(std::move(operation_name_));
     auto tags = span_.mutable_tags();
     tags->Reserve(static_cast<int>(tags_.size()));
     for (const auto& tag : tags_) {
@@ -248,7 +245,7 @@ void LightStepSpan::FinishWithOptions(
 void LightStepSpan::SetOperationName(
     opentracing::string_view name) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  operation_name_ = name;
+  span_.set_operation_name(name.data(), name.size());
 } catch (const std::exception& e) {
   logger_.Error("SetOperationName failed: ", e.what());
 }
