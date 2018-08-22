@@ -1,6 +1,5 @@
 #include "lightstep_span.h"
 #include <opentracing/ext/tags.h>
-#include <iostream>
 #include "utility.h"
 
 using opentracing::SystemTime;
@@ -71,7 +70,6 @@ static bool SetSpanReference(
     logger.Warn("Passed in span reference of unexpected type.");
     return false;
   }
-  std::cout << "trace_id = " << referenced_context->trace_id() << std::endl;
   collector_reference.mutable_span_context()->set_trace_id(
       referenced_context->trace_id());
   collector_reference.mutable_span_context()->set_span_id(

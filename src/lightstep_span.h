@@ -85,13 +85,13 @@ class LightStepSpan final : public opentracing::Span,
  private:
   // Fields set in StartSpan() are not protected by a mutex.
   collector::Span span_;
-  mutable std::mutex mutex_;
+  std::chrono::steady_clock::time_point start_steady_;
   bool sampled_;
+  mutable std::mutex mutex_;
   std::shared_ptr<const opentracing::Tracer> tracer_;
   Logger& logger_;
   Recorder& recorder_;
   std::vector<collector::Reference> references_;
-  std::chrono::steady_clock::time_point start_steady_;
 
   std::atomic<bool> is_finished_{false};
 
