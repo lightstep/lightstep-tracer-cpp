@@ -1,6 +1,6 @@
 #include "lightstep_tracer_impl.h"
+#include "lightstep_immutable_span_context.h"
 #include "lightstep_span.h"
-#include "lightstep_span_context.h"
 
 namespace lightstep {
 
@@ -25,24 +25,25 @@ static opentracing::expected<void> InjectImpl(
 //------------------------------------------------------------------------------
 template <class Carrier>
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
-    const PropagationOptions& propagation_options, Carrier& reader) {
-  LightStepSpanContext* lightstep_span_context;
-  try {
-    lightstep_span_context = new LightStepSpanContext{};
-  } catch (const std::bad_alloc&) {
-    return opentracing::make_unexpected(
-        make_error_code(std::errc::not_enough_memory));
+    const PropagationOptions& propagation_options, Carrier& reader) try {
+  uint64_t trace_id, span_id;
+  bool sampled;
+  BaggageMap baggage;
+  auto extract_maybe = ExtractSpanContext(propagation_options, reader, trace_id,
+                                          span_id, sampled, baggage);
+  if (!extract_maybe) {
+    return opentracing::make_unexpected(extract_maybe.error());
   }
-  std::unique_ptr<opentracing::SpanContext> span_context(
-      lightstep_span_context);
-  auto result = lightstep_span_context->Extract(propagation_options, reader);
-  if (!result) {
-    return opentracing::make_unexpected(result.error());
+  if (!*extract_maybe) {
+    return std::unique_ptr<opentracing::SpanContext>{nullptr};
   }
-  if (!*result) {
-    span_context.reset();
-  }
-  return std::move(span_context);
+  std::unique_ptr<opentracing::SpanContext> result{
+      new LightStepImmutableSpanContext{trace_id, span_id, sampled,
+                                        std::move(baggage)}};
+  return std::move(result);
+} catch (const std::bad_alloc&) {
+  return opentracing::make_unexpected(
+      make_error_code(std::errc::not_enough_memory));
 }
 
 //------------------------------------------------------------------------------
