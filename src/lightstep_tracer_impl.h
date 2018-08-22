@@ -6,7 +6,7 @@
 #include "recorder.h"
 
 namespace lightstep {
-class LightStepTracerImpl
+class LightStepTracerImpl final
     : public LightStepTracer,
       public std::enable_shared_from_this<LightStepTracerImpl> {
  public:
