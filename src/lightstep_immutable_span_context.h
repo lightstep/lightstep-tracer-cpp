@@ -3,7 +3,7 @@
 #include "lightstep_span_context.h"
 
 namespace lightstep {
-class LightStepImmutableSpanContext final : public LightStepSpanContextBase {
+class LightStepImmutableSpanContext final : public LightStepSpanContext {
  public:
   LightStepImmutableSpanContext(
       uint64_t trace_id, uint64_t span_id, bool sampled,

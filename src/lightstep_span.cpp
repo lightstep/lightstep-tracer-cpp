@@ -66,7 +66,7 @@ static bool SetSpanReference(
     return false;
   }
   auto referenced_context =
-      dynamic_cast<const LightStepSpanContextBase*>(reference.second);
+      dynamic_cast<const LightStepSpanContext*>(reference.second);
   if (referenced_context == nullptr) {
     logger.Warn("Passed in span reference of unexpected type.");
     return false;

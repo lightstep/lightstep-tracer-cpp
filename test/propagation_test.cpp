@@ -107,8 +107,8 @@ class LightStepBinaryReaderWriter : public LightStepBinaryReader,
 static bool AreSpanContextsEquivalent(
     const opentracing::SpanContext& context1,
     const opentracing::SpanContext& context2) {
-  return dynamic_cast<const lightstep::LightStepSpanContextBase&>(context1) ==
-         dynamic_cast<const lightstep::LightStepSpanContextBase&>(context2);
+  return dynamic_cast<const lightstep::LightStepSpanContext&>(context1) ==
+         dynamic_cast<const lightstep::LightStepSpanContext&>(context2);
 }
 
 //------------------------------------------------------------------------------

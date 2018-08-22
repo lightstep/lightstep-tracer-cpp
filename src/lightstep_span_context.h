@@ -8,7 +8,7 @@
 #include "propagation.h"
 
 namespace lightstep {
-class LightStepSpanContextBase : public opentracing::SpanContext {
+class LightStepSpanContext : public opentracing::SpanContext {
  public:
   virtual bool sampled() const noexcept = 0;
 
@@ -29,11 +29,11 @@ class LightStepSpanContextBase : public opentracing::SpanContext {
       const opentracing::HTTPHeadersWriter& writer) const = 0;
 };
 
-bool operator==(const LightStepSpanContextBase& lhs,
-                const LightStepSpanContextBase& rhs);
+bool operator==(const LightStepSpanContext& lhs,
+                const LightStepSpanContext& rhs);
 
-inline bool operator!=(const LightStepSpanContextBase& lhs,
-                       const LightStepSpanContextBase& rhs) {
+inline bool operator!=(const LightStepSpanContext& lhs,
+                       const LightStepSpanContext& rhs) {
   return !(lhs == rhs);
 }
 }  // namespace lightstep

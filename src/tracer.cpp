@@ -65,7 +65,7 @@ opentracing::expected<std::array<uint64_t, 3>>
 LightStepTracer::GetTraceSpanIdsSampled(
     const opentracing::SpanContext& span_context) const noexcept {
   auto lightstep_span_context =
-      dynamic_cast<const LightStepSpanContextBase*>(&span_context);
+      dynamic_cast<const LightStepSpanContext*>(&span_context);
   if (lightstep_span_context == nullptr) {
     return opentracing::make_unexpected(
         opentracing::invalid_span_context_error);

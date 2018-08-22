@@ -11,7 +11,7 @@
 
 namespace lightstep {
 class LightStepSpan final : public opentracing::Span,
-                            public LightStepSpanContextBase {
+                            public LightStepSpanContext {
  public:
   LightStepSpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
                 Logger& logger, Recorder& recorder,
