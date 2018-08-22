@@ -63,6 +63,7 @@ class LightStepSpan : public opentracing::Span {
 
   // Mutex protects tags_, logs_, and operation_name_.
   std::mutex mutex_;
+  /* collector::Span span_; */
   std::string operation_name_;
   std::unordered_map<std::string, opentracing::Value> tags_;
   std::vector<collector::Log> logs_;

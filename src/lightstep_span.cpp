@@ -170,16 +170,16 @@ void LightStepSpan::FinishWithOptions(
     finish_timestamp = SteadyClock::now();
   }
 
-  collector::Span span;
+  collector::Span span_;
 
   // Set timing information.
   auto duration = finish_timestamp - start_steady_;
-  span.set_duration_micros(
+  span_.set_duration_micros(
       std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
-  *span.mutable_start_timestamp() = ToTimestamp(start_timestamp_);
+  *span_.mutable_start_timestamp() = ToTimestamp(start_timestamp_);
 
   // Set references.
-  auto references = span.mutable_references();
+  auto references = span_.mutable_references();
   references->Reserve(static_cast<int>(references_.size()));
   for (const auto& reference : references_) {
     *references->Add() = reference;
@@ -188,8 +188,8 @@ void LightStepSpan::FinishWithOptions(
   // Set tags, logs, and operation name.
   {
     std::lock_guard<std::mutex> lock_guard{mutex_};
-    span.set_operation_name(std::move(operation_name_));
-    auto tags = span.mutable_tags();
+    span_.set_operation_name(std::move(operation_name_));
+    auto tags = span_.mutable_tags();
     tags->Reserve(static_cast<int>(tags_.size()));
     for (const auto& tag : tags_) {
       try {
@@ -199,7 +199,7 @@ void LightStepSpan::FinishWithOptions(
                       R"(": )", e.what());
       }
     }
-    auto logs = span.mutable_logs();
+    auto logs = span_.mutable_logs();
     logs->Reserve(static_cast<int>(logs_.size()) +
                   static_cast<int>(options.log_records.size()));
     for (auto& log : logs_) {
@@ -225,7 +225,7 @@ void LightStepSpan::FinishWithOptions(
   }
 
   // Set the span context.
-  auto span_context = span.mutable_span_context();
+  auto span_context = span_.mutable_span_context();
   span_context->set_trace_id(span_context_.trace_id());
   span_context->set_span_id(span_context_.span_id());
   auto baggage = span_context->mutable_baggage();
@@ -237,7 +237,7 @@ void LightStepSpan::FinishWithOptions(
       });
 
   // Record the span
-  recorder_.RecordSpan(std::move(span));
+  recorder_.RecordSpan(std::move(span_));
 } catch (const std::exception& e) {
   logger_.Error("FinishWithOptions failed: ", e.what());
 }
