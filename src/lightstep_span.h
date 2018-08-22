@@ -55,7 +55,6 @@ class LightStepSpan : public opentracing::Span {
   Logger& logger_;
   Recorder& recorder_;
   std::vector<collector::Reference> references_;
-  std::chrono::system_clock::time_point start_timestamp_;
   std::chrono::steady_clock::time_point start_steady_;
   LightStepSpanContext span_context_;
 

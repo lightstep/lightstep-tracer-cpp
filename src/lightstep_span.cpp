@@ -98,8 +98,10 @@ LightStepSpan::LightStepSpan(
   span_.set_operation_name(operation_name.data(), operation_name.size());
 
   // Set the start timestamps.
-  std::tie(start_timestamp_, start_steady_) = ComputeStartTimestamps(
+  std::chrono::system_clock::time_point start_timestamp;
+  std::tie(start_timestamp, start_steady_) = ComputeStartTimestamps(
       options.start_system_timestamp, options.start_steady_timestamp);
+  *span_.mutable_start_timestamp() = ToTimestamp(start_timestamp);
 
   // Set any span references.
   std::unordered_map<std::string, std::string> baggage;
@@ -174,7 +176,6 @@ void LightStepSpan::FinishWithOptions(
   auto duration = finish_timestamp - start_steady_;
   span_.set_duration_micros(
       std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
-  *span_.mutable_start_timestamp() = ToTimestamp(start_timestamp_);
 
   // Set references.
   auto references = span_.mutable_references();
