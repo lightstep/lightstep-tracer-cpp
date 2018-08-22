@@ -92,12 +92,10 @@ class LightStepSpan final : public opentracing::Span,
   Recorder& recorder_;
   std::vector<collector::Reference> references_;
   std::chrono::steady_clock::time_point start_steady_;
-  /* LightStepSpanContext span_context_; */
 
   std::atomic<bool> is_finished_{false};
 
   // Mutex protects tags_, logs_, and operation_name_.
-  std::unordered_map<std::string, opentracing::Value> tags_;
   std::vector<collector::Log> logs_;
 
   template <class Carrier>

@@ -124,15 +124,16 @@ LightStepSpan::LightStepSpan(
   }
 
   // Set tags.
+  auto& tags = *span_.mutable_tags();
+  tags.Reserve(static_cast<int>(options.tags.size()));
   for (auto& tag : options.tags) {
-    tags_[tag.first] = tag.second;
-  }
+    *tags.Add() = ToKeyValue(tag.first, tag.second);
 
-  // If sampling_priority is set, it overrides whatever sampling decision was
-  // derived from the referenced spans.
-  auto sampling_priority_tag = tags_.find(opentracing::ext::sampling_priority);
-  if (sampling_priority_tag != tags_.end()) {
-    sampled_ = is_sampled(sampling_priority_tag->second);
+    // If sampling_priority is set, it overrides whatever sampling decision was
+    // derived from the referenced spans.
+    if (tag.first == opentracing::ext::sampling_priority) {
+      sampled_ = is_sampled(tag.second);
+    }
   }
 
   // Set opentracing::SpanContext.
@@ -187,16 +188,6 @@ void LightStepSpan::FinishWithOptions(
 
   // Set tags, logs, and operation name.
   {
-    auto tags = span_.mutable_tags();
-    tags->Reserve(static_cast<int>(tags_.size()));
-    for (const auto& tag : tags_) {
-      try {
-        *tags->Add() = ToKeyValue(tag.first, tag.second);
-      } catch (const std::exception& e) {
-        logger_.Error(R"(Dropping tag for key ")", tag.first,
-                      R"(": )", e.what());
-      }
-    }
     auto logs = span_.mutable_logs();
     logs->Reserve(static_cast<int>(logs_.size()) +
                   static_cast<int>(options.log_records.size()));
@@ -245,7 +236,7 @@ void LightStepSpan::SetOperationName(
 void LightStepSpan::SetTag(opentracing::string_view key,
                            const opentracing::Value& value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  tags_[key] = value;
+  *span_.mutable_tags()->Add() = ToKeyValue(key, value);
 
   if (key == opentracing::ext::sampling_priority) {
     sampled_ = is_sampled(value);
