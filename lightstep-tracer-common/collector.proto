@@ -46,6 +46,11 @@ message Reference {
     SpanContext span_context = 2;
 }
 
+message StreamInitialization {
+  uint64 reporter_id = 1;
+  repeated KeyValue tags = 2;
+}
+
 message Span {
     SpanContext span_context = 1;
     string operation_name = 2;

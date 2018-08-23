@@ -1,10 +1,28 @@
 #include "streaming_recorder.h"
 
+#include "lightstep-tracer-common/collector.pb.h"
+#include "utility.h"
+
 #include <chrono>
+#include <stdexcept>
 
 namespace lightstep {
 static const std::chrono::steady_clock::duration polling_interval =
     std::chrono::microseconds{10};
+//------------------------------------------------------------------------------
+// MakeStreamInitializationMessage
+//------------------------------------------------------------------------------
+static collector::StreamInitialization MakeStreamInitializationMessage(
+    const LightStepTracerOptions& options) {
+  collector::StreamInitialization initialization;
+  initialization.set_reporter_id(GenerateId());
+  auto& tags = *initialization.mutable_tags();
+  tags.Reserve(static_cast<int>(options.tags.size()));
+  for (const auto& tag : options.tags) {
+    *tags.Add() = ToKeyValue(tag.first, tag.second);
+  }
+  return initialization;
+}
 
 //------------------------------------------------------------------------------
 // constructor
@@ -16,6 +34,9 @@ StreamingRecorder::StreamingRecorder(
       message_buffer_{options.message_buffer_size},
       transporter_{std::move(transporter)} {
   streamer_thread_ = std::thread{&StreamingRecorder::RunStreamer, this};
+  if (!message_buffer_.Add(MakeStreamInitializationMessage(options))) {
+    throw std::runtime_error{"buffer size is too small"};
+  }
 }
 
 //------------------------------------------------------------------------------

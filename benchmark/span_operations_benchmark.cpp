@@ -1,6 +1,11 @@
 #include <benchmark/benchmark.h>
 #include <lightstep/tracer.h>
+
 #include <cassert>
+#include <thread>
+
+const int num_spans_for_span_creation_threaded_benchmark = 1000;
+const int num_threads_for_span_creation_threaded_benchmark = 2;
 
 //------------------------------------------------------------------------------
 // NullSyncTransporter
@@ -50,6 +55,15 @@ static std::shared_ptr<opentracing::Tracer> MakeStreamTracer() {
 }
 
 //------------------------------------------------------------------------------
+// MakeSpans
+//------------------------------------------------------------------------------
+static void MakeSpans(const opentracing::Tracer& tracer, int n) {
+  for (int i = 0; i < n; ++i) {
+    auto span = tracer.StartSpan("abc123");
+  }
+}
+
+//------------------------------------------------------------------------------
 // BM_SpanCreation
 //------------------------------------------------------------------------------
 static void BM_SpanCreation(benchmark::State& state) {
@@ -89,6 +103,46 @@ static void BM_SpanCreationWithParent(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_SpanCreationWithParent);
+
+//------------------------------------------------------------------------------
+// BM_SpanCreationThreaded
+//------------------------------------------------------------------------------
+static void BM_SpanCreationThreaded(benchmark::State& state) {
+  auto tracer = MakeTracer();
+  assert(tracer != nullptr);
+  for (auto _ : state) {
+    std::vector<std::thread> threads(
+        num_threads_for_span_creation_threaded_benchmark);
+    for (auto& thread : threads) {
+      thread = std::thread{&MakeSpans, std::ref(*tracer),
+                           num_spans_for_span_creation_threaded_benchmark};
+    }
+    for (auto& thread : threads) {
+      thread.join();
+    }
+  }
+}
+BENCHMARK(BM_SpanCreationThreaded);
+
+//------------------------------------------------------------------------------
+// BM_StreamSpanCreationThreaded
+//------------------------------------------------------------------------------
+static void BM_StreamSpanCreationThreaded(benchmark::State& state) {
+  auto tracer = MakeStreamTracer();
+  assert(tracer != nullptr);
+  for (auto _ : state) {
+    std::vector<std::thread> threads(
+        num_threads_for_span_creation_threaded_benchmark);
+    for (auto& thread : threads) {
+      thread = std::thread{&MakeSpans, std::ref(*tracer),
+                           num_spans_for_span_creation_threaded_benchmark};
+    }
+    for (auto& thread : threads) {
+      thread.join();
+    }
+  }
+}
+BENCHMARK(BM_StreamSpanCreationThreaded);
 
 //------------------------------------------------------------------------------
 // BM_SpanSetTag1

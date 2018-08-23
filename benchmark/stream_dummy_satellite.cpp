@@ -117,6 +117,7 @@ void StreamDummySatellite::ProcessConnections() {
 // ProcessSession
 //------------------------------------------------------------------------------
 void StreamDummySatellite::ProcessSession(const Socket& socket) {
+  int packet_no = 0;
   while (1) {
     PacketHeader header;
     if (!ReadHeader(socket.file_descriptor(), header)) {
@@ -129,6 +130,11 @@ void StreamDummySatellite::ProcessSession(const Socket& socket) {
       std::terminate();
     }
 
+    // Ignore the first packet since it's an initialization message
+    if (packet_no == 0) {
+      continue;
+    }
+
     collector::Span span;
     if (!span.ParseFromArray(static_cast<void*>(buffer.get()),
                              header.body_size())) {
@@ -137,7 +143,8 @@ void StreamDummySatellite::ProcessSession(const Socket& socket) {
     }
     std::unique_lock<std::mutex> lock{mutex_};
     span_ids_.push_back(span.span_context().span_id());
-    /* std::cout << "span_id = " << span.span_context().span_id() << "\n"; */
+
+    ++packet_no;
   }
 }
 
