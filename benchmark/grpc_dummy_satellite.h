@@ -23,6 +23,8 @@ class GrpcDummySatellite final : public DummySatellite,
 
   void Reserve(size_t num_span_ids) override;
 
+  void Close() override;
+
  private:
   const char* address_;
   std::unique_ptr<grpc::Server> server_;

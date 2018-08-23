@@ -5,10 +5,12 @@
 #include <lightstep/tracer.h>
 
 #include <chrono>
+#include <cstdlib>
 #include <exception>
 #include <iostream>
 #include <set>
 #include <thread>
+#include <vector>
 using namespace lightstep;
 
 //------------------------------------------------------------------------------
@@ -34,7 +36,7 @@ static UploadReport MakeReport(const std::vector<uint64_t>& sent_span_ids,
   std::set<uint64_t> span_ids{sent_span_ids.begin(), sent_span_ids.end()};
   for (auto id : received_span_ids) {
     if (span_ids.find(id) == span_ids.end()) {
-      std::cerr << id << " not sent\n";
+      std::cerr << "Upload Error: " << id << " not sent\n";
       std::terminate();
     }
   }
@@ -56,27 +58,30 @@ static void GenerateSpans(opentracing::Tracer& tracer, int num_spans,
 }
 
 //------------------------------------------------------------------------------
-// RunBenchmark1
+// RunUploadBenchmark
 //------------------------------------------------------------------------------
-static UploadReport RunBenchmark1(
-    DummySatellite& satellite, opentracing::Tracer& tracer,
-    std::chrono::steady_clock::duration duration) {
-  /* const int num_spans = 5000000; */
-  const int num_spans = 1000000;
+static UploadReport RunUploadBenchmark(
+    DummySatellite& satellite, std::shared_ptr<opentracing::Tracer>& tracer,
+    size_t num_threads, size_t num_spans) {
   satellite.Reserve(num_spans);
-  std::vector<uint64_t> span_ids;
-  span_ids.reserve(num_spans);
-
-  const auto interval = duration / num_spans;
-  for (int i = 0; i < num_spans; ++i) {
-    auto span = tracer.StartSpan("abc");
-    auto lightstep_span = static_cast<LightStepSpan*>(span.get());
-    span_ids.push_back(
-        static_cast<const LightStepSpanContext&>(lightstep_span->context())
-            .span_id());
-    /* std::this_thread::sleep_for(interval); */
+  std::vector<uint64_t> span_ids(num_spans);
+  std::vector<std::thread> threads(num_threads);
+  auto spans_per_thread = num_spans / num_threads;
+  auto remainder = num_spans - spans_per_thread * num_threads;
+  auto span_id_output = span_ids.data();
+  for (int i = 0; i < static_cast<int>(num_threads); ++i) {
+    auto num_spans_for_this_thread =
+        spans_per_thread + (i < static_cast<int>(remainder));
+    threads[i] = std::thread{&GenerateSpans, std::ref(*tracer),
+                             num_spans_for_this_thread, span_id_output};
+    span_id_output += num_spans_for_this_thread;
   }
-  tracer.Close();
+  for (auto& thread : threads) {
+    thread.join();
+  }
+  tracer->Close();
+  tracer.reset();
+  satellite.Close();
 
   return MakeReport(span_ids, satellite.span_ids());
 }
@@ -99,7 +104,7 @@ static std::shared_ptr<opentracing::Tracer> SetupGrpcTracer(
 }
 
 //------------------------------------------------------------------------------
-// SetupStreammingTracer
+// SetupStreamTracer
 //------------------------------------------------------------------------------
 static std::shared_ptr<opentracing::Tracer> SetupStreamTracer(
     std::unique_ptr<DummySatellite>& satellite) {
@@ -119,25 +124,30 @@ static std::shared_ptr<opentracing::Tracer> SetupStreamTracer(
 // main
 //------------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-  if (argc != 2) {
-    std::cout << "Usage: upload_test <rpc|stream>\n";
+  if (argc != 4) {
+    std::cout << "Usage: upload_test <rpc|stream> <num_threads> <num_spans>\n";
     return 0;
   }
-  (void)argv;
-
-  /* const char* server_address = "localhost:9000"; */
+  std::string tracer_type{argv[1]};
+  size_t num_threads = static_cast<size_t>(std::atoi(argv[2]));
+  size_t num_spans = static_cast<size_t>(std::atoi(argv[3]));
 
   std::unique_ptr<DummySatellite> satellite;
-  /* auto tracer = SetupGrpcTracer(satellite); */
-  auto tracer = SetupStreamTracer(satellite);
-  /* auto report1 = RunBenchmark1(*satellite, *tracer, std::chrono::minutes{1});
-   */
-  auto report1 = RunBenchmark1(*satellite, *tracer, std::chrono::seconds{1});
-  std::cout << report1.total_spans << " / " << report1.num_spans_dropped
-            << "\n";
-  /* satellite = [] { */
-  /*  LightStepTracerOptions options; */
-  /* }(); */
+  std::shared_ptr<opentracing::Tracer> tracer;
+  if (tracer_type == "rpc") {
+    tracer = SetupGrpcTracer(satellite);
+  } else if (tracer_type == "stream") {
+    tracer = SetupStreamTracer(satellite);
+  } else {
+    std::cerr << "Unknown tracer type: " << tracer_type << "\n";
+    return -1;
+  }
+
+  auto report = RunUploadBenchmark(*satellite, tracer, num_threads, num_spans);
+  std::cout << "tracer type: " << tracer_type << "\n";
+  std::cout << "num threads: " << num_threads << "\n";
+  std::cout << "num spans generated: " << num_spans << "\n";
+  std::cout << "num spans dropped: " << report.num_spans_dropped << "\n";
 
   return 0;
 }

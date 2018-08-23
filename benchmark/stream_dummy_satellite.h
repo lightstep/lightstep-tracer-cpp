@@ -17,6 +17,8 @@ class StreamDummySatellite : public DummySatellite {
 
   void Reserve(size_t num_span_ids) override;
 
+  void Close() override;
+
  private:
   std::thread thread_;
   mutable std::mutex mutex_;

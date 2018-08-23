@@ -86,7 +86,9 @@ StreamDummySatellite::StreamDummySatellite(const char* host, int port) {
 // destructor
 //------------------------------------------------------------------------------
 StreamDummySatellite::~StreamDummySatellite() {
-  running_ = false;
+  if (!running_.exchange(false)) {
+    return;
+  }
   thread_.join();
 }
 
@@ -132,6 +134,7 @@ void StreamDummySatellite::ProcessSession(const Socket& socket) {
 
     // Ignore the first packet since it's an initialization message
     if (packet_no == 0) {
+      ++packet_no;
       continue;
     }
 
@@ -162,5 +165,15 @@ std::vector<uint64_t> StreamDummySatellite::span_ids() const {
 void StreamDummySatellite::Reserve(size_t num_span_ids) {
   std::unique_lock<std::mutex> lock{mutex_};
   span_ids_.reserve(num_span_ids);
+}
+
+//------------------------------------------------------------------------------
+// Close
+//------------------------------------------------------------------------------
+void StreamDummySatellite::Close() {
+  if (!running_.exchange(false)) {
+    return;
+  }
+  thread_.join();
 }
 }  // namespace lightstep
