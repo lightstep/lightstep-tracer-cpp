@@ -52,7 +52,7 @@ class AsyncTransporter : public Transporter {
                     Callback& callback) = 0;
 };
 
-class StreamTransporter {
+class StreamTransporter : public Transporter {
  public:
   virtual ~StreamTransporter() = default;
 

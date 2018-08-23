@@ -2,8 +2,11 @@
 #include <lightstep/tracer.h>
 #include <cassert>
 
+//------------------------------------------------------------------------------
+// NullSyncTransporter
+//------------------------------------------------------------------------------
 namespace {
-class NullTransporter final : public lightstep::SyncTransporter {
+class NullSyncTransporter final : public lightstep::SyncTransporter {
  public:
   opentracing::expected<void> Send(
       const google::protobuf::Message& /*request*/,
@@ -13,13 +16,42 @@ class NullTransporter final : public lightstep::SyncTransporter {
 };
 }  // namespace
 
+//------------------------------------------------------------------------------
+// NullStreamTransporter
+//------------------------------------------------------------------------------
+namespace {
+class NullStreamTransporter final : public lightstep::StreamTransporter {
+ public:
+  size_t Write(const char* /*buffer*/, size_t size) override { return size; }
+};
+}  // namespace
+
+//------------------------------------------------------------------------------
+// MakeTracer
+//------------------------------------------------------------------------------
 static std::shared_ptr<opentracing::Tracer> MakeTracer() {
   lightstep::LightStepTracerOptions options;
   options.access_token = "abc123";
-  options.transporter.reset(new NullTransporter{});
+  options.collector_plaintext = true;
+  options.transporter.reset(new NullSyncTransporter{});
   return lightstep::MakeLightStepTracer(std::move(options));
 }
 
+//------------------------------------------------------------------------------
+// MakeStreamTracer
+//------------------------------------------------------------------------------
+static std::shared_ptr<opentracing::Tracer> MakeStreamTracer() {
+  lightstep::LightStepTracerOptions options;
+  options.access_token = "abc123";
+  options.collector_plaintext = true;
+  options.use_streaming_recorder = true;
+  options.transporter.reset(new NullStreamTransporter{});
+  return lightstep::MakeLightStepTracer(std::move(options));
+}
+
+//------------------------------------------------------------------------------
+// BM_SpanCreation
+//------------------------------------------------------------------------------
 static void BM_SpanCreation(benchmark::State& state) {
   auto tracer = MakeTracer();
   assert(tracer != nullptr);
@@ -29,6 +61,21 @@ static void BM_SpanCreation(benchmark::State& state) {
 }
 BENCHMARK(BM_SpanCreation);
 
+//------------------------------------------------------------------------------
+// BM_StreamSpanCreation
+//------------------------------------------------------------------------------
+static void BM_StreamSpanCreation(benchmark::State& state) {
+  auto tracer = MakeStreamTracer();
+  assert(tracer != nullptr);
+  for (auto _ : state) {
+    auto span = tracer->StartSpan("abc123");
+  }
+}
+BENCHMARK(BM_StreamSpanCreation);
+
+//------------------------------------------------------------------------------
+// BM_SpanCreationWithParent
+//------------------------------------------------------------------------------
 static void BM_SpanCreationWithParent(benchmark::State& state) {
   auto tracer = MakeTracer();
   assert(tracer != nullptr);
@@ -43,6 +90,9 @@ static void BM_SpanCreationWithParent(benchmark::State& state) {
 }
 BENCHMARK(BM_SpanCreationWithParent);
 
+//------------------------------------------------------------------------------
+// BM_SpanSetTag1
+//------------------------------------------------------------------------------
 static void BM_SpanSetTag1(benchmark::State& state) {
   auto tracer = MakeTracer();
   assert(tracer != nullptr);
@@ -53,6 +103,9 @@ static void BM_SpanSetTag1(benchmark::State& state) {
 }
 BENCHMARK(BM_SpanSetTag1);
 
+//------------------------------------------------------------------------------
+// BM_SpanSetTag2
+//------------------------------------------------------------------------------
 static void BM_SpanSetTag2(benchmark::State& state) {
   auto tracer = MakeTracer();
   assert(tracer != nullptr);
@@ -72,6 +125,9 @@ static void BM_SpanSetTag2(benchmark::State& state) {
 }
 BENCHMARK(BM_SpanSetTag2);
 
+//------------------------------------------------------------------------------
+// BM_SpanLog1
+//------------------------------------------------------------------------------
 static void BM_SpanLog1(benchmark::State& state) {
   auto tracer = MakeTracer();
   assert(tracer != nullptr);
@@ -82,6 +138,9 @@ static void BM_SpanLog1(benchmark::State& state) {
 }
 BENCHMARK(BM_SpanLog1);
 
+//------------------------------------------------------------------------------
+// BM_SpanLog2
+//------------------------------------------------------------------------------
 static void BM_SpanLog2(benchmark::State& state) {
   auto tracer = MakeTracer();
   assert(tracer != nullptr);
@@ -94,4 +153,7 @@ static void BM_SpanLog2(benchmark::State& state) {
 }
 BENCHMARK(BM_SpanLog2);
 
+//------------------------------------------------------------------------------
+// main
+//------------------------------------------------------------------------------
 BENCHMARK_MAIN();
