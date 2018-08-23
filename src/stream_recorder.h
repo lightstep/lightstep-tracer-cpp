@@ -9,12 +9,12 @@
 #include <thread>
 
 namespace lightstep {
-class StreamingRecorder final : public Recorder {
+class StreamRecorder final : public Recorder {
  public:
-  StreamingRecorder(Logger& logger, LightStepTracerOptions&& options,
-                    std::unique_ptr<StreamTransporter>&& transporter);
+  StreamRecorder(Logger& logger, LightStepTracerOptions&& options,
+                 std::unique_ptr<StreamTransporter>&& transporter);
 
-  ~StreamingRecorder();
+  ~StreamRecorder();
 
   void RecordSpan(const collector::Span& span) noexcept override;
 

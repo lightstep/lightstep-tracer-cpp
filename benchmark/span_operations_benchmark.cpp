@@ -49,7 +49,7 @@ static std::shared_ptr<opentracing::Tracer> MakeStreamTracer() {
   lightstep::LightStepTracerOptions options;
   options.access_token = "abc123";
   options.collector_plaintext = true;
-  options.use_streaming_recorder = true;
+  options.use_stream_recorder = true;
   options.transporter.reset(new NullStreamTransporter{});
   return lightstep::MakeLightStepTracer(std::move(options));
 }

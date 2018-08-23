@@ -1,4 +1,4 @@
-#include "streaming_recorder.h"
+#include "stream_recorder.h"
 
 #include "lightstep-tracer-common/collector.pb.h"
 #include "utility.h"
@@ -27,13 +27,12 @@ static collector::StreamInitialization MakeStreamInitializationMessage(
 //------------------------------------------------------------------------------
 // constructor
 //------------------------------------------------------------------------------
-StreamingRecorder::StreamingRecorder(
-    Logger& logger, LightStepTracerOptions&& options,
-    std::unique_ptr<StreamTransporter>&& transporter)
+StreamRecorder::StreamRecorder(Logger& logger, LightStepTracerOptions&& options,
+                               std::unique_ptr<StreamTransporter>&& transporter)
     : logger_{logger},
       message_buffer_{options.message_buffer_size},
       transporter_{std::move(transporter)} {
-  streamer_thread_ = std::thread{&StreamingRecorder::RunStreamer, this};
+  streamer_thread_ = std::thread{&StreamRecorder::RunStreamer, this};
   if (!message_buffer_.Add(MakeStreamInitializationMessage(options))) {
     throw std::runtime_error{"buffer size is too small"};
   }
@@ -42,7 +41,7 @@ StreamingRecorder::StreamingRecorder(
 //------------------------------------------------------------------------------
 // destructor
 //------------------------------------------------------------------------------
-StreamingRecorder::~StreamingRecorder() {
+StreamRecorder::~StreamRecorder() {
   MakeStreamerExit();
   streamer_thread_.join();
 }
@@ -50,23 +49,23 @@ StreamingRecorder::~StreamingRecorder() {
 //------------------------------------------------------------------------------
 // RecordSpan
 //------------------------------------------------------------------------------
-void StreamingRecorder::RecordSpan(const collector::Span& span) noexcept {
+void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
   message_buffer_.Add(span);
 }
 
 //------------------------------------------------------------------------------
 // FlushWithTimeout
 //------------------------------------------------------------------------------
-bool StreamingRecorder::FlushWithTimeout(
+bool StreamRecorder::FlushWithTimeout(
     std::chrono::system_clock::duration timeout) noexcept {}
 
 //------------------------------------------------------------------------------
 // RunStreamer
 //------------------------------------------------------------------------------
-void StreamingRecorder::RunStreamer() noexcept try {
+void StreamRecorder::RunStreamer() noexcept try {
   while (SleepForNextPoll()) {
     while (1) {
-      if (!message_buffer_.Consume(StreamingRecorder::Consume,
+      if (!message_buffer_.Consume(StreamRecorder::Consume,
                                    static_cast<void*>(this))) {
         break;
       }
@@ -79,7 +78,7 @@ void StreamingRecorder::RunStreamer() noexcept try {
 //------------------------------------------------------------------------------
 // MakeStreamerExit
 //------------------------------------------------------------------------------
-void StreamingRecorder::MakeStreamerExit() noexcept {
+void StreamRecorder::MakeStreamerExit() noexcept {
   {
     std::unique_lock<std::mutex> lock{mutex_};
     exit_streamer_ = true;
@@ -88,9 +87,9 @@ void StreamingRecorder::MakeStreamerExit() noexcept {
 }
 
 //------------------------------------------------------------------------------
-// StreamingRecorder
+// StreamRecorder
 //------------------------------------------------------------------------------
-bool StreamingRecorder::SleepForNextPoll() {
+bool StreamRecorder::SleepForNextPoll() {
   std::unique_lock<std::mutex> lock{mutex_};
   return !condition_variable_.wait_for(lock, polling_interval,
                                        [this] { return this->exit_streamer_; });
@@ -99,9 +98,9 @@ bool StreamingRecorder::SleepForNextPoll() {
 //------------------------------------------------------------------------------
 // Consume
 //------------------------------------------------------------------------------
-size_t StreamingRecorder::Consume(void* context, const char* data,
-                                  size_t num_bytes) {
-  auto& stream_recorder = *static_cast<StreamingRecorder*>(context);
+size_t StreamRecorder::Consume(void* context, const char* data,
+                               size_t num_bytes) {
+  auto& stream_recorder = *static_cast<StreamRecorder*>(context);
   return stream_recorder.transporter_->Write(data, num_bytes);
 }
 }  // namespace lightstep

@@ -17,7 +17,7 @@
 #include "logger.h"
 #include "manual_recorder.h"
 #include "satellite_stream_transporter.h"
-#include "streaming_recorder.h"
+#include "stream_recorder.h"
 #include "utility.h"
 
 namespace lightstep {
@@ -148,9 +148,9 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
 }
 
 //------------------------------------------------------------------------------
-// MakeStreamingTracer
+// MakeStreamTracer
 //------------------------------------------------------------------------------
-static std::shared_ptr<LightStepTracer> MakeStreamingTracer(
+static std::shared_ptr<LightStepTracer> MakeStreamTracer(
     std::shared_ptr<Logger> logger, LightStepTracerOptions&& options) {
   if (!options.use_thread) {
     logger->Error("use_thread required for streaming recorder");
@@ -176,8 +176,8 @@ static std::shared_ptr<LightStepTracer> MakeStreamingTracer(
 
   PropagationOptions propagation_options{};
   propagation_options.use_single_key = options.use_single_key_propagation;
-  auto recorder = std::unique_ptr<Recorder>{new StreamingRecorder{
-      *logger, std::move(options), std::move(transporter)}};
+  auto recorder = std::unique_ptr<Recorder>{
+      new StreamRecorder{*logger, std::move(options), std::move(transporter)}};
   return std::shared_ptr<LightStepTracer>{new LightStepTracerImpl{
       std::move(logger), propagation_options, std::move(recorder)}};
 }
@@ -223,8 +223,8 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
                       static_cast<size_t>(default_ssl_roots_pem_size)};
     }
 
-    if (options.use_streaming_recorder) {
-      return MakeStreamingTracer(logger, std::move(options));
+    if (options.use_stream_recorder) {
+      return MakeStreamTracer(logger, std::move(options));
     }
 
     if (!options.use_thread) {

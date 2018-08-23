@@ -17,7 +17,7 @@ _lightstep_test(logger_test logger_test.cpp)
 _lightstep_test(socket_test socket_test.cpp)
 _lightstep_test(fork_id_test fork_id_test.cpp)
 _lightstep_test(propagation_test propagation_test.cpp)
-_lightstep_test(streaming_recorder_test streaming_recorder_test.cpp)
+_lightstep_test(stream_recorder_test stream_recorder_test.cpp)
 _lightstep_test(satellite_stream_transporter_test satellite_stream_transporter_test.cpp)
 _lightstep_test(auto_recorder_test auto_recorder_test.cpp
                                    utility.cpp
