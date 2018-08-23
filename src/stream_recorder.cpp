@@ -57,8 +57,23 @@ void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
 // FlushWithTimeout
 //------------------------------------------------------------------------------
 bool StreamRecorder::FlushWithTimeout(
-    std::chrono::system_clock::duration timeout) noexcept {
-  return true;
+    std::chrono::system_clock::duration timeout) noexcept try {
+  std::unique_lock<std::mutex> lock{mutex_};
+  auto consumption_target = message_buffer_.total_bytes_consumed() +
+                            message_buffer_.num_pending_bytes();
+  auto rcode =
+      condition_variable_.wait_for(lock, timeout, [consumption_target, this] {
+        return this->exit_streamer_ ||
+               this->message_buffer_.total_bytes_consumed() >=
+                   consumption_target;
+      });
+  if (!rcode) {
+    return false;
+  }
+  return message_buffer_.total_bytes_consumed() >= consumption_target;
+} catch (const std::exception& e) {
+  logger_.Error("Failed to flush recorder: ", e.what());
+  return false;
 }
 
 //------------------------------------------------------------------------------
@@ -72,8 +87,10 @@ void StreamRecorder::RunStreamer() noexcept try {
         break;
       }
     }
+    condition_variable_.notify_all();
   }
-} catch (const std::exception& /*e*/) {
+} catch (const std::exception& e) {
+  logger_.Error("Unexpected streamer error: ", e.what());
   MakeStreamerExit();
 }
 

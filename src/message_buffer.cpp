@@ -72,6 +72,7 @@ bool MessageBuffer::Consume(ConsumerFunction consumer, void* context) {
   auto num_bytes_consumed =
       consumer(context, buffer_.tail_data(), max_num_consumption_bytes);
   buffer_.Consume(num_bytes_consumed);
+  total_bytes_consumed_ += num_bytes_consumed;
   consumer_allotment_ -= num_bytes_consumed;
   return true;
 }

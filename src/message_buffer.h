@@ -17,10 +17,15 @@ class MessageBuffer {
 
   bool Consume(ConsumerFunction consumer, void* context);
 
+  size_t num_pending_bytes() const noexcept { return buffer_.size(); }
+
+  size_t total_bytes_consumed() const noexcept { return total_bytes_consumed_; }
+
  private:
   CircularBuffer buffer_;
   AtomicBitSet ready_flags_;
   size_t consumer_allotment_ = 0;
+  std::atomic<size_t> total_bytes_consumed_{0};
 
   void GrowConsumerAllotment() noexcept;
 };
