@@ -1,4 +1,4 @@
-#include "span_buffer.h"
+#include "message_buffer.h"
 
 #include <array>
 #include "bipart_memory_stream.h"
@@ -35,12 +35,12 @@ static void SerializePacket(const PacketHeader& header,
 //------------------------------------------------------------------------------
 // constructor
 //------------------------------------------------------------------------------
-SpanBuffer::SpanBuffer(size_t size) : buffer_{size}, ready_flags_{size} {}
+MessageBuffer::MessageBuffer(size_t size) : buffer_{size}, ready_flags_{size} {}
 
 //------------------------------------------------------------------------------
 // Add
 //------------------------------------------------------------------------------
-bool SpanBuffer::Add(const google::protobuf::Message& message) noexcept {
+bool MessageBuffer::Add(const google::protobuf::Message& message) noexcept {
   auto body_size = message.ByteSizeLong();
 
   auto placement = buffer_.Reserve(body_size + PacketHeader::size);
@@ -62,7 +62,7 @@ bool SpanBuffer::Add(const google::protobuf::Message& message) noexcept {
 //------------------------------------------------------------------------------
 // Consume
 //------------------------------------------------------------------------------
-bool SpanBuffer::Consume(ConsumerFunction consumer, void* context) {
+bool MessageBuffer::Consume(ConsumerFunction consumer, void* context) {
   GrowConsumerAllotment();
   if (consumer_allotment_ == 0) {
     return false;
@@ -79,7 +79,7 @@ bool SpanBuffer::Consume(ConsumerFunction consumer, void* context) {
 //------------------------------------------------------------------------------
 // GrowConsumerAllotment
 //------------------------------------------------------------------------------
-void SpanBuffer::GrowConsumerAllotment() noexcept {
+void MessageBuffer::GrowConsumerAllotment() noexcept {
   while (1) {
     auto next_packet_index =
         (buffer_.tail_index() + consumer_allotment_) % buffer_.capacity();

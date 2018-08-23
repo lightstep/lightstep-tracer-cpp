@@ -88,13 +88,13 @@ struct LightStepTracerOptions {
   // before sending them to a collector.
   DynamicConfigurationValue<size_t> max_buffered_spans = 2000;
 
-  // `span_buffer_size` is the buffer size (in bytes) in which to store spans
+  // `message_buffer_size` is the buffer size (in bytes) in which to store spans
   // before sending to the satellite.
   //
   // Note: Only used with the streaming recorder.
-  /* size_t span_buffer_size = 1024000; */
-  /* size_t span_buffer_size = 1024; */
-  size_t span_buffer_size = 1024000;
+  /* size_t message_buffer_size = 1024000; */
+  /* size_t message_buffer_size = 1024; */
+  size_t message_buffer_size = 1024000;
 
   // If `use_thread` is true, then the tracer will internally manage a thread to
   // regularly send reports to the collector; otherwise, if false,

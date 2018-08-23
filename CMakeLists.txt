@@ -163,7 +163,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/binary_carrier.cpp
                    src/circular_buffer.cpp
                    src/packet_header.cpp
-                   src/span_buffer.cpp
+                   src/message_buffer.cpp
                    src/atomic_bit_set.cpp
                    src/grpc_transporter.cpp
                    src/report_builder.cpp

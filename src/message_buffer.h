@@ -6,12 +6,12 @@
 #include <google/protobuf/message.h>
 
 namespace lightstep {
-class SpanBuffer {
+class MessageBuffer {
  public:
   using ConsumerFunction = size_t (*)(void* context, const char* data,
                                       size_t num_bytes);
 
-  explicit SpanBuffer(size_t num_bytes);
+  explicit MessageBuffer(size_t num_bytes);
 
   bool Add(const google::protobuf::Message& message) noexcept;
 

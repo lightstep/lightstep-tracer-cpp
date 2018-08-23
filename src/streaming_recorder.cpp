@@ -13,7 +13,7 @@ StreamingRecorder::StreamingRecorder(
     Logger& logger, LightStepTracerOptions&& options,
     std::unique_ptr<StreamTransporter>&& transporter)
     : logger_{logger},
-      span_buffer_{options.span_buffer_size},
+      message_buffer_{options.message_buffer_size},
       transporter_{std::move(transporter)} {
   streamer_thread_ = std::thread{&StreamingRecorder::RunStreamer, this};
 }
@@ -30,7 +30,7 @@ StreamingRecorder::~StreamingRecorder() {
 // RecordSpan
 //------------------------------------------------------------------------------
 void StreamingRecorder::RecordSpan(const collector::Span& span) noexcept {
-  span_buffer_.Add(span);
+  message_buffer_.Add(span);
 }
 
 //------------------------------------------------------------------------------
@@ -45,8 +45,8 @@ bool StreamingRecorder::FlushWithTimeout(
 void StreamingRecorder::RunStreamer() noexcept try {
   while (SleepForNextPoll()) {
     while (1) {
-      if (!span_buffer_.Consume(StreamingRecorder::Consume,
-                                static_cast<void*>(this))) {
+      if (!message_buffer_.Consume(StreamingRecorder::Consume,
+                                   static_cast<void*>(this))) {
         break;
       }
     }

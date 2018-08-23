@@ -1,4 +1,4 @@
-#include "../src/span_buffer.h"
+#include "../src/message_buffer.h"
 #include "../src/packet_header.h"
 
 #include "lightstep-tracer-common/collector.pb.h"
@@ -7,7 +7,7 @@
 #include <lightstep/catch2/catch.hpp>
 using namespace lightstep;
 
-TEST_CASE("SpanBuffer") {
+TEST_CASE("MessageBuffer") {
   collector::Span span;
   span.set_operation_name("abc");
 
@@ -15,24 +15,25 @@ TEST_CASE("SpanBuffer") {
   static const size_t packet_size = PacketHeader::size + span_size;
 
   const size_t max_spans = 10;
-  SpanBuffer span_buffer{packet_size * max_spans + 1};
+  MessageBuffer message_buffer{packet_size * max_spans + 1};
 
   SECTION("Spans are correctly serialized into the buffer.") {}
 
   SECTION(
-      "We can successfully add `max_spans` into `span_buffer` before spans are "
+      "We can successfully add `max_spans` into `message_buffer` before spans "
+      "are "
       "dropped.") {
     for (int i = 0; i < static_cast<int>(max_spans); ++i) {
-      CHECK(span_buffer.Add(span));
+      CHECK(message_buffer.Add(span));
     }
-    CHECK(!span_buffer.Add(span));
+    CHECK(!message_buffer.Add(span));
   }
 
   SECTION(
       "After adding a single span, the consumer is alloted the bytes from "
       "the span.") {
-    span_buffer.Add(span);
-    span_buffer.Consume(
+    message_buffer.Add(span);
+    message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
           CHECK(num_bytes == packet_size);
           return num_bytes;
@@ -43,9 +44,9 @@ TEST_CASE("SpanBuffer") {
   SECTION(
       "After adding two spans, the consumer is alloted the bytes from both the "
       "spans.") {
-    span_buffer.Add(span);
-    span_buffer.Add(span);
-    span_buffer.Consume(
+    message_buffer.Add(span);
+    message_buffer.Add(span);
+    message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
           CHECK(num_bytes == 2 * packet_size);
           return num_bytes;
@@ -57,38 +58,38 @@ TEST_CASE("SpanBuffer") {
       "If we fill the buffer, then consume a span, we are able to fit "
       "another span.") {
     for (int i = 0; i < static_cast<int>(max_spans); ++i) {
-      CHECK(span_buffer.Add(span));
+      CHECK(message_buffer.Add(span));
     }
-    span_buffer.Consume(
+    message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
           CHECK(num_bytes == max_spans * packet_size);
           return packet_size;
         },
         nullptr);
-    CHECK(span_buffer.Add(span));
-    CHECK(!span_buffer.Add(span));
+    CHECK(message_buffer.Add(span));
+    CHECK(!message_buffer.Add(span));
   }
 
   SECTION(
       "If the circular buffer wraps, we're only allowed to consume the largest "
       "contiguous block of memory") {
     for (int i = 0; i < static_cast<int>(max_spans); ++i) {
-      CHECK(span_buffer.Add(span));
+      CHECK(message_buffer.Add(span));
     }
-    span_buffer.Consume(
+    message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
           CHECK(num_bytes == max_spans * packet_size);
           return packet_size;
         },
         nullptr);
-    CHECK(span_buffer.Add(span));
-    span_buffer.Consume(
+    CHECK(message_buffer.Add(span));
+    message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
           CHECK(num_bytes == (max_spans - 1) * packet_size + 1);
           return num_bytes;
         },
         nullptr);
-    span_buffer.Consume(
+    message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
           CHECK(num_bytes == packet_size - 1);
           return num_bytes;
@@ -99,15 +100,15 @@ TEST_CASE("SpanBuffer") {
   SECTION(
       "If we consume are partial packet, the next packet added can still be "
       "allotted to the consumer.") {
-    CHECK(span_buffer.Add(span));
-    span_buffer.Consume(
+    CHECK(message_buffer.Add(span));
+    message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
           CHECK(num_bytes == packet_size);
           return packet_size / 2;
         },
         nullptr);
-    CHECK(span_buffer.Add(span));
-    span_buffer.Consume(
+    CHECK(message_buffer.Add(span));
+    message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
           CHECK(num_bytes == 2 * packet_size - packet_size / 2);
           return num_bytes;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "logger.h"
+#include "message_buffer.h"
 #include "recorder.h"
-#include "span_buffer.h"
 
 #include <atomic>
 #include <condition_variable>
@@ -27,7 +27,7 @@ class StreamingRecorder final : public Recorder {
   std::thread streamer_thread_;
   std::mutex mutex_;
   std::condition_variable condition_variable_;
-  SpanBuffer span_buffer_;
+  MessageBuffer message_buffer_;
 
   bool exit_streamer_{false};
 
