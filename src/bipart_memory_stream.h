@@ -3,6 +3,11 @@
 #include <google/protobuf/io/zero_copy_stream.h>
 
 namespace lightstep {
+// A ZeroCopyOutputStream that can be used to write to two separate blocks of
+// memory.
+//
+// Note: this can be used with a circular buffer to write directly into the
+// buffer if it wraps at the ends.
 class BipartMemoryOutputStream
     : public google::protobuf::io::ZeroCopyOutputStream {
  public:
@@ -25,6 +30,10 @@ class BipartMemoryOutputStream
   size_t num_bytes_written_ = 0;
 };
 
+// A ZeroCopyOutputStream that can be used to read from two separate blocks of
+// memory.
+//
+// See BipartMemoryOutputStream
 class BipartMemoryInputStream
     : public google::protobuf::io::ZeroCopyInputStream {
  public:

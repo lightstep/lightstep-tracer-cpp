@@ -30,8 +30,8 @@ static collector::StreamInitialization MakeStreamInitializationMessage(
 StreamRecorder::StreamRecorder(Logger& logger, LightStepTracerOptions&& options,
                                std::unique_ptr<StreamTransporter>&& transporter)
     : logger_{logger},
-      message_buffer_{options.message_buffer_size},
-      transporter_{std::move(transporter)} {
+      transporter_{std::move(transporter)},
+      message_buffer_{options.message_buffer_size} {
   streamer_thread_ = std::thread{&StreamRecorder::RunStreamer, this};
   if (!message_buffer_.Add(MakeStreamInitializationMessage(options))) {
     throw std::runtime_error{"buffer size is too small"};
@@ -57,7 +57,9 @@ void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
 // FlushWithTimeout
 //------------------------------------------------------------------------------
 bool StreamRecorder::FlushWithTimeout(
-    std::chrono::system_clock::duration timeout) noexcept {}
+    std::chrono::system_clock::duration timeout) noexcept {
+  return true;
+}
 
 //------------------------------------------------------------------------------
 // RunStreamer
