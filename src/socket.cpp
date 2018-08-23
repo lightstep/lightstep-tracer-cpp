@@ -3,9 +3,9 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#include <stdexcept>
-#include <unistd.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <stdexcept>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ Socket::Socket(Socket&& other) noexcept {
   file_descriptor_ = other.file_descriptor_;
   other.file_descriptor_ = -1;
 }
-
 
 //------------------------------------------------------------------------------
 // destructor
@@ -57,4 +56,4 @@ void Socket::SetBlocking() {
     throw std::runtime_error{"failed to set the socket as blocking"};
   }
 }
-} // namespace lightstep
+}  // namespace lightstep

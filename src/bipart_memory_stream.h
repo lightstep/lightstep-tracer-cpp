@@ -26,10 +26,10 @@ class BipartMemoryOutputStream
 };
 
 class BipartMemoryInputStream
-  : public google::protobuf::io::ZeroCopyInputStream {
+    : public google::protobuf::io::ZeroCopyInputStream {
  public:
   BipartMemoryInputStream(const char* data1, size_t size1, const char* data2,
-                           size_t size2) noexcept;
+                          size_t size2) noexcept;
 
   bool Next(const void** data, int* size) final;
 
@@ -40,6 +40,7 @@ class BipartMemoryInputStream
   }
 
   bool Skip(int count) final;
+
  private:
   const char* data1_;
   size_t size1_;

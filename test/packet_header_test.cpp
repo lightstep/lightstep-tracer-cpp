@@ -4,7 +4,6 @@
 #include <lightstep/catch2/catch.hpp>
 using namespace lightstep;
 
-
 TEST_CASE("PacketHeader") {
   char buffer[PacketHeader::size];
   PacketHeader header1{1, 156};

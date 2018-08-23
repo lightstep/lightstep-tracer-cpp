@@ -12,4 +12,4 @@ class DummySatellite {
 
   virtual std::vector<uint64_t> span_ids() const = 0;
 };
-} // namespace lightstep
+}  // namespace lightstep

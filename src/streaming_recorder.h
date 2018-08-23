@@ -1,25 +1,25 @@
 #pragma once
 
-#include "recorder.h"
 #include "logger.h"
+#include "recorder.h"
 #include "span_buffer.h"
 
 #include <atomic>
-#include <thread>
 #include <condition_variable>
+#include <thread>
 
 namespace lightstep {
-class StreamingRecorder : public Recorder {
+class StreamingRecorder final : public Recorder {
  public:
   StreamingRecorder(Logger& logger, LightStepTracerOptions&& options,
                     std::unique_ptr<StreamTransporter>&& transporter);
 
   ~StreamingRecorder();
 
-  void RecordSpan(collector::Span&& span) noexcept final;
+  void RecordSpan(const collector::Span& span) noexcept override;
 
   bool FlushWithTimeout(
-      std::chrono::system_clock::duration timeout) noexcept final;
+      std::chrono::system_clock::duration timeout) noexcept override;
 
  private:
   Logger& logger_;
@@ -39,4 +39,4 @@ class StreamingRecorder : public Recorder {
 
   static size_t Consume(void* context, const char* data, size_t num_bytes);
 };
-} // namespace lightstep
+}  // namespace lightstep

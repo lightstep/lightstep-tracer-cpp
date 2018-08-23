@@ -1,30 +1,30 @@
+#include "../src/lightstep_span.h"
 #include "grpc_dummy_satellite.h"
 #include "stream_dummy_satellite.h"
-#include "../src/lightstep_span.h"
 
 #include <lightstep/tracer.h>
 
-#include <iostream>
 #include <chrono>
-#include <thread>
-#include <set>
 #include <exception>
+#include <iostream>
+#include <set>
+#include <thread>
 using namespace lightstep;
 
 //------------------------------------------------------------------------------
 // UploadReport
 //------------------------------------------------------------------------------
 struct UploadReport {
- size_t total_spans;
- size_t num_spans_received;
- size_t num_spans_dropped;
+  size_t total_spans;
+  size_t num_spans_received;
+  size_t num_spans_dropped;
 };
 
 //------------------------------------------------------------------------------
 // MakeReport
 //------------------------------------------------------------------------------
 static UploadReport MakeReport(const std::vector<uint64_t>& sent_span_ids,
-    const std::vector<uint64_t>& received_span_ids) {
+                               const std::vector<uint64_t>& received_span_ids) {
   UploadReport result;
   result.total_spans = sent_span_ids.size();
   result.num_spans_received = received_span_ids.size();
@@ -44,11 +44,9 @@ static UploadReport MakeReport(const std::vector<uint64_t>& sent_span_ids,
 //------------------------------------------------------------------------------
 // GenerateSpans
 //------------------------------------------------------------------------------
-static void GenerateSpans(
-    opentracing::Tracer& tracer,
-    int num_spans,
-    uint64_t* output) {
-  for (int i=0; i<num_spans; ++i) {
+static void GenerateSpans(opentracing::Tracer& tracer, int num_spans,
+                          uint64_t* output) {
+  for (int i = 0; i < num_spans; ++i) {
     auto span = tracer.StartSpan("abc");
     auto lightstep_span = static_cast<LightStepSpan*>(span.get());
     *output++ =
@@ -60,9 +58,9 @@ static void GenerateSpans(
 //------------------------------------------------------------------------------
 // RunBenchmark1
 //------------------------------------------------------------------------------
-static UploadReport RunBenchmark1(DummySatellite& satellite,
-                   opentracing::Tracer& tracer,
-                   std::chrono::steady_clock::duration duration) {
+static UploadReport RunBenchmark1(
+    DummySatellite& satellite, opentracing::Tracer& tracer,
+    std::chrono::steady_clock::duration duration) {
   /* const int num_spans = 5000000; */
   const int num_spans = 1000000;
   satellite.Reserve(num_spans);
@@ -70,7 +68,7 @@ static UploadReport RunBenchmark1(DummySatellite& satellite,
   span_ids.reserve(num_spans);
 
   const auto interval = duration / num_spans;
-  for (int i=0; i<num_spans; ++i) {
+  for (int i = 0; i < num_spans; ++i) {
     auto span = tracer.StartSpan("abc");
     auto lightstep_span = static_cast<LightStepSpan*>(span.get());
     span_ids.push_back(
@@ -99,7 +97,6 @@ static std::shared_ptr<opentracing::Tracer> SetupGrpcTracer(
   grpc_satellite->Run();
   return MakeLightStepTracer(std::move(options));
 }
-
 
 //------------------------------------------------------------------------------
 // SetupStreammingTracer
@@ -133,11 +130,13 @@ int main(int argc, char* argv[]) {
   std::unique_ptr<DummySatellite> satellite;
   /* auto tracer = SetupGrpcTracer(satellite); */
   auto tracer = SetupStreamingTracer(satellite);
-  /* auto report1 = RunBenchmark1(*satellite, *tracer, std::chrono::minutes{1}); */
+  /* auto report1 = RunBenchmark1(*satellite, *tracer, std::chrono::minutes{1});
+   */
   auto report1 = RunBenchmark1(*satellite, *tracer, std::chrono::seconds{1});
-  std::cout << report1.total_spans << " / " << report1.num_spans_dropped << "\n";
+  std::cout << report1.total_spans << " / " << report1.num_spans_dropped
+            << "\n";
   /* satellite = [] { */
-  /*  LightStepTracerOptions options; */ 
+  /*  LightStepTracerOptions options; */
   /* }(); */
 
   return 0;

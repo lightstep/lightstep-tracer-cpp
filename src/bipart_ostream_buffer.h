@@ -3,8 +3,7 @@
 #include <google/protobuf/io/zero_copy_stream.h>
 
 namespace lightstep {
-class BipartOstreamBuffer
-    : public google::protobuf::io::ZeroCopyOutputStream {
+class BipartOstreamBuffer : public google::protobuf::io::ZeroCopyOutputStream {
  public:
   BipartOstreamBuffer(char* data1, size_t size1, char* data2,
                       size_t size2) noexcept;
@@ -18,10 +17,10 @@ class BipartOstreamBuffer
   }
 
  private:
-  char *data1_;
+  char* data1_;
   size_t size1_;
   char* data2_;
   size_t size2_;
   size_t num_bytes_written_ = 0;
 };
-} // namespace lightstep
+}  // namespace lightstep

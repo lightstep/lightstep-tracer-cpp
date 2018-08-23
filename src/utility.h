@@ -2,9 +2,9 @@
 
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>
+#include <algorithm>
 #include <chrono>
 #include <string>
-#include <algorithm>
 #include <type_traits>
 #include "lightstep-tracer-common/collector.pb.h"
 #include "logger.h"

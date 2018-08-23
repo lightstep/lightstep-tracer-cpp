@@ -3,26 +3,27 @@
 namespace lightstep {
 class Socket {
  public:
-   Socket();
+  Socket();
 
-   explicit Socket(int file_descriptor) noexcept;
+  explicit Socket(int file_descriptor) noexcept;
 
-   Socket(const Socket&) = delete;
+  Socket(const Socket&) = delete;
 
-   Socket(Socket&& other) noexcept;
+  Socket(Socket&& other) noexcept;
 
-   ~Socket();
+  ~Socket();
 
-   Socket& operator=(Socket&& other) noexcept = delete;
+  Socket& operator=(Socket&& other) noexcept = delete;
 
-   Socket& operator=(const Socket&) = delete;
+  Socket& operator=(const Socket&) = delete;
 
-   int file_descriptor() const noexcept { return file_descriptor_; }
+  int file_descriptor() const noexcept { return file_descriptor_; }
 
-   void SetNonblocking();
+  void SetNonblocking();
 
-   void SetBlocking();
+  void SetBlocking();
+
  private:
-   int file_descriptor_{-1};
+  int file_descriptor_{-1};
 };
-} // namespace lightstep
+}  // namespace lightstep

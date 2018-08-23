@@ -9,7 +9,7 @@ TEST_CASE("AtomicBitSet") {
   AtomicBitSet bit_set{size};
 
   SECTION("A bit set is initialized with everything set to false.") {
-    for(int bit_index=0; bit_index<static_cast<int>(size); ++bit_index) {
+    for (int bit_index = 0; bit_index < static_cast<int>(size); ++bit_index) {
       REQUIRE(!bit_set.Test(bit_index));
     }
   }
@@ -41,7 +41,7 @@ TEST_CASE("AtomicBitSet") {
     bit_set.Set(63);
     CHECK(bit_set.Reset(63));
     CHECK(!bit_set.Reset(63));
-    for(int bit_index=0; bit_index<static_cast<int>(size); ++bit_index) {
+    for (int bit_index = 0; bit_index < static_cast<int>(size); ++bit_index) {
       REQUIRE(!bit_set.Test(bit_index));
     }
   }

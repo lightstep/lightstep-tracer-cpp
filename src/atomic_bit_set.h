@@ -20,7 +20,6 @@ class AtomicBitSet {
   bool Set(int bit_index) noexcept;
 
  private:
-
   static constexpr int bits_per_block =
       static_cast<int>(std::numeric_limits<BlockType>::digits);
 
@@ -29,6 +28,5 @@ class AtomicBitSet {
   int ComputeBlockIndex(int bit_index) const noexcept;
 
   int ComputeBitOffSet(int bit_index) const noexcept;
-
 };
 }  // namespace lightstep

@@ -2,20 +2,21 @@
 
 #include "../src/socket.h"
 
+#include <atomic>
 #include <string>
 #include <thread>
-#include <atomic>
 
 namespace lightstep {
 class StreamDummySatellite : public DummySatellite {
  public:
-   StreamDummySatellite(const char* host, int port);
+  StreamDummySatellite(const char* host, int port);
 
-   ~StreamDummySatellite();
+  ~StreamDummySatellite();
 
   std::vector<uint64_t> span_ids() const override;
 
   void Reserve(size_t num_span_ids) override;
+
  private:
   std::thread thread_;
   mutable std::mutex mutex_;
@@ -27,4 +28,4 @@ class StreamDummySatellite : public DummySatellite {
 
   void ProcessSession(const Socket& socket);
 };
-} // namespace lightstep
+}  // namespace lightstep

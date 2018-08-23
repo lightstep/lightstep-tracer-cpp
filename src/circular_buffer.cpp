@@ -1,7 +1,7 @@
 #include "circular_buffer.h"
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 
 namespace lightstep {
@@ -61,7 +61,8 @@ CircularBufferConstPlacement CircularBuffer::Peek(ptrdiff_t index,
   ptrdiff_t tail = tail_;
   auto first_index = (tail + index) % capacity_;
   auto data1 = data_.get() + first_index;
-  auto size1 = std::min(static_cast<size_t>(capacity_ - first_index), num_bytes);
+  auto size1 =
+      std::min(static_cast<size_t>(capacity_ - first_index), num_bytes);
   auto data2 = data_.get();
   auto size2 = num_bytes - size1;
   return {data1, size1, data2, size2};

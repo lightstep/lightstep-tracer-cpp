@@ -3,20 +3,20 @@
 #include "../src/packet_header.h"
 #include "lightstep-tracer-common/collector.pb.h"
 
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <errno.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 
-#include <stdexcept>
 #include <array>
 #include <iostream>
+#include <stdexcept>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -55,8 +55,7 @@ static bool ReadHeader(int file_descriptor, PacketHeader& header) {
 //------------------------------------------------------------------------------
 // constructor
 //------------------------------------------------------------------------------
-StreamDummySatellite::StreamDummySatellite(const char* host, int port)
-{
+StreamDummySatellite::StreamDummySatellite(const char* host, int port) {
   sockaddr_in satellite_address = {};
   satellite_address.sin_family = AF_INET;
   satellite_address.sin_port = htons(port);
@@ -136,9 +135,9 @@ void StreamDummySatellite::ProcessSession(const Socket& socket) {
       std::cerr << "Failed to Parse span\n";
       std::terminate();
     }
-  std::unique_lock<std::mutex> lock{mutex_};
-  span_ids_.push_back(span.span_context().span_id());
-  /* std::cout << "span_id = " << span.span_context().span_id() << "\n"; */
+    std::unique_lock<std::mutex> lock{mutex_};
+    span_ids_.push_back(span.span_context().span_id());
+    /* std::cout << "span_id = " << span.span_context().span_id() << "\n"; */
   }
 }
 

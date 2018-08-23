@@ -20,7 +20,7 @@ ReportBuilder::ReportBuilder(
 //------------------------------------------------------------------------------
 // AddSpan
 //------------------------------------------------------------------------------
-void ReportBuilder::AddSpan(collector::Span&& span) {
+void ReportBuilder::AddSpan(const collector::Span& span) {
   if (reset_next_) {
     pending_.Clear();
     pending_.CopyFrom(preamble_);

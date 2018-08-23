@@ -1,11 +1,11 @@
 #include "span_buffer.h"
 
-#include "packet_header.h"
-#include "bipart_memory_stream.h"
 #include <array>
+#include "bipart_memory_stream.h"
+#include "packet_header.h"
 
-#include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream.h>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ static void SerializePacket(const PacketHeader& header,
                             const google::protobuf::Message& message,
                             const CircularBufferPlacement& placement) noexcept {
   BipartMemoryOutputStream stream_buffer{placement.data1, placement.size1,
-                                    placement.data2, placement.size2};
+                                         placement.data2, placement.size2};
   google::protobuf::io::CodedOutputStream stream{&stream_buffer};
   SerializePacketHeader(header, stream);
   message.SerializeWithCachedSizes(&stream);

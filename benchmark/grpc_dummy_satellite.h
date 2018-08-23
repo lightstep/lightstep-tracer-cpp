@@ -15,13 +15,14 @@ namespace lightstep {
 class GrpcDummySatellite final : public DummySatellite,
                                  public collector::CollectorService::Service {
  public:
- explicit GrpcDummySatellite(const char* address) : address_{address} {}
+  explicit GrpcDummySatellite(const char* address) : address_{address} {}
 
   void Run();
 
   std::vector<uint64_t> span_ids() const override;
 
   void Reserve(size_t num_span_ids) override;
+
  private:
   const char* address_;
   std::unique_ptr<grpc::Server> server_;
@@ -33,4 +34,4 @@ class GrpcDummySatellite final : public DummySatellite,
                       const lightstep::collector::ReportRequest* request,
                       lightstep::collector::ReportResponse* response) override;
 };
-} // namespace lightstep
+}  // namespace lightstep

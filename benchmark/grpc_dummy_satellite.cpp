@@ -15,7 +15,7 @@ void GrpcDummySatellite::Reserve(size_t num_span_ids) {
   span_ids_.reserve(num_span_ids);
 }
 
-std::vector<uint64_t> GrpcDummySatellite::span_ids() const { 
+std::vector<uint64_t> GrpcDummySatellite::span_ids() const {
   std::unique_lock<std::mutex> lock{mutex_};
   return span_ids_;
 }

@@ -54,9 +54,8 @@ class AsyncTransporter : public Transporter {
 
 class StreamTransporter {
  public:
-   virtual ~StreamTransporter() = default;
+  virtual ~StreamTransporter() = default;
 
-   virtual size_t Write(const char* buffer, size_t size) = 0;
-
+  virtual size_t Write(const char* buffer, size_t size) = 0;
 };
 }  // namespace lightstep

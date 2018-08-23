@@ -6,8 +6,8 @@ project(lightstep-tracer)
 # Version information
 
 set(LIGHTSTEP_VERSION_MAJOR "0")
-set(LIGHTSTEP_VERSION_MINOR "7")
-set(LIGHTSTEP_VERSION_PATCH "1")
+set(LIGHTSTEP_VERSION_MINOR "8")
+set(LIGHTSTEP_VERSION_PATCH "0")
 set(LIGHTSTEP_VERSION_STRING
   "${LIGHTSTEP_VERSION_MAJOR}.${LIGHTSTEP_VERSION_MINOR}.${LIGHTSTEP_VERSION_PATCH}")
 
@@ -32,6 +32,7 @@ option(WITH_GRPC "Build with support for gRPC." ON)
 option(WITH_DYNAMIC_LOAD "Build support for dynamic loading." ON)
 option(ENABLE_LINTING "Run clang-tidy on sources if available." OFF)
 option(HEADERS_ONLY "Only generate config.h and version.h." OFF)
+option(BUILD_BENCHMARKING "Build benchmarks." OFF)
 
 # Allow a user to specify an optional default roots.pem file to embed into the 
 # library. 
@@ -93,6 +94,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     -Wno-global-constructors 
     -Wno-sign-conversion
     -Wno-padded
+    -Wno-date-time
     -Wno-switch-enum
     -Wno-disabled-macro-expansion)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -135,6 +137,10 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
 
+if (BUILD_BENCHMARKING)
+  find_package(benchmark REQUIRED)
+endif()
+
 # ==============================================================================
 # Build LightStep tracer library
 
@@ -166,6 +172,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/auto_recorder.cpp
                    src/streaming_recorder.cpp
                    src/lightstep_span_context.cpp
+                   src/lightstep_immutable_span_context.cpp
                    src/lightstep_span.cpp
                    src/lightstep_tracer_impl.cpp
                    src/lightstep_tracer_factory.cpp
@@ -230,5 +237,8 @@ include(CTest)
 if (BUILD_TESTING AND BUILD_SHARED_LIBS)
   add_subdirectory(test)
   add_subdirectory(example)
+endif()
+
+if (BUILD_BENCHMARKING)
   add_subdirectory(benchmark)
 endif()

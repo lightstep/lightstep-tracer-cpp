@@ -5,5 +5,4 @@
 
 using namespace lightstep;
 
-TEST_CASE("StreamingRecorder") {
-}
+TEST_CASE("StreamingRecorder") {}

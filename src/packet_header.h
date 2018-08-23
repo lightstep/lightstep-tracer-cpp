@@ -1,31 +1,33 @@
 #pragma once
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
 #include <google/protobuf/io/coded_stream.h>
 
 namespace lightstep {
 class PacketHeader {
  public:
-   PacketHeader() = default;
+  PacketHeader() = default;
 
-   explicit PacketHeader(google::protobuf::io::CodedInputStream& istream) noexcept;
+  explicit PacketHeader(
+      google::protobuf::io::CodedInputStream& istream) noexcept;
 
-   explicit PacketHeader(const char* data) noexcept;
+  explicit PacketHeader(const char* data) noexcept;
 
-    PacketHeader(uint8_t version, uint32_t body_size) noexcept;
+  PacketHeader(uint8_t version, uint32_t body_size) noexcept;
 
-   void serialize(char* data) const noexcept;
+  void serialize(char* data) const noexcept;
 
-   uint8_t version() const noexcept { return version_; }
+  uint8_t version() const noexcept { return version_; }
 
-   uint32_t body_size() const noexcept { return body_size_; }
+  uint32_t body_size() const noexcept { return body_size_; }
+
  private:
-   uint8_t version_;
-   uint32_t body_size_;
+  uint8_t version_;
+  uint32_t body_size_;
 
  public:
   static const size_t size = sizeof(version_) + sizeof(body_size_);
 };
-} // namespace lightstep
+}  // namespace lightstep

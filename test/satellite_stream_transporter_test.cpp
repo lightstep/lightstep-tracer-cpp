@@ -4,5 +4,4 @@
 #include <lightstep/catch2/catch.hpp>
 using namespace lightstep;
 
-TEST_CASE("SatelliteStreamTransporter") {
-}
+TEST_CASE("SatelliteStreamTransporter") {}

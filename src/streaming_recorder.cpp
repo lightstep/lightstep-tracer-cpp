@@ -9,13 +9,12 @@ static const std::chrono::steady_clock::duration polling_interval =
 //------------------------------------------------------------------------------
 // constructor
 //------------------------------------------------------------------------------
-StreamingRecorder::StreamingRecorder(Logger& logger,
-                                     LightStepTracerOptions&& options,
-                                     std::unique_ptr<StreamTransporter>&& transporter) 
-  : logger_{logger},
-    span_buffer_{options.span_buffer_size},
-    transporter_{std::move(transporter)}
-{
+StreamingRecorder::StreamingRecorder(
+    Logger& logger, LightStepTracerOptions&& options,
+    std::unique_ptr<StreamTransporter>&& transporter)
+    : logger_{logger},
+      span_buffer_{options.span_buffer_size},
+      transporter_{std::move(transporter)} {
   streamer_thread_ = std::thread{&StreamingRecorder::RunStreamer, this};
 }
 
@@ -30,8 +29,8 @@ StreamingRecorder::~StreamingRecorder() {
 //------------------------------------------------------------------------------
 // RecordSpan
 //------------------------------------------------------------------------------
-void StreamingRecorder::RecordSpan(collector::Span&& span) noexcept {
-  span_buffer_.Add(span);   
+void StreamingRecorder::RecordSpan(const collector::Span& span) noexcept {
+  span_buffer_.Add(span);
 }
 
 //------------------------------------------------------------------------------
