@@ -4,8 +4,7 @@
 #include <cassert>
 #include <thread>
 
-const int num_spans_for_span_creation_threaded_benchmark = 1000;
-const int num_threads_for_span_creation_threaded_benchmark = 2;
+const int num_spans_for_span_creation_threaded_benchmark = 2000;
 
 //------------------------------------------------------------------------------
 // NullSyncTransporter
@@ -110,19 +109,23 @@ BENCHMARK(BM_SpanCreationWithParent);
 static void BM_SpanCreationThreaded(benchmark::State& state) {
   auto tracer = MakeTracer();
   assert(tracer != nullptr);
+  auto num_threads = state.range(0);
+  auto n = static_cast<int>(num_spans_for_span_creation_threaded_benchmark);
+  auto num_spans_per_thread = n / num_threads;
+  auto remainder = n - num_spans_per_thread * num_threads;
   for (auto _ : state) {
-    std::vector<std::thread> threads(
-        num_threads_for_span_creation_threaded_benchmark);
-    for (auto& thread : threads) {
-      thread = std::thread{&MakeSpans, std::ref(*tracer),
-                           num_spans_for_span_creation_threaded_benchmark};
+    std::vector<std::thread> threads(num_threads);
+    for (int i = 0; i < num_threads; ++i) {
+      auto num_spans_for_this_thread = num_spans_per_thread + (i < remainder);
+      threads[i] =
+          std::thread{&MakeSpans, std::ref(*tracer), num_spans_for_this_thread};
     }
     for (auto& thread : threads) {
       thread.join();
     }
   }
 }
-BENCHMARK(BM_SpanCreationThreaded);
+BENCHMARK(BM_SpanCreationThreaded)->Arg(2)->Arg(4)->Arg(8);
 
 //------------------------------------------------------------------------------
 // BM_StreamSpanCreationThreaded
@@ -130,19 +133,23 @@ BENCHMARK(BM_SpanCreationThreaded);
 static void BM_StreamSpanCreationThreaded(benchmark::State& state) {
   auto tracer = MakeStreamTracer();
   assert(tracer != nullptr);
+  auto num_threads = state.range(0);
+  auto n = static_cast<int>(num_spans_for_span_creation_threaded_benchmark);
+  auto num_spans_per_thread = n / num_threads;
+  auto remainder = n - num_spans_per_thread * num_threads;
   for (auto _ : state) {
-    std::vector<std::thread> threads(
-        num_threads_for_span_creation_threaded_benchmark);
-    for (auto& thread : threads) {
-      thread = std::thread{&MakeSpans, std::ref(*tracer),
-                           num_spans_for_span_creation_threaded_benchmark};
+    std::vector<std::thread> threads(num_threads);
+    for (int i = 0; i < num_threads; ++i) {
+      auto num_spans_for_this_thread = num_spans_per_thread + (i < remainder);
+      threads[i] =
+          std::thread{&MakeSpans, std::ref(*tracer), num_spans_for_this_thread};
     }
     for (auto& thread : threads) {
       thread.join();
     }
   }
 }
-BENCHMARK(BM_StreamSpanCreationThreaded);
+BENCHMARK(BM_StreamSpanCreationThreaded)->Arg(2)->Arg(4)->Arg(8);
 
 //------------------------------------------------------------------------------
 // BM_SpanSetTag1

@@ -20,7 +20,8 @@ function run_upload_benchmark {
 
 if [[ "$1" == "cmake.debug" ]]; then
   cd "${BUILD_DIR}"
-  cmake -DCMAKE_BUILD_TYPE=Debug  \
+  cmake -DBUILD_BENCHMARKING=ON \
+        -DCMAKE_BUILD_TYPE=Debug  \
         -DCMAKE_CXX_FLAGS="-Werror" \
         "${SRC_DIR}"
   make
@@ -37,7 +38,8 @@ elif [[ "$1" == "cmake.no_grpc" ]]; then
   exit 0
 elif [[ "$1" == "cmake.asan" ]]; then
   cd "${BUILD_DIR}"
-  cmake -DCMAKE_BUILD_TYPE=Debug  \
+  cmake -DBUILD_BENCHMARKING=ON \
+        -DCMAKE_BUILD_TYPE=Debug  \
         -DCMAKE_CXX_FLAGS="-Werror -fno-omit-frame-pointer -fsanitize=address"  \
         -DCMAKE_SHARED_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=address" \
         -DCMAKE_EXE_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=address" \
@@ -49,7 +51,8 @@ elif [[ "$1" == "cmake.tsan" ]]; then
   cd "${BUILD_DIR}"
 # Testing with dynamic load seems to have some issues with TSAN so turn off
 # dynamic loading in this test for now.
-  cmake -DCMAKE_BUILD_TYPE=Debug  \
+  cmake -DBUILD_BENCHMARKING=ON \
+        -DCMAKE_BUILD_TYPE=Debug  \
         -DCMAKE_CXX_FLAGS="-Werror -fno-omit-frame-pointer -fsanitize=thread"  \
         -DCMAKE_SHARED_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=thread" \
         -DCMAKE_EXE_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=thread" \
@@ -60,7 +63,8 @@ elif [[ "$1" == "cmake.tsan" ]]; then
   exit 0
 elif [[ "$1" == "coverage" ]]; then
   cd "${BUILD_DIR}"
-  cmake -DCMAKE_BUILD_TYPE=Debug \
+  cmake -DBUILD_BENCHMARKING=ON \
+        -DCMAKE_BUILD_TYPE=Debug  \
     -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fPIC -O0" \
     "$SRC_DIR"
   make VERBOSE=1
@@ -83,7 +87,8 @@ elif [[ "$1" == "benchmark" ]]; then
   exit 0
 elif [[ "$1" == "cmake.clang-tidy" ]]; then
   cd "${BUILD_DIR}"
-  cmake -DCMAKE_BUILD_TYPE=Debug  \
+  cmake -DBUILD_BENCHMARKING=ON \
+        -DCMAKE_BUILD_TYPE=Debug  \
         -DCMAKE_C_COMPILER=/usr/bin/clang-6.0 \
         -DCMAKE_CXX_COMPILER=/usr/bin/clang++-6.0 \
         -DENABLE_LINTING=ON \

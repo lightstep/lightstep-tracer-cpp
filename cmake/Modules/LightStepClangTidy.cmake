@@ -13,6 +13,7 @@ else()
 -google-build-using-namespace,\
 -modernize-make-unique,\
 -hicpp-vararg,\
+-hicpp-signed-bitwise,\
 -cppcoreguidelines-owning-memory,\
 -cppcoreguidelines-pro-type-reinterpret-cast,\
 -cppcoreguidelines-pro-type-const-cast,\
