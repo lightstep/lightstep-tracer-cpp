@@ -1,6 +1,7 @@
 #include "auto_recorder.h"
-#include <exception>
 #include "utility.h"
+
+#include <exception>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -96,7 +97,11 @@ void AutoRecorder::Write() noexcept try {
     FlushOne();
 
     auto end = write_cond_->Now();
-    auto elapsed = end - next;
+
+    // Note: If the report was issued because the span buffer filled up instead
+    // of the scheduled time passing, then end < next. We therefore use max to
+    // make sure that elapsed is never negative.
+    auto elapsed = std::max(end - next, std::chrono::steady_clock::duration{0});
 
     if (elapsed > options_.reporting_period) {
       next = end;

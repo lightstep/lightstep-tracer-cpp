@@ -8,7 +8,7 @@ mkdir -p "${BUILD_DIR}"
 
 function run_upload_benchmark {
   for recorder in rpc stream; do
-    for threads in 1 2 4; do
+    for threads in 1 2 4 8; do
       for max_spans_per_second in 1000 2000 2000 3000 5000 10000 20000; do
         OUTPUT_FILE=/benchmark-results/upload_${recorder}_${threads}_${max_spans_per_second}.out
         ./benchmark/upload_benchmark ${recorder} ${threads} 20000 ${max_spans_per_second} \
