@@ -14,6 +14,15 @@
 using namespace lightstep;
 
 //------------------------------------------------------------------------------
+// BenchmarkOptions
+//------------------------------------------------------------------------------
+struct BenchmarkOptions {
+  size_t num_spans;
+  size_t num_threads;
+  size_t max_spans_per_second;
+};
+
+//------------------------------------------------------------------------------
 // UploadReport
 //------------------------------------------------------------------------------
 struct UploadReport {
@@ -54,13 +63,16 @@ static UploadReport MakeReport(const std::vector<uint64_t>& sent_span_ids,
 // GenerateSpans
 //------------------------------------------------------------------------------
 static void GenerateSpans(opentracing::Tracer& tracer, int num_spans,
+                          std::chrono::system_clock::duration min_span_elapse,
                           uint64_t* output) {
+  auto start_timestamp = std::chrono::system_clock::now();
   for (int i = 0; i < num_spans; ++i) {
     auto span = tracer.StartSpan("abc");
     auto lightstep_span = static_cast<LightStepSpan*>(span.get());
     *output++ =
         static_cast<const LightStepSpanContext&>(lightstep_span->context())
             .span_id();
+    std::this_thread::sleep_until(start_timestamp + min_span_elapse * i);
   }
 }
 
@@ -68,20 +80,28 @@ static void GenerateSpans(opentracing::Tracer& tracer, int num_spans,
 // RunUploadBenchmark
 //------------------------------------------------------------------------------
 static UploadReport RunUploadBenchmark(
-    DummySatellite& satellite, std::shared_ptr<opentracing::Tracer>& tracer,
-    size_t num_threads, size_t num_spans) {
-  satellite.Reserve(num_spans);
-  std::vector<uint64_t> span_ids(num_spans);
-  std::vector<std::thread> threads(num_threads);
-  auto spans_per_thread = num_spans / num_threads;
-  auto remainder = num_spans - spans_per_thread * num_threads;
+    const BenchmarkOptions& options, DummySatellite& satellite,
+    std::shared_ptr<opentracing::Tracer>& tracer) {
+  satellite.Reserve(options.num_spans);
+  std::vector<uint64_t> span_ids(options.num_spans);
+  std::vector<std::thread> threads(options.num_threads);
+
+  auto seconds_per_span = 1.0 / options.max_spans_per_second;
+  auto min_span_elapse =
+      std::chrono::duration_cast<std::chrono::system_clock::duration>(
+          std::chrono::microseconds{
+              static_cast<size_t>(seconds_per_span * 1e6)});
+
+  auto spans_per_thread = options.num_spans / options.num_threads;
+  auto remainder = options.num_spans - spans_per_thread * options.num_threads;
   auto span_id_output = span_ids.data();
   auto start_time = std::chrono::system_clock::now();
-  for (int i = 0; i < static_cast<int>(num_threads); ++i) {
+  for (int i = 0; i < static_cast<int>(options.num_threads); ++i) {
     auto num_spans_for_this_thread =
         spans_per_thread + (i < static_cast<int>(remainder));
-    threads[i] = std::thread{&GenerateSpans, std::ref(*tracer),
-                             num_spans_for_this_thread, span_id_output};
+    threads[i] =
+        std::thread{&GenerateSpans, std::ref(*tracer),
+                    num_spans_for_this_thread, min_span_elapse, span_id_output};
     span_id_output += num_spans_for_this_thread;
   }
   for (auto& thread : threads) {
@@ -128,7 +148,7 @@ static std::shared_ptr<opentracing::Tracer> SetupStreamTracer(
   options.collector_port = 9000;
   options.collector_plaintext = true;
   options.use_stream_recorder = true;
-  options.message_buffer_size = 1024 * 5;
+  options.message_buffer_size = 1024;
   auto stream_satellite = new StreamDummySatellite{"127.0.0.1", 9000};
   satellite.reset(stream_satellite);
   return MakeLightStepTracer(std::move(options));
@@ -138,13 +158,16 @@ static std::shared_ptr<opentracing::Tracer> SetupStreamTracer(
 // main
 //------------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-  if (argc != 4) {
-    std::cout << "Usage: upload_test <rpc|stream> <num_threads> <num_spans>\n";
+  if (argc != 5) {
+    std::cout << "Usage: upload_test <rpc|stream> <num_threads> <num_spans> "
+                 "<max_spans_per_second>\n";
     return 0;
   }
   std::string tracer_type{argv[1]};
-  size_t num_threads = static_cast<size_t>(std::atoi(argv[2]));
-  size_t num_spans = static_cast<size_t>(std::atoi(argv[3]));
+  BenchmarkOptions options;
+  options.num_threads = static_cast<size_t>(std::atoi(argv[2]));
+  options.num_spans = static_cast<size_t>(std::atoi(argv[3]));
+  options.max_spans_per_second = static_cast<size_t>(std::atoi(argv[4]));
 
   std::unique_ptr<DummySatellite> satellite;
   std::shared_ptr<opentracing::Tracer> tracer;
@@ -157,10 +180,11 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  auto report = RunUploadBenchmark(*satellite, tracer, num_threads, num_spans);
+  auto report = RunUploadBenchmark(options, *satellite, tracer);
   std::cout << "tracer type: " << tracer_type << "\n";
-  std::cout << "num threads: " << num_threads << "\n";
-  std::cout << "num spans generated: " << num_spans << "\n";
+  std::cout << "num threads: " << options.num_threads << "\n";
+  std::cout << "num spans generated: " << options.num_spans << "\n";
+  std::cout << "max_spans_per_second: " << options.max_spans_per_second << "\n";
   std::cout << "num spans dropped: " << report.num_spans_dropped << "\n";
   std::cout << "elapse (seconds): " << report.elapse << "\n";
   std::cout << "spans_per_second: " << report.spans_per_second << "\n";
