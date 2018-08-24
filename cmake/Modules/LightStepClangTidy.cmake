@@ -16,6 +16,7 @@ else()
 -cppcoreguidelines-owning-memory,\
 -cppcoreguidelines-pro-type-reinterpret-cast,\
 -cppcoreguidelines-pro-type-const-cast,\
+-cppcoreguidelines-pro-bounds-pointer-arithmetic,\
 -cppcoreguidelines-pro-type-vararg;\
 -warnings-as-errors=*")
 endif()
