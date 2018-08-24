@@ -130,6 +130,7 @@ static std::shared_ptr<opentracing::Tracer> SetupGrpcTracer(
   options.collector_host = "localhost";
   options.collector_port = 9000;
   options.collector_plaintext = true;
+  options.max_buffered_spans = 200;
   auto grpc_satellite = new GrpcDummySatellite{"localhost:9000"};
   satellite.reset(grpc_satellite);
   grpc_satellite->Run();
@@ -148,7 +149,7 @@ static std::shared_ptr<opentracing::Tracer> SetupStreamTracer(
   options.collector_port = 9000;
   options.collector_plaintext = true;
   options.use_stream_recorder = true;
-  options.message_buffer_size = 1024;
+  options.message_buffer_size = 2*1024;
   auto stream_satellite = new StreamDummySatellite{"127.0.0.1", 9000};
   satellite.reset(stream_satellite);
   return MakeLightStepTracer(std::move(options));
