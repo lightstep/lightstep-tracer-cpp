@@ -11,7 +11,6 @@
 #include <set>
 #include <thread>
 #include <vector>
-#include <chrono>
 using namespace lightstep;
 
 //------------------------------------------------------------------------------

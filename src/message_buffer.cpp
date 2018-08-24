@@ -49,7 +49,6 @@ bool MessageBuffer::Add(const google::protobuf::Message& message) noexcept {
 
   // Not enough space, so drop the span.
   if (placement.data1 == nullptr) {
-    std::cout << "Drop span\n";
     return false;
   }
 
