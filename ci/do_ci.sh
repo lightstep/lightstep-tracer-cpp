@@ -6,6 +6,27 @@ set -e
 [ -z "${BUILD_DIR}" ] && export BUILD_DIR=/build
 mkdir -p "${BUILD_DIR}"
 
+function run_upload_benchmark {
+  OUTPUT_FILE=/benchmark-results/upload_benchmark.out
+  ./benchmark/upload_benchmark rpc 1 10000 >> $OUTPUT_FILE
+  echo "*******************************" >> $OUTPUT_FILE
+  ./benchmark/upload_benchmark stream 1 10000 >> $OUTPUT_FILE
+  echo "*******************************" >> $OUTPUT_FILE
+  ./benchmark/upload_benchmark rpc 1 100000 >> $OUTPUT_FILE
+  echo "*******************************" >> $OUTPUT_FILE
+  ./benchmark/upload_benchmark stream 1 100000 >> $OUTPUT_FILE
+  echo "*******************************" >> $OUTPUT_FILE
+
+  ./benchmark/upload_benchmark rpc 2 10000 >> $OUTPUT_FILE
+  echo "*******************************" >> $OUTPUT_FILE
+  ./benchmark/upload_benchmark stream 2 10000 >> $OUTPUT_FILE
+  echo "*******************************" >> $OUTPUT_FILE
+  ./benchmark/upload_benchmark rpc 2 100000 >> $OUTPUT_FILE
+  echo "*******************************" >> $OUTPUT_FILE
+  ./benchmark/upload_benchmark stream 2 100000 >> $OUTPUT_FILE
+  echo "*******************************" >> $OUTPUT_FILE
+}
+
 if [[ "$1" == "cmake.debug" ]]; then
   cd "${BUILD_DIR}"
   cmake -DCMAKE_BUILD_TYPE=Debug  \
@@ -67,6 +88,7 @@ elif [[ "$1" == "benchmark" ]]; then
   make VERBOSE=1
   mkdir /benchmark-results
   ./benchmark/span_operations_benchmark --benchmark_color=false > /benchmark-results/span_operations_benchmark.out 2>&1
+  run_upload_benchmark
   exit 0
 elif [[ "$1" == "cmake.clang-tidy" ]]; then
   cd "${BUILD_DIR}"
