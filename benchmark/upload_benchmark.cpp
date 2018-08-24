@@ -128,6 +128,7 @@ static std::shared_ptr<opentracing::Tracer> SetupStreamTracer(
   options.collector_port = 9000;
   options.collector_plaintext = true;
   options.use_stream_recorder = true;
+  options.message_buffer_size = 1024 * 5;
   auto stream_satellite = new StreamDummySatellite{"127.0.0.1", 9000};
   satellite.reset(stream_satellite);
   return MakeLightStepTracer(std::move(options));

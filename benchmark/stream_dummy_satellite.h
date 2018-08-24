@@ -4,6 +4,7 @@
 #include "stream_session.h"
 
 #include <atomic>
+#include <mutex>
 #include <string>
 #include <thread>
 

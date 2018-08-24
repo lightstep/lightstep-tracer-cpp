@@ -92,8 +92,6 @@ struct LightStepTracerOptions {
   // before sending to the satellite.
   //
   // Note: Only used with the streaming recorder.
-  /* size_t message_buffer_size = 1024000; */
-  /* size_t message_buffer_size = 1024; */
   size_t message_buffer_size = 1024000;
 
   // If `use_thread` is true, then the tracer will internally manage a thread to
