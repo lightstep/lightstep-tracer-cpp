@@ -11,6 +11,7 @@
 #include <set>
 #include <thread>
 #include <vector>
+#include <chrono>
 using namespace lightstep;
 
 //------------------------------------------------------------------------------
@@ -20,17 +21,24 @@ struct UploadReport {
   size_t total_spans;
   size_t num_spans_received;
   size_t num_spans_dropped;
+  double elapse;
+  double spans_per_second;
 };
 
 //------------------------------------------------------------------------------
 // MakeReport
 //------------------------------------------------------------------------------
 static UploadReport MakeReport(const std::vector<uint64_t>& sent_span_ids,
-                               const std::vector<uint64_t>& received_span_ids) {
+                               const std::vector<uint64_t>& received_span_ids,
+                               std::chrono::system_clock::duration elapse) {
   UploadReport result;
   result.total_spans = sent_span_ids.size();
   result.num_spans_received = received_span_ids.size();
   result.num_spans_dropped = result.total_spans - result.num_spans_received;
+  result.elapse =
+      1.0e-6 *
+      std::chrono::duration_cast<std::chrono::microseconds>(elapse).count();
+  result.spans_per_second = result.total_spans / result.elapse;
 
   // Sanity check
   std::set<uint64_t> span_ids{sent_span_ids.begin(), sent_span_ids.end()};
@@ -69,6 +77,7 @@ static UploadReport RunUploadBenchmark(
   auto spans_per_thread = num_spans / num_threads;
   auto remainder = num_spans - spans_per_thread * num_threads;
   auto span_id_output = span_ids.data();
+  auto start_time = std::chrono::system_clock::now();
   for (int i = 0; i < static_cast<int>(num_threads); ++i) {
     auto num_spans_for_this_thread =
         spans_per_thread + (i < static_cast<int>(remainder));
@@ -85,8 +94,10 @@ static UploadReport RunUploadBenchmark(
   tracer->Close();
   tracer.reset();
   satellite.Close();
+  auto finish_time = std::chrono::system_clock::now();
+  auto elapse = finish_time - start_time;
 
-  return MakeReport(span_ids, satellite.span_ids());
+  return MakeReport(span_ids, satellite.span_ids(), elapse);
 }
 
 //------------------------------------------------------------------------------
@@ -151,6 +162,8 @@ int main(int argc, char* argv[]) {
   std::cout << "num threads: " << num_threads << "\n";
   std::cout << "num spans generated: " << num_spans << "\n";
   std::cout << "num spans dropped: " << report.num_spans_dropped << "\n";
+  std::cout << "elapse (seconds): " << report.elapse << "\n";
+  std::cout << "spans_per_second: " << report.spans_per_second << "\n";
 
   return 0;
 }
