@@ -79,6 +79,9 @@ static UploadReport RunUploadBenchmark(
   for (auto& thread : threads) {
     thread.join();
   }
+
+  // Make sure the tracer's destructor runs so that the stream dummy satellite
+  // will receive an EOF.
   tracer->Close();
   tracer.reset();
   satellite.Close();

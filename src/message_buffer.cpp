@@ -1,11 +1,12 @@
 #include "message_buffer.h"
 
-#include <array>
 #include "bipart_memory_stream.h"
 #include "packet_header.h"
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream.h>
+
+#include <array>
 #include <iostream>
 
 namespace lightstep {
@@ -48,6 +49,7 @@ bool MessageBuffer::Add(const google::protobuf::Message& message) noexcept {
 
   // Not enough space, so drop the span.
   if (placement.data1 == nullptr) {
+    std::cout << "Drop span\n";
     return false;
   }
 

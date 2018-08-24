@@ -1,6 +1,7 @@
 #include "dummy_satellite.h"
 
 #include "../src/socket.h"
+#include "stream_session.h"
 
 #include <atomic>
 #include <string>
@@ -28,6 +29,6 @@ class StreamDummySatellite : public DummySatellite {
 
   void ProcessConnections();
 
-  void ProcessSession(const Socket& socket);
+  void ProcessSession(StreamSession& session);
 };
 }  // namespace lightstep

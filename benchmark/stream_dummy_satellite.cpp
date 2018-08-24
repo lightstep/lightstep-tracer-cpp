@@ -20,39 +20,6 @@
 
 namespace lightstep {
 //------------------------------------------------------------------------------
-// ReadData
-//------------------------------------------------------------------------------
-static bool ReadData(int file_descriptor, char* data, size_t size) {
-  size_t num_read = 0;
-  while (num_read < size) {
-    auto rcode = read(file_descriptor, static_cast<void*>(data + num_read),
-                      size - num_read);
-    if (rcode == 0) {
-      return false;
-    }
-    if (rcode < 0) {
-      std::cerr << "Read failed\n";
-      std::terminate();
-    }
-    num_read += rcode;
-  }
-  return true;
-}
-
-//------------------------------------------------------------------------------
-// ReadHeader
-//------------------------------------------------------------------------------
-static bool ReadHeader(int file_descriptor, PacketHeader& header) {
-  std::array<char, PacketHeader::size> buffer;
-  auto result = ReadData(file_descriptor, buffer.data(), PacketHeader::size);
-  if (!result) {
-    return false;
-  }
-  header = PacketHeader{buffer.data()};
-  return true;
-}
-
-//------------------------------------------------------------------------------
 // constructor
 //------------------------------------------------------------------------------
 StreamDummySatellite::StreamDummySatellite(const char* host, int port) {
@@ -62,21 +29,24 @@ StreamDummySatellite::StreamDummySatellite(const char* host, int port) {
 
   auto rcode = inet_pton(AF_INET, host, &satellite_address.sin_addr);
   if (rcode <= 0) {
-    throw std::runtime_error{"inet_pton failed"};
+    std::cerr << "inet_pton failed\n";
+    std::terminate();
   }
 
   rcode = bind(listen_socket_.file_descriptor(),
                reinterpret_cast<sockaddr*>(&satellite_address),
                sizeof(satellite_address));
   if (rcode != 0) {
-    throw std::runtime_error{"bind failed"};
+    std::cerr << "bind failed\n";
+    std::terminate();
   }
 
   listen_socket_.SetNonblocking();
 
   rcode = listen(listen_socket_.file_descriptor(), 10);
   if (rcode != 0) {
-    throw std::runtime_error{"listen failed"};
+    std::cerr << "listen failed\n";
+    std::terminate();
   }
 
   thread_ = std::thread{&StreamDummySatellite::ProcessConnections, this};
@@ -104,50 +74,38 @@ void StreamDummySatellite::ProcessConnections() {
         std::this_thread::sleep_for(std::chrono::microseconds{1});
         continue;
       } else {
-        throw std::runtime_error{"accept failed"};
+        std::cerr << "accept failed\n";
+        std::terminate();
       }
     }
 
     Socket socket{file_descriptor};
-    socket.SetBlocking();
-
-    ProcessSession(socket);
+    StreamSession session{std::move(socket)};
+    ProcessSession(session);
   }
 }
 
 //------------------------------------------------------------------------------
 // ProcessSession
 //------------------------------------------------------------------------------
-void StreamDummySatellite::ProcessSession(const Socket& socket) {
-  int packet_no = 0;
-  while (1) {
-    PacketHeader header;
-    if (!ReadHeader(socket.file_descriptor(), header)) {
-      break;
-    }
-
-    std::unique_ptr<char[]> buffer{new char[header.body_size()]};
-    if (!ReadData(socket.file_descriptor(), buffer.get(), header.body_size())) {
-      std::cerr << "Unexpected EOF\n";
-      std::terminate();
-    }
-
-    // Ignore the first packet since it's an initialization message
-    if (packet_no == 0) {
-      ++packet_no;
-      continue;
-    }
-
+void StreamDummySatellite::ProcessSession(StreamSession& session) {
+  if (!session.ReadUntilNextMessage()) {
+    std::cerr << "Expected initialization message\n";
+    std::terminate();
+  }
+  collector::StreamInitialization initialization;
+  if (!session.ConsumeMessage(initialization)) {
+    std::cerr << "Failed to consume initialization message\n";
+    std::terminate();
+  }
+  while (session.ReadUntilNextMessage()) {
     collector::Span span;
-    if (!span.ParseFromArray(static_cast<void*>(buffer.get()),
-                             header.body_size())) {
-      std::cerr << "Failed to Parse span\n";
+    if (!session.ConsumeMessage(span)) {
+      std::cerr << "Faild to consume span\n";
       std::terminate();
     }
     std::unique_lock<std::mutex> lock{mutex_};
     span_ids_.push_back(span.span_context().span_id());
-
-    ++packet_no;
   }
 }
 

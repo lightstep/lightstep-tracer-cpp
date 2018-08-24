@@ -32,11 +32,19 @@ class CircularBuffer {
 
   const char* data() const noexcept { return data_.get(); }
 
-  const char* tail_data() const noexcept { return data_.get() + tail_; }
+  char* data() noexcept { return data_.get(); }
 
+  const char* tail_data() const noexcept { return data_.get() + tail_; }
+  char* tail_data() noexcept { return data_.get() + tail_; }
   ptrdiff_t tail_index() const noexcept { return tail_; }
 
+  const char* head_data() const noexcept { return data_.get() + head_; }
+  char* head_data() noexcept { return data_.get() + head_; }
+  ptrdiff_t head_index() const noexcept { return head_; }
+
   size_t capacity() const noexcept { return capacity_; }
+
+  size_t free_space() const noexcept { return capacity_ - 1 - size(); }
 
   bool empty() const noexcept { return head_ == tail_; }
 
