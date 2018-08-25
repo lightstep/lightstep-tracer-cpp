@@ -2,6 +2,8 @@
 #include <lightstep/tracer.h>
 
 #include <cassert>
+#include <exception>
+#include <iostream>
 #include <thread>
 
 const int num_spans_for_span_creation_threaded_benchmark = 2000;
@@ -31,9 +33,9 @@ class NullStreamTransporter final : public lightstep::StreamTransporter {
 }  // namespace
 
 //------------------------------------------------------------------------------
-// MakeTracer
+// MakeRpcTracer
 //------------------------------------------------------------------------------
-static std::shared_ptr<opentracing::Tracer> MakeTracer() {
+static std::shared_ptr<opentracing::Tracer> MakeRpcTracer() {
   lightstep::LightStepTracerOptions options;
   options.access_token = "abc123";
   options.collector_plaintext = true;
@@ -54,6 +56,21 @@ static std::shared_ptr<opentracing::Tracer> MakeStreamTracer() {
 }
 
 //------------------------------------------------------------------------------
+// MakeTracer
+//------------------------------------------------------------------------------
+static std::shared_ptr<opentracing::Tracer> MakeTracer(
+    opentracing::string_view tracer_type) {
+  if (tracer_type == "rpc") {
+    return MakeRpcTracer();
+  }
+  if (tracer_type == "stream") {
+    return MakeStreamTracer();
+  }
+  std::cerr << "Unknown tracer type: " << tracer_type << "\n";
+  std::terminate();
+}
+
+//------------------------------------------------------------------------------
 // MakeSpans
 //------------------------------------------------------------------------------
 static void MakeSpans(const opentracing::Tracer& tracer, int n) {
@@ -65,32 +82,22 @@ static void MakeSpans(const opentracing::Tracer& tracer, int n) {
 //------------------------------------------------------------------------------
 // BM_SpanCreation
 //------------------------------------------------------------------------------
-static void BM_SpanCreation(benchmark::State& state) {
-  auto tracer = MakeTracer();
+static void BM_SpanCreation(benchmark::State& state, const char* tracer_type) {
+  auto tracer = MakeTracer(tracer_type);
   assert(tracer != nullptr);
   for (auto _ : state) {
     auto span = tracer->StartSpan("abc123");
   }
 }
-BENCHMARK(BM_SpanCreation);
-
-//------------------------------------------------------------------------------
-// BM_StreamSpanCreation
-//------------------------------------------------------------------------------
-static void BM_StreamSpanCreation(benchmark::State& state) {
-  auto tracer = MakeStreamTracer();
-  assert(tracer != nullptr);
-  for (auto _ : state) {
-    auto span = tracer->StartSpan("abc123");
-  }
-}
-BENCHMARK(BM_StreamSpanCreation);
+BENCHMARK_CAPTURE(BM_SpanCreation, rpc, "rpc");
+BENCHMARK_CAPTURE(BM_SpanCreation, stream, "stream");
 
 //------------------------------------------------------------------------------
 // BM_SpanCreationWithParent
 //------------------------------------------------------------------------------
-static void BM_SpanCreationWithParent(benchmark::State& state) {
-  auto tracer = MakeTracer();
+static void BM_SpanCreationWithParent(benchmark::State& state,
+                                      const char* tracer_type) {
+  auto tracer = MakeTracer(tracer_type);
   assert(tracer != nullptr);
   auto parent_span = tracer->StartSpan("parent");
   parent_span->Finish();
@@ -101,13 +108,15 @@ static void BM_SpanCreationWithParent(benchmark::State& state) {
     auto span = tracer->StartSpanWithOptions("abc123", options);
   }
 }
-BENCHMARK(BM_SpanCreationWithParent);
+BENCHMARK_CAPTURE(BM_SpanCreationWithParent, rpc, "rpc");
+BENCHMARK_CAPTURE(BM_SpanCreationWithParent, stream, "stream");
 
 //------------------------------------------------------------------------------
 // BM_SpanCreationThreaded
 //------------------------------------------------------------------------------
-static void BM_SpanCreationThreaded(benchmark::State& state) {
-  auto tracer = MakeTracer();
+static void BM_SpanCreationThreaded(benchmark::State& state,
+                                    const char* tracer_type) {
+  auto tracer = MakeTracer(tracer_type);
   assert(tracer != nullptr);
   auto num_threads = state.range(0);
   auto n = static_cast<int>(num_spans_for_span_creation_threaded_benchmark);
@@ -125,50 +134,36 @@ static void BM_SpanCreationThreaded(benchmark::State& state) {
     }
   }
 }
-BENCHMARK(BM_SpanCreationThreaded)->Arg(1)->Arg(2)->Arg(4)->Arg(8);
-
-//------------------------------------------------------------------------------
-// BM_StreamSpanCreationThreaded
-//------------------------------------------------------------------------------
-static void BM_StreamSpanCreationThreaded(benchmark::State& state) {
-  auto tracer = MakeStreamTracer();
-  assert(tracer != nullptr);
-  auto num_threads = state.range(0);
-  auto n = static_cast<int>(num_spans_for_span_creation_threaded_benchmark);
-  auto num_spans_per_thread = n / num_threads;
-  auto remainder = n - num_spans_per_thread * num_threads;
-  for (auto _ : state) {
-    std::vector<std::thread> threads(num_threads);
-    for (int i = 0; i < num_threads; ++i) {
-      auto num_spans_for_this_thread = num_spans_per_thread + (i < remainder);
-      threads[i] =
-          std::thread{&MakeSpans, std::ref(*tracer), num_spans_for_this_thread};
-    }
-    for (auto& thread : threads) {
-      thread.join();
-    }
-  }
-}
-BENCHMARK(BM_StreamSpanCreationThreaded)->Arg(1)->Arg(2)->Arg(4)->Arg(8);
+BENCHMARK_CAPTURE(BM_SpanCreationThreaded, rpc, "rpc")
+    ->Arg(1)
+    ->Arg(2)
+    ->Arg(4)
+    ->Arg(8);
+BENCHMARK_CAPTURE(BM_SpanCreationThreaded, stream, "stream")
+    ->Arg(1)
+    ->Arg(2)
+    ->Arg(4)
+    ->Arg(8);
 
 //------------------------------------------------------------------------------
 // BM_SpanSetTag1
 //------------------------------------------------------------------------------
-static void BM_SpanSetTag1(benchmark::State& state) {
-  auto tracer = MakeTracer();
+static void BM_SpanSetTag1(benchmark::State& state, const char* tracer_type) {
+  auto tracer = MakeTracer(tracer_type);
   assert(tracer != nullptr);
   for (auto _ : state) {
     auto span = tracer->StartSpan("abc123");
     span->SetTag("abc", "123");
   }
 }
-BENCHMARK(BM_SpanSetTag1);
+BENCHMARK_CAPTURE(BM_SpanSetTag1, rpc, "rpc");
+BENCHMARK_CAPTURE(BM_SpanSetTag1, stream, "stream");
 
 //------------------------------------------------------------------------------
 // BM_SpanSetTag2
 //------------------------------------------------------------------------------
-static void BM_SpanSetTag2(benchmark::State& state) {
-  auto tracer = MakeTracer();
+static void BM_SpanSetTag2(benchmark::State& state, const char* tracer_type) {
+  auto tracer = MakeTracer(tracer_type);
   assert(tracer != nullptr);
   for (auto _ : state) {
     auto span = tracer->StartSpan("abc123");
@@ -184,26 +179,28 @@ static void BM_SpanSetTag2(benchmark::State& state) {
     }
   }
 }
-BENCHMARK(BM_SpanSetTag2);
+BENCHMARK_CAPTURE(BM_SpanSetTag2, rpc, "rpc");
+BENCHMARK_CAPTURE(BM_SpanSetTag2, stream, "stream");
 
 //------------------------------------------------------------------------------
 // BM_SpanLog1
 //------------------------------------------------------------------------------
-static void BM_SpanLog1(benchmark::State& state) {
-  auto tracer = MakeTracer();
+static void BM_SpanLog1(benchmark::State& state, const char* tracer_type) {
+  auto tracer = MakeTracer(tracer_type);
   assert(tracer != nullptr);
   for (auto _ : state) {
     auto span = tracer->StartSpan("abc123");
     span->Log({{"abc", 123}});
   }
 }
-BENCHMARK(BM_SpanLog1);
+BENCHMARK_CAPTURE(BM_SpanLog1, rpc, "rpc");
+BENCHMARK_CAPTURE(BM_SpanLog1, stream, "stream");
 
 //------------------------------------------------------------------------------
 // BM_SpanLog2
 //------------------------------------------------------------------------------
-static void BM_SpanLog2(benchmark::State& state) {
-  auto tracer = MakeTracer();
+static void BM_SpanLog2(benchmark::State& state, const char* tracer_type) {
+  auto tracer = MakeTracer(tracer_type);
   assert(tracer != nullptr);
   for (auto _ : state) {
     auto span = tracer->StartSpan("abc123");
@@ -212,7 +209,8 @@ static void BM_SpanLog2(benchmark::State& state) {
     }
   }
 }
-BENCHMARK(BM_SpanLog2);
+BENCHMARK_CAPTURE(BM_SpanLog2, rpc, "rpc");
+BENCHMARK_CAPTURE(BM_SpanLog2, stream, "stream");
 
 //------------------------------------------------------------------------------
 // main
