@@ -23,12 +23,14 @@ class StreamRecorder final : public Recorder {
 
  private:
   Logger& logger_;
+  size_t notification_threshold_;
   std::unique_ptr<StreamTransporter> transporter_;
   std::thread streamer_thread_;
   std::mutex mutex_;
   std::condition_variable condition_variable_;
   MessageBuffer message_buffer_;
 
+  std::atomic<bool> waiting_{false};
   bool exit_streamer_{false};
 
   void RunStreamer() noexcept;

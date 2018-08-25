@@ -8,7 +8,8 @@
 
 namespace lightstep {
 static const std::chrono::steady_clock::duration polling_interval =
-    std::chrono::microseconds{10};
+    std::chrono::milliseconds{100};
+
 //------------------------------------------------------------------------------
 // MakeStreamInitializationMessage
 //------------------------------------------------------------------------------
@@ -32,6 +33,8 @@ StreamRecorder::StreamRecorder(Logger& logger, LightStepTracerOptions&& options,
     : logger_{logger},
       transporter_{std::move(transporter)},
       message_buffer_{options.message_buffer_size} {
+  notification_threshold_ =
+      static_cast<size_t>(options.message_buffer_size * 0.10);
   streamer_thread_ = std::thread{&StreamRecorder::RunStreamer, this};
   if (!message_buffer_.Add(MakeStreamInitializationMessage(options))) {
     throw std::runtime_error{"buffer size is too small"};
@@ -51,6 +54,13 @@ StreamRecorder::~StreamRecorder() {
 //------------------------------------------------------------------------------
 void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
   message_buffer_.Add(span);
+
+  // notifying the condition variable has a signficant performance cost, so
+  // make an effort to make sure it's worthwhile before doing so.
+  if (waiting_ &&
+      message_buffer_.num_pending_bytes() >= notification_threshold_) {
+    condition_variable_.notify_all();
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -110,8 +120,12 @@ void StreamRecorder::MakeStreamerExit() noexcept {
 //------------------------------------------------------------------------------
 bool StreamRecorder::SleepForNextPoll() {
   std::unique_lock<std::mutex> lock{mutex_};
-  return !condition_variable_.wait_for(lock, polling_interval,
-                                       [this] { return this->exit_streamer_; });
+  waiting_ = true;
+  condition_variable_.wait_for(lock, polling_interval, [this] {
+    return this->exit_streamer_ || !this->message_buffer_.empty();
+  });
+  waiting_ = false;
+  return !exit_streamer_;
 }
 
 //------------------------------------------------------------------------------

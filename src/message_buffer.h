@@ -21,6 +21,8 @@ class MessageBuffer {
 
   size_t total_bytes_consumed() const noexcept { return total_bytes_consumed_; }
 
+  bool empty() const noexcept { return buffer_.empty(); }
+
  private:
   CircularBuffer buffer_;
   AtomicBitSet ready_flags_;
