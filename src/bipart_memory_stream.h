@@ -8,17 +8,17 @@ namespace lightstep {
 //
 // Note: this can be used with a circular buffer to write directly into the
 // buffer if it wraps at the ends.
-class BipartMemoryOutputStream
+class BipartMemoryOutputStream final
     : public google::protobuf::io::ZeroCopyOutputStream {
  public:
   BipartMemoryOutputStream(char* data1, size_t size1, char* data2,
                            size_t size2) noexcept;
 
-  bool Next(void** data, int* size) final;
+  bool Next(void** data, int* size) override;
 
-  void BackUp(int count) final { num_bytes_written_ -= count; }
+  void BackUp(int count) override { num_bytes_written_ -= count; }
 
-  google::protobuf::int64 ByteCount() const final {
+  google::protobuf::int64 ByteCount() const override {
     return static_cast<google::protobuf::int64>(num_bytes_written_);
   }
 
@@ -34,21 +34,21 @@ class BipartMemoryOutputStream
 // memory.
 //
 // See BipartMemoryOutputStream
-class BipartMemoryInputStream
+class BipartMemoryInputStream final
     : public google::protobuf::io::ZeroCopyInputStream {
  public:
   BipartMemoryInputStream(const char* data1, size_t size1, const char* data2,
                           size_t size2) noexcept;
 
-  bool Next(const void** data, int* size) final;
+  bool Next(const void** data, int* size) override;
 
   void BackUp(int count) final { num_bytes_read_ -= count; }
 
-  google::protobuf::int64 ByteCount() const final {
+  google::protobuf::int64 ByteCount() const override {
     return static_cast<google::protobuf::int64>(num_bytes_read_);
   }
 
-  bool Skip(int count) final;
+  bool Skip(int count) override;
 
  private:
   const char* data1_;
