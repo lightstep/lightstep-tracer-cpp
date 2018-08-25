@@ -92,6 +92,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <random>
+#include <atomic>
 #include <array>
 #include <functional>  // for std::hash
 #include <initializer_list>
@@ -460,7 +461,7 @@ class auto_seeded : public SeedSeq {
         // Some people think you shouldn't use the random device much because
         // on some platforms it could be expensive to call or "use up" vital
         // system-wide entropy, so we just call it once.
-        static uint32_t random_int = std::random_device{}();
+        static std::atomic<uint32_t> random_int{std::random_device{}()};
 
         // The heap can vary from run to run as well.
         void* malloc_addr = malloc(sizeof(int));
@@ -470,6 +471,8 @@ class auto_seeded : public SeedSeq {
 
         // Every call, we increment our random int.  We don't care about race
         // conditons.  The more, the merrier.
+        //
+        // Update (rnburn): Avoid race condition to silence thread-sanitizer.
         random_int += 0xedf19156;
 
         // Classic seed, the time.  It ought to change, especially since
