@@ -125,7 +125,7 @@ static void BM_SpanCreationThreaded(benchmark::State& state) {
     }
   }
 }
-BENCHMARK(BM_SpanCreationThreaded)->Arg(2)->Arg(4)->Arg(8);
+BENCHMARK(BM_SpanCreationThreaded)->Arg(1)->Arg(2)->Arg(4)->Arg(8);
 
 //------------------------------------------------------------------------------
 // BM_StreamSpanCreationThreaded
@@ -149,7 +149,7 @@ static void BM_StreamSpanCreationThreaded(benchmark::State& state) {
     }
   }
 }
-BENCHMARK(BM_StreamSpanCreationThreaded)->Arg(2)->Arg(4)->Arg(8);
+BENCHMARK(BM_StreamSpanCreationThreaded)->Arg(1)->Arg(2)->Arg(4)->Arg(8);
 
 //------------------------------------------------------------------------------
 // BM_SpanSetTag1
