@@ -13,6 +13,8 @@
 #include <vector>
 using namespace lightstep;
 
+const size_t max_buffered_spans = 200;
+
 //------------------------------------------------------------------------------
 // BenchmarkOptions
 //------------------------------------------------------------------------------
@@ -130,7 +132,7 @@ static std::shared_ptr<opentracing::Tracer> SetupGrpcTracer(
   options.collector_host = "localhost";
   options.collector_port = 9000;
   options.collector_plaintext = true;
-  options.max_buffered_spans = 200;
+  options.max_buffered_spans = max_buffered_spans;
   auto grpc_satellite = new GrpcDummySatellite{"localhost:9000"};
   satellite.reset(grpc_satellite);
   grpc_satellite->Run();
@@ -149,7 +151,12 @@ static std::shared_ptr<opentracing::Tracer> SetupStreamTracer(
   options.collector_port = 9000;
   options.collector_plaintext = true;
   options.use_stream_recorder = true;
-  options.message_buffer_size = 2 * 1024;
+
+  // max_buffered_spans * sizeof(collector::Span) provides a lower bound on the
+  // amount of memory used for buffering by the grpc tracer since it disregards
+  // any heap allocation.
+  options.message_buffer_size = max_buffered_spans * sizeof(collector::Span);
+
   auto stream_satellite = new StreamDummySatellite{"127.0.0.1", 9000};
   satellite.reset(stream_satellite);
   return MakeLightStepTracer(std::move(options));
