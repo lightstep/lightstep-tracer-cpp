@@ -7,9 +7,6 @@
 #include <stdexcept>
 
 namespace lightstep {
-static const std::chrono::steady_clock::duration polling_interval =
-    std::chrono::milliseconds{100};
-
 //------------------------------------------------------------------------------
 // MakeStreamInitializationMessage
 //------------------------------------------------------------------------------
@@ -31,8 +28,9 @@ static collector::StreamInitialization MakeStreamInitializationMessage(
 StreamRecorder::StreamRecorder(Logger& logger, LightStepTracerOptions&& options,
                                std::unique_ptr<StreamTransporter>&& transporter)
     : logger_{logger},
+      options_{std::move(options)},
       transporter_{std::move(transporter)},
-      message_buffer_{options.message_buffer_size} {
+      message_buffer_{options_.message_buffer_size} {
   notification_threshold_ =
       static_cast<size_t>(options.message_buffer_size * 0.10);
   streamer_thread_ = std::thread{&StreamRecorder::RunStreamer, this};
@@ -121,7 +119,7 @@ void StreamRecorder::MakeStreamerExit() noexcept {
 bool StreamRecorder::SleepForNextPoll() {
   std::unique_lock<std::mutex> lock{mutex_};
   waiting_ = true;
-  condition_variable_.wait_for(lock, polling_interval, [this] {
+  condition_variable_.wait_for(lock, options_.reporting_period, [this] {
     return this->exit_streamer_ || !this->message_buffer_.empty();
   });
   waiting_ = false;

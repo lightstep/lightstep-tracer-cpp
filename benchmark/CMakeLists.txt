@@ -13,5 +13,5 @@ if (BUILD_TESTING)
   add_test(upload_benchmark_stream_test upload_benchmark stream 1 1000 1000)
   add_test(upload_benchmark_stream_threaded_test upload_benchmark stream 2 1000 1000)
 
-  add_test(span_operations_benchmark_test span_operations_benchmark)
+  add_test(span_operations_benchmark_test span_operations_benchmark --benchmark_min_time=0)
 endif()

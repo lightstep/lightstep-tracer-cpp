@@ -23,6 +23,7 @@ class StreamRecorder final : public Recorder {
 
  private:
   Logger& logger_;
+  LightStepTracerOptions options_;
   size_t notification_threshold_;
   std::unique_ptr<StreamTransporter> transporter_;
   std::thread streamer_thread_;
