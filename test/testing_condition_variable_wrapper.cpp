@@ -73,7 +73,7 @@ bool TestingConditionVariableWrapper::WaitUntil(
   if (predicate()) {
     return true;
   }
-  while (1) {
+  while (true) {
     lock.unlock();
     AddEvent(&event);
     while (!event.DecrementTicker()) {
@@ -106,7 +106,7 @@ void TestingConditionVariableWrapper::NotifyAll() {
 // WaitTillNextEvent
 //------------------------------------------------------------------------------
 void TestingConditionVariableWrapper::WaitTillNextEvent() {
-  while (1) {
+  while (true) {
     {
       std::lock_guard<std::mutex> lock_guard{mutex_};
       if (!events_.empty()) {
@@ -121,7 +121,7 @@ void TestingConditionVariableWrapper::WaitTillNextEvent() {
 // Step
 //------------------------------------------------------------------------------
 void TestingConditionVariableWrapper::Step() {
-  while (1) {
+  while (true) {
     {
       std::lock_guard<std::mutex> lock_guard{mutex_};
       auto iter = std::min_element(events_.begin(), events_.end(),

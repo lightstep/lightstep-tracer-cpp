@@ -89,7 +89,7 @@ bool StreamRecorder::FlushWithTimeout(
 //------------------------------------------------------------------------------
 void StreamRecorder::RunStreamer() noexcept try {
   while (SleepForNextPoll()) {
-    while (1) {
+    while (true) {
       if (!message_buffer_.Consume(StreamRecorder::Consume,
                                    static_cast<void*>(this))) {
         break;

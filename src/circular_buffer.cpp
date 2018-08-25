@@ -12,9 +12,8 @@ static size_t ComputeFreeSpace(ptrdiff_t head, ptrdiff_t tail,
                                size_t capacity) noexcept {
   if (head >= tail) {
     return capacity - 1 - (head - tail);
-  } else {
-    return tail - head - 1;
   }
+  return tail - head - 1;
 }
 
 //------------------------------------------------------------------------------
@@ -29,7 +28,7 @@ CircularBuffer::CircularBuffer(size_t capacity)
 CircularBufferPlacement CircularBuffer::Reserve(size_t num_bytes) noexcept {
   ptrdiff_t new_head;
   ptrdiff_t head = head_;
-  while (1) {
+  while (true) {
     ptrdiff_t tail = tail_;
     auto free_space = ComputeFreeSpace(head, tail, capacity_);
     if (free_space < num_bytes) {
@@ -57,7 +56,7 @@ CircularBufferPlacement CircularBuffer::Reserve(size_t num_bytes) noexcept {
 CircularBufferConstPlacement CircularBuffer::Peek(ptrdiff_t index,
                                                   size_t num_bytes) const
     noexcept {
-  assert(index + num_bytes <= size());
+  assert(static_cast<size_t>(index) + num_bytes <= size());
   ptrdiff_t tail = tail_;
   auto first_index = (tail + index) % capacity_;
   auto data1 = data_.get() + first_index;
@@ -74,7 +73,7 @@ CircularBufferConstPlacement CircularBuffer::Peek(ptrdiff_t index,
 void CircularBuffer::Consume(size_t num_bytes) noexcept {
   ptrdiff_t new_tail;
   ptrdiff_t tail = tail_;
-  while (1) {
+  while (true) {
     assert(num_bytes <= size());
     new_tail = (tail + num_bytes) % capacity_;
     if (tail_.compare_exchange_weak(tail, new_tail, std::memory_order_release,
@@ -92,8 +91,7 @@ size_t CircularBuffer::size() const noexcept {
   ptrdiff_t tail = tail_;
   if (head >= tail) {
     return head - tail;
-  } else {
-    return capacity_ - (tail - head);
   }
+  return capacity_ - (tail - head);
 }
 }  // namespace lightstep

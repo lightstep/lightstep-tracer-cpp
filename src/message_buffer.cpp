@@ -83,7 +83,7 @@ bool MessageBuffer::Consume(ConsumerFunction consumer, void* context) {
 // GrowConsumerAllotment
 //------------------------------------------------------------------------------
 void MessageBuffer::GrowConsumerAllotment() noexcept {
-  while (1) {
+  while (true) {
     auto next_packet_index =
         (buffer_.tail_index() + consumer_allotment_) % buffer_.capacity();
 
