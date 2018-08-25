@@ -109,13 +109,13 @@ static UploadReport RunUploadBenchmark(
   for (auto& thread : threads) {
     thread.join();
   }
+  auto finish_time = std::chrono::system_clock::now();
 
   // Make sure the tracer's destructor runs so that the stream dummy satellite
   // will receive an EOF.
   tracer->Close();
   tracer.reset();
   satellite.Close();
-  auto finish_time = std::chrono::system_clock::now();
   auto elapse = finish_time - start_time;
 
   return MakeReport(span_ids, satellite.span_ids(), elapse);
