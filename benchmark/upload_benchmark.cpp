@@ -13,8 +13,6 @@
 #include <vector>
 using namespace lightstep;
 
-const size_t max_buffered_spans = 200;
-
 //------------------------------------------------------------------------------
 // BenchmarkOptions
 //------------------------------------------------------------------------------
@@ -125,7 +123,7 @@ static UploadReport RunUploadBenchmark(
 // SetupGrpcTracer
 //------------------------------------------------------------------------------
 static std::shared_ptr<opentracing::Tracer> SetupGrpcTracer(
-    std::unique_ptr<DummySatellite>& satellite) {
+    std::unique_ptr<DummySatellite>& satellite, size_t max_buffered_spans) {
   LightStepTracerOptions options{};
   options.component_name = "test";
   options.access_token = "abc123";
@@ -143,7 +141,7 @@ static std::shared_ptr<opentracing::Tracer> SetupGrpcTracer(
 // SetupStreamTracer
 //------------------------------------------------------------------------------
 static std::shared_ptr<opentracing::Tracer> SetupStreamTracer(
-    std::unique_ptr<DummySatellite>& satellite) {
+    std::unique_ptr<DummySatellite>& satellite, size_t max_buffered_spans) {
   LightStepTracerOptions options{};
   options.component_name = "test";
   options.access_token = "abc123";
@@ -166,23 +164,24 @@ static std::shared_ptr<opentracing::Tracer> SetupStreamTracer(
 // main
 //------------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-  if (argc != 5) {
-    std::cout << "Usage: upload_test <rpc|stream> <num_threads> <num_spans> "
-                 "<max_spans_per_second>\n";
+  if (argc != 6) {
+    std::cout << "Usage: upload_test <rpc|stream> <max_buffered_spans> "
+                 "<num_threads> <num_spans> <max_spans_per_second>\n";
     return 0;
   }
   std::string tracer_type{argv[1]};
   BenchmarkOptions options;
-  options.num_threads = static_cast<size_t>(std::atoi(argv[2]));
-  options.num_spans = static_cast<size_t>(std::atoi(argv[3]));
-  options.max_spans_per_second = static_cast<size_t>(std::atoi(argv[4]));
+  auto max_buffered_spans = static_cast<size_t>(std::atoi(argv[2]));
+  options.num_threads = static_cast<size_t>(std::atoi(argv[3]));
+  options.num_spans = static_cast<size_t>(std::atoi(argv[4]));
+  options.max_spans_per_second = static_cast<size_t>(std::atoi(argv[5]));
 
   std::unique_ptr<DummySatellite> satellite;
   std::shared_ptr<opentracing::Tracer> tracer;
   if (tracer_type == "rpc") {
-    tracer = SetupGrpcTracer(satellite);
+    tracer = SetupGrpcTracer(satellite, max_buffered_spans);
   } else if (tracer_type == "stream") {
-    tracer = SetupStreamTracer(satellite);
+    tracer = SetupStreamTracer(satellite, max_buffered_spans);
   } else {
     std::cerr << "Unknown tracer type: " << tracer_type << "\n";
     return -1;
@@ -190,6 +189,7 @@ int main(int argc, char* argv[]) {
 
   auto report = RunUploadBenchmark(options, *satellite, tracer);
   std::cout << "tracer type: " << tracer_type << "\n";
+  std::cout << "max_buffered_spans: " << max_buffered_spans << "\n";
   std::cout << "num threads: " << options.num_threads << "\n";
   std::cout << "num spans generated: " << options.num_spans << "\n";
   std::cout << "max_spans_per_second: " << options.max_spans_per_second << "\n";
