@@ -20,7 +20,7 @@ class StreamSession {
   size_t required_size_{PacketHeader::size};
 
   Socket socket_;
-  CircularBuffer buffer_{1024 * 10 + 1};
+  CircularBuffer buffer_{1024 * 100 + 1};
 
   void ConsumeHeader();
   bool CheckForNextMessage();

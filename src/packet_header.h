@@ -24,8 +24,8 @@ class PacketHeader {
   uint32_t body_size() const noexcept { return body_size_; }
 
  private:
-  uint8_t version_;
-  uint32_t body_size_;
+  uint8_t version_{0};
+  uint32_t body_size_{0};
 
  public:
   static const size_t size = sizeof(version_) + sizeof(body_size_);
