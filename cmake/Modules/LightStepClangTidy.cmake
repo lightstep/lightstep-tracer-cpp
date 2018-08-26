@@ -14,6 +14,7 @@ else()
 -modernize-make-unique,\
 -hicpp-vararg,\
 -hicpp-signed-bitwise,\
+-hicpp-no-array-decay,\
 -cppcoreguidelines-owning-memory,\
 -cppcoreguidelines-pro-type-reinterpret-cast,\
 -cppcoreguidelines-pro-type-const-cast,\
