@@ -14,10 +14,10 @@ else()
 -modernize-make-unique,\
 -hicpp-vararg,\
 -hicpp-signed-bitwise,\
-cppcoreguidelines-pro-bounds-array-to-pointer-decay,\
 -cppcoreguidelines-owning-memory,\
 -cppcoreguidelines-pro-type-reinterpret-cast,\
 -cppcoreguidelines-pro-type-const-cast,\
+-cppcoreguidelines-pro-bounds-array-to-pointer-decay,\
 -cppcoreguidelines-pro-bounds-pointer-arithmetic,\
 -cppcoreguidelines-pro-type-vararg;\
 -warnings-as-errors=*")
