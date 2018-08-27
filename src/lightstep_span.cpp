@@ -300,6 +300,7 @@ void LightStepSpan::Log(std::initializer_list<
   for (const auto& field : fields) {
     *key_values->Add() = ToKeyValue(field.first, field.second);
   }
+  std::lock_guard<std::mutex> lock_guard{mutex_};
   logs_.emplace_back(std::move(log));
 } catch (const std::exception& e) {
   logger_.Error("Log failed: ", e.what());
