@@ -40,7 +40,7 @@ AutoRecorder::~AutoRecorder() {
 //------------------------------------------------------------------------------
 // RecordSpan
 //------------------------------------------------------------------------------
-void AutoRecorder::RecordSpan(collector::Span&& span) noexcept try {
+void AutoRecorder::RecordSpan(const collector::Span& span) noexcept try {
   std::lock_guard<std::mutex> lock_guard{write_mutex_};
   if (builder_.num_pending_spans() >= max_buffered_spans_snapshot_ ||
       write_exit_) {
@@ -48,7 +48,7 @@ void AutoRecorder::RecordSpan(collector::Span&& span) noexcept try {
     options_.metrics_observer->OnSpansDropped(1);
     return;
   }
-  builder_.AddSpan(std::move(span));
+  builder_.AddSpan(span);
   if (builder_.num_pending_spans() >= max_buffered_spans_snapshot_) {
     write_cond_->NotifyAll();
   }

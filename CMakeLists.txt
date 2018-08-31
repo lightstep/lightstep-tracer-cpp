@@ -157,6 +157,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/manual_recorder.cpp
                    src/auto_recorder.cpp
                    src/lightstep_span_context.cpp
+                   src/lightstep_immutable_span_context.cpp
                    src/lightstep_span.cpp
                    src/lightstep_tracer_impl.cpp
                    src/lightstep_tracer_factory.cpp

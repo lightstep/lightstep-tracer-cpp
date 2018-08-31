@@ -7,11 +7,11 @@
 
 namespace lightstep {
 // InMemoryRecorder is used for testing only.
-class InMemoryRecorder : public Recorder {
+class InMemoryRecorder final : public Recorder {
  public:
-  void RecordSpan(collector::Span&& span) noexcept override {
+  void RecordSpan(const collector::Span& span) noexcept override {
     std::lock_guard<std::mutex> lock_guard{mutex_};
-    spans_.emplace_back(std::move(span));
+    spans_.emplace_back(span);
   }
 
   std::vector<collector::Span> spans() const {

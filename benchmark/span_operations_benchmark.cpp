@@ -29,6 +29,20 @@ static void BM_SpanCreation(benchmark::State& state) {
 }
 BENCHMARK(BM_SpanCreation);
 
+static void BM_SpanCreationWithParent(benchmark::State& state) {
+  auto tracer = MakeTracer();
+  assert(tracer != nullptr);
+  auto parent_span = tracer->StartSpan("parent");
+  parent_span->Finish();
+  opentracing::StartSpanOptions options;
+  options.references.emplace_back(opentracing::SpanReferenceType::ChildOfRef,
+                                  &parent_span->context());
+  for (auto _ : state) {
+    auto span = tracer->StartSpanWithOptions("abc123", options);
+  }
+}
+BENCHMARK(BM_SpanCreationWithParent);
+
 static void BM_SpanSetTag1(benchmark::State& state) {
   auto tracer = MakeTracer();
   assert(tracer != nullptr);

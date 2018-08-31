@@ -12,7 +12,7 @@
 #include "auto_recorder.h"
 #include "grpc_transporter.h"
 #include "lightstep-tracer-common/collector.pb.h"
-#include "lightstep_span_context.h"
+#include "lightstep_immutable_span_context.h"
 #include "lightstep_tracer_impl.h"
 #include "logger.h"
 #include "manual_recorder.h"
@@ -84,7 +84,7 @@ LightStepTracer::MakeSpanContext(
     uint64_t trace_id, uint64_t span_id, bool sampled,
     std::unordered_map<std::string, std::string>&& baggage) const noexcept try {
   std::unique_ptr<opentracing::SpanContext> result{
-      new LightStepSpanContext{trace_id, span_id, sampled, std::move(baggage)}};
+      new LightStepImmutableSpanContext{trace_id, span_id, sampled, baggage}};
   return std::move(result);
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(
