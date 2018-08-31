@@ -21,8 +21,7 @@ TEST_CASE("MessageBuffer") {
 
   SECTION(
       "We can successfully add `max_spans` into `message_buffer` before spans "
-      "are "
-      "dropped.") {
+      "are dropped.") {
     for (int i = 0; i < static_cast<int>(max_spans); ++i) {
       CHECK(message_buffer.Add(span));
     }
