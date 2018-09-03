@@ -26,6 +26,50 @@ class NullTextMapWriter final : public opentracing::TextMapWriter {
 };
 }  // namespace
 
+namespace {
+class TextMapWriter final : public opentracing::TextMapWriter {
+ public:
+  explicit TextMapWriter(
+      std::vector<std::pair<std::string, std::string>>& key_values)
+      : key_values_{key_values} {}
+
+  opentracing::expected<void> Set(
+      opentracing::string_view key,
+      opentracing::string_view value) const override {
+    key_values_.emplace_back(key, value);
+    return {};
+  }
+
+ private:
+  std::vector<std::pair<std::string, std::string>>& key_values_;
+};
+}  // namespace
+
+namespace {
+class TextMapReader final : public opentracing::TextMapReader {
+ public:
+  explicit TextMapReader(
+      const std::vector<std::pair<std::string, std::string>>& key_values)
+      : key_values_{key_values} {}
+
+  opentracing::expected<void> ForeachKey(
+      std::function<opentracing::expected<void>(opentracing::string_view key,
+                                                opentracing::string_view value)>
+          f) const override {
+    for (auto key_value : key_values_) {
+      auto was_successful = f(key_value.first, key_value.second);
+      if (!was_successful) {
+        return was_successful;
+      }
+    }
+    return {};
+  }
+
+ private:
+  const std::vector<std::pair<std::string, std::string>>& key_values_;
+};
+}  // namespace
+
 static std::shared_ptr<opentracing::Tracer> MakeTracer() {
   lightstep::LightStepTracerOptions options;
   options.access_token = "abc123";
@@ -114,9 +158,26 @@ static void BM_SpanMultikeyInjection(benchmark::State& state) {
   assert(span != nullptr);
   NullTextMapWriter carrier;
   for (auto _ : state) {
-    tracer->Inject(span->context(), carrier);
+    auto was_successful = tracer->Inject(span->context(), carrier);
+    assert(was_successful);
   }
 }
 BENCHMARK(BM_SpanMultikeyInjection);
+
+static void BM_SpanMultikeyExtraction(benchmark::State& state) {
+  auto tracer = MakeTracer();
+  assert(tracer != nullptr);
+  auto span = tracer->StartSpan("abc123");
+  std::vector<std::pair<std::string, std::string>> key_values;
+  auto was_successful = tracer->Inject(span->context(), TextMapWriter{key_values});
+  assert(was_successful);
+  TextMapReader carrier{key_values};
+  for (auto _ : state) {
+    auto span_context_maybe = tracer->Extract(carrier);
+    assert(span_context_maybe);
+    benchmark::DoNotOptimize(span_context_maybe);
+  }
+}
+BENCHMARK(BM_SpanMultikeyExtraction);
 
 BENCHMARK_MAIN();
