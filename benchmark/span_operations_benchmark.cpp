@@ -13,6 +13,19 @@ class NullTransporter final : public lightstep::SyncTransporter {
 };
 }  // namespace
 
+namespace {
+class NullTextMapWriter final : public opentracing::TextMapWriter {
+ public:
+  opentracing::expected<void> Set(
+      opentracing::string_view key,
+      opentracing::string_view value) const override {
+    benchmark::DoNotOptimize(key.data());
+    benchmark::DoNotOptimize(value.data());
+    return {};
+  }
+};
+}  // namespace
+
 static std::shared_ptr<opentracing::Tracer> MakeTracer() {
   lightstep::LightStepTracerOptions options;
   options.access_token = "abc123";
@@ -93,5 +106,17 @@ static void BM_SpanLog2(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_SpanLog2);
+
+static void BM_SpanMultikeyInjection(benchmark::State& state) {
+  auto tracer = MakeTracer();
+  assert(tracer != nullptr);
+  auto span = tracer->StartSpan("abc123");
+  assert(span != nullptr);
+  NullTextMapWriter carrier;
+  for (auto _ : state) {
+    tracer->Inject(span->context(), carrier);
+  }
+}
+BENCHMARK(BM_SpanMultikeyInjection);
 
 BENCHMARK_MAIN();
