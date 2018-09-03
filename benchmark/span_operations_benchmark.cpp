@@ -169,7 +169,8 @@ static void BM_SpanMultikeyExtraction(benchmark::State& state) {
   assert(tracer != nullptr);
   auto span = tracer->StartSpan("abc123");
   std::vector<std::pair<std::string, std::string>> key_values;
-  auto was_successful = tracer->Inject(span->context(), TextMapWriter{key_values});
+  auto was_successful =
+      tracer->Inject(span->context(), TextMapWriter{key_values});
   assert(was_successful);
   TextMapReader carrier{key_values};
   for (auto _ : state) {
