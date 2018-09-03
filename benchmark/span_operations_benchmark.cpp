@@ -56,7 +56,7 @@ class TextMapReader final : public opentracing::TextMapReader {
       std::function<opentracing::expected<void>(opentracing::string_view key,
                                                 opentracing::string_view value)>
           f) const override {
-    for (auto key_value : key_values_) {
+    for (auto& key_value : key_values_) {
       auto was_successful = f(key_value.first, key_value.second);
       if (!was_successful) {
         return was_successful;
