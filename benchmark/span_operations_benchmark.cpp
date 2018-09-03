@@ -151,7 +151,7 @@ static void BM_SpanLog2(benchmark::State& state) {
 }
 BENCHMARK(BM_SpanLog2);
 
-static void BM_SpanMultikeyInjection(benchmark::State& state) {
+static void BM_SpanContextMultikeyInjection(benchmark::State& state) {
   auto tracer = MakeTracer();
   assert(tracer != nullptr);
   auto span = tracer->StartSpan("abc123");
@@ -162,9 +162,9 @@ static void BM_SpanMultikeyInjection(benchmark::State& state) {
     assert(was_successful);
   }
 }
-BENCHMARK(BM_SpanMultikeyInjection);
+BENCHMARK(BM_SpanContextMultikeyInjection);
 
-static void BM_SpanMultikeyExtraction(benchmark::State& state) {
+static void BM_SpanContextMultikeyExtraction(benchmark::State& state) {
   auto tracer = MakeTracer();
   assert(tracer != nullptr);
   auto span = tracer->StartSpan("abc123");
@@ -179,6 +179,25 @@ static void BM_SpanMultikeyExtraction(benchmark::State& state) {
     benchmark::DoNotOptimize(span_context_maybe);
   }
 }
-BENCHMARK(BM_SpanMultikeyExtraction);
+BENCHMARK(BM_SpanContextMultikeyExtraction);
+
+static void BM_SpanContextMultikeyEmptyExtraction(benchmark::State& state) {
+  auto tracer = MakeTracer();
+  assert(tracer != nullptr);
+  std::vector<std::pair<std::string, std::string>> key_values = {
+      {"Accept", "text/html"},
+      {"Content-Length", "300"},
+      {"User-Agent", "Mozilla/5.0"},
+      {"Pragma", "no-cache"},
+      {"Host", "www.memyselfandi.com"}};
+  TextMapReader carrier{key_values};
+  for (auto _ : state) {
+    auto span_context_maybe = tracer->Extract(carrier);
+    assert(span_context_maybe);
+    assert(*span_context_maybe == nullptr);
+    benchmark::DoNotOptimize(span_context_maybe);
+  }
+}
+BENCHMARK(BM_SpanContextMultikeyEmptyExtraction);
 
 BENCHMARK_MAIN();
