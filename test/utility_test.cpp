@@ -1,6 +1,7 @@
 #include "../src/utility.h"
 #include <cmath>
 #include <limits>
+#include <sstream>
 
 #define CATCH_CONFIG_MAIN
 #include <lightstep/catch2/catch.hpp>
@@ -53,5 +54,26 @@ TEST_CASE("Json") {
   SECTION("nullptr jsonifies to null.") {
     auto key_value1 = ToKeyValue("", Values{nullptr});
     CHECK(key_value1.json_value() == "[null]");
+  }
+}
+
+TEST_CASE("Uint64ToHex") {
+  auto f = [](const std::string& s) {
+    std::istringstream stream{s};
+    uint64_t x;
+    stream >> std::setw(16) >> std::hex >> x;
+    return x;
+  };
+  char data[16];
+
+  SECTION("Verify hex conversion and back against a range of values.") {
+    for (uint64_t x = 0; x < 1000; ++x) {
+      CHECK(x == f(Uint64ToHex(x, data)));
+    }
+  }
+
+  SECTION("Verify hex conversion against the maximum possible value.") {
+    auto x = std::numeric_limits<uint64_t>::max();
+    CHECK(x == f(Uint64ToHex(x, data)));
   }
 }

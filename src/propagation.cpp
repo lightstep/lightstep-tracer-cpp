@@ -9,6 +9,7 @@
 #include <sstream>
 #include "in_memory_stream.h"
 #include "lightstep-tracer-common/lightstep_carrier.pb.h"
+#include "utility.h"
 
 namespace lightstep {
 #define PREFIX_TRACER_STATE "ot-tracer-"
@@ -22,16 +23,6 @@ const opentracing::string_view FieldNameSampled = PREFIX_TRACER_STATE "sampled";
 #undef PREFIX_TRACER_STATE
 
 const opentracing::string_view PropagationSingleKey = "x-ot-span-context";
-
-//------------------------------------------------------------------------------
-// Uint64ToHex
-//------------------------------------------------------------------------------
-static std::string Uint64ToHex(uint64_t u) {
-  std::ostringstream stream;
-  stream << std::setfill('0') << std::setw(16) << std::hex << u;
-  return stream.str();
-}
-
 //------------------------------------------------------------------------------
 // HexToUint64
 //------------------------------------------------------------------------------
@@ -76,35 +67,16 @@ static opentracing::expected<opentracing::string_view> LookupKey(
 }
 
 //------------------------------------------------------------------------------
-// InjectSpanContextMultiKey
+// InjectSpanContextBaggage
 //------------------------------------------------------------------------------
-static opentracing::expected<void> InjectSpanContextMultiKey(
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id,
-    uint64_t span_id, bool sampled, const BaggageMap& baggage) {
-  std::string trace_id_hex, span_id_hex, baggage_key;
+static opentracing::expected<void> InjectSpanContextBaggage(
+    const opentracing::TextMapWriter& carrier, const BaggageMap& baggage) {
+  std::string baggage_key;
   try {
-    trace_id_hex = Uint64ToHex(trace_id);
-    span_id_hex = Uint64ToHex(span_id);
     baggage_key = PrefixBaggage;
   } catch (const std::bad_alloc&) {
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::not_enough_memory));
-  }
-  auto result = carrier.Set(FieldNameTraceID, trace_id_hex);
-  if (!result) {
-    return result;
-  }
-  result = carrier.Set(FieldNameSpanID, span_id_hex);
-  if (!result) {
-    return result;
-  }
-  if (sampled) {
-    result = carrier.Set(FieldNameSampled, "true");
-  } else {
-    result = carrier.Set(FieldNameSampled, "false");
-  }
-  if (!result) {
-    return result;
   }
   for (const auto& baggage_item : baggage) {
     try {
@@ -114,10 +86,41 @@ static opentracing::expected<void> InjectSpanContextMultiKey(
       return opentracing::make_unexpected(
           std::make_error_code(std::errc::not_enough_memory));
     }
-    result = carrier.Set(baggage_key, baggage_item.second);
+    auto result = carrier.Set(baggage_key, baggage_item.second);
     if (!result) {
       return result;
     }
+  }
+  return {};
+}
+
+//------------------------------------------------------------------------------
+// InjectSpanContextMultiKey
+//------------------------------------------------------------------------------
+static opentracing::expected<void> InjectSpanContextMultiKey(
+    const opentracing::TextMapWriter& carrier, uint64_t trace_id,
+    uint64_t span_id, bool sampled, const BaggageMap& baggage) {
+  char data[16];
+  auto result = carrier.Set(FieldNameTraceID, Uint64ToHex(trace_id, data));
+  if (!result) {
+    return result;
+  }
+  result = carrier.Set(FieldNameSpanID, Uint64ToHex(span_id, data));
+  if (!result) {
+    return result;
+  }
+  static opentracing::string_view true_str{"true"};
+  static opentracing::string_view false_str{"false"};
+  if (sampled) {
+    result = carrier.Set(FieldNameSampled, true_str);
+  } else {
+    result = carrier.Set(FieldNameSampled, false_str);
+  }
+  if (!result) {
+    return result;
+  }
+  if (!baggage.empty()) {
+    return InjectSpanContextBaggage(carrier, baggage);
   }
   return {};
 }
