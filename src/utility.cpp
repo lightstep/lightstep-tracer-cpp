@@ -5,11 +5,14 @@
 #include "lightstep-tracer-common/collector.pb.h"
 
 #include <unistd.h>
+#include <array>
+#include <cctype>
 #include <cmath>
 #include <iomanip>
 #include <random>
 #include <sstream>
 #include <stdexcept>
+#include <system_error>
 
 #include <pthread.h>
 
@@ -271,7 +274,7 @@ void LogReportResponse(Logger& logger, bool verbose,
 // This uses the lookup table solution described on this blog post
 // https://johnnylee-sde.github.io/Fast-unsigned-integer-to-hex-string/
 opentracing::string_view Uint64ToHex(uint64_t x, char* output) {
-  static const char digits[513] =
+  static const unsigned char digits[513] =
       "000102030405060708090A0B0C0D0E0F"
       "101112131415161718191A1B1C1D1E1F"
       "202122232425262728292A2B2C2D2E2F"
@@ -295,5 +298,72 @@ opentracing::string_view Uint64ToHex(uint64_t x, char* output) {
     x >>= 8;
   }
   return {output, 16};
+}
+
+//------------------------------------------------------------------------------
+// ToUint64
+//------------------------------------------------------------------------------
+// Adopted from https://stackoverflow.com/a/11068850/4447365
+opentracing::expected<uint64_t> ToUint64(opentracing::string_view s) {
+  static const unsigned char nil = std::numeric_limits<unsigned char>::max();
+  static const std::array<unsigned char, 256> hextable = {
+      {nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, 0,   1,   2,   3,   4,   5,   6,   7,
+       8,   9,   nil, nil, nil, nil, nil, nil, nil, 10,  11,  12,  13,  14,
+       15,  nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, 10,
+       11,  12,  13,  14,  15,  nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+       nil, nil, nil, nil}};
+
+  auto i = s.data();
+  auto last = s.data() + s.size();
+
+  // Remove any leading spaces or 0's
+  while (i != last && std::isspace(*i)) {
+    ++i;
+  }
+
+  // Remove any trailing spaces
+  while (i != last && std::isspace(*(last - 1))) {
+    --last;
+  }
+
+  auto length = std::distance(i, last);
+
+  // Check for overflow
+  if (length > 16) {
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::value_too_large));
+  }
+
+  // Check for an empty string
+  if (length == 0) {
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::invalid_argument));
+  }
+
+  uint64_t result = 0;
+  for (; i != last; ++i) {
+    auto value = hextable[*i];
+    if (value == nil) {
+      return opentracing::make_unexpected(
+          std::make_error_code(std::errc::invalid_argument));
+    }
+    result = (result << 4) | value;
+  }
+
+  return result;
 }
 }  // namespace lightstep

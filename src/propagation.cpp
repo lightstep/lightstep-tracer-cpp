@@ -24,16 +24,6 @@ const opentracing::string_view FieldNameSampled = PREFIX_TRACER_STATE "sampled";
 
 const opentracing::string_view PropagationSingleKey = "x-ot-span-context";
 //------------------------------------------------------------------------------
-// HexToUint64
-//------------------------------------------------------------------------------
-static uint64_t HexToUint64(opentracing::string_view s) {
-  in_memory_stream stream{s.data(), s.size()};
-  uint64_t x;
-  stream >> std::setw(16) >> std::hex >> x;
-  return x;
-}
-
-//------------------------------------------------------------------------------
 // LookupKey
 //------------------------------------------------------------------------------
 template <class KeyCompare>
@@ -227,10 +217,20 @@ static opentracing::expected<bool> ExtractSpanContextMultiKey(
                                        -> opentracing::expected<void> {
     try {
       if (key_compare(key, FieldNameTraceID)) {
-        trace_id = HexToUint64(value);
+        auto trace_id_maybe = ToUint64(value);
+        if (!trace_id_maybe) {
+          return opentracing::make_unexpected(
+              opentracing::span_context_corrupted_error);
+        }
+        trace_id = *trace_id_maybe;
         count++;
       } else if (key_compare(key, FieldNameSpanID)) {
-        span_id = HexToUint64(value);
+        auto span_id_maybe = ToUint64(value);
+        if (!span_id_maybe) {
+          return opentracing::make_unexpected(
+              opentracing::span_context_corrupted_error);
+        }
+        span_id = *span_id_maybe;
         count++;
       } else if (key_compare(key, FieldNameSampled)) {
         sampled = !(value == "false" || value == "0");

@@ -57,23 +57,52 @@ TEST_CASE("Json") {
   }
 }
 
-TEST_CASE("Uint64ToHex") {
-  auto f = [](const std::string& s) {
-    std::istringstream stream{s};
-    uint64_t x;
-    stream >> std::setw(16) >> std::hex >> x;
-    return x;
-  };
+TEST_CASE("hex-integer conversions") {
   char data[16];
 
   SECTION("Verify hex conversion and back against a range of values.") {
     for (uint64_t x = 0; x < 1000; ++x) {
-      CHECK(x == f(Uint64ToHex(x, data)));
+      CHECK(x == *ToUint64(Uint64ToHex(x, data)));
+      auto y = std::numeric_limits<uint64_t>::max() - x;
+      CHECK(y == *ToUint64(Uint64ToHex(y, data)));
     }
   }
 
-  SECTION("Verify hex conversion against the maximum possible value.") {
-    auto x = std::numeric_limits<uint64_t>::max();
-    CHECK(x == f(Uint64ToHex(x, data)));
+  SECTION("Verify a few special values.") {
+    CHECK(Uint64ToHex(0, data) == "0000000000000000");
+    CHECK(Uint64ToHex(1, data) == "0000000000000001");
+    CHECK(Uint64ToHex(std::numeric_limits<uint64_t>::max(), data) ==
+          "FFFFFFFFFFFFFFFF");
+
+    CHECK(*ToUint64("0") == 0);
+    CHECK(*ToUint64("1") == 1);
+    CHECK(*ToUint64("FFFFFFFFFFFFFFFF") ==
+          std::numeric_limits<uint64_t>::max());
+  }
+
+  SECTION("Leading or trailing spaces are ignored when converting from hex.") {
+    CHECK(*ToUint64("  \tabc") == 0xabc);
+    CHECK(*ToUint64("abc  \t") == 0xabc);
+    CHECK(*ToUint64("  \tabc  \t") == 0xabc);
+  }
+
+  SECTION("Hex conversion works with both upper and lower case digits.") {
+    CHECK(*ToUint64("ABCDEF") == 0xABCDEF);
+    CHECK(*ToUint64("abcdef") == 0xABCDEF);
+  }
+
+  SECTION("Hex conversion with an empty string gives an error.") {
+    CHECK(!ToUint64(""));
+    CHECK(!ToUint64("  "));
+  }
+
+  SECTION(
+      "Hex conversion of a number bigger than "
+      "std::numeric_limits<uint64_t>::max() gives an error.") {
+    CHECK(!ToUint64("0123456789ABCDEF1"));
+  }
+
+  SECTION("Hex conversion with invalid digits gives an error.") {
+    CHECK(!ToUint64("abcHef"));
   }
 }

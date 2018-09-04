@@ -32,4 +32,6 @@ void LogReportResponse(Logger& logger, bool verbose,
 // Converts `x` to a hexidecimal, writes the results into `output` and returns
 // a string_view of the number.
 opentracing::string_view Uint64ToHex(uint64_t x, char* output);
+
+opentracing::expected<uint64_t> ToUint64(opentracing::string_view s);
 }  // namespace lightstep
