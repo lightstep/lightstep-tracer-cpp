@@ -13,9 +13,14 @@ else()
 -google-build-using-namespace,\
 -modernize-make-unique,\
 -hicpp-vararg,\
+-hicpp-signed-bitwise,\
+-hicpp-no-array-decay,\
 -cppcoreguidelines-owning-memory,\
 -cppcoreguidelines-pro-type-reinterpret-cast,\
 -cppcoreguidelines-pro-type-const-cast,\
+-cppcoreguidelines-pro-bounds-array-to-pointer-decay,\
+-ppcoreguidelines-pro-bounds-constant-array-index,\
+-cppcoreguidelines-pro-bounds-pointer-arithmetic,\
 -cppcoreguidelines-pro-type-vararg;\
 -warnings-as-errors=*")
 endif()

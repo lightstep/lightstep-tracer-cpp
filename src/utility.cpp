@@ -331,12 +331,12 @@ opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s) {
   auto last = s.data() + s.size();
 
   // Remove any leading spaces or 0's
-  while (i != last && std::isspace(*i)) {
+  while (i != last && static_cast<bool>(std::isspace(*i))) {
     ++i;
   }
 
   // Remove any trailing spaces
-  while (i != last && std::isspace(*(last - 1))) {
+  while (i != last && static_cast<bool>(std::isspace(*(last - 1)))) {
     --last;
   }
 
