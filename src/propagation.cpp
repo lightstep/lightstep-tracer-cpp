@@ -217,7 +217,7 @@ static opentracing::expected<bool> ExtractSpanContextMultiKey(
                                        -> opentracing::expected<void> {
     try {
       if (key_compare(key, FieldNameTraceID)) {
-        auto trace_id_maybe = ToUint64(value);
+        auto trace_id_maybe = HexToUint64(value);
         if (!trace_id_maybe) {
           return opentracing::make_unexpected(
               opentracing::span_context_corrupted_error);
@@ -225,7 +225,7 @@ static opentracing::expected<bool> ExtractSpanContextMultiKey(
         trace_id = *trace_id_maybe;
         count++;
       } else if (key_compare(key, FieldNameSpanID)) {
-        auto span_id_maybe = ToUint64(value);
+        auto span_id_maybe = HexToUint64(value);
         if (!span_id_maybe) {
           return opentracing::make_unexpected(
               opentracing::span_context_corrupted_error);

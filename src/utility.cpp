@@ -301,10 +301,10 @@ opentracing::string_view Uint64ToHex(uint64_t x, char* output) {
 }
 
 //------------------------------------------------------------------------------
-// ToUint64
+// HexToUint64
 //------------------------------------------------------------------------------
 // Adopted from https://stackoverflow.com/a/11068850/4447365
-opentracing::expected<uint64_t> ToUint64(opentracing::string_view s) {
+opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s) {
   static const unsigned char nil = std::numeric_limits<unsigned char>::max();
   static const std::array<unsigned char, 256> hextable = {
       {nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,

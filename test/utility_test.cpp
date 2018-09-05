@@ -62,9 +62,9 @@ TEST_CASE("hex-integer conversions") {
 
   SECTION("Verify hex conversion and back against a range of values.") {
     for (uint64_t x = 0; x < 1000; ++x) {
-      CHECK(x == *ToUint64(Uint64ToHex(x, data)));
+      CHECK(x == *HexToUint64(Uint64ToHex(x, data)));
       auto y = std::numeric_limits<uint64_t>::max() - x;
-      CHECK(y == *ToUint64(Uint64ToHex(y, data)));
+      CHECK(y == *HexToUint64(Uint64ToHex(y, data)));
     }
   }
 
@@ -74,35 +74,35 @@ TEST_CASE("hex-integer conversions") {
     CHECK(Uint64ToHex(std::numeric_limits<uint64_t>::max(), data) ==
           "FFFFFFFFFFFFFFFF");
 
-    CHECK(*ToUint64("0") == 0);
-    CHECK(*ToUint64("1") == 1);
-    CHECK(*ToUint64("FFFFFFFFFFFFFFFF") ==
+    CHECK(*HexToUint64("0") == 0);
+    CHECK(*HexToUint64("1") == 1);
+    CHECK(*HexToUint64("FFFFFFFFFFFFFFFF") ==
           std::numeric_limits<uint64_t>::max());
   }
 
   SECTION("Leading or trailing spaces are ignored when converting from hex.") {
-    CHECK(*ToUint64("  \tabc") == 0xabc);
-    CHECK(*ToUint64("abc  \t") == 0xabc);
-    CHECK(*ToUint64("  \tabc  \t") == 0xabc);
+    CHECK(*HexToUint64("  \tabc") == 0xabc);
+    CHECK(*HexToUint64("abc  \t") == 0xabc);
+    CHECK(*HexToUint64("  \tabc  \t") == 0xabc);
   }
 
   SECTION("Hex conversion works with both upper and lower case digits.") {
-    CHECK(*ToUint64("ABCDEF") == 0xABCDEF);
-    CHECK(*ToUint64("abcdef") == 0xABCDEF);
+    CHECK(*HexToUint64("ABCDEF") == 0xABCDEF);
+    CHECK(*HexToUint64("abcdef") == 0xABCDEF);
   }
 
   SECTION("Hex conversion with an empty string gives an error.") {
-    CHECK(!ToUint64(""));
-    CHECK(!ToUint64("  "));
+    CHECK(!HexToUint64(""));
+    CHECK(!HexToUint64("  "));
   }
 
   SECTION(
       "Hex conversion of a number bigger than "
       "std::numeric_limits<uint64_t>::max() gives an error.") {
-    CHECK(!ToUint64("0123456789ABCDEF1"));
+    CHECK(!HexToUint64("0123456789ABCDEF1"));
   }
 
   SECTION("Hex conversion with invalid digits gives an error.") {
-    CHECK(!ToUint64("abcHef"));
+    CHECK(!HexToUint64("abcHef"));
   }
 }
