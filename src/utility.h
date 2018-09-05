@@ -33,5 +33,7 @@ void LogReportResponse(Logger& logger, bool verbose,
 // a string_view of the number.
 opentracing::string_view Uint64ToHex(uint64_t x, char* output);
 
+// Converts a hexidecimal number to a 64-bit integer. Either returns the number
+// or an error code.
 opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s);
 }  // namespace lightstep
