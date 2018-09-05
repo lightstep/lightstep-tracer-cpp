@@ -1,7 +1,6 @@
 #include "../src/utility.h"
 #include <cmath>
 #include <limits>
-#include <sstream>
 
 #define CATCH_CONFIG_MAIN
 #include <lightstep/catch2/catch.hpp>
