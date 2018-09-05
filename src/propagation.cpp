@@ -23,6 +23,9 @@ const opentracing::string_view FieldNameSampled = PREFIX_TRACER_STATE "sampled";
 #undef PREFIX_TRACER_STATE
 
 const opentracing::string_view PropagationSingleKey = "x-ot-span-context";
+const opentracing::string_view TrueStr = "true";
+const opentracing::string_view FalseStr = "false";
+const opentracing::string_view ZeroStr = "0";
 //------------------------------------------------------------------------------
 // LookupKey
 //------------------------------------------------------------------------------
@@ -99,12 +102,10 @@ static opentracing::expected<void> InjectSpanContextMultiKey(
   if (!result) {
     return result;
   }
-  static opentracing::string_view true_str{"true"};
-  static opentracing::string_view false_str{"false"};
   if (sampled) {
-    result = carrier.Set(FieldNameSampled, true_str);
+    result = carrier.Set(FieldNameSampled, TrueStr);
   } else {
-    result = carrier.Set(FieldNameSampled, false_str);
+    result = carrier.Set(FieldNameSampled, FalseStr);
   }
   if (!result) {
     return result;
@@ -233,7 +234,7 @@ static opentracing::expected<bool> ExtractSpanContextMultiKey(
         span_id = *span_id_maybe;
         count++;
       } else if (key_compare(key, FieldNameSampled)) {
-        sampled = !(value == "false" || value == "0");
+        sampled = !(value == FalseStr || value == ZeroStr);
         count++;
       } else if (key.length() > PrefixBaggage.size() &&
                  key_compare(
