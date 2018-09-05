@@ -340,6 +340,13 @@ opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s) {
     --last;
   }
 
+  auto first = i;
+
+  // Remove leading zeros
+  while (i != last && *i == '0') {
+    ++i;
+  }
+
   auto length = std::distance(i, last);
 
   // Check for overflow
@@ -350,6 +357,10 @@ opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s) {
 
   // Check for an empty string
   if (length == 0) {
+    // Handle the case of the string being all zeros
+    if (first != i) {
+      return 0;
+    }
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::invalid_argument));
   }

@@ -98,7 +98,13 @@ TEST_CASE("hex-integer conversions") {
   SECTION(
       "Hex conversion of a number bigger than "
       "std::numeric_limits<uint64_t>::max() gives an error.") {
-    CHECK(!HexToUint64("0123456789ABCDEF1"));
+    CHECK(!HexToUint64("1123456789ABCDEF1"));
+  }
+
+  SECTION(
+      "Hex conversion of a number within valid limits but with leading zeros "
+      "past 16 digits is successful.") {
+    CHECK(HexToUint64("0123456789ABCDEF1"));
   }
 
   SECTION("Hex conversion with invalid digits gives an error.") {
