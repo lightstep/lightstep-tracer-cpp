@@ -31,10 +31,19 @@ collector::KeyValue ToKeyValue(opentracing::string_view key,
 void LogReportResponse(Logger& logger, bool verbose,
                        const collector::ReportResponse& response);
 
+// Reverses the endianness of an integral value.
 template <class T>
 inline void ReverseEndianness(T& t) {
   static_assert(std::is_integral<T>::value, "Must be integral type");
   char* data = reinterpret_cast<char*>(&t);
   std::reverse(data, data + sizeof(T));
 }
+
+// Converts `x` to a hexidecimal, writes the results into `output` and returns
+// a string_view of the number.
+opentracing::string_view Uint64ToHex(uint64_t x, char* output);
+
+// Converts a hexidecimal number to a 64-bit integer. Either returns the number
+// or an error code.
+opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s);
 }  // namespace lightstep
