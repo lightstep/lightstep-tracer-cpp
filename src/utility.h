@@ -28,4 +28,12 @@ collector::KeyValue ToKeyValue(opentracing::string_view key,
 // Logs any information returned by the collector.
 void LogReportResponse(Logger& logger, bool verbose,
                        const collector::ReportResponse& response);
+
+// Converts `x` to a hexidecimal, writes the results into `output` and returns
+// a string_view of the number.
+opentracing::string_view Uint64ToHex(uint64_t x, char* output);
+
+// Converts a hexidecimal number to a 64-bit integer. Either returns the number
+// or an error code.
+opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s);
 }  // namespace lightstep
