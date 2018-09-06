@@ -1,10 +1,14 @@
 #include "testing_condition_variable_wrapper.h"
 #include <algorithm>
+#include <chrono>
 #include <exception>
 #include <iostream>
 #include <thread>
 
 namespace lightstep {
+static const auto Timeout =
+    std::chrono::system_clock::duration{std::chrono::seconds{20}};
+
 //------------------------------------------------------------------------------
 // NotifyAllEvent::Process
 //------------------------------------------------------------------------------
@@ -106,6 +110,7 @@ void TestingConditionVariableWrapper::NotifyAll() {
 // WaitTillNextEvent
 //------------------------------------------------------------------------------
 void TestingConditionVariableWrapper::WaitTillNextEvent() {
+  auto start_timestamp = std::chrono::system_clock::now();
   while (true) {
     {
       std::lock_guard<std::mutex> lock_guard{mutex_};
@@ -114,6 +119,10 @@ void TestingConditionVariableWrapper::WaitTillNextEvent() {
       }
     }
     std::this_thread::yield();
+    if (std::chrono::system_clock::now() - start_timestamp > Timeout) {
+      std::cerr << "WaitTilNextEvent timed out\n";
+      std::terminate();
+    }
   }
 }
 
@@ -121,6 +130,7 @@ void TestingConditionVariableWrapper::WaitTillNextEvent() {
 // Step
 //------------------------------------------------------------------------------
 void TestingConditionVariableWrapper::Step() {
+  auto start_timestamp = std::chrono::system_clock::now();
   while (true) {
     {
       std::lock_guard<std::mutex> lock_guard{mutex_};
@@ -137,6 +147,10 @@ void TestingConditionVariableWrapper::Step() {
       }
     }
     std::this_thread::yield();
+    if (std::chrono::system_clock::now() - start_timestamp > Timeout) {
+      std::cerr << "Step timed out\n";
+      std::terminate();
+    }
   }
 }
 

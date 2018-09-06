@@ -113,6 +113,7 @@ LightStepSpan::LightStepSpan(
     : tracer_{std::move(tracer)}, logger_{logger}, recorder_{recorder} {
   // Set operation name
   span_.set_operation_name(operation_name.data(), operation_name.size());
+
   auto& span_context = *span_.mutable_span_context();
   auto& baggage = *span_context.mutable_baggage();
 
@@ -146,6 +147,7 @@ LightStepSpan::LightStepSpan(
   tags.Reserve(static_cast<int>(options.tags.size()));
   for (auto& tag : options.tags) {
     *tags.Add() = ToKeyValue(tag.first, tag.second);
+
     // If sampling_priority is set, it overrides whatever sampling decision was
     // derived from the referenced spans.
     if (tag.first == opentracing::ext::sampling_priority) {
