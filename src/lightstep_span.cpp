@@ -9,6 +9,23 @@ using opentracing::SteadyTime;
 
 namespace lightstep {
 //------------------------------------------------------------------------------
+// ToLog
+//------------------------------------------------------------------------------
+template <class Iterator>
+static collector::Log ToLog(std::chrono::system_clock::time_point timestamp,
+                            Iterator field_first, Iterator field_last) {
+  collector::Log result;
+  *result.mutable_timestamp() = ToTimestamp(timestamp);
+  auto& key_values = *result.mutable_fields();
+  key_values.Reserve(static_cast<int>(std::distance(field_first, field_last)));
+  for (Iterator field_iter = field_first; field_iter != field_last;
+       ++field_iter) {
+    *key_values.Add() = ToKeyValue(field_iter->first, field_iter->second);
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // is_sampled
 //------------------------------------------------------------------------------
 static bool is_sampled(const opentracing::Value& value) {
@@ -50,8 +67,8 @@ static bool SetSpanReference(
     Logger& logger,
     const std::pair<opentracing::SpanReferenceType,
                     const opentracing::SpanContext*>& reference,
-    std::unordered_map<std::string, std::string>& baggage,
-    collector::Reference& collector_reference, bool& sampled) {
+    BaggageMap& baggage, collector::Reference& collector_reference,
+    bool& sampled) {
   collector_reference.Clear();
   switch (reference.first) {
     case opentracing::SpanReferenceType::ChildOfRef:
@@ -93,52 +110,55 @@ LightStepSpan::LightStepSpan(
     std::shared_ptr<const opentracing::Tracer>&& tracer, Logger& logger,
     Recorder& recorder, opentracing::string_view operation_name,
     const opentracing::StartSpanOptions& options)
-    : tracer_{std::move(tracer)},
-      logger_{logger},
-      recorder_{recorder},
-      operation_name_{operation_name} {
+    : tracer_{std::move(tracer)}, logger_{logger}, recorder_{recorder} {
+  span_.set_operation_name(operation_name.data(), operation_name.size());
+  auto& span_context = *span_.mutable_span_context();
+  auto& baggage = *span_context.mutable_baggage();
+
   // Set the start timestamps.
-  std::tie(start_timestamp_, start_steady_) = ComputeStartTimestamps(
+  std::chrono::system_clock::time_point start_timestamp;
+  std::tie(start_timestamp, start_steady_) = ComputeStartTimestamps(
       options.start_system_timestamp, options.start_steady_timestamp);
+  *span_.mutable_start_timestamp() = ToTimestamp(start_timestamp);
 
   // Set any span references.
-  std::unordered_map<std::string, std::string> baggage;
-  references_.reserve(options.references.size());
+  sampled_ = false;
   collector::Reference collector_reference;
-  bool sampled = false;
+  auto& references = *span_.mutable_references();
+  references.Reserve(static_cast<int>(options.references.size()));
   for (auto& reference : options.references) {
     if (!SetSpanReference(logger_, reference, baggage, collector_reference,
-                          sampled)) {
+                          sampled_)) {
       continue;
     }
-    references_.push_back(collector_reference);
+    *references.Add() = collector_reference;
   }
 
   // If there are any span references, sampled should be true if any of the
   // references are sampled; with no refences, we set sampled to true.
-  if (references_.empty()) {
-    sampled = true;
+  if (references.empty()) {
+    sampled_ = true;
   }
 
   // Set tags.
+  auto& tags = *span_.mutable_tags();
+  tags.Reserve(static_cast<int>(options.tags.size()));
   for (auto& tag : options.tags) {
-    tags_[tag.first] = tag.second;
-  }
+    *tags.Add() = ToKeyValue(tag.first, tag.second);
 
-  // If sampling_priority is set, it overrides whatever sampling decision was
-  // derived from the referenced spans.
-  auto sampling_priority_tag = tags_.find(opentracing::ext::sampling_priority);
-  if (sampling_priority_tag != tags_.end()) {
-    sampled = is_sampled(sampling_priority_tag->second);
+    // If sampling_priority is set, it overrides whatever sampling decision was
+    // derived from the referenced spans.
+    if (tag.first == opentracing::ext::sampling_priority) {
+      sampled_ = is_sampled(tag.second);
+    }
   }
 
   // Set opentracing::SpanContext.
-  auto trace_id = references_.empty()
-                      ? GenerateId()
-                      : references_[0].span_context().trace_id();
+  auto trace_id = references.empty() ? GenerateId()
+                                     : references[0].span_context().trace_id();
   auto span_id = GenerateId();
-  span_context_ =
-      LightStepSpanContext{trace_id, span_id, sampled, std::move(baggage)};
+  span_context.set_trace_id(trace_id);
+  span_context.set_span_id(span_id);
 }
 
 //------------------------------------------------------------------------------
@@ -160,8 +180,8 @@ void LightStepSpan::FinishWithOptions(
     return;
   }
 
-  // If the span isn't sampled do nothing.
-  if (!span_context_.sampled()) {
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  if (!sampled_) {
     return;
   }
 
@@ -170,74 +190,25 @@ void LightStepSpan::FinishWithOptions(
     finish_timestamp = SteadyClock::now();
   }
 
-  collector::Span span;
-
   // Set timing information.
   auto duration = finish_timestamp - start_steady_;
-  span.set_duration_micros(
+  span_.set_duration_micros(
       std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
-  *span.mutable_start_timestamp() = ToTimestamp(start_timestamp_);
 
-  // Set references.
-  auto references = span.mutable_references();
-  references->Reserve(static_cast<int>(references_.size()));
-  for (const auto& reference : references_) {
-    *references->Add() = reference;
-  }
-
-  // Set tags, logs, and operation name.
-  {
-    std::lock_guard<std::mutex> lock_guard{mutex_};
-    span.set_operation_name(std::move(operation_name_));
-    auto tags = span.mutable_tags();
-    tags->Reserve(static_cast<int>(tags_.size()));
-    for (const auto& tag : tags_) {
-      try {
-        *tags->Add() = ToKeyValue(tag.first, tag.second);
-      } catch (const std::exception& e) {
-        logger_.Error(R"(Dropping tag for key ")", tag.first,
-                      R"(": )", e.what());
-      }
-    }
-    auto logs = span.mutable_logs();
-    logs->Reserve(static_cast<int>(logs_.size()) +
-                  static_cast<int>(options.log_records.size()));
-    for (auto& log : logs_) {
-      try {
-        *logs->Add() = std::move(log);
-      } catch (const std::exception& e) {
-        logger_.Error("Dropping log record: ", e.what());
-      }
-    }
-    for (auto& log_record : options.log_records) {
-      try {
-        collector::Log log;
-        *log.mutable_timestamp() = ToTimestamp(log_record.timestamp);
-        auto key_values = log.mutable_fields();
-        for (auto& field : log_record.fields) {
-          *key_values->Add() = ToKeyValue(field.first, field.second);
-        }
-        *logs->Add() = std::move(log);
-      } catch (const std::exception& e) {
-        logger_.Error("Dropping log record: ", e.what());
-      }
+  // Set logs
+  auto& logs = *span_.mutable_logs();
+  logs.Reserve(logs.size() + static_cast<int>(options.log_records.size()));
+  for (auto& log_record : options.log_records) {
+    try {
+      *logs.Add() = ToLog(log_record.timestamp, std::begin(log_record.fields),
+                          std::end(log_record.fields));
+    } catch (const std::exception& e) {
+      logger_.Error("Dropping log record: ", e.what());
     }
   }
-
-  // Set the span context.
-  auto span_context = span.mutable_span_context();
-  span_context->set_trace_id(span_context_.trace_id());
-  span_context->set_span_id(span_context_.span_id());
-  auto baggage = span_context->mutable_baggage();
-  span_context_.ForeachBaggageItem(
-      [baggage](const std::string& key, const std::string& value) {
-        using StringMap = google::protobuf::Map<std::string, std::string>;
-        baggage->insert(StringMap::value_type(key, value));
-        return true;
-      });
 
   // Record the span
-  recorder_.RecordSpan(std::move(span));
+  recorder_.RecordSpan(span_);
 } catch (const std::exception& e) {
   logger_.Error("FinishWithOptions failed: ", e.what());
 }
@@ -248,7 +219,7 @@ void LightStepSpan::FinishWithOptions(
 void LightStepSpan::SetOperationName(
     opentracing::string_view name) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  operation_name_ = name;
+  span_.set_operation_name(name.data(), name.size());
 } catch (const std::exception& e) {
   logger_.Error("SetOperationName failed: ", e.what());
 }
@@ -259,10 +230,10 @@ void LightStepSpan::SetOperationName(
 void LightStepSpan::SetTag(opentracing::string_view key,
                            const opentracing::Value& value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  tags_[key] = value;
+  *span_.mutable_tags()->Add() = ToKeyValue(key, value);
 
   if (key == opentracing::ext::sampling_priority) {
-    span_context_.set_sampled(is_sampled(value));
+    sampled_ = is_sampled(value);
   }
 } catch (const std::exception& e) {
   logger_.Error("SetTag failed: ", e.what());
@@ -273,7 +244,9 @@ void LightStepSpan::SetTag(opentracing::string_view key,
 //------------------------------------------------------------------------------
 void LightStepSpan::SetBaggageItem(opentracing::string_view restricted_key,
                                    opentracing::string_view value) noexcept {
-  span_context_.set_baggage_item(restricted_key, value);
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  auto& baggage = *span_.mutable_span_context()->mutable_baggage();
+  baggage.insert(BaggageMap::value_type(restricted_key, value));
 }
 
 //------------------------------------------------------------------------------
@@ -281,7 +254,13 @@ void LightStepSpan::SetBaggageItem(opentracing::string_view restricted_key,
 //------------------------------------------------------------------------------
 std::string LightStepSpan::BaggageItem(
     opentracing::string_view restricted_key) const noexcept try {
-  return span_context_.baggage_item(restricted_key);
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  auto& baggage = span_.span_context().baggage();
+  auto lookup = baggage.find(restricted_key);
+  if (lookup != baggage.end()) {
+    return lookup->second;
+  }
+  return {};
 } catch (const std::exception& e) {
   logger_.Error("BaggageItem failed, returning empty string: ", e.what());
   return {};
@@ -294,14 +273,32 @@ void LightStepSpan::Log(std::initializer_list<
                         std::pair<opentracing::string_view, opentracing::Value>>
                             fields) noexcept try {
   auto timestamp = SystemClock::now();
-  collector::Log log;
-  *log.mutable_timestamp() = ToTimestamp(timestamp);
-  auto key_values = log.mutable_fields();
-  for (const auto& field : fields) {
-    *key_values->Add() = ToKeyValue(field.first, field.second);
-  }
-  logs_.emplace_back(std::move(log));
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  *span_.mutable_logs()->Add() =
+      ToLog(timestamp, std::begin(fields), std::end(fields));
 } catch (const std::exception& e) {
   logger_.Error("Log failed: ", e.what());
+}
+
+//------------------------------------------------------------------------------
+// ForeachBaggageItem
+//------------------------------------------------------------------------------
+void LightStepSpan::ForeachBaggageItem(
+    std::function<bool(const std::string& key, const std::string& value)> f)
+    const {
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  for (const auto& baggage_item : span_.span_context().baggage()) {
+    if (!f(baggage_item.first, baggage_item.second)) {
+      return;
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// sampled
+//------------------------------------------------------------------------------
+bool LightStepSpan::sampled() const noexcept {
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  return sampled_;
 }
 }  // namespace lightstep

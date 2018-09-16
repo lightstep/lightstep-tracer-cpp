@@ -8,12 +8,13 @@
 namespace lightstep {
 // ManualRecorder buffers spans finished by a tracer and sends them over to
 // the provided AsyncTransporter when FlushWithTimeout is called.
-class ManualRecorder : public Recorder, private AsyncTransporter::Callback {
+class ManualRecorder final : public Recorder,
+                             private AsyncTransporter::Callback {
  public:
   ManualRecorder(Logger& logger, LightStepTracerOptions options,
                  std::unique_ptr<AsyncTransporter>&& transporter);
 
-  void RecordSpan(collector::Span&& span) noexcept override;
+  void RecordSpan(const collector::Span& span) noexcept override;
 
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;

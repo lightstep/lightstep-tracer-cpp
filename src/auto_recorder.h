@@ -16,7 +16,7 @@ namespace lightstep {
 // AutoRecorder buffers spans finished by a tracer and sends them over to
 // the provided SyncTransporter. It uses an internal thread to regularly send
 // the reports according to the rate specified by LightStepTracerOptions.
-class AutoRecorder : public Recorder {
+class AutoRecorder final : public Recorder {
  public:
   AutoRecorder(Logger& logger, LightStepTracerOptions&& options,
                std::unique_ptr<SyncTransporter>&& transporter);
@@ -32,7 +32,7 @@ class AutoRecorder : public Recorder {
 
   ~AutoRecorder() override;
 
-  void RecordSpan(collector::Span&& span) noexcept override;
+  void RecordSpan(const collector::Span& span) noexcept override;
 
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;

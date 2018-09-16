@@ -6,7 +6,7 @@
 #include "recorder.h"
 
 namespace lightstep {
-class LightStepTracerImpl
+class LightStepTracerImpl final
     : public LightStepTracer,
       public std::enable_shared_from_this<LightStepTracerImpl> {
  public:
@@ -14,7 +14,7 @@ class LightStepTracerImpl
                       std::unique_ptr<Recorder>&& recorder) noexcept;
 
   LightStepTracerImpl(std::shared_ptr<Logger> logger,
-                      const PropagationOptions& propgation_options,
+                      const PropagationOptions& propagation_options,
                       std::unique_ptr<Recorder>&& recorder) noexcept;
 
   std::unique_ptr<opentracing::Span> StartSpanWithOptions(

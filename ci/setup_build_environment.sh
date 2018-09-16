@@ -11,4 +11,8 @@ apt-get install --no-install-recommends --no-install-suggests -y \
                 automake \
                 autogen \
                 autoconf \
-                libtool
+                libtool \
+                gnupg2 \
+                ssh \
+                python python-setuptools python-pip
+pip install gcovr
