@@ -120,6 +120,8 @@ if (WITH_GRPC)
   if (gRPC_FOUND)
     set(GRPC_CPP_PLUGIN $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
     list(APPEND LIGHTSTEP_LINK_LIBRARIES gRPC::grpc++)
+    include_directories(SYSTEM
+          $<TARGET_PROPERTY:gRPC::grpc++,INTERFACE_INCLUDE_DIRECTORIES>)
   else()
     message("Falling back to finding gRPC with pkg-config")
     find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
