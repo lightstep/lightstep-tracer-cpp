@@ -48,7 +48,8 @@ message Reference {
 
 message StreamInitialization {
   uint64 reporter_id = 1;
-  repeated KeyValue tags = 2;
+  Auth auth = 2;
+  repeated KeyValue tags = 3;
 }
 
 message Span {

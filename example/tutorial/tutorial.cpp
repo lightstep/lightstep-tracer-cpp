@@ -10,7 +10,12 @@ using namespace opentracing;
 int main() {
   LightStepTracerOptions options;
   options.verbose = true;
+  options.use_stream_recorder = true;
   options.component_name = "Tutorial";
+  options.collector_plaintext = true;
+  options.collector_host = "127.0.0.1";
+  options.collector_port = 9994;
+  /* options.collector_port = 9995; */
 
   // Optionally, by setting `options.logger_sink`, you can customize where logs
   // from the LightStep tracer are recorded.
@@ -21,6 +26,7 @@ int main() {
 
   if (const char* access_token = std::getenv("LIGHTSTEP_ACCESS_TOKEN")) {
     options.access_token = access_token;
+    std::cout << "access_token = " << access_token << "\n";
   } else {
     std::cerr << "You must set the environmental variable "
                  "`LIGHTSTEP_ACCESS_TOKEN` to your access token!\n";

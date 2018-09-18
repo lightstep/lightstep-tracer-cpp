@@ -14,6 +14,7 @@ static collector::StreamInitialization MakeStreamInitializationMessage(
     const LightStepTracerOptions& options) {
   collector::StreamInitialization initialization;
   initialization.set_reporter_id(GenerateId());
+  initialization.mutable_auth()->set_access_token(options.access_token);
   auto& tags = *initialization.mutable_tags();
   tags.Reserve(static_cast<int>(options.tags.size()));
   for (const auto& tag : options.tags) {
@@ -34,7 +35,7 @@ StreamRecorder::StreamRecorder(Logger& logger, LightStepTracerOptions&& options,
   notification_threshold_ =
       static_cast<size_t>(options.message_buffer_size * 0.10);
   streamer_thread_ = std::thread{&StreamRecorder::RunStreamer, this};
-  if (!message_buffer_.Add(MakeStreamInitializationMessage(options))) {
+  if (!message_buffer_.Add(MakeStreamInitializationMessage(options_))) {
     throw std::runtime_error{"buffer size is too small"};
   }
 }
