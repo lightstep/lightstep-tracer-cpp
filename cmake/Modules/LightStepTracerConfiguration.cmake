@@ -1,7 +1,7 @@
 set(PROTO_PATH "${CMAKE_SOURCE_DIR}/configuration-proto")
 
 set(TRACER_CONFIGURATION_PROTO ${PROTO_PATH}/tracer_configuration.proto)
-set(GENERATED_PROTOBUF_PATH ${CMAKE_BINARY_DIR}/generated/lightstep-tracer-configuration)
+set(GENERATED_PROTOBUF_PATH ${CMAKE_BINARY_DIR}/generated/configuration-proto)
 file(MAKE_DIRECTORY ${GENERATED_PROTOBUF_PATH})
 
 set(TRACER_CONFIGURATION_PB_CPP_FILE ${GENERATED_PROTOBUF_PATH}/tracer_configuration.pb.cc)

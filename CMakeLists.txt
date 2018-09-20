@@ -142,6 +142,18 @@ if (BUILD_BENCHMARKING)
 endif()
 
 # ==============================================================================
+# Set up protobuf code
+
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
+include(LightStepTracerCommon)
+include(LightStepTracerConfiguration)
+
+if (BUILD_BENCHMARKING)
+  include(UploadBenchmarkConfiguration)
+endif()
+
+
+# ==============================================================================
 # Build LightStep tracer library
 
 add_subdirectory(3rd_party)
@@ -149,10 +161,6 @@ include_directories(SYSTEM ${LIGHTSTEP_THIRD_PARTY_INCLUDES})
 
 include_directories(include)
 install(DIRECTORY include/lightstep DESTINATION include)
-
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
-include(LightStepTracerCommon)
-include(LightStepTracerConfiguration)
 
 set(LIGHTSTEP_SRCS src/utility.cpp
                    src/in_memory_stream.cpp

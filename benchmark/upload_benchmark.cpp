@@ -2,6 +2,8 @@
 #include "grpc_dummy_satellite.h"
 #include "stream_dummy_satellite.h"
 
+#include "configuration-proto/upload_benchmark_configuration.pb.h"
+
 #include <lightstep/tracer.h>
 
 #include <chrono>

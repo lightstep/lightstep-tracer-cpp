@@ -1,7 +1,7 @@
 #include "lightstep_tracer_factory.h"
 #include <google/protobuf/util/json_util.h>
 #include <lightstep/tracer.h>
-#include "lightstep-tracer-configuration/tracer_configuration.pb.h"
+#include "configuration-proto/tracer_configuration.pb.h"
 
 namespace lightstep {
 opentracing::expected<std::shared_ptr<opentracing::Tracer>>

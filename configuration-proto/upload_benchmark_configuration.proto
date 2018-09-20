@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package lightstep.upload_benchmark_configuration;
+
+message UploadBenchmarkConfiguration {
+  // The number of spans to upload for the benchmark
+  uint32 num_spans = 1;  
+
+  // The number of threads to use when uploading spans
+  uint32 num_threads = 2;
+
+  // The target rate at which to create spans
+  uint32 max_spans_per_second = 3;
+}
