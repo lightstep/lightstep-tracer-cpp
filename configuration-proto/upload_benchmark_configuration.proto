@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package lightstep.upload_benchmark_configuration;
 
+import "tracer_configuration.proto";
+
 message UploadBenchmarkConfiguration {
   // The number of spans to upload for the benchmark
   uint32 num_spans = 1;  
@@ -11,4 +13,10 @@ message UploadBenchmarkConfiguration {
 
   // The target rate at which to create spans
   uint32 max_spans_per_second = 3;
+
+  // Creates a dummy satellite to accept spans
+  bool use_dummy_satellite = 4;
+
+  // Configuration to use for the tracer
+  lightstep.tracer_configuration.TracerConfiguration tracer_configuration = 5;
 }

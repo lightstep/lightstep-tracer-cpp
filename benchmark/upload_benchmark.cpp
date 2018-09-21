@@ -4,11 +4,15 @@
 
 #include "configuration-proto/upload_benchmark_configuration.pb.h"
 
+#include <google/protobuf/util/json_util.h>
 #include <lightstep/tracer.h>
 
+#include <cerrno>
 #include <chrono>
 #include <cstdlib>
+#include <cstring>
 #include <exception>
+#include <fstream>
 #include <iostream>
 #include <set>
 #include <thread>
@@ -160,6 +164,35 @@ static std::shared_ptr<opentracing::Tracer> SetupStreamTracer(
   auto stream_satellite = new StreamDummySatellite{"127.0.0.1", 9000};
   satellite.reset(stream_satellite);
   return MakeLightStepTracer(std::move(options));
+}
+
+//------------------------------------------------------------------------------
+// ParseBenchmarkConfiguration
+//------------------------------------------------------------------------------
+static lightstep::upload_benchmark_configuration::UploadBenchmarkConfiguration
+ParseBenchmarkConfiguration(const char* filename) {
+  std::ifstream in{filename};
+  if (!in.good()) {
+    std::cerr << "Failed to open " << filename << ": " << std::strerror(errno)
+              << "\n";
+    std::terminate();
+  }
+  std::string configuration{std::istreambuf_iterator<char>{in},
+                            std::istreambuf_iterator<char>{}};
+  if (!in.good()) {
+    std::cerr << "Iostream error: " << std::strerror(errno) << "\n";
+    std::terminate();
+  }
+  lightstep::upload_benchmark_configuration::UploadBenchmarkConfiguration
+      result;
+  auto parse_result =
+      google::protobuf::util::JsonStringToMessage(configuration, &result);
+  if (!parse_result.ok()) {
+    std::cerr << "Failed to parse benchmark configuration: "
+              << parse_result.ToString() << "\n";
+    std::terminate();
+  }
+  return result;
 }
 
 //------------------------------------------------------------------------------
