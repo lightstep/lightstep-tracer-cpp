@@ -2,6 +2,7 @@
 
 #include "atomic_bit_set.h"
 #include "circular_buffer.h"
+#include "packet_header.h"
 
 #include <google/protobuf/message.h>
 
@@ -13,7 +14,8 @@ class MessageBuffer {
 
   explicit MessageBuffer(size_t num_bytes);
 
-  bool Add(const google::protobuf::Message& message) noexcept;
+  bool Add(PacketType packet_type,
+           const google::protobuf::Message& message) noexcept;
 
   bool Consume(ConsumerFunction consumer, void* context);
 

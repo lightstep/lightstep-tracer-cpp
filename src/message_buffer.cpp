@@ -42,7 +42,8 @@ MessageBuffer::MessageBuffer(size_t size) : buffer_{size}, ready_flags_{size} {}
 //------------------------------------------------------------------------------
 // Add
 //------------------------------------------------------------------------------
-bool MessageBuffer::Add(const google::protobuf::Message& message) noexcept {
+bool MessageBuffer::Add(PacketType packet_type,
+                        const google::protobuf::Message& message) noexcept {
   auto body_size = message.ByteSizeLong();
 
   auto placement = buffer_.Reserve(body_size + PacketHeader::size);
@@ -52,7 +53,8 @@ bool MessageBuffer::Add(const google::protobuf::Message& message) noexcept {
     return false;
   }
 
-  PacketHeader header{1, static_cast<uint32_t>(body_size)};
+  // TODO: Need to specify a type here
+  PacketHeader header{packet_type, static_cast<uint32_t>(body_size)};
   SerializePacket(header, message, placement);
 
   // Mark the span as ready to send to the satellite.

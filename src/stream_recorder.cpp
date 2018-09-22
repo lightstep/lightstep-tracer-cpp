@@ -35,7 +35,8 @@ StreamRecorder::StreamRecorder(Logger& logger, LightStepTracerOptions&& options,
   notification_threshold_ =
       static_cast<size_t>(options.message_buffer_size * 0.10);
   streamer_thread_ = std::thread{&StreamRecorder::RunStreamer, this};
-  if (!message_buffer_.Add(MakeStreamInitializationMessage(options_))) {
+  if (!message_buffer_.Add(PacketType::Initiation,
+                           MakeStreamInitializationMessage(options_))) {
     throw std::runtime_error{"buffer size is too small"};
   }
 }
@@ -52,7 +53,7 @@ StreamRecorder::~StreamRecorder() {
 // RecordSpan
 //------------------------------------------------------------------------------
 void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
-  message_buffer_.Add(span);
+  message_buffer_.Add(PacketType::Span, span);
 
   // notifying the condition variable has a signficant performance cost, so
   // make an effort to make sure it's worthwhile before doing so.

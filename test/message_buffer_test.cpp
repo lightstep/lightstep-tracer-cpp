@@ -23,15 +23,15 @@ TEST_CASE("MessageBuffer") {
       "We can successfully add `max_spans` into `message_buffer` before spans "
       "are dropped.") {
     for (int i = 0; i < static_cast<int>(max_spans); ++i) {
-      CHECK(message_buffer.Add(span));
+      CHECK(message_buffer.Add(PacketType::Span, span));
     }
-    CHECK(!message_buffer.Add(span));
+    CHECK(!message_buffer.Add(PacketType::Span, span));
   }
 
   SECTION(
       "After adding a single span, the consumer is alloted the bytes from "
       "the span.") {
-    message_buffer.Add(span);
+    message_buffer.Add(PacketType::Span, span);
     message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
           CHECK(num_bytes == packet_size);
@@ -43,8 +43,8 @@ TEST_CASE("MessageBuffer") {
   SECTION(
       "After adding two spans, the consumer is alloted the bytes from both the "
       "spans.") {
-    message_buffer.Add(span);
-    message_buffer.Add(span);
+    message_buffer.Add(PacketType::Span, span);
+    message_buffer.Add(PacketType::Span, span);
     message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
           CHECK(num_bytes == 2 * packet_size);
@@ -57,7 +57,7 @@ TEST_CASE("MessageBuffer") {
       "If we fill the buffer, then consume a span, we are able to fit "
       "another span.") {
     for (int i = 0; i < static_cast<int>(max_spans); ++i) {
-      CHECK(message_buffer.Add(span));
+      CHECK(message_buffer.Add(PacketType::Span, span));
     }
     message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
@@ -65,15 +65,15 @@ TEST_CASE("MessageBuffer") {
           return packet_size;
         },
         nullptr);
-    CHECK(message_buffer.Add(span));
-    CHECK(!message_buffer.Add(span));
+    CHECK(message_buffer.Add(PacketType::Span, span));
+    CHECK(!message_buffer.Add(PacketType::Span, span));
   }
 
   SECTION(
       "If the circular buffer wraps, we're only allowed to consume the largest "
       "contiguous block of memory") {
     for (int i = 0; i < static_cast<int>(max_spans); ++i) {
-      CHECK(message_buffer.Add(span));
+      CHECK(message_buffer.Add(PacketType::Span, span));
     }
     message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
@@ -81,7 +81,7 @@ TEST_CASE("MessageBuffer") {
           return packet_size;
         },
         nullptr);
-    CHECK(message_buffer.Add(span));
+    CHECK(message_buffer.Add(PacketType::Span, span));
     message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
           CHECK(num_bytes == (max_spans - 1) * packet_size + 1);
@@ -99,14 +99,14 @@ TEST_CASE("MessageBuffer") {
   SECTION(
       "If we consume are partial packet, the next packet added can still be "
       "allotted to the consumer.") {
-    CHECK(message_buffer.Add(span));
+    CHECK(message_buffer.Add(PacketType::Span, span));
     message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
           CHECK(num_bytes == packet_size);
           return packet_size / 2;
         },
         nullptr);
-    CHECK(message_buffer.Add(span));
+    CHECK(message_buffer.Add(PacketType::Span, span));
     message_buffer.Consume(
         [](void* /*context*/, const char* /*data*/, size_t num_bytes) {
           CHECK(num_bytes == 2 * packet_size - packet_size / 2);
