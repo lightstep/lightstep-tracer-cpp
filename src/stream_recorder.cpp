@@ -32,6 +32,11 @@ StreamRecorder::StreamRecorder(Logger& logger, LightStepTracerOptions&& options,
       options_{std::move(options)},
       transporter_{std::move(transporter)},
       message_buffer_{options_.message_buffer_size} {
+  // If no MetricsObserver was provided, use a default one that does nothing.
+  if (options_.metrics_observer == nullptr) {
+    options_.metrics_observer.reset(new MetricsObserver{});
+  }
+
   notification_threshold_ =
       static_cast<size_t>(options.message_buffer_size * 0.10);
   streamer_thread_ = std::thread{&StreamRecorder::RunStreamer, this};
@@ -53,7 +58,10 @@ StreamRecorder::~StreamRecorder() {
 // RecordSpan
 //------------------------------------------------------------------------------
 void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
-  message_buffer_.Add(PacketType::Span, span);
+  if (!message_buffer_.Add(PacketType::Span, span)) {
+    ++num_dropped_spans_;
+    options_.metrics_observer->OnSpansDropped(1);
+  }
 
   // notifying the condition variable has a signficant performance cost, so
   // make an effort to make sure it's worthwhile before doing so.
@@ -135,5 +143,23 @@ size_t StreamRecorder::Consume(void* context, const char* data,
                                size_t num_bytes) {
   auto& stream_recorder = *static_cast<StreamRecorder*>(context);
   return stream_recorder.transporter_->Write(data, num_bytes);
+}
+
+//------------------------------------------------------------------------------
+// UpdateMetricsReport
+//------------------------------------------------------------------------------
+void StreamRecorder::UpdateMetricsReport() {
+  auto num_dropped_spans = num_dropped_spans_.exchange(0);
+  if (num_dropped_spans == 0) {
+    return;
+  }
+  collector::InternalMetrics report;
+  auto count = report.add_counts();
+  count->set_name("spans.dropped");
+  count->set_int_value(num_dropped_spans);
+  if (!message_buffer_.Add(PacketType::Metrics, report)) {
+    // Add the dropped spans back since we failed to add the report.
+    num_dropped_spans_ += num_dropped_spans;
+  }
 }
 }  // namespace lightstep

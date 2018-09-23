@@ -34,6 +34,8 @@ class StreamRecorder final : public Recorder {
   std::atomic<bool> waiting_{false};
   bool exit_streamer_{false};
 
+  std::atomic<size_t> num_dropped_spans_{0};
+
   void RunStreamer() noexcept;
 
   void MakeStreamerExit() noexcept;
@@ -41,5 +43,7 @@ class StreamRecorder final : public Recorder {
   bool SleepForNextPoll();
 
   static size_t Consume(void* context, const char* data, size_t num_bytes);
+
+  void UpdateMetricsReport();
 };
 }  // namespace lightstep
