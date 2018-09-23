@@ -99,13 +99,17 @@ void StreamDummySatellite::ProcessSession(StreamSession& session) {
     std::terminate();
   }
   while (session.ReadUntilNextMessage()) {
-    collector::Span span;
-    if (!session.ConsumeMessage(span)) {
-      std::cerr << "Faild to consume span\n";
-      std::terminate();
+    switch (session.next_packet_type()) {
+      case PacketType::Span:
+        ConsumeSpanMessage(session);
+        break;
+      case PacketType::Metrics:
+        ConsumeMetricsMessage(session);
+        break;
+      case PacketType::Initiation:
+        std::cerr << "Unexpected initiation message\n";
+        std::terminate();
     }
-    std::unique_lock<std::mutex> lock{mutex_};
-    span_ids_.push_back(span.span_context().span_id());
   }
 }
 
@@ -133,5 +137,29 @@ void StreamDummySatellite::Close() {
     return;
   }
   thread_.join();
+}
+
+//------------------------------------------------------------------------------
+// ConsumeSpanMessage
+//------------------------------------------------------------------------------
+void StreamDummySatellite::ConsumeSpanMessage(StreamSession& session) {
+  collector::Span span;
+  if (!session.ConsumeMessage(span)) {
+    std::cerr << "Faild to consume span\n";
+    std::terminate();
+  }
+  std::unique_lock<std::mutex> lock{mutex_};
+  span_ids_.push_back(span.span_context().span_id());
+}
+
+//------------------------------------------------------------------------------
+// ConsumeMetricsMessage
+//------------------------------------------------------------------------------
+void StreamDummySatellite::ConsumeMetricsMessage(StreamSession& session) {
+  collector::InternalMetrics metrics;
+  if (!session.ConsumeMessage(metrics)) {
+    std::cerr << "Faild to consume metrics\n";
+    std::terminate();
+  }
 }
 }  // namespace lightstep

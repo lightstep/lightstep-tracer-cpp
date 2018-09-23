@@ -149,6 +149,7 @@ void StreamSession::ConsumeHeader() {
 
   buffer_.Consume(PacketHeader::size);
   require_header_ = false;
+  packet_type_ = header.type();
   required_size_ = header.body_size();
   if (required_size_ > buffer_.capacity() - 1) {
     std::cerr << "Message is too big\n";

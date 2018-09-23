@@ -100,8 +100,16 @@ bool StreamRecorder::FlushWithTimeout(
 void StreamRecorder::RunStreamer() noexcept try {
   while (SleepForNextPoll()) {
     while (true) {
-      if (!message_buffer_.Consume(StreamRecorder::Consume,
-                                   static_cast<void*>(this))) {
+      // Keep uploading messages to the satellite until the buffer is empty.
+      while (true) {
+        if (!message_buffer_.Consume(StreamRecorder::Consume,
+                                     static_cast<void*>(this))) {
+          break;
+        }
+      }
+
+      // If there are any relevant stats to send, then upload a metrics report.
+      if (!UpdateMetricsReport()) {
         break;
       }
     }
@@ -148,10 +156,10 @@ size_t StreamRecorder::Consume(void* context, const char* data,
 //------------------------------------------------------------------------------
 // UpdateMetricsReport
 //------------------------------------------------------------------------------
-void StreamRecorder::UpdateMetricsReport() {
+bool StreamRecorder::UpdateMetricsReport() {
   auto num_dropped_spans = num_dropped_spans_.exchange(0);
   if (num_dropped_spans == 0) {
-    return;
+    return false;
   }
   collector::InternalMetrics report;
   auto count = report.add_counts();
@@ -161,5 +169,6 @@ void StreamRecorder::UpdateMetricsReport() {
     // Add the dropped spans back since we failed to add the report.
     num_dropped_spans_ += num_dropped_spans;
   }
+  return true;
 }
 }  // namespace lightstep

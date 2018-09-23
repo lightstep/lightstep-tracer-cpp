@@ -31,5 +31,8 @@ class StreamDummySatellite : public DummySatellite {
   void ProcessConnections();
 
   void ProcessSession(StreamSession& session);
+
+  void ConsumeSpanMessage(StreamSession& session);
+  void ConsumeMetricsMessage(StreamSession& session);
 };
 }  // namespace lightstep

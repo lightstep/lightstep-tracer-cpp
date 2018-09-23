@@ -15,8 +15,11 @@ class StreamSession {
 
   bool ConsumeMessage(google::protobuf::Message& message);
 
+  PacketType next_packet_type() const noexcept { return packet_type_; }
+
  private:
   bool require_header_{true};
+  PacketType packet_type_;
   size_t required_size_{PacketHeader::size};
 
   Socket socket_;

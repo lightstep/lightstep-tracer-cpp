@@ -44,6 +44,6 @@ class StreamRecorder final : public Recorder {
 
   static size_t Consume(void* context, const char* data, size_t num_bytes);
 
-  void UpdateMetricsReport();
+  bool UpdateMetricsReport();
 };
 }  // namespace lightstep
