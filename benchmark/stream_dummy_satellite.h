@@ -25,6 +25,7 @@ class StreamDummySatellite : public DummySatellite {
   std::thread thread_;
   mutable std::mutex mutex_;
   std::vector<uint64_t> span_ids_;
+  size_t num_dropped_spans_{0};
   Socket listen_socket_;
   std::atomic<bool> running_{true};
 

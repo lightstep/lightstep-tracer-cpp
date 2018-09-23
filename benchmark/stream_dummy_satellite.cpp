@@ -161,5 +161,10 @@ void StreamDummySatellite::ConsumeMetricsMessage(StreamSession& session) {
     std::cerr << "Faild to consume metrics\n";
     std::terminate();
   }
+  for (auto& count : metrics.counts()) {
+    if (count.name() == "spans.dropped") {
+      num_dropped_spans_ += count.int_value();
+    }
+  }
 }
 }  // namespace lightstep
