@@ -37,6 +37,12 @@ grpc::Status GrpcDummySatellite::Report(
   for (auto& span : request->spans()) {
     span_ids_.push_back(span.span_context().span_id());
   }
+  auto& metrics = request->internal_metrics();
+  for (auto& count : metrics.counts()) {
+    if (count.name() == "spans.dropped") {
+      num_dropped_spans_ += count.int_value();
+    }
+  }
   return grpc::Status::OK;
 }
 

@@ -31,6 +31,7 @@ class GrpcDummySatellite final : public DummySatellite,
 
   mutable std::mutex mutex_;
   std::vector<uint64_t> span_ids_;
+  size_t num_dropped_spans_{0};
 
   grpc::Status Report(grpc::ServerContext* context,
                       const lightstep::collector::ReportRequest* request,
