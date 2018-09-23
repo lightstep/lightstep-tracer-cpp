@@ -21,6 +21,8 @@ class GrpcDummySatellite final : public DummySatellite,
 
   std::vector<uint64_t> span_ids() const override;
 
+  size_t num_dropped_spans() const noexcept override;
+
   void Reserve(size_t num_span_ids) override;
 
   void Close() override;

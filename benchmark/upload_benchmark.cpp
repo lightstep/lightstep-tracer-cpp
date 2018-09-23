@@ -35,6 +35,7 @@ struct UploadReport {
   size_t total_spans;
   size_t num_spans_received;
   size_t num_spans_dropped;
+  size_t num_reported_dropped_spans;
   double elapse;
   double spans_per_second;
 };
@@ -43,12 +44,14 @@ struct UploadReport {
 // MakeReport
 //------------------------------------------------------------------------------
 static UploadReport MakeReport(const std::vector<uint64_t>& sent_span_ids,
-                               const std::vector<uint64_t>& received_span_ids,
+                               const DummySatellite& satellite,
                                std::chrono::system_clock::duration elapse) {
+  auto received_span_ids = satellite.span_ids();
   UploadReport result;
   result.total_spans = sent_span_ids.size();
   result.num_spans_received = received_span_ids.size();
   result.num_spans_dropped = result.total_spans - result.num_spans_received;
+  result.num_reported_dropped_spans = satellite.num_dropped_spans();
   result.elapse =
       1.0e-6 *
       std::chrono::duration_cast<std::chrono::microseconds>(elapse).count();
@@ -122,7 +125,7 @@ static UploadReport RunUploadBenchmark(
   satellite.Close();
   auto elapse = finish_time - start_time;
 
-  return MakeReport(span_ids, satellite.span_ids(), elapse);
+  return MakeReport(span_ids, satellite, elapse);
 }
 
 //------------------------------------------------------------------------------
@@ -229,6 +232,8 @@ int main(int argc, char* argv[]) {
   std::cout << "num spans generated: " << options.num_spans << "\n";
   std::cout << "max_spans_per_second: " << options.max_spans_per_second << "\n";
   std::cout << "num spans dropped: " << report.num_spans_dropped << "\n";
+  std::cout << "num reported dropped spans: "
+            << report.num_reported_dropped_spans << "\n";
   std::cout << "elapse (seconds): " << report.elapse << "\n";
   std::cout << "spans_per_second: " << report.spans_per_second << "\n";
 

@@ -27,6 +27,14 @@ std::vector<uint64_t> GrpcDummySatellite::span_ids() const {
 }
 
 //------------------------------------------------------------------------------
+// num_dropped_spans
+//------------------------------------------------------------------------------
+size_t GrpcDummySatellite::num_dropped_spans() const noexcept {
+  std::unique_lock<std::mutex> lock{mutex_};
+  return num_dropped_spans_;
+}
+
+//------------------------------------------------------------------------------
 // Report
 //------------------------------------------------------------------------------
 grpc::Status GrpcDummySatellite::Report(

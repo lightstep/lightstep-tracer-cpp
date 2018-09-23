@@ -122,6 +122,14 @@ std::vector<uint64_t> StreamDummySatellite::span_ids() const {
 }
 
 //------------------------------------------------------------------------------
+// num_dropped_spans
+//------------------------------------------------------------------------------
+size_t StreamDummySatellite::num_dropped_spans() const noexcept {
+  std::unique_lock<std::mutex> lock{mutex_};
+  return num_dropped_spans_;
+}
+
+//------------------------------------------------------------------------------
 // Reserve
 //------------------------------------------------------------------------------
 void StreamDummySatellite::Reserve(size_t num_span_ids) {
@@ -161,6 +169,7 @@ void StreamDummySatellite::ConsumeMetricsMessage(StreamSession& session) {
     std::cerr << "Faild to consume metrics\n";
     std::terminate();
   }
+  std::unique_lock<std::mutex> lock{mutex_};
   for (auto& count : metrics.counts()) {
     if (count.name() == "spans.dropped") {
       num_dropped_spans_ += count.int_value();

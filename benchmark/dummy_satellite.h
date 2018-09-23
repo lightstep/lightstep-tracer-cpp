@@ -12,6 +12,8 @@ class DummySatellite {
 
   virtual std::vector<uint64_t> span_ids() const = 0;
 
+  virtual size_t num_dropped_spans() const noexcept = 0;
+
   virtual void Close() = 0;
 };
 }  // namespace lightstep
