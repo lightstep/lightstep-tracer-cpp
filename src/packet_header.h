@@ -19,17 +19,23 @@ class PacketHeader {
 
   PacketHeader(PacketType type, uint32_t body_size) noexcept;
 
+  PacketHeader(uint8_t version, PacketType type, uint32_t body_size);
+
   void serialize(char* data) const noexcept;
+
+  uint8_t version() const noexcept { return version_; }
 
   PacketType type() const noexcept { return type_; }
 
   uint32_t body_size() const noexcept { return body_size_; }
 
  private:
+  uint8_t version_{1};
   PacketType type_{};
   uint32_t body_size_{0};
 
  public:
-  static const size_t size = sizeof(type_) + sizeof(body_size_);
+  static const size_t size =
+      sizeof(version_) + sizeof(type_) + sizeof(body_size_);
 };
 }  // namespace lightstep

@@ -10,6 +10,9 @@ namespace lightstep {
 // constructor
 //------------------------------------------------------------------------------
 PacketHeader::PacketHeader(const char* data) noexcept {
+  std::copy_n(data, sizeof(version_), reinterpret_cast<char*>(&version_));
+  data += sizeof(version_);
+
   std::copy_n(data, sizeof(type_), reinterpret_cast<char*>(&type_));
   data += sizeof(type_);
 
@@ -22,10 +25,16 @@ PacketHeader::PacketHeader(const char* data) noexcept {
 PacketHeader::PacketHeader(PacketType type, uint32_t body_size) noexcept
     : type_{type}, body_size_{body_size} {}
 
+PacketHeader::PacketHeader(uint8_t version, PacketType type, uint32_t body_size)
+    : version_{version}, type_{type}, body_size_{body_size} {}
+
 //------------------------------------------------------------------------------
 // serialize
 //------------------------------------------------------------------------------
 void PacketHeader::serialize(char* data) const noexcept {
+  std::copy_n(reinterpret_cast<const char*>(&version_), sizeof(version_), data);
+  data += sizeof(version_);
+
   std::copy_n(reinterpret_cast<const char*>(&type_), sizeof(type_), data);
   data += sizeof(type_);
 

@@ -6,11 +6,12 @@ using namespace lightstep;
 
 TEST_CASE("PacketHeader") {
   char buffer[PacketHeader::size];
-  PacketHeader header1{PacketType::Span, 156};
+  PacketHeader header1{3, PacketType::Span, 156};
   header1.serialize(buffer);
 
   PacketHeader header2{buffer};
 
+  CHECK(header2.version() == 3);
   CHECK(header2.type() == PacketType::Span);
   CHECK(header2.body_size() == 156);
 }
