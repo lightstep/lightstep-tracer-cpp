@@ -99,9 +99,9 @@ bool StreamRecorder::FlushWithTimeout(
 //------------------------------------------------------------------------------
 void StreamRecorder::RunStreamer() noexcept try {
   while (SleepForNextPoll()) {
-    while (true) {
+    while (!exit_streamer_) {
       // Keep uploading messages to the satellite until the buffer is empty.
-      while (true) {
+      while (!exit_streamer_) {
         if (!message_buffer_.Consume(StreamRecorder::Consume,
                                      static_cast<void*>(this))) {
           break;
@@ -124,10 +124,7 @@ void StreamRecorder::RunStreamer() noexcept try {
 // MakeStreamerExit
 //------------------------------------------------------------------------------
 void StreamRecorder::MakeStreamerExit() noexcept {
-  {
-    std::unique_lock<std::mutex> lock{mutex_};
-    exit_streamer_ = true;
-  }
+  exit_streamer_ = true;
   condition_variable_.notify_all();
 }
 

@@ -32,7 +32,7 @@ class StreamRecorder final : public Recorder {
   MessageBuffer message_buffer_;
 
   std::atomic<bool> waiting_{false};
-  bool exit_streamer_{false};
+  std::atomic<bool> exit_streamer_{false};
 
   std::atomic<size_t> num_dropped_spans_{0};
 
