@@ -90,12 +90,12 @@ void StreamDummySatellite::ProcessConnections() {
 //------------------------------------------------------------------------------
 void StreamDummySatellite::ProcessSession(StreamSession& session) {
   if (!session.ReadUntilNextMessage()) {
-    std::cerr << "Expected initialization message\n";
+    std::cerr << "Expected initiation message\n";
     std::terminate();
   }
-  collector::StreamInitialization initialization;
-  if (!session.ConsumeMessage(initialization)) {
-    std::cerr << "Failed to consume initialization message\n";
+  collector::StreamInitiation initiation;
+  if (!session.ConsumeMessage(initiation)) {
+    std::cerr << "Failed to consume initiation message\n";
     std::terminate();
   }
   while (session.ReadUntilNextMessage()) {

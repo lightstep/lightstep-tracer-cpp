@@ -46,7 +46,7 @@ message Reference {
     SpanContext span_context = 2;
 }
 
-message StreamInitialization {
+message StreamInitiation {
   uint64 reporter_id = 1;
   Auth auth = 2;
   repeated KeyValue tags = 3;
