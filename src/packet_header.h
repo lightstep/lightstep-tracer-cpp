@@ -6,7 +6,7 @@
 #include <google/protobuf/io/coded_stream.h>
 
 namespace lightstep {
-enum class PacketType : uint8_t { Initiation, Span, Metrics };
+enum class PacketType : uint8_t { Initiation = 0, Span = 1, Metrics = 2 };
 
 class PacketHeader {
  public:
