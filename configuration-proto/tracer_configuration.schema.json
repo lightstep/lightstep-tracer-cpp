@@ -35,10 +35,21 @@
       "description": "Set `use_single_key_propagation` to Inject/Extract span context as a single\nkey in TextMap and HTTPHeaders carriers."
     },
 
+    "use_stream_recorder": {
+      "type": "boolean",
+      "description": "Exprimental: Set `use_stream_recorder` to enable faster uploading of spans."
+    },
+
     "max_buffered_spans": {
       "type": "integer",
       "minimum": 1,
       "description": "`max_buffered_spans` is the maximum number of spans that will be buffered\nbefore sending them to a collector."
+    },
+
+    "message_buffer_size": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "`message_buffer_size` is the buffer size (in bytes) in which to store spans\nbefore sending to the satellite.\n\nNote: Only used with the streaming recorder."
     },
 
     "reporting_period": {

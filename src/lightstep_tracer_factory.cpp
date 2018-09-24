@@ -29,8 +29,14 @@ LightStepTracerFactory::MakeTracer(const char* configuration,
   options.use_single_key_propagation =
       tracer_configuration.use_single_key_propagation();
 
+  options.use_stream_recorder = tracer_configuration.use_stream_recorder();
+
   if (tracer_configuration.max_buffered_spans() != 0) {
     options.max_buffered_spans = tracer_configuration.max_buffered_spans();
+  }
+
+  if (tracer_configuration.message_buffer_size() != 0) {
+    options.message_buffer_size = tracer_configuration.message_buffer_size();
   }
 
   if (tracer_configuration.reporting_period() != 0) {

@@ -28,22 +28,31 @@ message TracerConfiguration {
   // key in TextMap and HTTPHeaders carriers.
   bool use_single_key_propagation = 6;
 
+  // Exprimental: Enable streaming recorder for faster uploading of spans.
+  bool use_stream_recorder = 7;
+
   // `max_buffered_spans` is the maximum number of spans that will be buffered
   // before sending them to a collector.
-  uint32 max_buffered_spans = 7;
+  uint32 max_buffered_spans = 8;
+
+  // `message_buffer_size` is the buffer size (in bytes) in which to store spans
+  // before sending to the satellite.
+  //
+  // Note: Only used with the streaming recorder.
+  uint32 message_buffer_size = 9;
 
   // `reporting_period` is the maximum duration of time between sending spans
   // to a collector. (In microseconds). 
-  uint32 reporting_period = 8;
+  uint32 reporting_period = 10;
 
   // `report_timeout` is the timeout to use when sending a reports to the
   // collector. (In microseconds).
-  uint32 report_timeout = 9;
+  uint32 report_timeout = 11;
 
   // `ssl_root_certificates` specifies the CA certificates to use when
   // transporting spans to the collector.  If not set, LightStep will try to 
   // use CA certificates located in standard system locations.
   //
   // Note: `ssl_root_certificates` should follow the PEM format.
-  string ssl_root_certificates = 10;
+  string ssl_root_certificates = 12;
 }
