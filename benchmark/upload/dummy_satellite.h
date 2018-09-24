@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "configuration-proto/upload_benchmark_configuration.pb.h"
+
 namespace lightstep {
 class DummySatellite {
  public:
@@ -16,4 +18,7 @@ class DummySatellite {
 
   virtual void Close() = 0;
 };
+
+std::unique_ptr<DummySatellite> MakeDummySatellite(
+    const tracer_configuration::TracerConfiguration& configuration);
 }  // namespace lightstep

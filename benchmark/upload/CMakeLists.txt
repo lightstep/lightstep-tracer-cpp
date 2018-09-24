@@ -1,4 +1,5 @@
 add_executable(upload_benchmark upload_benchmark.cpp 
+                                dummy_satellite.cpp
                                 grpc_dummy_satellite.cpp
                                 stream_dummy_satellite.cpp
                                 stream_session.cpp)
