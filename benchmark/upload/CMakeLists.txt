@@ -2,7 +2,8 @@ add_executable(upload_benchmark upload_benchmark.cpp
                                 dummy_satellite.cpp
                                 grpc_dummy_satellite.cpp
                                 stream_dummy_satellite.cpp
-                                stream_session.cpp)
+                                stream_session.cpp
+                                upload_benchmark_report.cpp)
 target_link_libraries(upload_benchmark lightstep_tracer
                                        ${LIGHTSTEP_LINK_LIBRARIES}
                                        $<TARGET_OBJECTS:upload_benchmark_configuration>)
