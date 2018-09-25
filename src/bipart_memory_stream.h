@@ -30,7 +30,7 @@ class BipartMemoryOutputStream final
   size_t num_bytes_written_ = 0;
 };
 
-// A ZeroCopyOutputStream that can be used to read from two separate blocks of
+// A ZeroCopyInputStream that can be used to read from two separate blocks of
 // memory.
 //
 // See BipartMemoryOutputStream
