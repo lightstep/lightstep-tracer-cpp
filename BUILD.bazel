@@ -12,8 +12,8 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//lightstep-tracer-common:collector_proto_cc",
-        "//lightstep-tracer-configuration:tracer_configuration_proto_cc",
         "//lightstep-tracer-common:lightstep_carrier_proto_cc",
+        "//configuration-proto:tracer_configuration_proto_cc",
         ":3rd_party_base64",
         ":3rd_party_randutils",
         ":3rd_party_catch",
@@ -42,6 +42,8 @@ genrule(
     LIGHTSTEP_ROOT=$$(dirname $${PWD}/$(location :CMakeLists.txt))
     cd $$TEMP_DIR
     cmake \\
+        -DCMAKE_C_COMPILER=$$(which $(CC)) \\
+        -DCMAKE_CXX_COMPILER=$$(which $(CC)++) \\
         -DWITH_GRPC=OFF \\
         -DHEADERS_ONLY=ON \\
         -L \\
