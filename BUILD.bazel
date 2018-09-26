@@ -43,7 +43,7 @@ genrule(
     cd $$TEMP_DIR
     cmake \\
         -DCMAKE_C_COMPILER=$$(which $(CC)) \\
-        -DCMAKE_CXX_COMPILER=$$(which $(CC)++) \\
+        -DCMAKE_CXX_COMPILER=$$(which $(CC))++ \\
         -DWITH_GRPC=OFF \\
         -DHEADERS_ONLY=ON \\
         -L \\
