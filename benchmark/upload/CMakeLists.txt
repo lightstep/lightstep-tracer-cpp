@@ -5,7 +5,6 @@ add_executable(upload_benchmark upload_benchmark.cpp
                                 stream_session.cpp
                                 upload_benchmark.cpp
                                 upload_benchmark_report.cpp
-                                tracer.cpp
                                 main.cpp)
 target_link_libraries(upload_benchmark lightstep_tracer
                                        ${LIGHTSTEP_LINK_LIBRARIES}
