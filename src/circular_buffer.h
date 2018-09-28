@@ -5,6 +5,12 @@
 #include <memory>
 
 namespace lightstep {
+// Represents a block of data in a circular buffer.
+//
+// If the data is contiguous in memory, data1 points to the area its area in
+// memory and size1 equals the total size. Otherwise, if the data wraps the ends
+// around the ends of the circular buffer, data1, size1 represents the first
+// block and data2, size2 represents the second block.
 struct CircularBufferPlacement {
   char* data1;
   size_t size1;
@@ -12,6 +18,9 @@ struct CircularBufferPlacement {
   size_t size2;
 };
 
+// Represents a const block of data in a circular buffer.
+//
+// See CircularBufferPlacement.
 struct CircularBufferConstPlacement {
   const char* data1;
   size_t size1;
@@ -19,6 +28,8 @@ struct CircularBufferConstPlacement {
   size_t size2;
 };
 
+// A lock-free circular buffer that supports multiple concurrent producers
+// and a single consumer.
 class CircularBuffer {
  public:
   explicit CircularBuffer(size_t capacity);
