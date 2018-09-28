@@ -13,6 +13,8 @@ function run_upload_benchmark {
         for max_spans_per_second in 5000 10000 20000 50000 100000 200000 500000 1000000; do
           OUTPUT_FILE=/benchmark-results/upload_${recorder}.out
           echo "**********************************" >> $OUTPUT_FILE
+          echo "./benchmark/upload/upload_benchmark ${recorder} ${max_buffered_spans} \
+                    ${threads} 500000 ${max_spans_per_second}"
           ./benchmark/upload/upload_benchmark ${recorder} ${max_buffered_spans} \
             ${threads} 500000 ${max_spans_per_second} >> $OUTPUT_FILE
         done
