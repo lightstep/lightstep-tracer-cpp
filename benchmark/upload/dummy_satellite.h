@@ -20,5 +20,5 @@ class DummySatellite {
 };
 
 std::unique_ptr<DummySatellite> MakeDummySatellite(
-    const tracer_configuration::TracerConfiguration& configuration);
+    const configuration_proto::TracerConfiguration& configuration);
 }  // namespace lightstep

@@ -7,7 +7,7 @@ namespace lightstep {
 // MakeTracerOptions
 //------------------------------------------------------------------------------
 LightStepTracerOptions MakeTracerOptions(
-    const tracer_configuration::TracerConfiguration& configuration) {
+    const configuration_proto::TracerConfiguration& configuration) {
   LightStepTracerOptions options;
   options.component_name = configuration.component_name();
   options.access_token = configuration.access_token();
@@ -51,7 +51,7 @@ opentracing::expected<std::shared_ptr<opentracing::Tracer>>
 LightStepTracerFactory::MakeTracer(const char* configuration,
                                    std::string& error_message) const
     noexcept try {
-  tracer_configuration::TracerConfiguration tracer_configuration;
+  configuration_proto::TracerConfiguration tracer_configuration;
   auto parse_result = google::protobuf::util::JsonStringToMessage(
       configuration, &tracer_configuration);
   if (!parse_result.ok()) {

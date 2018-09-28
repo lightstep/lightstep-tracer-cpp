@@ -6,7 +6,7 @@
 
 namespace lightstep {
 struct UploadBenchmarkReport {
-  upload_benchmark_configuration::UploadBenchmarkConfiguration configuration;
+  configuration_proto::UploadBenchmarkConfiguration configuration;
   size_t total_spans;
   size_t num_spans_received;
   size_t num_spans_dropped;

@@ -24,7 +24,7 @@ using namespace lightstep;
 //------------------------------------------------------------------------------
 // ParseBenchmarkConfiguration
 //------------------------------------------------------------------------------
-static lightstep::upload_benchmark_configuration::UploadBenchmarkConfiguration
+static lightstep::configuration_proto::UploadBenchmarkConfiguration
 ParseBenchmarkConfiguration(const char* filename) {
   std::ifstream in{filename};
   if (!in.good()) {
@@ -38,8 +38,7 @@ ParseBenchmarkConfiguration(const char* filename) {
     std::cerr << "Iostream error: " << std::strerror(errno) << "\n";
     std::terminate();
   }
-  lightstep::upload_benchmark_configuration::UploadBenchmarkConfiguration
-      result;
+  lightstep::configuration_proto::UploadBenchmarkConfiguration result;
   auto parse_result =
       google::protobuf::util::JsonStringToMessage(configuration, &result);
   if (!parse_result.ok()) {
@@ -61,7 +60,7 @@ int main(int argc, char* argv[]) {
   }
   std::string tracer_type{argv[1]};
 
-  upload_benchmark_configuration::UploadBenchmarkConfiguration configuration;
+  configuration_proto::UploadBenchmarkConfiguration configuration;
 
   configuration.set_num_threads(static_cast<uint32_t>(std::atoi(argv[3])));
   configuration.set_num_spans(static_cast<uint32_t>(std::atoi(argv[4])));

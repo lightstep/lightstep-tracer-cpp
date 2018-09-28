@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package lightstep.upload_benchmark_configuration;
+package lightstep.configuration_proto;
 
 import "tracer_configuration.proto";
 
@@ -18,5 +18,5 @@ message UploadBenchmarkConfiguration {
   bool use_dummy_satellite = 4;
 
   // Configuration to use for the tracer
-  lightstep.tracer_configuration.TracerConfiguration tracer_configuration = 5;
+  TracerConfiguration tracer_configuration = 5;
 }

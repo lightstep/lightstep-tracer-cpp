@@ -10,8 +10,7 @@ namespace lightstep {
 // MakeReport
 //------------------------------------------------------------------------------
 static UploadBenchmarkReport MakeReport(
-    const upload_benchmark_configuration::UploadBenchmarkConfiguration&
-        configuration,
+    const configuration_proto::UploadBenchmarkConfiguration& configuration,
     const std::vector<uint64_t>& sent_span_ids, const DummySatellite* satellite,
     std::chrono::system_clock::duration elapse) {
   auto received_span_ids = satellite->span_ids();
@@ -58,8 +57,7 @@ static void GenerateSpans(opentracing::Tracer& tracer, int num_spans,
 // RunUploadBenchmark
 //------------------------------------------------------------------------------
 UploadBenchmarkReport RunUploadBenchmark(
-    const upload_benchmark_configuration::UploadBenchmarkConfiguration&
-        configuration,
+    const configuration_proto::UploadBenchmarkConfiguration& configuration,
     DummySatellite* satellite, std::shared_ptr<opentracing::Tracer>& tracer) {
   satellite->Reserve(configuration.num_spans());
   std::vector<uint64_t> span_ids(configuration.num_spans());

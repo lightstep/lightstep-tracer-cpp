@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package lightstep.tracer_configuration;
+package lightstep.configuration_proto;
 
 option go_package = "tracer_configurationpb";
 option objc_class_prefix = "LSPB";

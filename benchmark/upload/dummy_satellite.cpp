@@ -10,7 +10,7 @@ namespace lightstep {
 // MakeDummySatellite
 //------------------------------------------------------------------------------
 std::unique_ptr<DummySatellite> MakeDummySatellite(
-    const tracer_configuration::TracerConfiguration& configuration) {
+    const configuration_proto::TracerConfiguration& configuration) {
   std::unique_ptr<DummySatellite> result;
   if (configuration.use_stream_recorder()) {
     result.reset(new StreamDummySatellite{

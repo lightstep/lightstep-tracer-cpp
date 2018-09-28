@@ -13,7 +13,7 @@ namespace lightstep {
 // MakeTracer
 //------------------------------------------------------------------------------
 std::shared_ptr<opentracing::Tracer> MakeTracer(
-    const tracer_configuration::TracerConfiguration& configuration) {
+    const configuration_proto::TracerConfiguration& configuration) {
   // Reserialize the tracer configuration to Json so that we can reuse the
   // existing TracerFactory functionality. We don't care too much about
   // performance here.

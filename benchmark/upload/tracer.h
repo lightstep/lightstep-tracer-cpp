@@ -6,5 +6,5 @@
 
 namespace lightstep {
 std::shared_ptr<opentracing::Tracer> MakeTracer(
-    const tracer_configuration::TracerConfiguration& configuration);
+    const configuration_proto::TracerConfiguration& configuration);
 }  // namespace lightstep

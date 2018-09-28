@@ -7,7 +7,7 @@
 
 namespace lightstep {
 LightStepTracerOptions MakeTracerOptions(
-    const tracer_configuration::TracerConfiguration& configuration);
+    const configuration_proto::TracerConfiguration& configuration);
 
 class LightStepTracerFactory final : public opentracing::TracerFactory {
  public:
