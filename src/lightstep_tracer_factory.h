@@ -1,8 +1,14 @@
 #pragma once
 
+#include <lightstep/tracer.h>
 #include <opentracing/tracer_factory.h>
 
+#include "configuration-proto/tracer_configuration.pb.h"
+
 namespace lightstep {
+LightStepTracerOptions MakeTracerOptions(
+    const tracer_configuration::TracerConfiguration& configuration);
+
 class LightStepTracerFactory final : public opentracing::TracerFactory {
  public:
   opentracing::expected<std::shared_ptr<opentracing::Tracer>> MakeTracer(
