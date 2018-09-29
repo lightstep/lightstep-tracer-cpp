@@ -1,4 +1,3 @@
-#include "../../src/lightstep_tracer_factory.h"
 #include "../src/lightstep_span.h"
 #include "grpc_dummy_satellite.h"
 #include "stream_dummy_satellite.h"
@@ -88,9 +87,7 @@ int main(int argc, char* argv[]) {
   tracer_configuration.set_collector_port(9000);
 
   auto satellite = MakeDummySatellite(tracer_configuration);
-  auto tracer = std::shared_ptr<opentracing::Tracer>{
-      MakeLightStepTracer(MakeTracerOptions(tracer_configuration))};
-  auto report = RunUploadBenchmark(configuration, satellite.get(), tracer);
+  auto report = RunUploadBenchmark(configuration, satellite.get());
   std::cout << report;
   return 0;
 }

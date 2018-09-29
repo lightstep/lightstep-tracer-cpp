@@ -1,31 +1,22 @@
 #include "upload_benchmark.h"
 
+#include <atomic>
 #include <chrono>
 #include <thread>
 
+#include "../../src/lightstep_tracer_factory.h"
 #include "../src/lightstep_span.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
-// MakeReport
+// RunSatelliteSanityCheck
 //------------------------------------------------------------------------------
-static UploadBenchmarkReport MakeReport(
-    const configuration_proto::UploadBenchmarkConfiguration& configuration,
-    const std::vector<uint64_t>& sent_span_ids, const DummySatellite* satellite,
-    std::chrono::system_clock::duration elapse) {
-  auto received_span_ids = satellite->span_ids();
-  UploadBenchmarkReport result;
-  result.configuration = configuration;
-  result.total_spans = sent_span_ids.size();
-  result.num_spans_received = received_span_ids.size();
-  result.num_spans_dropped = result.total_spans - result.num_spans_received;
-  result.num_reported_dropped_spans = satellite->num_dropped_spans();
-  result.elapse =
-      1.0e-6 *
-      std::chrono::duration_cast<std::chrono::microseconds>(elapse).count();
-  result.spans_per_second = result.total_spans / result.elapse;
+static void RunSatelliteSanityCheck(const UploadBenchmarkReport& report,
+                                    const std::vector<uint64_t>& sent_span_ids,
+                                    const DummySatellite& satellite) {
+  auto received_span_ids = satellite.span_ids();
 
-  // Sanity check
+  // Check that any received span id was also sent.
   std::set<uint64_t> span_ids{sent_span_ids.begin(), sent_span_ids.end()};
   for (auto id : received_span_ids) {
     if (span_ids.find(id) == span_ids.end()) {
@@ -33,6 +24,45 @@ static UploadBenchmarkReport MakeReport(
       std::terminate();
     }
   }
+
+  // Verify that the counts match up.
+  if (report.num_spans_received != received_span_ids.size()) {
+    std::cerr << "Upload Error: " << report.num_spans_received
+              << " were sent to the satellite but only "
+              << received_span_ids.size() << " were received.\n";
+    std::terminate();
+  }
+}
+
+//------------------------------------------------------------------------------
+// MakeReport
+//------------------------------------------------------------------------------
+static UploadBenchmarkReport MakeReport(
+    const configuration_proto::UploadBenchmarkConfiguration& configuration,
+    int num_dropped_spans, const std::vector<uint64_t>& sent_span_ids,
+    const DummySatellite* satellite,
+    std::chrono::system_clock::duration elapse) {
+  auto received_span_ids = satellite->span_ids();
+  UploadBenchmarkReport result;
+  result.configuration = configuration;
+  result.total_spans = sent_span_ids.size();
+  result.num_spans_dropped = static_cast<size_t>(num_dropped_spans);
+  result.num_spans_received = result.total_spans - result.num_spans_dropped;
+  result.uses_dummy_satellite = satellite != nullptr;
+  if (satellite != nullptr) {
+    result.num_reported_dropped_spans = satellite->num_dropped_spans();
+  } else {
+    result.num_reported_dropped_spans = 0;
+  }
+  result.elapse =
+      1.0e-6 *
+      std::chrono::duration_cast<std::chrono::microseconds>(elapse).count();
+  result.spans_per_second = result.total_spans / result.elapse;
+
+  if (satellite != nullptr) {
+    RunSatelliteSanityCheck(result, sent_span_ids, *satellite);
+  }
+
   return result;
 }
 
@@ -54,12 +84,46 @@ static void GenerateSpans(opentracing::Tracer& tracer, int num_spans,
 }
 
 //------------------------------------------------------------------------------
+// UploadBenchmarkMetricsObserver
+//------------------------------------------------------------------------------
+namespace {
+class UploadBenchmarkMetricsObserver : public MetricsObserver {
+ public:
+  explicit UploadBenchmarkMetricsObserver(std::atomic<int>& num_dropped_spans)
+      : num_dropped_spans_{num_dropped_spans} {}
+
+  void OnSpansDropped(int count) override { num_dropped_spans_ += count; }
+
+ private:
+  std::atomic<int>& num_dropped_spans_;
+};
+}  // namespace
+
+//------------------------------------------------------------------------------
+// MakeTracer
+//------------------------------------------------------------------------------
+static std::shared_ptr<opentracing::Tracer> MakeTracer(
+    const configuration_proto::UploadBenchmarkConfiguration& configuration,
+    std::atomic<int>& num_dropped_spans) {
+  auto tracer_options = MakeTracerOptions(configuration.tracer_configuration());
+  tracer_options.metrics_observer.reset(
+      new UploadBenchmarkMetricsObserver{num_dropped_spans});
+  return std::shared_ptr<opentracing::Tracer>{
+      MakeLightStepTracer(std::move(tracer_options))};
+}
+
+//------------------------------------------------------------------------------
 // RunUploadBenchmark
 //------------------------------------------------------------------------------
 UploadBenchmarkReport RunUploadBenchmark(
     const configuration_proto::UploadBenchmarkConfiguration& configuration,
-    DummySatellite* satellite, std::shared_ptr<opentracing::Tracer>& tracer) {
-  satellite->Reserve(configuration.num_spans());
+    DummySatellite* satellite) {
+  std::atomic<int> num_dropped_spans{0};
+  auto tracer = MakeTracer(configuration, num_dropped_spans);
+
+  if (satellite != nullptr) {
+    satellite->Reserve(configuration.num_spans());
+  }
   std::vector<uint64_t> span_ids(configuration.num_spans());
   std::vector<std::thread> threads(configuration.num_threads());
 
@@ -95,6 +159,7 @@ UploadBenchmarkReport RunUploadBenchmark(
   satellite->Close();
   auto elapse = finish_time - start_time;
 
-  return MakeReport(configuration, span_ids, satellite, elapse);
+  return MakeReport(configuration, num_dropped_spans, span_ids, satellite,
+                    elapse);
 }
 }  // namespace lightstep

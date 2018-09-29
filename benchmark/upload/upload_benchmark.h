@@ -8,5 +8,5 @@
 namespace lightstep {
 UploadBenchmarkReport RunUploadBenchmark(
     const configuration_proto::UploadBenchmarkConfiguration& configuration,
-    DummySatellite* satellite, std::shared_ptr<opentracing::Tracer>& tracer);
+    DummySatellite* satellite);
 }  // namespace lightstep

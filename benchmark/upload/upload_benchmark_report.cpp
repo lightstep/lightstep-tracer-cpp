@@ -20,9 +20,12 @@ std::ostream& operator<<(std::ostream& out,
   out << "num spans generated: " << report.configuration.num_spans() << "\n";
   out << "max_spans_per_second: " << report.configuration.max_spans_per_second()
       << "\n";
-  out << "num spans dropped: " << report.num_spans_dropped << "\n";
-  out << "num reported dropped spans: " << report.num_reported_dropped_spans
-      << "\n";
+  if (report.uses_dummy_satellite) {
+    out << "num spans dropped (reported): " << report.num_spans_dropped << " ("
+        << report.num_reported_dropped_spans << ")\n";
+  } else {
+    out << "num spans dropped: " << report.num_spans_dropped << "\n";
+  }
   out << "elapse (seconds): " << report.elapse << "\n";
   out << "spans_per_second: " << report.spans_per_second << "\n";
   return out;
