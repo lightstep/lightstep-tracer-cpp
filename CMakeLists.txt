@@ -88,6 +88,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(WARNING_CXX_FLAGS -Weverything 
     -Wno-c++98-compat 
+    -Wno-c++98-compat-pedantic
     -Wno-c++98-compat-bind-to-temporary-copy 
     -Wno-weak-vtables 
     -Wno-exit-time-destructors 
@@ -139,6 +140,8 @@ list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
 
 if (BUILD_BENCHMARKING)
   find_package(benchmark REQUIRED)
+  include_directories(SYSTEM ${GoogleBenchmark_INCLUDE_DIR})
+  find_package(gflags REQUIRED)
 endif()
 
 # ==============================================================================

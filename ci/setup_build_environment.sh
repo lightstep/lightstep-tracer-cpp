@@ -14,5 +14,6 @@ apt-get install --no-install-recommends --no-install-suggests -y \
                 libtool \
                 gnupg2 \
                 ssh \
+                libgflags2 libgflags-dev \
                 python python-setuptools python-pip
 pip install gcovr

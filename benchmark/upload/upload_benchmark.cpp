@@ -156,7 +156,9 @@ UploadBenchmarkReport RunUploadBenchmark(
   // will receive an EOF.
   tracer->Close();
   tracer.reset();
-  satellite->Close();
+  if (satellite != nullptr) {
+    satellite->Close();
+  }
   auto elapse = finish_time - start_time;
 
   return MakeReport(configuration, num_dropped_spans, span_ids, satellite,
