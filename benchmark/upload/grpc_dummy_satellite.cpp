@@ -59,7 +59,7 @@ grpc::Status GrpcDummySatellite::Report(
 //------------------------------------------------------------------------------
 void GrpcDummySatellite::Run() {
   grpc::ServerBuilder builder;
-  builder.AddListeningPort(address_, grpc::InsecureServerCredentials());
+  builder.AddListeningPort(address_.c_str(), grpc::InsecureServerCredentials());
   builder.RegisterService(this);
   server_ = builder.BuildAndStart();
 }

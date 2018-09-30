@@ -28,7 +28,7 @@ class GrpcDummySatellite final : public DummySatellite,
   void Close() override;
 
  private:
-  const char* address_;
+  std::string address_;
   std::unique_ptr<grpc::Server> server_;
 
   mutable std::mutex mutex_;
