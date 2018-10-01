@@ -64,11 +64,13 @@ elif [[ "$1" == "cmake.tsan" ]]; then
   cd "${BUILD_DIR}"
 # Testing with dynamic load seems to have some issues with TSAN so turn off
 # dynamic loading in this test for now.
+  TSAN_FLAGS="-fno-omit-frame-pointer -fsanitize=thread \
+    -fsanitize-blacklist=${SRC_DIR}/ci/tsan-blacklist.txt"
   cmake -DBUILD_BENCHMARKING=ON \
         -DCMAKE_BUILD_TYPE=Debug  \
-        -DCMAKE_CXX_FLAGS="-Werror -fno-omit-frame-pointer -fsanitize=thread"  \
-        -DCMAKE_SHARED_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=thread" \
-        -DCMAKE_EXE_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=thread" \
+        -DCMAKE_CXX_FLAGS="-Werror $TSAN_FLAGS"  \
+        -DCMAKE_SHARED_LINKER_FLAGS="$TSAN_FLAGS" \
+        -DCMAKE_EXE_LINKER_FLAGS="$TSAN_FLAGS" \
         -DWITH_DYNAMIC_LOAD=OFF \
         "${SRC_DIR}"
   make VERBOSE=1
