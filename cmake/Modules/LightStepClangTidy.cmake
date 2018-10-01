@@ -15,6 +15,7 @@ else()
 -hicpp-vararg,\
 -hicpp-signed-bitwise,\
 -hicpp-no-array-decay,\
+-hicpp-member-init,\
 -cppcoreguidelines-owning-memory,\
 -cppcoreguidelines-pro-type-reinterpret-cast,\
 -cppcoreguidelines-pro-type-const-cast,\
