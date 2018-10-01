@@ -14,7 +14,7 @@ class StreamRecorder final : public Recorder {
   StreamRecorder(Logger& logger, LightStepTracerOptions&& options,
                  std::unique_ptr<StreamTransporter>&& transporter);
 
-  override ~StreamRecorder();
+  ~StreamRecorder() override;
 
   void RecordSpan(const collector::Span& span) noexcept override;
 
