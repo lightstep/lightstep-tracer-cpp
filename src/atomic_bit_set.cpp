@@ -7,7 +7,8 @@ static constexpr AtomicBitSet::BlockType one = 1;
 // constructor
 //------------------------------------------------------------------------------
 AtomicBitSet::AtomicBitSet(size_t size)
-    : blocks_(size / bits_per_block + (size % bits_per_block > 0)) {}
+    : blocks_(size / bits_per_block +
+              static_cast<size_t>(size % bits_per_block > 0)) {}
 
 //------------------------------------------------------------------------------
 // ComputeBlockIndex
@@ -28,7 +29,7 @@ int AtomicBitSet::ComputeBitOffSet(int bit_index) const noexcept {
 //------------------------------------------------------------------------------
 bool AtomicBitSet::Test(int bit_index) const noexcept {
   auto mask = one << ComputeBitOffSet(bit_index);
-  return blocks_[ComputeBlockIndex(bit_index)].load() & mask;
+  return static_cast<bool>(blocks_[ComputeBlockIndex(bit_index)].load() & mask);
 }
 
 //------------------------------------------------------------------------------
@@ -36,7 +37,8 @@ bool AtomicBitSet::Test(int bit_index) const noexcept {
 //------------------------------------------------------------------------------
 bool AtomicBitSet::Reset(int bit_index) noexcept {
   auto mask = one << ComputeBitOffSet(bit_index);
-  return blocks_[ComputeBlockIndex(bit_index)].fetch_and(~mask) & mask;
+  return static_cast<bool>(
+      blocks_[ComputeBlockIndex(bit_index)].fetch_and(~mask) & mask);
 }
 
 //------------------------------------------------------------------------------
@@ -44,6 +46,7 @@ bool AtomicBitSet::Reset(int bit_index) noexcept {
 //------------------------------------------------------------------------------
 bool AtomicBitSet::Set(int bit_index) noexcept {
   auto mask = one << ComputeBitOffSet(bit_index);
-  return blocks_[ComputeBlockIndex(bit_index)].fetch_or(mask) & mask;
+  return static_cast<bool>(
+      blocks_[ComputeBlockIndex(bit_index)].fetch_or(mask) & mask);
 }
 }  // namespace lightstep
