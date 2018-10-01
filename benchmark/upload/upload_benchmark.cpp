@@ -42,7 +42,6 @@ static UploadBenchmarkReport MakeReport(
     int num_dropped_spans, const std::vector<uint64_t>& sent_span_ids,
     const DummySatellite* satellite,
     std::chrono::system_clock::duration elapse) {
-  auto received_span_ids = satellite->span_ids();
   UploadBenchmarkReport result;
   result.configuration = configuration;
   result.total_spans = sent_span_ids.size();
