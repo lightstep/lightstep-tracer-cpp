@@ -22,6 +22,7 @@ jobs:
       - run: ./ci/install_grpc.sh
       - run: ./ci/install_opentracing.sh
       - run: ./ci/install_benchmark.sh
+      - run: ./ci/install_clang.sh
       - run: ./ci/do_ci.sh cmake.tsan
       - store_artifacts:
           path: /build/Testing/Temporary/LastTest.log
