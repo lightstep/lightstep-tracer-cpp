@@ -13,7 +13,7 @@ class StreamDummySatellite : public DummySatellite {
  public:
   StreamDummySatellite(const char* host, int port);
 
-  ~StreamDummySatellite();
+  ~StreamDummySatellite() override;
 
   std::vector<uint64_t> span_ids() const override;
 
