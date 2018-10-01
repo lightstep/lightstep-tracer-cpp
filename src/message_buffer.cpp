@@ -54,7 +54,6 @@ bool MessageBuffer::Add(PacketType packet_type,
     return false;
   }
 
-  // TODO: Need to specify a type here
   PacketHeader header{packet_type, static_cast<uint32_t>(body_size)};
   SerializePacket(header, message, placement);
 
