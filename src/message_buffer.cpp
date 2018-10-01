@@ -37,7 +37,8 @@ static void SerializePacket(const PacketHeader& header,
 //------------------------------------------------------------------------------
 // constructor
 //------------------------------------------------------------------------------
-MessageBuffer::MessageBuffer(size_t size) : buffer_{size}, ready_flags_{size} {}
+MessageBuffer::MessageBuffer(size_t num_bytes)
+    : buffer_{num_bytes}, ready_flags_{num_bytes} {}
 
 //------------------------------------------------------------------------------
 // Add

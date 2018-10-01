@@ -21,6 +21,7 @@ else()
 -cppcoreguidelines-pro-bounds-array-to-pointer-decay,\
 -cppcoreguidelines-pro-bounds-constant-array-index,\
 -cppcoreguidelines-pro-bounds-pointer-arithmetic,\
+-cppcoreguidelines-pro-type-member-init,\
 -cppcoreguidelines-pro-type-vararg;\
 -warnings-as-errors=*")
 endif()
