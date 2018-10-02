@@ -34,6 +34,10 @@ option(ENABLE_LINTING "Run clang-tidy on sources if available." OFF)
 option(HEADERS_ONLY "Only generate config.h and version.h." OFF)
 option(BUILD_BENCHMARKING "Build benchmarks." OFF)
 
+# TODO(rnburn): remove once https://github.com/grpc/grpc/issues/16749 is fixed.
+option(WITH_TSAN "Indicate that the project is being built with TSAN so that \
+          certain tests can be disabled." OFF)
+
 # Allow a user to specify an optional default roots.pem file to embed into the 
 # library. 
 #

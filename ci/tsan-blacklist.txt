@@ -1,2 +1,0 @@
-# See https://github.com/grpc/grpc/issues/16749
-src:/usr/local/include/grpcpp/impl/codegen/client_unary_call.h
