@@ -4,17 +4,18 @@
 #include "lightstep-tracer-common/collector.pb.h"
 
 #include <arpa/inet.h>
-#include <errno.h>
 #include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <time.h>
 #include <unistd.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 
 #include <array>
+#include <cstddef>
 #include <iostream>
 #include <stdexcept>
 
@@ -25,7 +26,7 @@ namespace lightstep {
 StreamDummySatellite::StreamDummySatellite(const char* host, int port) {
   sockaddr_in satellite_address = {};
   satellite_address.sin_family = AF_INET;
-  satellite_address.sin_port = htons(port);
+  satellite_address.sin_port = htons(static_cast<uint16_t>(port));
 
   auto rcode = inet_pton(AF_INET, host, &satellite_address.sin_addr);
   if (rcode <= 0) {
