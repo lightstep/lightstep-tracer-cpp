@@ -21,6 +21,9 @@
 #include <vector>
 using namespace lightstep;
 
+// Workaround for compiler warning with gflags.
+//
+// See https://github.com/gflags/gflags/issues/261
 namespace GFLAGS_NAMESPACE {
 extern template FlagRegisterer::FlagRegisterer(const char*, const char*,
                                                const char*, int*, int*);

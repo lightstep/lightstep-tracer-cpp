@@ -8,6 +8,7 @@
 namespace lightstep {
 enum class PacketType : uint8_t { Initiation = 0, Span = 1, Metrics = 2 };
 
+// The header for a message packet used for streaming data to a satellite.
 class PacketHeader {
  public:
   PacketHeader() = default;

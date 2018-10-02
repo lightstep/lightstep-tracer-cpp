@@ -7,6 +7,8 @@
 #include <google/protobuf/message.h>
 
 namespace lightstep {
+// Maintains a lock-free circular buffer of message packets to send to a
+// satellite.
 class MessageBuffer {
  public:
   using ConsumerFunction = size_t (*)(void* context, const char* data,
@@ -14,9 +16,12 @@ class MessageBuffer {
 
   explicit MessageBuffer(size_t num_bytes);
 
+  // Create a packet for the given protobuf message. Returns true if the packet
+  // was successfully created; otherwise, if space isn't available return false.
   bool Add(PacketType packet_type,
            const google::protobuf::Message& message) noexcept;
 
+  // Consume a contiguous block of data from the circular buffer.
   bool Consume(ConsumerFunction consumer, void* context);
 
   size_t num_pending_bytes() const noexcept { return buffer_.size(); }
