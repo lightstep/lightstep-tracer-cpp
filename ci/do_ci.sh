@@ -66,8 +66,6 @@ elif [[ "$1" == "cmake.tsan" ]]; then
 # dynamic loading in this test for now.
   TSAN_FLAGS="-fno-omit-frame-pointer -fsanitize=thread"
   cmake -DBUILD_BENCHMARKING=ON \
-        -DCMAKE_C_COMPILER=/usr/bin/clang-6.0 \
-        -DCMAKE_CXX_COMPILER=/usr/bin/clang++-6.0 \
         -DCMAKE_BUILD_TYPE=Debug  \
         -DCMAKE_CXX_FLAGS="-Werror $TSAN_FLAGS"  \
         -DCMAKE_SHARED_LINKER_FLAGS="$TSAN_FLAGS" \
