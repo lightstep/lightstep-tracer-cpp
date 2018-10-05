@@ -37,8 +37,11 @@ static void SerializePacket(const PacketHeader& header,
 //------------------------------------------------------------------------------
 // constructor
 //------------------------------------------------------------------------------
-MessageBuffer::MessageBuffer(size_t num_bytes)
-    : buffer_{num_bytes}, ready_flags_{num_bytes} {}
+MessageBuffer::MessageBuffer(size_t num_bytes,
+                             MetricsObserver* metrics_observer)
+    : buffer_{num_bytes},
+      ready_flags_{num_bytes},
+      metrics_observer_{metrics_observer} {}
 
 //------------------------------------------------------------------------------
 // Add
@@ -51,6 +54,9 @@ bool MessageBuffer::Add(PacketType packet_type,
 
   // Not enough space, so drop the span.
   if (placement.data1 == nullptr) {
+    if (metrics_observer_ != nullptr) {
+      metrics_observer_->OnSpansDropped(1);
+    }
     return false;
   }
 
@@ -105,6 +111,9 @@ void MessageBuffer::GrowConsumerAllotment() noexcept {
     PacketHeader header{buffer.data()};
 
     // Add the packet to the consumer allotment
+    if (metrics_observer_ != nullptr && header.type() == PacketType::Span) {
+      metrics_observer_->OnSpansSent(1);
+    }
     consumer_allotment_ += PacketHeader::size + header.body_size();
   }
 }

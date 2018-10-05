@@ -5,6 +5,7 @@
 #include "packet_header.h"
 
 #include <google/protobuf/message.h>
+#include <lightstep/metrics_observer.h>
 
 namespace lightstep {
 // Maintains a lock-free circular buffer of message packets to send to a
@@ -14,7 +15,8 @@ class MessageBuffer {
   using ConsumerFunction = size_t (*)(void* context, const char* data,
                                       size_t num_bytes);
 
-  explicit MessageBuffer(size_t num_bytes);
+  explicit MessageBuffer(size_t num_bytes,
+                         MetricsObserver* metrics_observer = nullptr);
 
   // Create a packet for the given protobuf message. Returns true if the packet
   // was successfully created; otherwise, if space isn't available return false.
@@ -33,6 +35,7 @@ class MessageBuffer {
  private:
   CircularBuffer buffer_;
   AtomicBitSet ready_flags_;
+  MetricsObserver* metrics_observer_;
   size_t consumer_allotment_ = 0;
   std::atomic<size_t> total_bytes_consumed_{0};
 

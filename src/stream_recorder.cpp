@@ -31,12 +31,8 @@ StreamRecorder::StreamRecorder(Logger& logger, LightStepTracerOptions&& options,
     : logger_{logger},
       options_{std::move(options)},
       transporter_{std::move(transporter)},
-      message_buffer_{options_.message_buffer_size} {
-  // If no MetricsObserver was provided, use a default one that does nothing.
-  if (options_.metrics_observer == nullptr) {
-    options_.metrics_observer.reset(new MetricsObserver{});
-  }
-
+      message_buffer_{options_.message_buffer_size,
+                      options_.metrics_observer.get()} {
   notification_threshold_ =
       static_cast<size_t>(options.message_buffer_size * 0.10);
   streamer_thread_ = std::thread{&StreamRecorder::RunStreamer, this};
@@ -60,7 +56,6 @@ StreamRecorder::~StreamRecorder() {
 void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
   if (!message_buffer_.Add(PacketType::Span, span)) {
     ++num_dropped_spans_;
-    options_.metrics_observer->OnSpansDropped(1);
   }
 
   // notifying the condition variable has a signficant performance cost, so
@@ -99,6 +94,9 @@ bool StreamRecorder::FlushWithTimeout(
 //------------------------------------------------------------------------------
 void StreamRecorder::RunStreamer() noexcept try {
   while (SleepForNextPoll()) {
+    if (options_.metrics_observer != nullptr) {
+      metrics_observer_->OnFlush();
+    }
     while (!exit_streamer_) {
       // Keep uploading messages to the satellite until the buffer is empty.
       while (!exit_streamer_) {
