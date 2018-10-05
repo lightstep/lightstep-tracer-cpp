@@ -95,7 +95,7 @@ bool StreamRecorder::FlushWithTimeout(
 void StreamRecorder::RunStreamer() noexcept try {
   while (SleepForNextPoll()) {
     if (options_.metrics_observer != nullptr) {
-      metrics_observer_->OnFlush();
+      options_.metrics_observer->OnFlush();
     }
     while (!exit_streamer_) {
       // Keep uploading messages to the satellite until the buffer is empty.
