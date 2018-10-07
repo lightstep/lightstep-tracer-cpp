@@ -54,7 +54,7 @@ bool MessageBuffer::Add(PacketType packet_type,
 
   // Not enough space, so drop the span.
   if (placement.data1 == nullptr) {
-    if (metrics_observer_ != nullptr) {
+    if (metrics_observer_ != nullptr && packet_type == PacketType::Span) {
       metrics_observer_->OnSpansDropped(1);
     }
     return false;
