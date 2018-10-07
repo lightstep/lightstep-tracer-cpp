@@ -169,7 +169,8 @@ include_directories(SYSTEM ${LIGHTSTEP_THIRD_PARTY_INCLUDES})
 include_directories(include)
 install(DIRECTORY include/lightstep DESTINATION include)
 
-set(LIGHTSTEP_SRCS src/utility.cpp
+set(LIGHTSTEP_SRCS src/address_info.cpp
+                   src/utility.cpp
                    src/in_memory_stream.cpp
                    src/bipart_memory_stream.cpp
                    src/logger.cpp
@@ -180,6 +181,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/packet_header.cpp
                    src/message_buffer.cpp
                    src/atomic_bit_set.cpp
+                   src/tcp_connection.cpp
                    src/grpc_transporter.cpp
                    src/report_builder.cpp
                    src/manual_recorder.cpp
