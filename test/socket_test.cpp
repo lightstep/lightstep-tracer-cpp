@@ -13,4 +13,11 @@ TEST_CASE("Socket") {
     CHECK(s2.file_descriptor() == file_descriptor);
     CHECK(s1.file_descriptor() == -1);
   }
+
+  SECTION("We can change options on a socket") {
+    Socket s1;
+    s1.SetNonblocking();
+    s1.SetBlocking();
+    s1.SetReuseAddress();
+  }
 }

@@ -24,6 +24,10 @@ namespace lightstep {
 // constructor
 //------------------------------------------------------------------------------
 StreamDummySatellite::StreamDummySatellite(const char* host, int port) {
+  // Set this option so that we can immediately restart a server without getting
+  // the error: "ERROR on binding: Address already in use"
+  listen_socket_.SetReuseAddress();
+
   sockaddr_in satellite_address = {};
   satellite_address.sin_family = AF_INET;
   satellite_address.sin_port = htons(static_cast<uint16_t>(port));

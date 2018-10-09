@@ -5,6 +5,8 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <cerrno>
+#include <sstream>
 #include <stdexcept>
 
 namespace lightstep {
@@ -14,7 +16,9 @@ namespace lightstep {
 Socket::Socket() {
   file_descriptor_ = socket(AF_INET, SOCK_STREAM, 0);
   if (file_descriptor_ < 0) {
-    throw std::runtime_error{"failed to create socket"};
+    std::ostringstream oss;
+    oss << "failed to create socket: " << std::strerror(errno);
+    throw std::runtime_error{oss.str()};
   }
 }
 
@@ -42,7 +46,9 @@ void Socket::SetNonblocking() {
   int rcode = fcntl(file_descriptor_, F_SETFL,
                     fcntl(file_descriptor_, F_GETFL, 0) | O_NONBLOCK);
   if (rcode == -1) {
-    throw std::runtime_error{"failed to set the socket as non-blocking"};
+    std::ostringstream oss;
+    oss << "failed to set the socket as non-blocking: " << std::strerror(errno);
+    throw std::runtime_error{oss.str()};
   }
 }
 
@@ -53,7 +59,23 @@ void Socket::SetBlocking() {
   int rcode = fcntl(file_descriptor_, F_SETFL,
                     fcntl(file_descriptor_, F_GETFL, 0) & ~O_NONBLOCK);
   if (rcode == -1) {
-    throw std::runtime_error{"failed to set the socket as blocking"};
+    std::ostringstream oss;
+    oss << "failed to set the socket as blocking: " << std::strerror(errno);
+    throw std::runtime_error{oss.str()};
+  }
+}
+
+//------------------------------------------------------------------------------
+// SetReuseAddress
+//------------------------------------------------------------------------------
+void Socket::SetReuseAddress() {
+  int optvalue = 1;
+  int rcode = setsockopt(file_descriptor_, SOL_SOCKET, SO_REUSEADDR,
+                         static_cast<void*>(&optvalue), sizeof(int));
+  if (rcode == -1) {
+    std::ostringstream oss;
+    oss << "failed to set the socket as reusable: : " << std::strerror(errno);
+    throw std::runtime_error{oss.str()};
   }
 }
 }  // namespace lightstep

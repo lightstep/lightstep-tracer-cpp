@@ -23,6 +23,8 @@ class Socket {
 
   void SetBlocking();
 
+  void SetReuseAddress();
+
  private:
   int file_descriptor_{-1};
 };
