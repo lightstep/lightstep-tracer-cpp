@@ -1,5 +1,7 @@
 #include "address_info.h"
 
+#include <string>
+
 namespace lightstep {
 //------------------------------------------------------------------------------
 // constructor
@@ -42,6 +44,19 @@ AddressInfoList GetAddressInfo(const char* hostname) {
   hints.ai_socktype = SOCK_STREAM;
   addrinfo* head;
   auto rcode = getaddrinfo(hostname, nullptr, &hints, &head);
+  if (rcode != 0) {
+    throw AddressInfoFailure{gai_strerror(rcode)};
+  }
+  return AddressInfoList{head};
+}
+
+AddressInfoList GetAddressInfo(const char* hostname, uint16_t port) {
+  addrinfo hints = {};
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  addrinfo* head;
+  auto port_str = std::to_string(port);
+  auto rcode = getaddrinfo(hostname, port_str.c_str(), &hints, &head);
   if (rcode != 0) {
     throw AddressInfoFailure{gai_strerror(rcode)};
   }

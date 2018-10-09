@@ -6,7 +6,7 @@
 using namespace lightstep;
 
 TEST_CASE("AddressInfo") {
-  auto address_info_list = GetAddressInfo("localhost");
+  auto address_info_list = GetAddressInfo("localhost", 8080);
   CHECK(!address_info_list.empty());
 
   SECTION("We can iterate over the available addresses.") {
@@ -38,14 +38,15 @@ TEST_CASE("AddressInfo") {
   }
 
   SECTION("We can move assign AddressInfoList.") {
-    AddressInfoList address_info_list2 = GetAddressInfo("localhost");
+    AddressInfoList address_info_list2 = GetAddressInfo("localhost", 9000);
     address_info_list2 = std::move(address_info_list);
     CHECK(!address_info_list2.empty());
     CHECK(address_info_list.empty());
   }
 
   SECTION("Looking up an invalid address throws an exception.") {
-    CHECK_THROWS_AS(GetAddressInfo("abc123%$"), AddressInfoFailure);
-    CHECK_THROWS_AS(GetAddressInfo("kthownv.no.exist"), AddressInfoFailure);
+    CHECK_THROWS_AS(GetAddressInfo("abc123%$", 123), AddressInfoFailure);
+    CHECK_THROWS_AS(GetAddressInfo("kthownv.no.exist", 456),
+                    AddressInfoFailure);
   }
 }

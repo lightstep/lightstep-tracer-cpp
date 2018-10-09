@@ -1,4 +1,6 @@
 #include "../src/utility.h"
+#include <arpa/inet.h>
+#include <array>
 #include <cmath>
 #include <limits>
 
@@ -6,6 +8,24 @@
 #include <lightstep/catch2/catch.hpp>
 using namespace lightstep;
 using namespace opentracing;
+
+TEST_CASE("AddressToString") {
+  std::array<unsigned char, sizeof(sockaddr_in6)> buffer = {};
+  SECTION("ipv4") {
+    auto address_in = reinterpret_cast<sockaddr_in*>(buffer.data());
+    address_in->sin_family = AF_INET;
+    REQUIRE(inet_pton(AF_INET, "54.203.0.1", &address_in->sin_addr) == 1);
+    CHECK(AddressToString(*reinterpret_cast<sockaddr*>(buffer.data())) ==
+          "54.203.0.1");
+  }
+  SECTION("ipv6") {
+    auto address_in = reinterpret_cast<sockaddr_in6*>(buffer.data());
+    address_in->sin6_family = AF_INET6;
+    inet_pton(AF_INET6, "2001:db8:85a3::8a2e:370:7334", &address_in->sin6_addr);
+    CHECK(AddressToString(*reinterpret_cast<sockaddr*>(buffer.data())) ==
+          "2001:db8:85a3::8a2e:370:7334");
+  }
+}
 
 TEST_CASE("Json") {
   SECTION("Arrays jsonify correctly.") {

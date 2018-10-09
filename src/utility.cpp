@@ -14,9 +14,32 @@
 #include <stdexcept>
 #include <system_error>
 
+#include <arpa/inet.h>
 #include <pthread.h>
 
 namespace lightstep {
+//------------------------------------------------------------------------------
+// AddressToString
+//------------------------------------------------------------------------------
+std::string AddressToString(const sockaddr& address) {
+  std::array<char, INET6_ADDRSTRLEN> buffer = {};
+  const char* s = nullptr;
+  if (address.sa_family == AF_INET) {
+    s = inet_ntop(address.sa_family,
+                  &reinterpret_cast<const sockaddr_in*>(&address)->sin_addr,
+                  buffer.data(), sizeof(buffer));
+  } else if (address.sa_family == AF_INET6) {
+    s = inet_ntop(address.sa_family,
+                  &reinterpret_cast<const sockaddr_in6*>(&address)->sin6_addr,
+                  buffer.data(), sizeof(buffer));
+  }
+  if (s == nullptr) {
+    // Use an empty string for failure.
+    return {};
+  }
+  return std::string{s};
+}
+
 //------------------------------------------------------------------------------
 // ToTimestamp
 //------------------------------------------------------------------------------

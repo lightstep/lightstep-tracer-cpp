@@ -1,15 +1,20 @@
 #pragma once
 
+#include <netdb.h>
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>
 #include <algorithm>
 #include <chrono>
 #include <string>
 #include <type_traits>
+
 #include "lightstep-tracer-common/collector.pb.h"
 #include "logger.h"
 
 namespace lightstep {
+// Converts a network address to a readable string
+std::string AddressToString(const sockaddr& address);
+
 // Convert a std::chrono::system_clock::time_point to the time value used
 // by protobuf.
 google::protobuf::Timestamp ToTimestamp(

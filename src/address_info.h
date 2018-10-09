@@ -40,4 +40,6 @@ class AddressInfoFailure : public std::runtime_error {
 };
 
 AddressInfoList GetAddressInfo(const char* hostname);
+
+AddressInfoList GetAddressInfo(const char* hostname, uint16_t port);
 }  // namespace lightstep
