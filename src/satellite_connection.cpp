@@ -1,4 +1,4 @@
-#include "tcp_connection.h"
+#include "satellite_connection.h"
 
 #include "address_info.h"
 #include "utility.h"
@@ -9,15 +9,16 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 // constructor
 //------------------------------------------------------------------------------
-TcpConnection::TcpConnection(Logger& logger, const char* host, uint16_t port)
-    : logger_{logger}, host_{host}, port_{htons(port)} {
+SatelliteConnection::SatelliteConnection(Logger& logger, const char* host,
+                                         uint16_t port)
+    : logger_{logger}, host_{host}, port_{port} {
   connect();
 }
 
 //------------------------------------------------------------------------------
 // reconnect
 //------------------------------------------------------------------------------
-bool TcpConnection::reconnect() noexcept try {
+bool SatelliteConnection::reconnect() noexcept try {
   return true;
 } catch (const std::exception& e) {
   logger_.Error("Failed to connect to satellite: ", e.what());
@@ -27,7 +28,7 @@ bool TcpConnection::reconnect() noexcept try {
 //------------------------------------------------------------------------------
 // reconnect
 //------------------------------------------------------------------------------
-bool TcpConnection::connect() noexcept try {
+bool SatelliteConnection::connect() noexcept try {
   auto address_info_list = GetAddressInfo(host_.c_str(), port_);
   is_connected_ =
       !address_info_list.forEachAddressInfo([&](const addrinfo& address_info) {

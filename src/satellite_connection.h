@@ -6,9 +6,9 @@
 #include "socket.h"
 
 namespace lightstep {
-class TcpConnection {
+class SatelliteConnection {
  public:
-  TcpConnection(Logger& logger, const char* host, uint16_t port);
+  SatelliteConnection(Logger& logger, const char* host, uint16_t port);
 
   bool reconnect() noexcept;
 
