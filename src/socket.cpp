@@ -1,13 +1,14 @@
 #include "socket.h"
 
-#include <sys/socket.h>
-#include <sys/types.h>
-
-#include <fcntl.h>
-#include <unistd.h>
 #include <cerrno>
+#include <cstring>
 #include <sstream>
 #include <stdexcept>
+
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
