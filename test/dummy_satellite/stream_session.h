@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../src/circular_buffer.h"
-#include "../src/packet_header.h"
-#include "../src/socket.h"
+#include "../../src/circular_buffer.h"
+#include "../../src/packet_header.h"
+#include "../../src/socket.h"
 
 #include <google/protobuf/message.h>
 

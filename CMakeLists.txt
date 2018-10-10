@@ -256,5 +256,8 @@ if (BUILD_TESTING AND BUILD_SHARED_LIBS)
 endif()
 
 if (BUILD_BENCHMARKING)
+  if (NOT BUILD_TESTING)
+    add_subdirectory(test)
+  endif()
   add_subdirectory(benchmark)
 endif()

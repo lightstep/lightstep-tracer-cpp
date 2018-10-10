@@ -1,6 +1,5 @@
-#include "../src/lightstep_span.h"
-#include "grpc_dummy_satellite.h"
-#include "stream_dummy_satellite.h"
+#include "../../src/lightstep_span.h"
+#include "../../test/dummy_satellite/dummy_satellite.h"
 #include "upload_benchmark.h"
 
 #include "configuration-proto/upload_benchmark_configuration.pb.h"

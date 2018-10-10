@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dummy_satellite.h"
+#include "../../test/dummy_satellite/dummy_satellite.h"
 #include "upload_benchmark_report.h"
 
 #include <opentracing/tracer.h>

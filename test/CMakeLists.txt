@@ -1,3 +1,5 @@
+add_subdirectory(dummy_satellite)
+
 macro(_lightstep_test TEST_NAME)
   add_executable(${TEST_NAME} ${ARGN})
   target_link_libraries(${TEST_NAME} lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
@@ -15,7 +17,10 @@ _lightstep_test(packet_header_test packet_header_test.cpp)
 _lightstep_test(message_buffer_test message_buffer_test.cpp)
 _lightstep_test(atomic_bit_set_test atomic_bit_set_test.cpp)
 _lightstep_test(logger_test logger_test.cpp)
+
 _lightstep_test(satellite_connection_test satellite_connection_test.cpp)
+target_link_libraries(satellite_connection_test dummy_satellite)
+
 _lightstep_test(socket_test socket_test.cpp)
 _lightstep_test(fork_id_test fork_id_test.cpp)
 _lightstep_test(propagation_test propagation_test.cpp)

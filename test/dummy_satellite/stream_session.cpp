@@ -1,6 +1,6 @@
 #include "stream_session.h"
 
-#include "../src/bipart_memory_stream.h"
+#include "../../src/bipart_memory_stream.h"
 
 #include <google/protobuf/io/coded_stream.h>
 

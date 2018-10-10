@@ -1,8 +1,4 @@
 add_executable(upload_benchmark upload_benchmark.cpp 
-                                dummy_satellite.cpp
-                                grpc_dummy_satellite.cpp
-                                stream_dummy_satellite.cpp
-                                stream_session.cpp
                                 upload_benchmark.cpp
                                 upload_benchmark_report.cpp
                                 main.cpp)
@@ -14,6 +10,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 endif()
 
 target_link_libraries(upload_benchmark lightstep_tracer
+                                       dummy_satellite
                                        ${LIGHTSTEP_LINK_LIBRARIES}
                                        gflags
                                        $<TARGET_OBJECTS:upload_benchmark_configuration>)
