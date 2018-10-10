@@ -255,7 +255,7 @@ if (BUILD_TESTING AND BUILD_SHARED_LIBS)
   add_subdirectory(example)
 endif()
 
-if (BUILD_BENCHMARKING)
+if (BUILD_BENCHMARKING AND BUILD_SHARED_LIBS AND WITH_GRPC)
   if (NOT BUILD_TESTING)
     add_subdirectory(test)
   endif()
