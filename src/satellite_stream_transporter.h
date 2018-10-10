@@ -1,5 +1,6 @@
 #pragma once
 
+#include "satellite_connection.h"
 #include "socket.h"
 
 #include <lightstep/tracer.h>
@@ -8,11 +9,12 @@
 namespace lightstep {
 class SatelliteStreamTransporter : public StreamTransporter {
  public:
-  SatelliteStreamTransporter(const LightStepTracerOptions& options);
+  SatelliteStreamTransporter(Logger& logger,
+                             const LightStepTracerOptions& options);
 
   size_t Write(const char* buffer, size_t size) final;
 
  private:
-  Socket socket_;
+  SatelliteConnection satellite_connection_;
 };
 }  // namespace lightstep

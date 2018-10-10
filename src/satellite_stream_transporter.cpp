@@ -18,32 +18,22 @@ namespace lightstep {
 // constructor
 //------------------------------------------------------------------------------
 SatelliteStreamTransporter::SatelliteStreamTransporter(
-    const LightStepTracerOptions& options) {
-  sockaddr_in satellite_address = {};
-  satellite_address.sin_family = AF_INET;
-  satellite_address.sin_port =
-      htons(static_cast<uint16_t>(options.collector_port));
-
-  auto rcode = inet_pton(AF_INET, options.collector_host.c_str(),
-                         &satellite_address.sin_addr);
-  if (rcode <= 0) {
-    throw std::runtime_error{"inet_pton failed"};
-  }
-
-  rcode = connect(socket_.file_descriptor(),
-                  reinterpret_cast<sockaddr*>(&satellite_address),
-                  sizeof(satellite_address));
-  if (rcode < 0) {
-    throw std::runtime_error{"failed to connect to satellite"};
-  }
-}
+    Logger& logger, const LightStepTracerOptions& options)
+    : satellite_connection_{logger, options.collector_host.c_str(),
+                            static_cast<uint16_t>(options.collector_port)} {}
 
 //------------------------------------------------------------------------------
 // Write
 //------------------------------------------------------------------------------
 size_t SatelliteStreamTransporter::Write(const char* buffer, size_t size) {
-  auto result =
-      write(socket_.file_descriptor(), buffer, static_cast<int>(size));
+  if (!satellite_connection_.is_connected()) {
+    // For now, fail the transport.
+    //
+    // This will be replaced with retry logic.
+    throw std::runtime_error{"transport failed: no connection to satellite"};
+  }
+  auto result = write(satellite_connection_.file_descriptor(), buffer,
+                      static_cast<int>(size));
   if (result < 0) {
     throw std::runtime_error{"failed to write to socket"};
   }

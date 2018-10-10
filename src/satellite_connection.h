@@ -14,6 +14,8 @@ class SatelliteConnection {
 
   bool is_connected() const noexcept { return is_connected_; }
 
+  int file_descriptor() const noexcept { return socket_.file_descriptor(); }
+
  private:
   bool connect() noexcept;
 

@@ -171,7 +171,7 @@ static std::shared_ptr<LightStepTracer> MakeStreamTracer(
     }
     options.transporter.release();
   } else {
-    transporter.reset(new SatelliteStreamTransporter{options});
+    transporter.reset(new SatelliteStreamTransporter{*logger, options});
   }
 
   PropagationOptions propagation_options{};
