@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "configuration-proto/upload_benchmark_configuration.pb.h"
+#include "configuration-proto/tracer_configuration.pb.h"
 
 namespace lightstep {
 class DummySatellite {
