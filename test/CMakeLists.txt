@@ -10,6 +10,7 @@ _lightstep_test(tracer_test tracer_test.cpp
                             utility.cpp)
 _lightstep_test(address_info_test address_info_test.cpp)
 _lightstep_test(bipart_memory_stream_test bipart_memory_stream_test.cpp)
+_lightstep_test(condition_variable_test condition_variable_test.cpp)
 _lightstep_test(utility_test utility_test.cpp)
 _lightstep_test(circular_buffer_test circular_buffer_test.cpp)
 _lightstep_test(packet_header_test packet_header_test.cpp)

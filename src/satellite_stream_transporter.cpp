@@ -35,6 +35,7 @@ size_t SatelliteStreamTransporter::Write(const char* buffer, size_t size) {
   auto result = write(satellite_connection_.file_descriptor(), buffer,
                       static_cast<int>(size));
   if (result < 0) {
+    // Also, need to replace with retry logic.
     throw std::runtime_error{"failed to write to socket"};
   }
   return static_cast<size_t>(result);
