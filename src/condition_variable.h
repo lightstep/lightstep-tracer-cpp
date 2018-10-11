@@ -11,6 +11,8 @@ class ConditionVariable {
  public:
   ConditionVariable() = default;
 
+  void NotifyAll() noexcept { condition_variable_.notify_all(); }
+
   void Terminate() noexcept;
 
   bool is_active() const noexcept { return is_active_; }

@@ -62,7 +62,7 @@ void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
   // make an effort to make sure it's worthwhile before doing so.
   if (waiting_ &&
       message_buffer_.num_pending_bytes() >= notification_threshold_) {
-    condition_variable_.notify_all();
+    condition_variable_.NotifyAll();
   }
 }
 
@@ -71,15 +71,11 @@ void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
 //------------------------------------------------------------------------------
 bool StreamRecorder::FlushWithTimeout(
     std::chrono::system_clock::duration timeout) noexcept try {
-  std::unique_lock<std::mutex> lock{mutex_};
   auto consumption_target = message_buffer_.total_bytes_consumed() +
                             message_buffer_.num_pending_bytes();
-  auto rcode =
-      condition_variable_.wait_for(lock, timeout, [consumption_target, this] {
-        return this->exit_streamer_ ||
-               this->message_buffer_.total_bytes_consumed() >=
-                   consumption_target;
-      });
+  auto rcode = condition_variable_.WaitFor(timeout, [consumption_target, this] {
+    return this->message_buffer_.total_bytes_consumed() >= consumption_target;
+  });
   if (!rcode) {
     return false;
   }
@@ -97,9 +93,9 @@ void StreamRecorder::RunStreamer() noexcept try {
     if (options_.metrics_observer != nullptr) {
       options_.metrics_observer->OnFlush();
     }
-    while (!exit_streamer_) {
+    while (condition_variable_.is_active()) {
       // Keep uploading messages to the satellite until the buffer is empty.
-      while (!exit_streamer_) {
+      while (condition_variable_.is_active()) {
         if (!message_buffer_.Consume(StreamRecorder::Consume,
                                      static_cast<void*>(this))) {
           break;
@@ -111,7 +107,7 @@ void StreamRecorder::RunStreamer() noexcept try {
         break;
       }
     }
-    condition_variable_.notify_all();
+    condition_variable_.NotifyAll();
   }
 } catch (const std::exception& e) {
   logger_.Error("Unexpected streamer error: ", e.what());
@@ -122,21 +118,19 @@ void StreamRecorder::RunStreamer() noexcept try {
 // MakeStreamerExit
 //------------------------------------------------------------------------------
 void StreamRecorder::MakeStreamerExit() noexcept {
-  exit_streamer_ = true;
-  condition_variable_.notify_all();
+  condition_variable_.Terminate();
 }
 
 //------------------------------------------------------------------------------
 // StreamRecorder
 //------------------------------------------------------------------------------
 bool StreamRecorder::SleepForNextPoll() {
-  std::unique_lock<std::mutex> lock{mutex_};
   waiting_ = true;
-  condition_variable_.wait_for(lock, options_.reporting_period, [this] {
-    return this->exit_streamer_ || !this->message_buffer_.empty();
+  condition_variable_.WaitFor(options_.reporting_period, [this] {
+    return !this->message_buffer_.empty();
   });
   waiting_ = false;
-  return !exit_streamer_;
+  return condition_variable_.is_active();
 }
 
 //------------------------------------------------------------------------------

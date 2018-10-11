@@ -1,5 +1,6 @@
 #pragma once
 
+#include "condition_variable.h"
 #include "logger.h"
 #include "message_buffer.h"
 #include "recorder.h"
@@ -27,12 +28,11 @@ class StreamRecorder final : public Recorder {
   size_t notification_threshold_;
   std::unique_ptr<StreamTransporter> transporter_;
   std::thread streamer_thread_;
-  std::mutex mutex_;
-  std::condition_variable condition_variable_;
+
+  ConditionVariable condition_variable_;
   MessageBuffer message_buffer_;
 
   std::atomic<bool> waiting_{false};
-  std::atomic<bool> exit_streamer_{false};
 
   std::atomic<size_t> num_dropped_spans_{0};
 
