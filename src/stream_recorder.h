@@ -1,6 +1,6 @@
 #pragma once
 
-#include "condition_variable.h"
+#include <lightstep/terminable_condition_variable.h>
 #include "logger.h"
 #include "message_buffer.h"
 #include "recorder.h"
@@ -29,7 +29,7 @@ class StreamRecorder final : public Recorder {
   std::unique_ptr<StreamTransporter> transporter_;
   std::thread streamer_thread_;
 
-  ConditionVariable condition_variable_;
+  TerminableConditionVariable condition_variable_;
   MessageBuffer message_buffer_;
 
   std::atomic<bool> waiting_{false};

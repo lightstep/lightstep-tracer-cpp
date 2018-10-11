@@ -7,12 +7,13 @@
 #include <lightstep/transporter.h>
 
 namespace lightstep {
-class SatelliteStreamTransporter : public StreamTransporter {
+class SatelliteStreamTransporter final : public StreamTransporter {
  public:
   SatelliteStreamTransporter(Logger& logger,
                              const LightStepTracerOptions& options);
 
-  size_t Write(const char* buffer, size_t size) final;
+  size_t Write(TerminableConditionVariable& condition_variable,
+               const char* buffer, size_t size) override;
 
  private:
   SatelliteConnection satellite_connection_;

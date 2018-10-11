@@ -4,6 +4,8 @@
 #include <opentracing/string_view.h>
 #include <opentracing/util.h>
 
+#include <lightstep/terminable_condition_variable.h>
+
 namespace lightstep {
 // Transporter is the abstract base class for SyncTransporter and
 // AsyncTransporter.
@@ -56,6 +58,9 @@ class StreamTransporter : public Transporter {
  public:
   virtual ~StreamTransporter() = default;
 
-  virtual size_t Write(const char* buffer, size_t size) = 0;
+  // Writes the given buffer of data to a satellite. `condition_variable` can
+  // be used to implement retry logic (See TerminableConditionVariable).
+  virtual size_t Write(TerminableConditionVariable& condition_variable,
+                       const char* buffer, size_t size) = 0;
 };
 }  // namespace lightstep

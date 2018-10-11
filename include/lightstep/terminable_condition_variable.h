@@ -7,9 +7,14 @@
 namespace lightstep {
 // Provides an interface like std::condition_variable but adds a terminate
 // feature where all current and future waits can be cancelled.
-class ConditionVariable {
+//
+// This can be used with Transporters to do waiting in such a way that doesn't
+// stop the program from exiting quickly. For example, if a connection to a
+// satellite can't be established, a transporter can sleep before retrying, but
+// interrupte the sleep if the program exits.
+class TerminableConditionVariable {
  public:
-  ConditionVariable() = default;
+  TerminableConditionVariable() = default;
 
   void NotifyAll() noexcept { condition_variable_.notify_all(); }
 

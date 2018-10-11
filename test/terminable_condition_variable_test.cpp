@@ -1,4 +1,4 @@
-#include "../src/condition_variable.h"
+#include <lightstep/terminable_condition_variable.h>
 
 #include <chrono>
 #include <thread>
@@ -8,12 +8,14 @@
 
 using namespace lightstep;
 
-TEST_CASE("ConditionVariable") {
-  ConditionVariable condition_variable;
+TEST_CASE("TerminableConditionVariable") {
+  TerminableConditionVariable condition_variable;
 
   auto duration = std::chrono::microseconds{100};
 
-  SECTION("ConditionVariable supports waiting for a given amount of time.") {
+  SECTION(
+      "TerminableConditionVariable supports waiting for a given amount of "
+      "time.") {
     auto t1 = std::chrono::system_clock::now();
     condition_variable.WaitFor(duration);
     auto t2 = std::chrono::system_clock::now();
@@ -33,14 +35,14 @@ TEST_CASE("ConditionVariable") {
   }
 
   SECTION(
-      "is_active returns the correct value when ConditionVariable is "
+      "is_active returns the correct value when TerminableConditionVariable is "
       "terminated.") {
     CHECK(condition_variable.is_active());
     condition_variable.Terminate();
     CHECK(!condition_variable.is_active());
   }
 
-  SECTION("Waits never start if ConditionVariable is terminated.") {
+  SECTION("Waits never start if TerminableConditionVariable is terminated.") {
     condition_variable.Terminate();
 
     auto t1 = std::chrono::system_clock::now();
@@ -54,7 +56,8 @@ TEST_CASE("ConditionVariable") {
     CHECK(t2 - t1 < duration);
   }
 
-  SECTION("Waits are interrupted if ConditionVariable is terminated.") {
+  SECTION(
+      "Waits are interrupted if TerminableConditionVariable is terminated.") {
     std::chrono::system_clock::time_point t1, t2;
     std::thread thread{[&] {
       t1 = std::chrono::system_clock::now();

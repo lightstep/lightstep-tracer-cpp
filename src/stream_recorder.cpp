@@ -139,7 +139,8 @@ bool StreamRecorder::SleepForNextPoll() {
 size_t StreamRecorder::Consume(void* context, const char* data,
                                size_t num_bytes) {
   auto& stream_recorder = *static_cast<StreamRecorder*>(context);
-  return stream_recorder.transporter_->Write(data, num_bytes);
+  return stream_recorder.transporter_->Write(
+      stream_recorder.condition_variable_, data, num_bytes);
 }
 
 //------------------------------------------------------------------------------

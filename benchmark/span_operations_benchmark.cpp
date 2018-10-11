@@ -28,7 +28,10 @@ class NullSyncTransporter final : public lightstep::SyncTransporter {
 namespace {
 class NullStreamTransporter final : public lightstep::StreamTransporter {
  public:
-  size_t Write(const char* /*buffer*/, size_t size) override { return size; }
+  size_t Write(lightstep::TerminableConditionVariable& /*condition_variable*/,
+               const char* /*buffer*/, size_t size) override {
+    return size;
+  }
 };
 }  // namespace
 

@@ -25,7 +25,9 @@ SatelliteStreamTransporter::SatelliteStreamTransporter(
 //------------------------------------------------------------------------------
 // Write
 //------------------------------------------------------------------------------
-size_t SatelliteStreamTransporter::Write(const char* buffer, size_t size) {
+size_t SatelliteStreamTransporter::Write(
+    TerminableConditionVariable& /*condition_variable*/, const char* buffer,
+    size_t size) {
   if (!satellite_connection_.is_connected()) {
     // For now, fail the transport.
     //
