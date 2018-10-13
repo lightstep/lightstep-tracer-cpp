@@ -44,7 +44,7 @@ size_t StreamState::ComputeBytesTilNextPacket(size_t num_written) const
   auto index = position_ + bytes_til_next_packet_;
   num_written -= bytes_til_next_packet_;
 
-  while (1) {
+  while (true) {
     auto header = ReadPacketHeader(buffer_, index);
     auto packet_size = header.packet_size();
     if (packet_size >= num_written) {
