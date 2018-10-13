@@ -51,4 +51,13 @@ TEST_CASE("StreamState") {
     stream_state.OnWrite(buffer.size(), 13);
     CHECK(stream_state.bytes_til_next_packet() == 12);
   }
+
+  SECTION(
+      "Reading part-way into the next after packet gives the correct "
+      "bytes_til_next_packet") {
+    AddPacket(buffer, PacketType::Span, 15);
+    AddPacket(buffer, PacketType::Span, 20);
+    stream_state.OnWrite(buffer.size(), 26);
+    CHECK(stream_state.bytes_til_next_packet() == 19);
+  }
 }
