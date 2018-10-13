@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "circular_buffer.h"
+
 #include <google/protobuf/io/coded_stream.h>
 
 namespace lightstep {
@@ -30,6 +32,10 @@ class PacketHeader {
 
   uint32_t body_size() const noexcept { return body_size_; }
 
+  size_t packet_size() const noexcept {
+    return body_size_ + PacketHeader::size;
+  }
+
  private:
   uint8_t version_{1};
   PacketType type_{};
@@ -39,4 +45,10 @@ class PacketHeader {
   static const size_t size =
       sizeof(version_) + sizeof(type_) + sizeof(body_size_);
 };
+
+PacketHeader ReadPacketHeader(const CircularBuffer& buffer, ptrdiff_t index);
+
+void WritePacketHeader(
+    const PacketHeader& header,
+    google::protobuf::io::CodedOutputStream& stream) noexcept;
 }  // namespace lightstep

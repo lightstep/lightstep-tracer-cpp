@@ -183,6 +183,7 @@ set(LIGHTSTEP_SRCS src/address_info.cpp
                    src/message_buffer.cpp
                    src/atomic_bit_set.cpp
                    src/satellite_connection.cpp
+                   src/stream_state.cpp
                    src/grpc_transporter.cpp
                    src/report_builder.cpp
                    src/manual_recorder.cpp

@@ -1,9 +1,11 @@
 #include "packet_header.h"
 
 #include <lightstep/config.h>
+#include "bipart_memory_stream.h"
 #include "utility.h"
 
 #include <algorithm>
+#include <array>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -44,5 +46,31 @@ void PacketHeader::serialize(char* data) const noexcept {
 #endif
   std::copy_n(reinterpret_cast<const char*>(&body_size), sizeof(body_size),
               data);
+}
+
+//------------------------------------------------------------------------------
+// ReadPacketHeader
+//------------------------------------------------------------------------------
+PacketHeader ReadPacketHeader(const CircularBuffer& buffer, ptrdiff_t index) {
+  auto placement = buffer.Peek(index, PacketHeader::size);
+  BipartMemoryInputStream stream_buffer{placement.data1, placement.size1,
+                                        placement.data2, placement.size2};
+  google::protobuf::io::CodedInputStream stream{&stream_buffer};
+  std::array<char, PacketHeader::size> header_buffer;
+  stream.ReadRaw(static_cast<void*>(header_buffer.data()),
+                 static_cast<int>(PacketHeader::size));
+  PacketHeader result{header_buffer.data()};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// WritePacketHeader
+//------------------------------------------------------------------------------
+void WritePacketHeader(
+    const PacketHeader& header,
+    google::protobuf::io::CodedOutputStream& stream) noexcept {
+  std::array<char, PacketHeader::size> serialization;
+  header.serialize(serialization.data());
+  stream.WriteRaw(serialization.data(), PacketHeader::size);
 }
 }  // namespace lightstep

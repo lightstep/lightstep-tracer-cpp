@@ -11,17 +11,6 @@
 
 namespace lightstep {
 //------------------------------------------------------------------------------
-// SerializePacketHeader
-//------------------------------------------------------------------------------
-static void SerializePacketHeader(
-    const PacketHeader& header,
-    google::protobuf::io::CodedOutputStream& stream) noexcept {
-  std::array<char, PacketHeader::size> serialization;
-  header.serialize(serialization.data());
-  stream.WriteRaw(serialization.data(), PacketHeader::size);
-}
-
-//------------------------------------------------------------------------------
 // SerializePacket
 //------------------------------------------------------------------------------
 static void SerializePacket(const PacketHeader& header,
@@ -30,7 +19,7 @@ static void SerializePacket(const PacketHeader& header,
   BipartMemoryOutputStream stream_buffer{placement.data1, placement.size1,
                                          placement.data2, placement.size2};
   google::protobuf::io::CodedOutputStream stream{&stream_buffer};
-  SerializePacketHeader(header, stream);
+  WritePacketHeader(header, stream);
   message.SerializeWithCachedSizes(&stream);
 }
 
@@ -101,14 +90,7 @@ void MessageBuffer::GrowConsumerAllotment() noexcept {
     }
 
     // Deserialize the packet header so that we can determine how big it is.
-    auto placement = buffer_.Peek(consumer_allotment_, PacketHeader::size);
-    BipartMemoryInputStream stream_buffer{placement.data1, placement.size1,
-                                          placement.data2, placement.size2};
-    google::protobuf::io::CodedInputStream stream{&stream_buffer};
-    std::array<char, PacketHeader::size> buffer;
-    stream.ReadRaw(static_cast<void*>(buffer.data()),
-                   static_cast<int>(PacketHeader::size));
-    PacketHeader header{buffer.data()};
+    auto header = ReadPacketHeader(buffer_, consumer_allotment_);
 
     // Add the packet to the consumer allotment
     if (metrics_observer_ != nullptr && header.type() == PacketType::Span) {
