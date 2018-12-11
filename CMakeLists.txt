@@ -204,6 +204,7 @@ if (BUILD_SHARED_LIBS)
     _apply_clang_tidy_if_available(lightstep_tracer)
   endif()
   target_link_libraries(lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
+  set_target_properties(lightstep_tracer PROPERTIES SOVERSION ${LIGHTSTEP_VERSION_MAJOR})
   install(TARGETS lightstep_tracer
           LIBRARY DESTINATION lib)
 endif()
