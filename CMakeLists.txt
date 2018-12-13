@@ -28,6 +28,12 @@ include(CPack)
 # ==============================================================================
 # Set up options
 
+# Introduce variables:
+# * CMAKE_INSTALL_LIBDIR
+# * CMAKE_INSTALL_BINDIR
+# * CMAKE_INSTALL_INCLUDEDIR
+include(GNUInstallDirs)
+
 option(WITH_GRPC "Build with support for gRPC." ON)
 option(WITH_DYNAMIC_LOAD "Build support for dynamic loading." ON)
 option(ENABLE_LINTING "Run clang-tidy on sources if available." OFF)
@@ -67,7 +73,7 @@ configure_file(version.h.in include/lightstep/version.h)
 configure_file(config.h.in include/lightstep/config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lightstep 
-        DESTINATION include)
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 if(HEADERS_ONLY)
   return()
@@ -152,7 +158,7 @@ add_subdirectory(3rd_party)
 include_directories(SYSTEM ${LIGHTSTEP_THIRD_PARTY_INCLUDES})
 
 include_directories(include)
-install(DIRECTORY include/lightstep DESTINATION include)
+install(DIRECTORY include/lightstep DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 include(LightStepTracerCommon)
@@ -204,8 +210,9 @@ if (BUILD_SHARED_LIBS)
     _apply_clang_tidy_if_available(lightstep_tracer)
   endif()
   target_link_libraries(lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
+  set_target_properties(lightstep_tracer PROPERTIES SOVERSION ${LIGHTSTEP_VERSION_MAJOR})
   install(TARGETS lightstep_tracer
-          LIBRARY DESTINATION lib)
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
 if (BUILD_STATIC_LIBS)  
@@ -221,7 +228,7 @@ if (BUILD_STATIC_LIBS)
   endif()
   target_link_libraries(lightstep_tracer-static ${LIGHTSTEP_LINK_LIBRARIES})
   install(TARGETS lightstep_tracer-static
-          ARCHIVE DESTINATION lib)
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
 
