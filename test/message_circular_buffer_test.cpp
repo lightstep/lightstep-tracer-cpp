@@ -134,9 +134,8 @@ static void RunConsumer(MessageCircularBuffer& buffer, std::atomic<bool>& exit,
 TEST_CASE(
     "Verify through simulation that MessageCircularBuffer behaves correctly.") {
   const size_t num_producer_threads = 4;
-  const size_t n = 1000;
-  /* for (size_t max_size : {5, 10, 100, 1000}) { */
-  for (size_t max_size : {10}) {
+  const size_t n = 25000;
+  for (size_t max_size : {10, 50, 100, 1000}) {
     MessageCircularBuffer buffer{max_size};
     std::vector<uint32_t> producer_numbers;
     std::vector<uint32_t> consumer_numbers;
