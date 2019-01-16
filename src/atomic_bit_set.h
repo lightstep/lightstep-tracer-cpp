@@ -7,23 +7,37 @@
 #include <vector>
 
 namespace lightstep {
-// An atomic bit set of dynamic size.
-//
-// Modeled after Folly's AtomicBitSet. See
-// https://github.com/facebook/folly/blob/cd1bdc912603c0358ba733d379a74ae90ab3a437/folly/AtomicBitSet.h
+/**
+ * An atomic bit set of dynamic size.
+ *
+ * Modeled after Folly's AtomicBitSet. See
+ * https://github.com/facebook/folly/blob/cd1bdc912603c0358ba733d379a74ae90ab3a437/folly/AtomicBitSet.h
+ */
 class AtomicBitSet {
  public:
   using BlockType = uint64_t;
 
   explicit AtomicBitSet(size_t size);
 
-  // Gets the current value of the bit at `bit_index`.
+  /**
+   * Tests whether a given bit is set.
+   * @param bit_index identifies the bit to test.
+   * @return the value of the specified bit.
+   */
   bool Test(int bit_index) const noexcept;
 
-  // Sets the bit at `bit_index` to false and returns the current value.
+  /**
+   * Resets a given bit to 0.
+   * @param bit_index identifies the bit to reset.
+   * @return the previous value of the given bit.
+   */
   bool Reset(int bit_index) noexcept;
 
-  // Sets the bit at `bit_index` to true and returns the current value.
+  /**
+   * Sets a given bit to 1.
+   * @param bit_index identifies the bit to set.
+   * @return the previous value of the given bit.
+   */
   bool Set(int bit_index) noexcept;
 
  private:
