@@ -16,6 +16,7 @@ else()
 -hicpp-signed-bitwise,\
 -hicpp-no-array-decay,\
 -cppcoreguidelines-owning-memory,\
+-cppcoreguidelines-pro-type-member-init,\
 -cppcoreguidelines-pro-type-reinterpret-cast,\
 -cppcoreguidelines-pro-type-const-cast,\
 -cppcoreguidelines-pro-bounds-array-to-pointer-decay,\
