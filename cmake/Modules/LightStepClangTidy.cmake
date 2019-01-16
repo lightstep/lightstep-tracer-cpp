@@ -9,6 +9,7 @@ else()
 -fuchsia-*,\
 -clang-analyzer-alpha.*,\
 -llvm-include-order,\
+-google-runtime-int,\
 -google-runtime-references,\
 -google-build-using-namespace,\
 -modernize-make-unique,\
