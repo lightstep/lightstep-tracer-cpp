@@ -48,7 +48,7 @@ bool ChunkCircularBuffer::Add(Serializer serializer, size_t size,
 // Allot
 //--------------------------------------------------------------------------------------------------
 void ChunkCircularBuffer::Allot() noexcept {
-  while (1) {
+  while (true) {
     auto placement = buffer_.PeekFromPosition(num_bytes_allotted_);
     if (placement.size1 == 0) {
       return;
