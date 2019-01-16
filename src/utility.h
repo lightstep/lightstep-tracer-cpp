@@ -7,6 +7,8 @@
 #include "lightstep-tracer-common/collector.pb.h"
 #include "logger.h"
 
+#include <google/protobuf/io/zero_copy_stream.h>
+
 namespace lightstep {
 // Convert a std::chrono::system_clock::time_point to the time value used
 // by protobuf.
@@ -36,4 +38,7 @@ opentracing::string_view Uint64ToHex(uint64_t x, char* output);
 // Converts a hexidecimal number to a 64-bit integer. Either returns the number
 // or an error code.
 opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s);
+
+bool ReadChunkHeader(google::protobuf::io::ZeroCopyInputStream& stream,
+                     size_t& chunk_size);
 }  // namespace lightstep
