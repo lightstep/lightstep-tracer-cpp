@@ -6,12 +6,12 @@
 #include <google/protobuf/io/coded_stream.h>
 
 namespace lightstep {
-class MessageCircularBuffer {
+class ChunkCircularBuffer {
  public:
   using Serializer = void(google::protobuf::io::CodedOutputStream& stream,
                           size_t size, void* context);
 
-  explicit MessageCircularBuffer(size_t max_bytes);
+  explicit ChunkCircularBuffer(size_t max_bytes);
 
   bool Add(Serializer serializer, size_t size, void* context) noexcept;
 

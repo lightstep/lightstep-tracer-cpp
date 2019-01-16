@@ -1,4 +1,4 @@
-#include "../src/message_circular_buffer.h"
+#include "../src/chunk_circular_buffer.h"
 #include "../src/bipart_memory_stream.h"
 #include "../src/utility.h"
 
@@ -29,8 +29,7 @@ static void WriteString(google::protobuf::io::CodedOutputStream& stream,
   stream.WriteRaw(data, static_cast<int>(size));
 }
 
-static bool AddString(MessageCircularBuffer& buffer,
-                      opentracing::string_view s) {
+static bool AddString(ChunkCircularBuffer& buffer, opentracing::string_view s) {
   return buffer.Add(WriteString, s.size(),
                     static_cast<void*>(const_cast<char*>(s.data())));
 }
@@ -80,7 +79,7 @@ static uint32_t ReadNumber(google::protobuf::io::ZeroCopyInputStream& stream,
   return result;
 }
 
-static void GenerateRandomNumbers(MessageCircularBuffer& buffer,
+static void GenerateRandomNumbers(ChunkCircularBuffer& buffer,
                                   std::vector<uint32_t>& numbers, size_t n) {
   assert(buffer.max_size() > 5);
   size_t max_digits = std::min<size_t>(buffer.max_size() - 5, 32);
@@ -94,7 +93,7 @@ static void GenerateRandomNumbers(MessageCircularBuffer& buffer,
   }
 }
 
-static void RunProducer(MessageCircularBuffer& buffer,
+static void RunProducer(ChunkCircularBuffer& buffer,
                         std::vector<uint32_t>& numbers, size_t num_threads,
                         size_t n) {
   std::vector<std::vector<uint32_t>> thread_numbers(num_threads);
@@ -113,7 +112,7 @@ static void RunProducer(MessageCircularBuffer& buffer,
   }
 }
 
-static void RunConsumer(MessageCircularBuffer& buffer, std::atomic<bool>& exit,
+static void RunConsumer(ChunkCircularBuffer& buffer, std::atomic<bool>& exit,
                         std::vector<uint32_t>& numbers) {
   while (!exit || !buffer.empty()) {
     buffer.Allot();
@@ -132,11 +131,11 @@ static void RunConsumer(MessageCircularBuffer& buffer, std::atomic<bool>& exit,
 }
 
 TEST_CASE(
-    "Verify through simulation that MessageCircularBuffer behaves correctly.") {
+    "Verify through simulation that ChunkCircularBuffer behaves correctly.") {
   const size_t num_producer_threads = 4;
   const size_t n = 25000;
   for (size_t max_size : {10, 50, 100, 1000}) {
-    MessageCircularBuffer buffer{max_size};
+    ChunkCircularBuffer buffer{max_size};
     std::vector<uint32_t> producer_numbers;
     std::vector<uint32_t> consumer_numbers;
     auto producer =
@@ -155,9 +154,9 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "MessageCircularBuffer stores serialized messages surrounded by http/1.1 "
+    "ChunkCircularBuffer stores serialized messages surrounded by http/1.1 "
     "chunk framing.") {
-  MessageCircularBuffer buffer{13};
+  ChunkCircularBuffer buffer{13};
   REQUIRE(buffer.num_bytes_allotted() == 0);
   REQUIRE(buffer.allotment().size1 == 0);
 

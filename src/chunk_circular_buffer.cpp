@@ -1,4 +1,4 @@
-#include "message_circular_buffer.h"
+#include "chunk_circular_buffer.h"
 
 #include "bipart_memory_stream.h"
 #include "utility.h"
@@ -11,14 +11,14 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-MessageCircularBuffer::MessageCircularBuffer(size_t max_bytes)
+ChunkCircularBuffer::ChunkCircularBuffer(size_t max_bytes)
     : ready_flags_{max_bytes + 1}, buffer_{max_bytes} {}
 
 //--------------------------------------------------------------------------------------------------
 // Add
 //--------------------------------------------------------------------------------------------------
-bool MessageCircularBuffer::Add(Serializer serializer, size_t size,
-                                void* context) noexcept {
+bool ChunkCircularBuffer::Add(Serializer serializer, size_t size,
+                              void* context) noexcept {
   assert(size > 0);
   static const auto line_terminator = "\r\n";
   std::array<char, 17> chunk_buffer;
@@ -48,7 +48,7 @@ bool MessageCircularBuffer::Add(Serializer serializer, size_t size,
 //--------------------------------------------------------------------------------------------------
 // Allot
 //--------------------------------------------------------------------------------------------------
-void MessageCircularBuffer::Allot() noexcept {
+void ChunkCircularBuffer::Allot() noexcept {
   while (1) {
     auto placement = buffer_.PeekFromPosition(num_bytes_allotted_);
     if (placement.size1 == 0) {
@@ -71,7 +71,7 @@ void MessageCircularBuffer::Allot() noexcept {
 //--------------------------------------------------------------------------------------------------
 // Consume
 //--------------------------------------------------------------------------------------------------
-void MessageCircularBuffer::Consume(size_t num_bytes) noexcept {
+void ChunkCircularBuffer::Consume(size_t num_bytes) noexcept {
   assert(num_bytes <= num_bytes_allotted_);
   num_bytes_allotted_ -= num_bytes;
   buffer_.Consume(num_bytes);

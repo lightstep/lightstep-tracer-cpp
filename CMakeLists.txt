@@ -169,7 +169,7 @@ set(LIGHTSTEP_SRCS src/utility.cpp
                    src/atomic_bit_set.cpp
                    src/bipart_memory_stream.cpp
                    src/circular_buffer.cpp
-                   src/message_circular_buffer.cpp
+                   src/chunk_circular_buffer.cpp
                    src/in_memory_stream.cpp
                    src/logger.cpp
                    src/propagation.cpp
