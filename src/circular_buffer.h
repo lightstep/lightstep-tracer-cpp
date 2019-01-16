@@ -51,7 +51,7 @@ class CircularBuffer {
   explicit CircularBuffer(size_t max_size);
 
   /**
-   * Atomically reserves space in the circular buffer.
+   * Atomically reserves space in the buffer.
    * @param num_bytes supplies the number of bytes to reserve.
    * @return a CircularBufferPlacement for the reserved space if successful;
    * otherwise, a placement with data1 == nullptr if there is not enough space
@@ -60,7 +60,7 @@ class CircularBuffer {
   CircularBufferPlacement Reserve(size_t num_bytes) noexcept;
 
   /**
-   * Peeks at memory stored within the circular buffer.
+   * Peeks at memory stored within the buffer.
    * @param index supplies the position from the tail to take memory from.
    * @param num_bytes supplies the number of bytes to peek at.
    * @return a placement pointing to the requested memory.
@@ -71,8 +71,7 @@ class CircularBuffer {
       noexcept;
 
   /**
-   * Peeks at all memory stored in the circular buffer starting at a given
-   * position.
+   * Peeks at all memory stored in the buffer starting at a given position.
    * @param index supplies the position from the tail to take memory from.
    * @return a placement pointing to the requested memory.
    *
@@ -83,24 +82,23 @@ class CircularBuffer {
   }
 
   /**
-   * Frees reserved space in the circular buffer starting from the tail.
+   * Frees reserved space in the buffer starting from the tail.
    * @param num_bytes supplies the number of bytes to consume.
    */
   void Consume(size_t num_bytes) noexcept;
 
   /**
-   * @return the maximum number of bytes that can be stored in the circular
-   * buffer.
+   * @return the maximum number of bytes that can be stored in the buffer.
    */
   size_t max_size() const noexcept { return capacity_ - 1; }
 
   /**
-   * @return the number of bytes of free space available in the circular buffer.
+   * @return the number of bytes of free space available in the buffer.
    */
   size_t free_space() const noexcept { return max_size() - size(); }
 
   /**
-   * @return true if the circular buffer is empty.
+   * @return true if the buffer is empty.
    */
   bool empty() const noexcept { return head_ == tail_; }
 
@@ -110,7 +108,7 @@ class CircularBuffer {
   size_t size() const noexcept;
 
   /**
-   * @return a pointer to the circular buffer's memory.
+   * @return a pointer to the buffer's memory.
    */
   const char* data() const noexcept { return data_.get(); }
 

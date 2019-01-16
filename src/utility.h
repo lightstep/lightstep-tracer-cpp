@@ -39,6 +39,12 @@ opentracing::string_view Uint64ToHex(uint64_t x, char* output);
 // or an error code.
 opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s);
 
+/**
+ * Reads the header for an http/1.1 streaming chunk.
+ * @param stream supplies the ZeroCopyInputStream to read from.
+ * @param chunk_size is where the chunk's size is written.
+ * @return true if the header was successfully read.
+ */
 bool ReadChunkHeader(google::protobuf::io::ZeroCopyInputStream& stream,
                      size_t& chunk_size);
 }  // namespace lightstep
