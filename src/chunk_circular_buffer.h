@@ -8,7 +8,7 @@
 namespace lightstep {
 /**
  * Maintains a lock-free circular buffer of serialized segments. Each segment is
- * framed for http/1.1 streaming a as a chunk.
+ * framed for http/1.1 streaming as a chunk.
  *
  * See https://en.wikipedia.org/wiki/Chunked_transfer_encoding
  */
@@ -21,7 +21,7 @@ class ChunkCircularBuffer {
 
   /**
    * Serializes data into the circular buffer as a chunk.
-   * @param serializer supplies a function that serializes data into a
+   * @param serializer supplies a function that writes data into a
    * CodedOutputStream that writes data into the circular buffer.
    * @param size supplies the number of bytes of the serialization.
    * @param context supplies an arbitrary context that is passed to the
@@ -33,7 +33,7 @@ class ChunkCircularBuffer {
 
   /**
    * Marks memory starting from the circular buffer's tail where serialization
-   * has finished. Once the memory is alloted is is safe to read.
+   * has finished. Once the memory is alloted is safe to read.
    *
    * Note: Cannot be called concurrently with Consume.
    */

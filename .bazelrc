@@ -1,0 +1,1 @@
+build --incompatible_package_name_is_a_function=false

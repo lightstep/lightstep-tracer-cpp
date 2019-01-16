@@ -4,7 +4,6 @@
 #include "utility.h"
 
 #include <cassert>
-#include <cinttypes>
 #include <cstdio>
 
 namespace lightstep {
@@ -23,7 +22,7 @@ bool ChunkCircularBuffer::Add(Serializer serializer, size_t size,
   static const auto line_terminator = "\r\n";
   std::array<char, 17> chunk_buffer;
   auto num_chunk_size_chars =
-      std::snprintf(chunk_buffer.data(), chunk_buffer.size(), "%" PRIX64,
+      std::snprintf(chunk_buffer.data(), chunk_buffer.size(), "%llX",
                     static_cast<unsigned long long>(size));
   assert(num_chunk_size_chars > 0);
   auto placement =
