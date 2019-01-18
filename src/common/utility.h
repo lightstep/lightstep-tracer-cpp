@@ -6,8 +6,8 @@
 #include <cstdint>
 #include <limits>
 #include <string>
-#include "lightstep-tracer-common/collector.pb.h"
 #include "common/logger.h"
+#include "lightstep-tracer-common/collector.pb.h"
 
 #include <google/protobuf/io/zero_copy_stream.h>
 

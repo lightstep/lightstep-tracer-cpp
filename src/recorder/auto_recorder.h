@@ -6,11 +6,11 @@
 #include <memory>
 #include <mutex>
 #include <thread>
-#include "lightstep-tracer-common/collector.pb.h"
 #include "common/logger.h"
+#include "lightstep-tracer-common/collector.pb.h"
+#include "recorder/condition_variable_wrapper.h"
 #include "recorder/recorder.h"
 #include "recorder/report_builder.h"
-#include "recorder/condition_variable_wrapper.h"
 
 namespace lightstep {
 // AutoRecorder buffers spans finished by a tracer and sends them over to

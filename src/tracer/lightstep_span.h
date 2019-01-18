@@ -1,9 +1,9 @@
 #pragma once
 
-#include "lightstep-tracer-common/collector.pb.h"
-#include "tracer/lightstep_span_context.h"
 #include "common/logger.h"
+#include "lightstep-tracer-common/collector.pb.h"
 #include "recorder/recorder.h"
+#include "tracer/lightstep_span_context.h"
 
 #include <opentracing/span.h>
 
