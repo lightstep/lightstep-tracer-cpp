@@ -1,6 +1,6 @@
-#include "lightstep_tracer_impl.h"
-#include "lightstep_immutable_span_context.h"
-#include "lightstep_span.h"
+#include "tracer/lightstep_tracer_impl.h"
+#include "tracer/lightstep_immutable_span_context.h"
+#include "tracer/lightstep_span.h"
 
 namespace lightstep {
 

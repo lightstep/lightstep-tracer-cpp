@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lightstep_span_context.h"
+#include "tracer/lightstep_span_context.h"
 
 namespace lightstep {
 class LightStepImmutableSpanContext final : public LightStepSpanContext {

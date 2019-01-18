@@ -13,8 +13,8 @@
 #include "recorder/manual_recorder.h"
 #include "recorder/grpc_transporter.h"
 #include "lightstep-tracer-common/collector.pb.h"
-#include "lightstep_immutable_span_context.h"
-#include "lightstep_tracer_impl.h"
+#include "tracer/lightstep_immutable_span_context.h"
+#include "tracer/lightstep_tracer_impl.h"
 #include "common/logger.h"
 #include "common/utility.h"
 

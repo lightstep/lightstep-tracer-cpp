@@ -1,4 +1,4 @@
-#include "lightstep_span.h"
+#include "tracer/lightstep_span.h"
 #include <opentracing/ext/tags.h>
 #include "common/utility.h"
 

@@ -1,4 +1,4 @@
-#include "lightstep_tracer_factory.h"
+#include "tracer/lightstep_tracer_factory.h"
 #include <google/protobuf/util/json_util.h>
 #include <lightstep/tracer.h>
 #include "lightstep-tracer-configuration/tracer_configuration.pb.h"

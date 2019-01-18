@@ -2,7 +2,7 @@
 
 #include <memory>
 #include "common/logger.h"
-#include "propagation.h"
+#include "tracer/propagation.h"
 #include "recorder/recorder.h"
 
 namespace lightstep {

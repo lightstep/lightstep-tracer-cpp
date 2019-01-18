@@ -1,4 +1,4 @@
-#include "lightstep_span_context.h"
+#include "tracer/lightstep_span_context.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------

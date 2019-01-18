@@ -156,22 +156,22 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/recorder/manual_recorder.cpp
                    src/recorder/grpc_transporter.cpp
                    src/recorder/transporter.cpp
-                   src/propagation.cpp
-                   src/binary_carrier.cpp
-                   src/lightstep_span_context.cpp
-                   src/lightstep_immutable_span_context.cpp
-                   src/lightstep_span.cpp
-                   src/lightstep_tracer_impl.cpp
-                   src/lightstep_tracer_factory.cpp
-                   src/tracer.cpp
+                   src/tracer/propagation.cpp
+                   src/tracer/binary_carrier.cpp
+                   src/tracer/lightstep_span_context.cpp
+                   src/tracer/lightstep_immutable_span_context.cpp
+                   src/tracer/lightstep_span.cpp
+                   src/tracer/lightstep_tracer_impl.cpp
+                   src/tracer/lightstep_tracer_factory.cpp
+                   src/tracer/tracer.cpp
                    )
 
 if (WITH_DYNAMIC_LOAD)
-  list(APPEND LIGHTSTEP_SRCS src/dynamic_load.cpp)
+  list(APPEND LIGHTSTEP_SRCS src/tracer/dynamic_load.cpp)
 endif()
 
 if (DEFAULT_SSL_ROOTS_PEM STREQUAL "")
-  list(APPEND LIGHTSTEP_SRCS src/no_default_ssl_roots_pem.cpp)
+  list(APPEND LIGHTSTEP_SRCS src/tracer/no_default_ssl_roots_pem.cpp)
 else()
   # Follows the approach described in https://stackoverflow.com/a/11814544/4447365
   set(EMBED_SSL_ROOTS_PEM_CPP_FILE ${CMAKE_BINARY_DIR}/default_ssl_roots_pem.cpp)

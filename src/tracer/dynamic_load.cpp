@@ -1,7 +1,7 @@
 #include <opentracing/dynamic_load.h>
 #include <cstdio>
 #include <exception>
-#include "lightstep_tracer_factory.h"
+#include "tracer/lightstep_tracer_factory.h"
 
 static int OpenTracingMakeTracerFactoryFunction(
     const char* opentracing_version, const char* opentracing_abi_version,
