@@ -3,6 +3,8 @@
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>
 #include <chrono>
+#include <cstdint>
+#include <limits>
 #include <string>
 #include "lightstep-tracer-common/collector.pb.h"
 #include "logger.h"
@@ -10,6 +12,8 @@
 #include <google/protobuf/io/zero_copy_stream.h>
 
 namespace lightstep {
+const size_t Num64BitHexDigits = std::numeric_limits<uint64_t>::digits / 4;
+
 // Convert a std::chrono::system_clock::time_point to the time value used
 // by protobuf.
 google::protobuf::Timestamp ToTimestamp(

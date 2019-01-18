@@ -179,7 +179,7 @@ TEST_CASE(
     REQUIRE(!AddString(buffer, "abc"));
   }
 
-  SECTION("Successive messages get chunked together.") {
+  SECTION("Successive messages get serialized one after the other together.") {
     REQUIRE(AddString(buffer, "ab"));
     REQUIRE(AddString(buffer, "c"));
     buffer.Allot();

@@ -20,7 +20,11 @@ bool ChunkCircularBuffer::Add(Serializer serializer, size_t size,
                               void* context) noexcept {
   assert(size > 0);
   static const auto line_terminator = "\r\n";
-  std::array<char, 17> chunk_buffer;
+  std::array<char, Num64BitHexDigits + 1> chunk_buffer;  // Note: We add space
+                                                         // for an additional
+                                                         // byte to account for
+                                                         // snprintf's null
+                                                         // terminator.
   auto num_chunk_size_chars =
       std::snprintf(chunk_buffer.data(), chunk_buffer.size(), "%llX",
                     static_cast<unsigned long long>(size));

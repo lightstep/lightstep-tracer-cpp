@@ -297,7 +297,7 @@ opentracing::string_view Uint64ToHex(uint64_t x, char* output) {
     output[i * 2 + 1] = digits[lookup_index + 1];
     x >>= 8;
   }
-  return {output, 16};
+  return {output, Num64BitHexDigits};
 }
 
 //------------------------------------------------------------------------------
@@ -383,7 +383,7 @@ opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s) {
 //--------------------------------------------------------------------------------------------------
 bool ReadChunkHeader(google::protobuf::io::ZeroCopyInputStream& stream,
                      size_t& chunk_size) {
-  std::array<char, 16> digits;
+  std::array<char, Num64BitHexDigits> digits;
   int digit_index = 0;
   const char* data;
   int size;

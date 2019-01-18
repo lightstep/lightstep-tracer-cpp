@@ -1,6 +1,7 @@
 #include "propagation.h"
 #include <lightstep/base64/base64.h>
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cstdint>
 #include <functional>
@@ -93,12 +94,13 @@ static opentracing::expected<void> InjectSpanContextBaggage(
 static opentracing::expected<void> InjectSpanContextMultiKey(
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
     uint64_t span_id, bool sampled, const BaggageMap& baggage) {
-  char data[16];
-  auto result = carrier.Set(FieldNameTraceID, Uint64ToHex(trace_id, data));
+  std::array<char, Num64BitHexDigits> data;
+  auto result =
+      carrier.Set(FieldNameTraceID, Uint64ToHex(trace_id, data.data()));
   if (!result) {
     return result;
   }
-  result = carrier.Set(FieldNameSpanID, Uint64ToHex(span_id, data));
+  result = carrier.Set(FieldNameSpanID, Uint64ToHex(span_id, data.data()));
   if (!result) {
     return result;
   }
