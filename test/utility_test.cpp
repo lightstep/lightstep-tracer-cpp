@@ -1,6 +1,7 @@
 #include "../src/utility.h"
 #include <cmath>
 #include <limits>
+#include "../src/bipart_memory_stream.h"
 
 #define CATCH_CONFIG_MAIN
 #include <lightstep/catch2/catch.hpp>
@@ -109,5 +110,70 @@ TEST_CASE("hex-integer conversions") {
 
   SECTION("Hex conversion with invalid digits gives an error.") {
     CHECK(!HexToUint64("abcHef"));
+  }
+}
+
+TEST_CASE(
+    "ReadChunkHeader reads the header from an http/1.1 streaming chunk.") {
+  SECTION("We can read the chunk header from contiguous memory.") {
+    BipartMemoryInputStream stream{"A\r\n", 3, nullptr, 0};
+    size_t chunk_size;
+    REQUIRE(ReadChunkHeader(stream, chunk_size));
+    REQUIRE(chunk_size == 10);
+    REQUIRE(stream.ByteCount() == 3);
+  }
+
+  SECTION(
+      "We can read the chunk header from contiguous memory that spans multiple "
+      "digits.") {
+    BipartMemoryInputStream stream{"A1\r\n", 4, nullptr, 0};
+    size_t chunk_size;
+    REQUIRE(ReadChunkHeader(stream, chunk_size));
+    REQUIRE(chunk_size == 161);
+    REQUIRE(stream.ByteCount() == 4);
+  }
+
+  SECTION("Only the chunk header is read from the stream.") {
+    BipartMemoryInputStream stream{"A1\r\nabc", 7, nullptr, 0};
+    size_t chunk_size;
+    REQUIRE(ReadChunkHeader(stream, chunk_size));
+    REQUIRE(chunk_size == 161);
+    REQUIRE(stream.ByteCount() == 4);
+  }
+
+  SECTION(
+      "We can read a header that's split across separate parts of contiguous "
+      "memory.") {
+    BipartMemoryInputStream stream{"A", 1, "1\r\n", 3};
+    size_t chunk_size;
+    REQUIRE(ReadChunkHeader(stream, chunk_size));
+    REQUIRE(chunk_size == 161);
+    REQUIRE(stream.ByteCount() == 4);
+  }
+
+  SECTION("ReadChunkHeader fails if there's no carriage return.") {
+    BipartMemoryInputStream stream{"A", 1, "123", 3};
+    size_t chunk_size;
+    REQUIRE(!ReadChunkHeader(stream, chunk_size));
+  }
+
+  SECTION("ReadChunkHeader fails if there are invalid characters.") {
+    BipartMemoryInputStream stream{"AX\r\n", 4, nullptr, 0};
+    size_t chunk_size;
+    REQUIRE(!ReadChunkHeader(stream, chunk_size));
+  }
+
+  SECTION(
+      "ReadChunkHeader fails if the number overflows an unsigned 64-bit "
+      "integer.") {
+    BipartMemoryInputStream stream{"0123456789ABCDEF0\r\n", 19, nullptr, 0};
+    size_t chunk_size;
+    REQUIRE(!ReadChunkHeader(stream, chunk_size));
+  }
+
+  SECTION("ReadChunkHeader fails if two bytes don't follow the hex number.") {
+    BipartMemoryInputStream stream{"A0\r", 3, nullptr, 0};
+    size_t chunk_size;
+    REQUIRE(!ReadChunkHeader(stream, chunk_size));
   }
 }

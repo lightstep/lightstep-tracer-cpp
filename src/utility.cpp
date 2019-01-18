@@ -297,7 +297,7 @@ opentracing::string_view Uint64ToHex(uint64_t x, char* output) {
     output[i * 2 + 1] = digits[lookup_index + 1];
     x >>= 8;
   }
-  return {output, 16};
+  return {output, Num64BitHexDigits};
 }
 
 //------------------------------------------------------------------------------
@@ -376,5 +376,38 @@ opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s) {
   }
 
   return result;
+}
+
+//--------------------------------------------------------------------------------------------------
+// ReadChunkHeader
+//--------------------------------------------------------------------------------------------------
+bool ReadChunkHeader(google::protobuf::io::ZeroCopyInputStream& stream,
+                     size_t& chunk_size) {
+  std::array<char, Num64BitHexDigits> digits;
+  int digit_index = 0;
+  const char* data;
+  int size;
+  while (stream.Next(reinterpret_cast<const void**>(&data), &size)) {
+    for (int i = 0; i < size; ++i) {
+      if (data[i] == '\r') {
+        auto chunk_size_maybe =
+            HexToUint64({digits.data(), static_cast<size_t>(digit_index)});
+        if (!chunk_size_maybe) {
+          return false;
+        }
+        stream.BackUp(size - i);
+        if (!stream.Skip(2)) {
+          return false;
+        }
+        chunk_size = *chunk_size_maybe;
+        return true;
+      }
+      if (digit_index >= static_cast<int>(digits.size())) {
+        return false;
+      }
+      digits[digit_index++] = data[i];
+    }
+  }
+  return false;
 }
 }  // namespace lightstep

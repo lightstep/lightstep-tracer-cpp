@@ -7,7 +7,11 @@ endmacro()
 
 _lightstep_test(tracer_test tracer_test.cpp 
                             utility.cpp)
+_lightstep_test(atomic_bit_set_test atomic_bit_set_test.cpp)
+_lightstep_test(bipart_memory_stream_test bipart_memory_stream_test.cpp)
+_lightstep_test(chunk_circular_buffer_test chunk_circular_buffer_test.cpp)
 _lightstep_test(utility_test utility_test.cpp)
+_lightstep_test(circular_buffer_test circular_buffer_test.cpp)
 _lightstep_test(logger_test logger_test.cpp)
 _lightstep_test(fork_id_test fork_id_test.cpp)
 _lightstep_test(propagation_test propagation_test.cpp)

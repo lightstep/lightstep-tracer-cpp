@@ -9,13 +9,16 @@ else()
 -fuchsia-*,\
 -clang-analyzer-alpha.*,\
 -llvm-include-order,\
+-google-runtime-int,\
 -google-runtime-references,\
 -google-build-using-namespace,\
 -modernize-make-unique,\
 -hicpp-vararg,\
 -hicpp-signed-bitwise,\
 -hicpp-no-array-decay,\
+-hicpp-member-init,\
 -cppcoreguidelines-owning-memory,\
+-cppcoreguidelines-pro-type-member-init,\
 -cppcoreguidelines-pro-type-reinterpret-cast,\
 -cppcoreguidelines-pro-type-const-cast,\
 -cppcoreguidelines-pro-bounds-array-to-pointer-decay,\

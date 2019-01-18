@@ -87,6 +87,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(WARNING_CXX_FLAGS -Weverything 
     -Wno-c++98-compat 
+    -Wno-c++98-compat-pedantic
     -Wno-c++98-compat-bind-to-temporary-copy 
     -Wno-weak-vtables 
     -Wno-exit-time-destructors 
@@ -165,6 +166,10 @@ include(LightStepTracerCommon)
 include(LightStepTracerConfiguration)
 
 set(LIGHTSTEP_SRCS src/utility.cpp
+                   src/atomic_bit_set.cpp
+                   src/bipart_memory_stream.cpp
+                   src/circular_buffer.cpp
+                   src/chunk_circular_buffer.cpp
                    src/in_memory_stream.cpp
                    src/logger.cpp
                    src/propagation.cpp
