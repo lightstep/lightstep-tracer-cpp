@@ -1,9 +1,9 @@
 #pragma once
 
 #include <lightstep/transporter.h>
-#include "logger.h"
-#include "recorder.h"
-#include "report_builder.h"
+#include "common/logger.h"
+#include "recorder/recorder.h"
+#include "recorder/report_builder.h"
 
 namespace lightstep {
 // ManualRecorder buffers spans finished by a tracer and sends them over to

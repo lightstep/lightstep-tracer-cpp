@@ -1,4 +1,4 @@
-#include "utility.h"
+#include "common/utility.h"
 #include <lightstep/randutils.h>
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>

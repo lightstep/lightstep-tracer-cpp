@@ -1,4 +1,4 @@
-#include "atomic_bit_set.h"
+#include "common/atomic_bit_set.h"
 
 namespace lightstep {
 static constexpr AtomicBitSet::BlockType one = 1;

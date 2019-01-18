@@ -1,4 +1,4 @@
-#include "in_memory_stream.h"
+#include "common/in_memory_stream.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------

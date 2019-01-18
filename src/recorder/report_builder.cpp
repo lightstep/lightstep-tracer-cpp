@@ -1,5 +1,5 @@
-#include "report_builder.h"
-#include "utility.h"
+#include "recorder/report_builder.h"
+#include "common/utility.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------

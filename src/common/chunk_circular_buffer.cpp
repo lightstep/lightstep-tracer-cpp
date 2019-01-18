@@ -1,7 +1,6 @@
-#include "chunk_circular_buffer.h"
-
-#include "bipart_memory_stream.h"
-#include "utility.h"
+#include "common/chunk_circular_buffer.h"
+#include "common/bipart_memory_stream.h"
+#include "common/utility.h"
 
 #include <cassert>
 #include <cstdio>

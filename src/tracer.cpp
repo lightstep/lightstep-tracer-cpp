@@ -9,14 +9,14 @@
 #include <memory>
 #include <sstream>
 #include <vector>
-#include "auto_recorder.h"
-#include "grpc_transporter.h"
+#include "recorder/auto_recorder.h"
+#include "recorder/manual_recorder.h"
+#include "recorder/grpc_transporter.h"
 #include "lightstep-tracer-common/collector.pb.h"
 #include "lightstep_immutable_span_context.h"
 #include "lightstep_tracer_impl.h"
-#include "logger.h"
-#include "manual_recorder.h"
-#include "utility.h"
+#include "common/logger.h"
+#include "common/utility.h"
 
 namespace lightstep {
 const opentracing::string_view component_name_key = "lightstep.component_name";

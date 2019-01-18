@@ -36,9 +36,7 @@ include(GNUInstallDirs)
 
 option(WITH_GRPC "Build with support for gRPC." ON)
 option(WITH_DYNAMIC_LOAD "Build support for dynamic loading." ON)
-option(ENABLE_LINTING "Run clang-tidy on sources if available." OFF)
 option(HEADERS_ONLY "Only generate config.h and version.h." OFF)
-option(BUILD_BENCHMARKING "Build benchmarks." OFF)
 
 # Allow a user to specify an optional default roots.pem file to embed into the 
 # library. 
@@ -84,22 +82,6 @@ endif()
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  set(WARNING_CXX_FLAGS -Weverything 
-    -Wno-c++98-compat 
-    -Wno-c++98-compat-pedantic
-    -Wno-c++98-compat-bind-to-temporary-copy 
-    -Wno-weak-vtables 
-    -Wno-exit-time-destructors 
-    -Wno-global-constructors 
-    -Wno-sign-conversion
-    -Wno-padded
-    -Wno-date-time
-    -Wno-switch-enum
-    -Wno-disabled-macro-expansion)
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  set(WARNING_CXX_FLAGS -Wall -Wextra)
-endif()
 
 # ==============================================================================
 # Find packages
@@ -148,10 +130,6 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
 
-if (BUILD_BENCHMARKING)
-  find_package(benchmark REQUIRED)
-endif()
-
 # ==============================================================================
 # Build LightStep tracer library
 
@@ -159,31 +137,32 @@ add_subdirectory(3rd_party)
 include_directories(SYSTEM ${LIGHTSTEP_THIRD_PARTY_INCLUDES})
 
 include_directories(include)
+include_directories(src)
 install(DIRECTORY include/lightstep DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 include(LightStepTracerCommon)
 include(LightStepTracerConfiguration)
 
-set(LIGHTSTEP_SRCS src/utility.cpp
-                   src/atomic_bit_set.cpp
-                   src/bipart_memory_stream.cpp
-                   src/circular_buffer.cpp
-                   src/chunk_circular_buffer.cpp
-                   src/in_memory_stream.cpp
-                   src/logger.cpp
+set(LIGHTSTEP_SRCS src/common/utility.cpp
+                   src/common/atomic_bit_set.cpp
+                   src/common/bipart_memory_stream.cpp
+                   src/common/circular_buffer.cpp
+                   src/common/chunk_circular_buffer.cpp
+                   src/common/in_memory_stream.cpp
+                   src/common/logger.cpp
+                   src/recorder/report_builder.cpp
+                   src/recorder/auto_recorder.cpp
+                   src/recorder/manual_recorder.cpp
+                   src/recorder/grpc_transporter.cpp
+                   src/recorder/transporter.cpp
                    src/propagation.cpp
                    src/binary_carrier.cpp
-                   src/grpc_transporter.cpp
-                   src/report_builder.cpp
-                   src/manual_recorder.cpp
-                   src/auto_recorder.cpp
                    src/lightstep_span_context.cpp
                    src/lightstep_immutable_span_context.cpp
                    src/lightstep_span.cpp
                    src/lightstep_tracer_impl.cpp
                    src/lightstep_tracer_factory.cpp
-                   src/transporter.cpp
                    src/tracer.cpp
                    )
 
@@ -210,10 +189,6 @@ if (BUILD_SHARED_LIBS)
                                       $<TARGET_OBJECTS:lightstep_3rd_party>
                                       ${LIGHTSTEP_SRCS})
   target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
-  if (ENABLE_LINTING)
-    include(LightStepClangTidy)
-    _apply_clang_tidy_if_available(lightstep_tracer)
-  endif()
   target_link_libraries(lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
   set_target_properties(lightstep_tracer PROPERTIES SOVERSION ${LIGHTSTEP_VERSION_MAJOR})
   install(TARGETS lightstep_tracer
@@ -227,25 +202,7 @@ if (BUILD_STATIC_LIBS)
                                              ${LIGHTSTEP_SRCS})
   set_target_properties(lightstep_tracer-static PROPERTIES OUTPUT_NAME lightstep_tracer)
   target_compile_options(lightstep_tracer-static PUBLIC ${WARNING_CXX_FLAGS})
-  if (ENABLE_LINTING)
-    include(LightStepClangTidy)
-    _apply_clang_tidy_if_available(lightstep_tracer-static)
-  endif()
   target_link_libraries(lightstep_tracer-static ${LIGHTSTEP_LINK_LIBRARIES})
   install(TARGETS lightstep_tracer-static
           ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endif()
-
-
-# ==============================================================================
-# Build tests and examples
-
-include(CTest)
-if (BUILD_TESTING AND BUILD_SHARED_LIBS)
-  add_subdirectory(test)
-  add_subdirectory(example)
-endif()
-
-if (BUILD_BENCHMARKING)
-  add_subdirectory(benchmark)
 endif()

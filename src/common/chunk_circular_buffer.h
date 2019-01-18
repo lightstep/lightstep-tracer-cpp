@@ -1,7 +1,7 @@
 #pragma once
 
-#include "atomic_bit_set.h"
-#include "circular_buffer.h"
+#include "common/atomic_bit_set.h"
+#include "common/circular_buffer.h"
 
 #include <google/protobuf/io/coded_stream.h>
 

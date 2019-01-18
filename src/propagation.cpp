@@ -8,9 +8,9 @@
 #include <iomanip>
 #include <ios>
 #include <sstream>
-#include "in_memory_stream.h"
+#include "common/in_memory_stream.h"
 #include "lightstep-tracer-common/lightstep_carrier.pb.h"
-#include "utility.h"
+#include "common/utility.h"
 
 namespace lightstep {
 #define PREFIX_TRACER_STATE "ot-tracer-"

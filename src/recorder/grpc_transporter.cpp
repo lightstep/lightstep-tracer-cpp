@@ -1,4 +1,4 @@
-#include "grpc_transporter.h"
+#include "recorder/grpc_transporter.h"
 #include <lightstep/config.h>
 
 #ifdef LIGHTSTEP_USE_GRPC

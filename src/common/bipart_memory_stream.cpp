@@ -1,4 +1,4 @@
-#include "bipart_memory_stream.h"
+#include "common/bipart_memory_stream.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------

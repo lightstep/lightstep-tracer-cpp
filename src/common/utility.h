@@ -7,7 +7,7 @@
 #include <limits>
 #include <string>
 #include "lightstep-tracer-common/collector.pb.h"
-#include "logger.h"
+#include "common/logger.h"
 
 #include <google/protobuf/io/zero_copy_stream.h>
 

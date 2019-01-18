@@ -1,6 +1,6 @@
 #include "auto_recorder.h"
 #include <exception>
-#include "utility.h"
+#include "common/utility.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------

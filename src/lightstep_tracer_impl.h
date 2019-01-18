@@ -1,9 +1,9 @@
 #pragma once
 
 #include <memory>
-#include "logger.h"
+#include "common/logger.h"
 #include "propagation.h"
-#include "recorder.h"
+#include "recorder/recorder.h"
 
 namespace lightstep {
 class LightStepTracerImpl final
