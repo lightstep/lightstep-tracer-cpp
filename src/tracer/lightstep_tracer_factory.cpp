@@ -4,6 +4,9 @@
 #include "lightstep-tracer-configuration/tracer_configuration.pb.h"
 
 namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// MakeTrcer
+//--------------------------------------------------------------------------------------------------
 opentracing::expected<std::shared_ptr<opentracing::Tracer>>
 LightStepTracerFactory::MakeTracer(const char* configuration,
                                    std::string& error_message) const

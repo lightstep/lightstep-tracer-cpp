@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lightstep/transporter.h>
+#include "lightstep/transporter.h"
 #include "common/logger.h"
 #include "recorder/recorder.h"
 #include "recorder/report_builder.h"

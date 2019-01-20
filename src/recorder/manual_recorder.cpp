@@ -1,4 +1,4 @@
-#include "manual_recorder.h"
+#include "recorder/manual_recorder.h"
 #include "common/utility.h"
 
 namespace lightstep {

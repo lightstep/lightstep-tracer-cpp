@@ -1,7 +1,9 @@
 #include "common/utility.h"
-#include <lightstep/randutils.h>
+
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>
+
+#include <lightstep/randutils.h>
 #include "lightstep-tracer-common/collector.pb.h"
 
 #include <unistd.h>
