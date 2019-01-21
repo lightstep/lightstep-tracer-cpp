@@ -1,10 +1,9 @@
-#include "../src/circular_buffer.h"
+#include "common/circular_buffer.h"
 
 #include <array>
 #include <utility>
 
-#define CATCH_CONFIG_MAIN
-#include <lightstep/catch2/catch.hpp>
+#include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
 
 TEST_CASE("CircularBuffer") {

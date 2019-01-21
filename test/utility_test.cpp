@@ -1,10 +1,10 @@
-#include "../src/utility.h"
+#include "common/utility.h"
+#include "common/bipart_memory_stream.h"
+
 #include <cmath>
 #include <limits>
-#include "../src/bipart_memory_stream.h"
 
-#define CATCH_CONFIG_MAIN
-#include <lightstep/catch2/catch.hpp>
+#include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
 using namespace opentracing;
 

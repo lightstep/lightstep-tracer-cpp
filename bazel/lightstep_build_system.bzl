@@ -72,3 +72,24 @@ def lightstep_cc_binary(
         stamp = 1,
         deps = external_deps + deps,
     )
+
+def lightstep_catch_test(
+        name,
+        srcs = [],
+        data = [],
+        visibility = None,
+        external_deps = [],
+        deps = [],
+        linkopts = []):
+    native.cc_test(
+        name = name,
+        srcs = srcs,
+        data = data,
+        copts = lightstep_copts(),
+        linkopts = linkopts,
+        testonly = 1,
+        linkstatic = 1,
+        visibility = visibility,
+        stamp = 1,
+        deps = external_deps + deps + ["//3rd_party/catch2:main_lib"],
+    )

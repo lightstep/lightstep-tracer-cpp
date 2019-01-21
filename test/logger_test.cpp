@@ -1,8 +1,6 @@
-#include "../src/logger.h"
+#include "common/logger.h"
 
-#define CATCH_CONFIG_MAIN
-#include <lightstep/catch2/catch.hpp>
-
+#include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
 
 TEST_CASE("logger") {

@@ -1,6 +1,6 @@
-#include "../src/chunk_circular_buffer.h"
-#include "../src/bipart_memory_stream.h"
-#include "../src/utility.h"
+#include "common/chunk_circular_buffer.h"
+#include "common/bipart_memory_stream.h"
+#include "common/utility.h"
 
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <opentracing/string_view.h>
@@ -13,8 +13,7 @@
 #include <tuple>
 #include <vector>
 
-#define CATCH_CONFIG_MAIN
-#include <lightstep/catch2/catch.hpp>
+#include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
 
 static std::string ToString(const CircularBufferConstPlacement& placement) {
