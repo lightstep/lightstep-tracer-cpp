@@ -1,10 +1,9 @@
 #include "recorder/grpc_transporter.h"
-#include <lightstep/config.h>
 
-#ifdef LIGHTSTEP_USE_GRPC
 #include <grpc++/create_channel.h>
 #include <chrono>
 #include <sstream>
+
 #include "lightstep-tracer-common/collector.grpc.pb.h"
 #include "lightstep-tracer-common/collector.pb.h"
 
@@ -103,14 +102,3 @@ std::unique_ptr<SyncTransporter> MakeGrpcTransporter(
   return std::unique_ptr<SyncTransporter>{new GrpcTransporter{logger, options}};
 }
 }  // namespace lightstep
-#else
-#include <stdexcept>
-namespace lightstep {
-std::unique_ptr<SyncTransporter> MakeGrpcTransporter(
-    Logger& /*logger*/, const LightStepTracerOptions& /*options*/) {
-  throw std::runtime_error{
-      "LightStep was not built with gRPC support, so a transporter must be "
-      "supplied."};
-}
-}  // namespace lightstep
-#endif

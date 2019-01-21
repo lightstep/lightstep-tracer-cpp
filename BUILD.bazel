@@ -1,36 +1,46 @@
 load(
     "//bazel:lightstep_build_system.bzl",
     "lightstep_package",
+    "lightstep_cc_library",
 )
 
 lightstep_package()
 
-#genrule(
-#    name = "generate_version_h",
-#    srcs = glob([
-#        "*",
-#        "cmake/**/*",
-#        "example/**/*",
-#        "src/*",
-#        "3rd_party/**/*",
-#    ]),
-#    outs = [
-#        "include/lightstep/config.h",
-#        "include/lightstep/version.h",
-#    ],
-#    cmd = """
-#    TEMP_DIR=$$(mktemp -d)
-#    CONFIG_H_OUT=$${PWD}/$(location :include/lightstep/config.h)
-#    VERSION_H_OUT=$${PWD}/$(location :include/lightstep/version.h)
-#    LIGHTSTEP_ROOT=$$(dirname $${PWD}/$(location :CMakeLists.txt))
-#    cd $$TEMP_DIR
-#    cmake \\
-#        -DWITH_GRPC=OFF \\
-#        -DHEADERS_ONLY=ON \\
-#        -L \\
-#        $$LIGHTSTEP_ROOT
-#    mv include/lightstep/config.h $$CONFIG_H_OUT
-#    mv include/lightstep/version.h $$VERSION_H_OUT
-#    rm -rf $$TEMP_DIR
-#    """,
-#)
+genrule(
+    name = "generate_version_h",
+    srcs = glob([
+        "*",
+        "cmake/**/*",
+        "example/**/*",
+        "src/*",
+        "3rd_party/**/*",
+    ]),
+    outs = [
+        "gen-config/lightstep/config.h",
+        "gen-config/lightstep/version.h",
+    ],
+    cmd = """
+    TEMP_DIR=$$(mktemp -d)
+    CONFIG_H_OUT=$${PWD}/$(location :gen-config/lightstep/config.h)
+    VERSION_H_OUT=$${PWD}/$(location :gen-config/lightstep/version.h)
+    LIGHTSTEP_ROOT=$$(dirname $${PWD}/$(location :CMakeLists.txt))
+    cd $$TEMP_DIR
+    cmake \\
+        -DWITH_GRPC=OFF \\
+        -DHEADERS_ONLY=ON \\
+        -L \\
+        $$LIGHTSTEP_ROOT
+    mv include/lightstep/config.h $$CONFIG_H_OUT
+    mv include/lightstep/version.h $$VERSION_H_OUT
+    rm -rf $$TEMP_DIR
+    """,
+)
+
+lightstep_cc_library(
+  name = "config_lib",
+  hdrs = [
+    ":gen-config/lightstep/config.h",
+    ":gen-config/lightstep/version.h",
+  ],
+  strip_include_prefix = "gen-config",
+)

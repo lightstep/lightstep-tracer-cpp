@@ -6,11 +6,17 @@ load(
 
 lightstep_package()
 
+lightstep_cc_library(
+    name = "grpc_transporter_interface",
+    hdrs = [
+        "grpc_transporter.h",
+    ],
+)
+
 # lightstep_cc_library(
 #     name = "grpc_transporter_lib",
 #     hdrs = [
 #         "grpc_transporter.h",
-#         "//:include/lightstep/config.h",
 #     ],
 #     srcs = [
 #         "grpc_transporter.cpp",
@@ -18,8 +24,22 @@ lightstep_package()
 #     deps = [
 #         "//include/lightstep:tracer_interface",
 #         "//src/common:logger_lib",
+#         "//:config_lib",
 #     ],
 # )
+
+lightstep_cc_library(
+    name = "no_grpc_transporter_lib",
+    srcs = [
+        "no_grpc_transporter.cpp",
+    ],
+    deps = [
+        "//include/lightstep:tracer_interface",
+        "//src/common:logger_lib",
+        ":grpc_transporter_interface",
+        "//:config_lib",
+    ],
+)
 
 lightstep_cc_library(
     name = "recorder_interface",
@@ -56,8 +76,36 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:logger_lib",
-        "//include/lightstep:transporter_interface",
         ":recorder_interface",
         ":report_builder_lib",
+        ":transporter_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "auto_recorder_lib",
+    hdrs = [
+        "auto_recorder.h",
+    ],
+    srcs = [
+        "auto_recorder.cpp",
+    ],
+    deps = [
+        "//src/common:logger_lib",
+        "//src/common:condition_variable_wrapper_lib",
+        ":recorder_interface",
+        ":report_builder_lib",
+        ":transporter_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "transporter_lib",
+    srcs = [
+        "transporter.cpp",
+    ],
+    deps = [
+        "//include/lightstep:transporter_interface",
+        "//lightstep-tracer-common:collector_proto_cc",
     ],
 )

@@ -96,3 +96,10 @@ lightstep_cc_library(
         "@io_opentracing_cpp//:opentracing",
     ],
 )
+
+lightstep_cc_library(
+    name = "condition_variable_wrapper_lib",
+    hdrs = [
+        "condition_variable_wrapper.h",
+    ]
+)

@@ -9,14 +9,27 @@ git_repository(
     commit = "ac50154a7713877f877981c33c3375003b6ebfe1",
 )
 
-http_archive(
-    name = "com_google_protobuf",
-    sha256 = "5d4551193416861cb81c3bc0a428f22a6878148c57c31fb6f8f2aa4cf27ff635",
-    strip_prefix = "protobuf-c4f59dcc5c13debc572154c8f636b8a9361aacde",
-    urls = ["https://github.com/google/protobuf/archive/c4f59dcc5c13debc572154c8f636b8a9361aacde.tar.gz"],
-)
-
 local_repository(
     name = "lightstep_vendored_googleapis",
     path = "lightstep-tracer-common/third_party/googleapis",
 )
+
+git_repository(
+    name = "build_stack_rules_proto",
+    remote = "https://github.com/stackb/rules_proto",
+    commit = "4c2226458203a9653ae722245cc27e8b07c383f7",
+)
+
+git_repository(
+    name = "com_github_grpc_grpc",
+    remote = "https://github.com/grpc/grpc",
+    commit = "e97c9457e2f4e6733873ea2975d3b90432fdfdc1",
+)
+
+load("@build_stack_rules_proto//cpp:deps.bzl", "cpp_grpc_compile")
+
+cpp_grpc_compile()
+
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+
+grpc_deps()
