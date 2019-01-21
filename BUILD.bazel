@@ -44,3 +44,19 @@ lightstep_cc_library(
   ],
   strip_include_prefix = "gen-config",
 )
+
+lightstep_cc_library(
+  name = "manual_tracer_lib",
+  deps = [
+    "//src/tracer:tracer_lib",
+    "//src/recorder:no_grpc_transporter_lib",
+  ],
+)
+
+lightstep_cc_library(
+  name = "tracer_lib",  
+  deps = [
+    "//src/tracer:tracer_lib",
+    "//src/recorder/grpc_transporter:grpc_transporter_lib",
+  ],
+)

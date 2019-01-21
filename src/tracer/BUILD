@@ -110,3 +110,21 @@ lightstep_cc_library(
         "@com_google_protobuf//:protobuf",
     ],
 )
+
+lightstep_cc_library(
+    name = "tracer_lib",
+    srcs = [
+        "tracer.cpp",
+    ],
+    deps = [
+        "//src/recorder:auto_recorder_lib",
+        "//src/recorder:grpc_transporter_interface",
+        "//src/recorder:manual_recorder_lib",
+        "//lightstep-tracer-common:collector_proto_cc",
+        "//:config_lib",
+        ":lightstep_tracer_impl_lib",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
