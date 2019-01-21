@@ -1,10 +1,11 @@
 #pragma once
 
-#include <lightstep/transporter.h>
 #include <exception>
 #include <iostream>
 #include <mutex>
 #include <vector>
+
+#include "lightstep/transporter.h"
 #include "lightstep-tracer-common/collector.pb.h"
 
 namespace lightstep {

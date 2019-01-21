@@ -1,19 +1,18 @@
 #include <google/protobuf/util/message_differencer.h>
-#include <lightstep/binary_carrier.h>
-#include <lightstep/tracer.h>
 #include <opentracing/noop.h>
 #include <algorithm>
 #include <cctype>
 #include <sstream>
 #include <string>
 #include <unordered_map>
-#include "../src/lightstep_immutable_span_context.h"
-#include "../src/lightstep_tracer_impl.h"
-#include "../src/utility.h"
-#include "in_memory_recorder.h"
 
-#define CATCH_CONFIG_MAIN
-#include <lightstep/catch2/catch.hpp>
+#include "lightstep/binary_carrier.h"
+#include "lightstep/tracer.h"
+#include "tracer/lightstep_immutable_span_context.h"
+#include "tracer/lightstep_tracer_impl.h"
+#include "common/utility.h"
+#include "test/recorder/in_memory_recorder.h"
+#include "3rd_party/catch2/catch.hpp"
 
 using namespace lightstep;
 

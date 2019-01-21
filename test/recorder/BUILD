@@ -16,3 +16,57 @@ lightstep_cc_library(
         "//src/recorder:recorder_interface",
     ],
 )
+
+lightstep_cc_library(
+    name = "in_memory_async_transporter_lib",
+    hdrs = [
+        "in_memory_async_transporter.h",
+    ],
+    srcs = [
+        "in_memory_async_transporter.cpp",
+    ],
+    deps = [
+        "//src/recorder:transporter_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "in_memory_sync_transporter_lib",
+    hdrs = [
+        "in_memory_sync_transporter.h",
+    ],
+    srcs = [
+        "in_memory_sync_transporter.cpp",
+    ],
+    deps = [
+        "//src/recorder:transporter_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "manual_recorder_test",
+    srcs = [
+        "manual_recorder_test.cpp",
+    ],
+    deps = [
+        "//:manual_tracer_lib",
+        "//test:utility_lib",
+        "//test:testing_condition_variable_wrapper_lib",
+        "//test:counting_metrics_observer_lib",
+        ":in_memory_async_transporter_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "auto_recorder_test",
+    srcs = [
+        "auto_recorder_test.cpp",
+    ],
+    deps = [
+        "//:manual_tracer_lib",
+        "//test:utility_lib",
+        "//test:testing_condition_variable_wrapper_lib",
+        "//test:counting_metrics_observer_lib",
+        ":in_memory_sync_transporter_lib",
+    ],
+)

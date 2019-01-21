@@ -13,21 +13,6 @@ lightstep_cc_library(
     ],
 )
 
-# lightstep_cc_library(
-#     name = "grpc_transporter_lib",
-#     hdrs = [
-#         "grpc_transporter.h",
-#     ],
-#     srcs = [
-#         "grpc_transporter.cpp",
-#     ],
-#     deps = [
-#         "//include/lightstep:tracer_interface",
-#         "//src/common:logger_lib",
-#         "//:config_lib",
-#     ],
-# )
-
 lightstep_cc_library(
     name = "no_grpc_transporter_lib",
     srcs = [

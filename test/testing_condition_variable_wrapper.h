@@ -3,7 +3,8 @@
 #include <atomic>
 #include <iostream>
 #include <vector>
-#include "../src/condition_variable_wrapper.h"
+
+#include "common/condition_variable_wrapper.h"
 
 namespace lightstep {
 

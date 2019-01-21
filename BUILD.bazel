@@ -49,6 +49,9 @@ lightstep_cc_library(
   name = "manual_tracer_lib",
   deps = [
     "//src/tracer:tracer_lib",
+    "//src/tracer:binary_carrier_lib",
+    "//src/recorder:transporter_lib",
+    "//src/tracer:no_default_ssl_roots_pem_lib",
     "//src/recorder:no_grpc_transporter_lib",
   ],
 )
@@ -57,6 +60,9 @@ lightstep_cc_library(
   name = "tracer_lib",  
   deps = [
     "//src/tracer:tracer_lib",
+    "//src/tracer:binary_carrier_lib",
+    "//src/recorder:transporter_lib",
+    "//src/tracer:no_default_ssl_roots_pem_lib",
     "//src/recorder/grpc_transporter:grpc_transporter_lib",
   ],
 )

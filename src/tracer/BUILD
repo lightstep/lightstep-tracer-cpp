@@ -27,6 +27,18 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "binary_carrier_lib",
+    srcs = [
+        "binary_carrier.cpp",
+    ],
+    deps = [
+        "//include/lightstep:binary_carrier_interface",
+        "//include/lightstep:tracer_interface",
+        ":tracer_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "dynamic_load_lib",
     srcs = [
         "dynamic_load.cpp",
@@ -126,5 +138,12 @@ lightstep_cc_library(
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_cc_library(
+    name = "no_default_ssl_roots_pem_lib",
+    srcs = [
+      "no_default_ssl_roots_pem.cpp",
     ],
 )

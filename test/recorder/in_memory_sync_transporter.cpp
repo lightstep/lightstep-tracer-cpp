@@ -1,4 +1,4 @@
-#include "in_memory_sync_transporter.h"
+#include "test/recorder/in_memory_sync_transporter.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
