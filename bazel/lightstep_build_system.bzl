@@ -73,10 +73,11 @@ def lightstep_cc_binary(
         deps = external_deps + deps,
     )
 
-def lightstep_catch_test(
+def lightstep_cc_test(
         name,
         srcs = [],
         data = [],
+        testonly = 0,
         visibility = None,
         external_deps = [],
         deps = [],
@@ -87,9 +88,27 @@ def lightstep_catch_test(
         data = data,
         copts = lightstep_copts(),
         linkopts = linkopts,
-        testonly = 1,
+        testonly = testonly,
         linkstatic = 1,
         visibility = visibility,
         stamp = 1,
-        deps = external_deps + deps + ["//3rd_party/catch2:main_lib"],
+        deps = external_deps + deps,
+    )
+
+def lightstep_catch_test(
+        name,
+        srcs = [],
+        data = [],
+        visibility = None,
+        external_deps = [],
+        deps = [],
+        linkopts = []):
+    lightstep_cc_test(
+        name = name,
+        srcs = srcs,
+        data = data,
+        linkopts = linkopts,
+        visibility = visibility,
+        deps = deps,
+        external_deps = external_deps + ["//3rd_party/catch2:main_lib"],
     )

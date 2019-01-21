@@ -1,9 +1,10 @@
 #pragma once
 
+#include "recorder/recorder.h"
+
 #include <mutex>
 #include <stdexcept>
 #include <vector>
-#include "../src/recorder.h"
 
 namespace lightstep {
 // InMemoryRecorder is used for testing only.
