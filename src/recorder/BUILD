@@ -33,6 +33,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//lightstep-tracer-common:collector_proto_cc",
+        "//include/lightstep:tracer_interface",
     ],
 )
 
@@ -92,5 +93,27 @@ lightstep_cc_library(
     deps = [
         "//include/lightstep:transporter_interface",
         "//lightstep-tracer-common:collector_proto_cc",
+    ],
+)
+
+lightstep_cc_library(
+    name = "stream_recorder_interface",
+    private_hdrs = [
+        "stream_recorder.h",
+    ],
+    deps = [
+        "//src/common:logger_lib",
+        "//src/recorder:recorder_interface",
+        "//include/lightstep:tracer_interface",
+    ],
+)
+
+lightstep_cc_library(
+    name = "no_stream_recorder_lib",
+    srcs = [
+        "no_stream_recorder.cpp",
+    ],
+    deps = [
+        ":stream_recorder_interface",
     ],
 )

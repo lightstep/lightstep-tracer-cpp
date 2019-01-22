@@ -1,22 +1,26 @@
-#include <lightstep/tracer.h>
-#include <lightstep/version.h>
-#include <opentracing/string_view.h>
-#include <opentracing/value.h>
-#include <opentracing/version.h>
+#include "lightstep/tracer.h"
+
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <vector>
+
+#include "lightstep/version.h"
 #include "common/logger.h"
 #include "common/utility.h"
 #include "lightstep-tracer-common/collector.pb.h"
 #include "recorder/auto_recorder.h"
+#include "recorder/stream_recorder.h"
 #include "recorder/grpc_transporter.h"
 #include "recorder/manual_recorder.h"
 #include "tracer/lightstep_immutable_span_context.h"
 #include "tracer/lightstep_tracer_impl.h"
+
+#include "opentracing/string_view.h"
+#include "opentracing/value.h"
+#include "opentracing/version.h"
 
 namespace lightstep {
 const opentracing::string_view component_name_key = "lightstep.component_name";
@@ -117,6 +121,18 @@ static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
       std::move(logger), propagation_options, std::move(recorder)}};
 }
 
+//--------------------------------------------------------------------------------------------------
+// MakeStreamTracer
+//--------------------------------------------------------------------------------------------------
+static std::shared_ptr<LightStepTracer> MakeStreamTracer(
+    std::shared_ptr<Logger> logger, LightStepTracerOptions&& options) {
+  PropagationOptions propagation_options{};
+  propagation_options.use_single_key = options.use_single_key_propagation;
+  auto recorder = MakeStreamRecorder(*logger, std::move(options));
+  return std::shared_ptr<LightStepTracer>{new LightStepTracerImpl{
+      std::move(logger), propagation_options, std::move(recorder)}};
+}
+
 //------------------------------------------------------------------------------
 // MakeSingleThreadedTracer
 //------------------------------------------------------------------------------
@@ -188,6 +204,9 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
 
     if (!options.use_thread) {
       return MakeSingleThreadedTracer(logger, std::move(options));
+    }
+    if (options.use_stream_recorder) {
+      return MakeStreamTracer(logger, std::move(options));
     }
     return MakeThreadedTracer(logger, std::move(options));
   } catch (const std::exception& e) {

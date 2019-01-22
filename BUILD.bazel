@@ -53,6 +53,7 @@ lightstep_cc_library(
     "//src/recorder:transporter_lib",
     "//src/tracer:no_default_ssl_roots_pem_lib",
     "//src/recorder:no_grpc_transporter_lib",
+    "//src/recorder:no_stream_recorder_lib",
   ],
 )
 
@@ -65,5 +66,6 @@ lightstep_cc_library(
     "//src/recorder:transporter_lib",
     "//src/tracer:no_default_ssl_roots_pem_lib",
     "//src/recorder/grpc_transporter:grpc_transporter_lib",
+    "//src/recorder/stream_recorder:stream_recorder_lib",
   ],
 )

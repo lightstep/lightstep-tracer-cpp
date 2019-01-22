@@ -46,6 +46,8 @@ LightStepTracerFactory::MakeTracer(const char* configuration,
         std::chrono::microseconds{tracer_configuration.report_timeout()};
   }
 
+  options.use_stream_recorder = tracer_configuration.use_stream_recorder();
+
   auto result = std::shared_ptr<opentracing::Tracer>{
       MakeLightStepTracer(std::move(options))};
   if (result == nullptr) {
