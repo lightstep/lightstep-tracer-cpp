@@ -12,6 +12,9 @@
 #include "recorder/stream_recorder/stream_recorder_options.h"
 
 namespace lightstep {
+/**
+ * A Recorder that load balances and streams spans to multiple satellites.
+ */
 class StreamRecorder final : public Recorder {
  public:
   StreamRecorder(
@@ -27,9 +30,11 @@ class StreamRecorder final : public Recorder {
   LightStepTracerOptions tracer_options_;
   StreamRecorderOptions recorder_options_;
   ChunkCircularBuffer span_buffer_;
+  size_t early_flush_marker_;
 
   EventBase event_base_;
   TimerEvent poll_timer_;
+  TimerEvent flush_timer_;
 
   std::thread thread_;
   std::atomic<bool> exit_{false};
@@ -38,11 +43,7 @@ class StreamRecorder final : public Recorder {
 
   void Poll() noexcept;
 
-  template <void (StreamRecorder::*MemberFunction)()>
-  static EventBase::EventCallback MakeTimerCallback() {
-    return [] (int /*socket*/, short /*what*/, void* context) {
-      (static_cast<StreamRecorder*>(context)->*MemberFunction)();
-    };
-  }
+  void Flush() noexcept;
+
 };
 } // namespace lightstep

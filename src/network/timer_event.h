@@ -5,6 +5,9 @@
 struct event;
 
 namespace lightstep {
+/**
+ * Manages a periodic timer event.
+ */
 class TimerEvent {
  public:
   template <class Rep, class Period>
@@ -27,8 +30,14 @@ class TimerEvent {
   TimerEvent& operator=(TimerEvent&& other) noexcept;
   TimerEvent& operator=(const TimerEvent&) = delete;
 
+  /**
+   * Resets the timer to start from now.
+   */
   void Reset();
 
+  /**
+   * @return the underlying event associated with this timer.
+   */
   const event* libevent_handle() const noexcept { return event_; }
  private:
   event* event_;

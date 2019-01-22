@@ -56,6 +56,11 @@
     "ssl_root_certificates": {
       "type": "string",
       "description": "`ssl_root_certificates` specifies the CA certificates to use when\ntransporting spans to the collector.  If not set, LightStep will try to\nuse CA certificates located in standard system locations.\n\nNote: `ssl_root_certificates` should follow the PEM format."
+    },
+
+    "use_stream_recorder": {
+      "type": "boolean",
+      "description": "`use_stream_recorder` enables the streaming recorder for faster uploading of spans."
     }
   }
 }

@@ -60,6 +60,11 @@ class ChunkCircularBuffer {
   bool empty() const noexcept { return buffer_.empty(); }
 
   /**
+   * @return the number of bytes stored in the buffer.
+   */
+  size_t size() const noexcept { return buffer_.size(); }
+
+  /**
    * @return the maximum number of bytes that can be stored in the buffer.
    */
   size_t max_size() const noexcept { return buffer_.max_size(); }
