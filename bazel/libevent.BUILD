@@ -65,6 +65,7 @@ genrule(
       cd $$TMP_DIR
       cmake \
         -DCMAKE_INSTALL_PREFIX="$$INSTALL_DIR" \
+        -DCMAKE_POSITION_INDEPENDENT_CODE=on \
         -DEVENT__DISABLE_OPENSSL:BOOL=on \
         -DEVENT__DISABLE_REGRESS:BOOL=on \
         -DCMAKE_BUILD_TYPE=Release \
@@ -78,7 +79,6 @@ genrule(
 cc_library(
     name = "libevent",
     srcs = [
-        "libevent/lib/libevent.a",
         "libevent/lib/libevent_core.a",
     ],
     hdrs = include_files,

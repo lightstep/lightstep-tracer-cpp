@@ -23,6 +23,9 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:logger_lib",
+        "//src/common:chunk_circular_buffer_lib",
+        "//src/network:event_base_lib",
+        "//src/network:timer_event_lib",
         "//src/recorder:stream_recorder_interface",
         ":stream_recorder_options_lib",
     ],
