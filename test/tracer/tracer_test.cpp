@@ -1,12 +1,12 @@
 #include <opentracing/ext/tags.h>
 #include <opentracing/noop.h>
 
+#include "3rd_party/catch2/catch.hpp"
 #include "common/utility.h"
 #include "lightstep/tracer.h"
 #include "test/recorder/in_memory_recorder.h"
 #include "test/utility.h"
 #include "tracer/lightstep_tracer_impl.h"
-#include "3rd_party/catch2/catch.hpp"
 
 using namespace lightstep;
 using namespace opentracing;

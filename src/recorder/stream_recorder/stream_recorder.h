@@ -3,9 +3,9 @@
 #include <atomic>
 #include <thread>
 
-#include "lightstep/tracer.h"
 #include "common/chunk_circular_buffer.h"
 #include "common/logger.h"
+#include "lightstep/tracer.h"
 #include "network/event_base.h"
 #include "network/timer_event.h"
 #include "recorder/stream_recorder.h"
@@ -25,6 +25,7 @@ class StreamRecorder final : public Recorder {
 
   // Recorder
   void RecordSpan(const collector::Span& span) noexcept override;
+
  private:
   Logger& logger_;
   LightStepTracerOptions tracer_options_;
@@ -44,6 +45,5 @@ class StreamRecorder final : public Recorder {
   void Poll() noexcept;
 
   void Flush() noexcept;
-
 };
-} // namespace lightstep
+}  // namespace lightstep

@@ -5,8 +5,8 @@
 #include <mutex>
 #include <vector>
 
-#include "lightstep/transporter.h"
 #include "lightstep-tracer-common/collector.pb.h"
+#include "lightstep/transporter.h"
 
 namespace lightstep {
 class InMemoryAsyncTransporter : public AsyncTransporter {

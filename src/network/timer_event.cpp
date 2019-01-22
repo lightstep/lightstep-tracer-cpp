@@ -1,7 +1,7 @@
 #include "network/timer_event.h"
 
-#include <stdexcept>
 #include <cassert>
+#include <stdexcept>
 
 #include "common/utility.h"
 
@@ -15,8 +15,8 @@ TimerEvent::TimerEvent(const EventBase& event_base,
                        std::chrono::microseconds interval,
                        EventBase::EventCallback callback, void* context)
     : tv_{ToTimeval(interval)} {
-  event_ =
-      event_new(event_base.libevent_handle(), -1, EV_PERSIST, callback, context);
+  event_ = event_new(event_base.libevent_handle(), -1, EV_PERSIST, callback,
+                     context);
   if (event_ == nullptr) {
     throw std::runtime_error{"event_new failed"};
   }
@@ -48,7 +48,7 @@ TimerEvent& TimerEvent::operator=(TimerEvent&& other) noexcept {
 //--------------------------------------------------------------------------------------------------
 // destructor
 //--------------------------------------------------------------------------------------------------
-TimerEvent::~TimerEvent() noexcept { 
+TimerEvent::~TimerEvent() noexcept {
   if (event_ != nullptr) {
     event_free(event_);
   }

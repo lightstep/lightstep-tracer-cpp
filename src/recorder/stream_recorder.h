@@ -1,7 +1,7 @@
 #pragma once
 
-#include "lightstep/tracer.h"
 #include "common/logger.h"
+#include "lightstep/tracer.h"
 #include "recorder/recorder.h"
 
 namespace lightstep {

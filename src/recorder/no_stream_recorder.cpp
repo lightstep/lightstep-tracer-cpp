@@ -9,4 +9,4 @@ std::unique_ptr<Recorder> MakeStreamRecorder(
       "LightStep was not built with stream recorder support, so a different "
       "recorder must be selected."};
 }
-} // namespace lightstep
+}  // namespace lightstep

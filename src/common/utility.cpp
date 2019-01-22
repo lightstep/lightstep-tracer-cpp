@@ -33,7 +33,6 @@ google::protobuf::Timestamp ToTimestamp(
   return ts;
 }
 
-
 timeval ToTimeval(std::chrono::microseconds microseconds) {
   timeval result;
   auto num_microseconds = microseconds.count();

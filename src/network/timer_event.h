@@ -39,6 +39,7 @@ class TimerEvent {
    * @return the underlying event associated with this timer.
    */
   const event* libevent_handle() const noexcept { return event_; }
+
  private:
   event* event_;
   timeval tv_;

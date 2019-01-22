@@ -1,5 +1,6 @@
 #include <atomic>
 
+#include "3rd_party/catch2/catch.hpp"
 #include "lightstep/tracer.h"
 #include "recorder/manual_recorder.h"
 #include "test/counting_metrics_observer.h"
@@ -7,7 +8,6 @@
 #include "test/testing_condition_variable_wrapper.h"
 #include "test/utility.h"
 #include "tracer/lightstep_tracer_impl.h"
-#include "3rd_party/catch2/catch.hpp"
 
 using namespace lightstep;
 using namespace opentracing;

@@ -51,9 +51,9 @@ void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
         static_cast<collector::Span*>(context)->SerializeWithCachedSizes(
             &stream);
       };
-  auto was_added = span_buffer_.Add(
-      serialization_callback, span.ByteSizeLong(),
-      static_cast<void*>(const_cast<collector::Span*>(&span)));
+  auto was_added =
+      span_buffer_.Add(serialization_callback, span.ByteSizeLong(),
+                       static_cast<void*>(const_cast<collector::Span*>(&span)));
   if (!was_added) {
     logger_.Debug("Dropping span ", span.span_context().span_id());
   }
@@ -62,9 +62,7 @@ void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
 //--------------------------------------------------------------------------------------------------
 // Run
 //--------------------------------------------------------------------------------------------------
-void StreamRecorder::Run() noexcept {
-  event_base_.Dispatch();
-}
+void StreamRecorder::Run() noexcept { event_base_.Dispatch(); }
 
 //--------------------------------------------------------------------------------------------------
 // Poll
@@ -83,7 +81,8 @@ void StreamRecorder::Poll() noexcept {
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::Flush() noexcept {
   while (!exit_) {
-    // Placeholder code. This will be replaced by code that streams spans over the network.
+    // Placeholder code. This will be replaced by code that streams spans over
+    // the network.
     span_buffer_.Allot();
     span_buffer_.Consume(span_buffer_.num_bytes_allotted());
     if (span_buffer_.empty()) {
@@ -103,4 +102,4 @@ std::unique_ptr<Recorder> MakeStreamRecorder(
       new StreamRecorder{logger, std::move(tracer_options)}};
   return result;
 }
-} // namespace lightstep
+}  // namespace lightstep

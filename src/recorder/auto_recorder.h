@@ -5,11 +5,11 @@
 #include <mutex>
 #include <thread>
 
-#include "lightstep/tracer.h"
-#include "lightstep/transporter.h"
+#include "common/condition_variable_wrapper.h"
 #include "common/logger.h"
 #include "lightstep-tracer-common/collector.pb.h"
-#include "common/condition_variable_wrapper.h"
+#include "lightstep/tracer.h"
+#include "lightstep/transporter.h"
 #include "recorder/recorder.h"
 #include "recorder/report_builder.h"
 

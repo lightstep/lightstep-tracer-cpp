@@ -1,7 +1,7 @@
 #include <chrono>
 
-#include "network/event_base.h"
 #include "3rd_party/catch2/catch.hpp"
+#include "network/event_base.h"
 
 using namespace lightstep;
 
@@ -40,4 +40,3 @@ TEST_CASE("EventBase") {
     event_base.Dispatch();
   }
 }
-

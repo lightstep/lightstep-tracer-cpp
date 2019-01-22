@@ -7,14 +7,14 @@
 #include <sstream>
 #include <vector>
 
-#include "lightstep/version.h"
 #include "common/logger.h"
 #include "common/utility.h"
 #include "lightstep-tracer-common/collector.pb.h"
+#include "lightstep/version.h"
 #include "recorder/auto_recorder.h"
-#include "recorder/stream_recorder.h"
 #include "recorder/grpc_transporter.h"
 #include "recorder/manual_recorder.h"
+#include "recorder/stream_recorder.h"
 #include "tracer/lightstep_immutable_span_context.h"
 #include "tracer/lightstep_tracer_impl.h"
 
