@@ -1,0 +1,38 @@
+#pragma once
+
+#include "network/event_base.h"
+
+struct event;
+
+namespace lightstep {
+class TimerEvent {
+ public:
+  template <class Rep, class Period>
+  TimerEvent(const EventBase& event_base,
+             std::chrono::duration<Rep, Period> interval,
+             EventBase::EventCallback callback, void* context)
+      : TimerEvent{
+            event_base,
+            std::chrono::duration_cast<std::chrono::microseconds>(interval),
+            callback, context} {}
+
+  TimerEvent(const EventBase& event_base, std::chrono::microseconds interval,
+             EventBase::EventCallback callback, void* context);
+
+  ~TimerEvent() noexcept;
+
+  TimerEvent(TimerEvent&& other) noexcept;
+  TimerEvent(const TimerEvent&) = delete;
+
+  TimerEvent& operator=(TimerEvent&& other) noexcept;
+  TimerEvent& operator=(const TimerEvent&) = delete;
+
+  void Reset();
+
+  const event* libevent_handle() const noexcept { return event_; }
+ private:
+  event* event_;
+  timeval tv_;
+  std::chrono::microseconds interval_;
+};
+}  // namespace lightstep

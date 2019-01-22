@@ -15,3 +15,13 @@ lightstep_catch_test(
         "//src/network:event_base_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "timer_event_test",
+    srcs = [
+        "timer_event_test.cpp",
+    ],
+    deps = [
+        "//src/network:timer_event_lib",
+    ],
+)
