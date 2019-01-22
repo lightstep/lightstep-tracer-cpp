@@ -8,7 +8,7 @@ lightstep_package()
 
 lightstep_cc_library(
     name = "propagation_lib",
-    hdrs = [
+    private_hdrs = [
         "propagation.h",
     ],
     srcs = [
@@ -50,7 +50,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "lightstep_span_context_interface",
-    hdrs = [
+    private_hdrs = [
         "lightstep_span_context.h",
     ],
     srcs = [
@@ -63,7 +63,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "lightstep_immutable_span_context_lib",
-    hdrs = [
+    private_hdrs = [
         "lightstep_immutable_span_context.h",
     ],
     srcs = [
@@ -76,7 +76,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "lightstep_span_lib",
-    hdrs = [
+    private_hdrs = [
         "lightstep_span.h",
     ],
     srcs = [
@@ -91,7 +91,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "lightstep_tracer_impl_lib",
-    hdrs = [
+    private_hdrs = [
         "lightstep_tracer_impl.h",
     ],
     srcs = [
@@ -108,7 +108,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "lightstep_tracer_factory_lib",
-    hdrs = [
+    private_hdrs = [
         "lightstep_tracer_factory.h",
     ],
     srcs = [

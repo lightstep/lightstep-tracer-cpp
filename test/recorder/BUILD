@@ -9,7 +9,7 @@ lightstep_package()
 
 lightstep_cc_library(
     name = "in_memory_recorder_lib",
-    hdrs = [
+    private_hdrs = [
         "in_memory_recorder.h",
     ],
     deps = [
@@ -19,7 +19,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "in_memory_async_transporter_lib",
-    hdrs = [
+    private_hdrs = [
         "in_memory_async_transporter.h",
     ],
     srcs = [
@@ -32,7 +32,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "in_memory_sync_transporter_lib",
-    hdrs = [
+    private_hdrs = [
         "in_memory_sync_transporter.h",
     ],
     srcs = [

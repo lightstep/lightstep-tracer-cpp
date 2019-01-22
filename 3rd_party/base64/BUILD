@@ -8,10 +8,9 @@ lightstep_package()
 
 lightstep_cc_library(
     name = "base64_lib",
-    hdrs = [
+    private_hdrs = [
         "include/lightstep/base64/base64.h",
     ],
-    strip_include_prefix = "include",
     srcs = [
         "src/base64.cpp",
     ],

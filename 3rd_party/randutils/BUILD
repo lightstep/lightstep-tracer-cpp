@@ -8,11 +8,8 @@ lightstep_package()
 
 lightstep_cc_library(
     name = "randutils_lib",
-    srcs = [
+    private_hdrs = [
         "include/lightstep/randutils.h",
     ],
     is_3rd_party = True,
-    includes = [
-        "include",
-    ],
 )

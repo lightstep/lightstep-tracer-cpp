@@ -8,7 +8,7 @@ lightstep_package()
 
 lightstep_cc_library(
   name = "atomic_bit_set_lib",
-  hdrs = [
+  private_hdrs = [
       "atomic_bit_set.h",
   ],
   srcs = [
@@ -18,7 +18,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "bipart_memory_stream_lib",
-    hdrs = [
+    private_hdrs = [
         "bipart_memory_stream.h",
     ],
     srcs = [
@@ -31,7 +31,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "circular_buffer_lib",
-    hdrs = [
+    private_hdrs = [
         "circular_buffer.h",
     ],
     srcs = [
@@ -41,7 +41,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "chunk_circular_buffer_lib",
-    hdrs = [
+    private_hdrs = [
       "chunk_circular_buffer.h",
     ],
     srcs = [
@@ -57,7 +57,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "in_memory_stream_lib",
-    hdrs = [
+    private_hdrs = [
         "in_memory_stream.h",
     ],
     srcs = [
@@ -67,7 +67,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "logger_lib",
-    hdrs = [
+    private_hdrs = [
         "logger.h",
     ],
     srcs = [
@@ -80,7 +80,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "utility_lib",
-    hdrs = [
+    private_hdrs = [
         "utility.h",
     ],
     srcs = [
@@ -99,7 +99,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "condition_variable_wrapper_lib",
-    hdrs = [
+    private_hdrs = [
         "condition_variable_wrapper.h",
     ]
 )

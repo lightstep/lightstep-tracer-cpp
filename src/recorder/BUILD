@@ -8,7 +8,7 @@ lightstep_package()
 
 lightstep_cc_library(
     name = "grpc_transporter_interface",
-    hdrs = [
+    private_hdrs = [
         "grpc_transporter.h",
     ],
 )
@@ -28,7 +28,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "recorder_interface",
-    hdrs = [
+    private_hdrs = [
       "recorder.h",
     ],
     deps = [
@@ -38,7 +38,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "report_builder_lib",
-    hdrs = [
+    private_hdrs = [
         "report_builder.h",
     ],
     srcs = [
@@ -53,7 +53,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "manual_recorder_lib",
-    hdrs = [
+    private_hdrs = [
         "manual_recorder.h",
     ],
     srcs = [
@@ -69,7 +69,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "auto_recorder_lib",
-    hdrs = [
+    private_hdrs = [
         "auto_recorder.h",
     ],
     srcs = [

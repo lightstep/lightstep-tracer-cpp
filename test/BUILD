@@ -8,7 +8,7 @@ lightstep_package()
 
 lightstep_cc_library(
     name = "utility_lib",
-    hdrs = [
+    private_hdrs = [
         "utility.h",
     ],
     srcs = [
@@ -26,7 +26,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "testing_condition_variable_wrapper_lib",
-    hdrs = [
+    private_hdrs = [
         "testing_condition_variable_wrapper.h",
     ],
     srcs = [
@@ -39,7 +39,7 @@ lightstep_cc_library(
 
 lightstep_cc_library(
     name = "counting_metrics_observer_lib",
-    hdrs = [
+    private_hdrs = [
         "counting_metrics_observer.h",
     ],
     deps = [
