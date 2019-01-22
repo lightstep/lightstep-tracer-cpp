@@ -2,6 +2,7 @@ load(
     "//bazel:lightstep_build_system.bzl",
     "lightstep_catch_test",
     "lightstep_cc_test",
+    "lightstep_cc_library",
     "lightstep_package",
 )
 
@@ -27,5 +28,46 @@ lightstep_catch_test(
         "//:manual_tracer_lib",
         "//test/recorder:in_memory_recorder_lib",
         "//test:utility_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "in_memory_collector_lib",
+    private_hdrs = [
+        "in_memory_collector.h",
+    ],
+    srcs = [
+        "in_memory_collector.cpp",
+    ],
+    deps = [
+        "//src/recorder/grpc_transporter:collector_proto_grpc",
+    ],
+)
+
+cc_binary(
+    name = "lightstep_plugin.so",
+    linkshared = 1,
+    deps = [
+        "//:tracer_lib",
+    ],
+)
+
+lightstep_cc_test(
+    name = "dynamic_load_test",
+    args = [
+        "--lightstep_library $(location :lightstep_plugin.so)",
+    ],
+    srcs = [
+        "dynamic_load_test.cpp",
+    ],
+    data = [
+        ":lightstep_plugin.so",
+    ],
+    deps = [
+        ":in_memory_collector_lib",
+        "//3rd_party/catch2:catch2",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
     ],
 )

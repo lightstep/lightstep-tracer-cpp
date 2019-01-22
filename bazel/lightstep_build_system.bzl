@@ -82,6 +82,7 @@ def lightstep_cc_library(name,
 
 def lightstep_cc_test(
         name,
+        args = [],
         srcs = [],
         data = [],
         testonly = 0,
@@ -91,6 +92,7 @@ def lightstep_cc_test(
         linkopts = []):
     native.cc_test(
         name = name,
+        args = args,
         srcs = srcs,
         data = data,
         copts = lightstep_include_copts() + lightstep_copts(),

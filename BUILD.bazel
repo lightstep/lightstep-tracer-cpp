@@ -61,6 +61,7 @@ lightstep_cc_library(
   deps = [
     "//src/tracer:tracer_lib",
     "//src/tracer:binary_carrier_lib",
+    "//src/tracer:dynamic_load_lib",
     "//src/recorder:transporter_lib",
     "//src/tracer:no_default_ssl_roots_pem_lib",
     "//src/recorder/grpc_transporter:grpc_transporter_lib",

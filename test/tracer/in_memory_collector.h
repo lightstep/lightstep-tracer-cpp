@@ -2,6 +2,7 @@
 
 #include <mutex>
 #include <vector>
+
 #include "lightstep-tracer-common/collector.grpc.pb.h"
 
 namespace lightstep {

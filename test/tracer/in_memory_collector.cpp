@@ -1,4 +1,4 @@
-#include "in_memory_collector.h"
+#include "test/tracer/in_memory_collector.h"
 
 namespace lightstep {
 grpc::Status InMemoryCollector::Report(

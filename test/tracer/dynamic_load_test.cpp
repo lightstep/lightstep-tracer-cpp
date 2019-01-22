@@ -1,12 +1,14 @@
-#include <opentracing/dynamic_load.h>
-#include "in_memory_collector.h"
+#include "opentracing/dynamic_load.h"
 
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc/grpc.h>
 
+#include "test/tracer/in_memory_collector.h"
+
 #define CATCH_CONFIG_RUNNER
-#include <lightstep/catch2/catch.hpp>
+#include "3rd_party/catch2/catch.hpp"
+
 using namespace lightstep;
 
 static std::string lightstep_library;
