@@ -9,6 +9,8 @@
 #include "common/logger.h"
 #include "lightstep-tracer-common/collector.pb.h"
 
+#include <sys/time.h>
+
 #include <google/protobuf/io/zero_copy_stream.h>
 
 namespace lightstep {
@@ -18,6 +20,17 @@ const size_t Num64BitHexDigits = std::numeric_limits<uint64_t>::digits / 4;
 // by protobuf.
 google::protobuf::Timestamp ToTimestamp(
     const std::chrono::system_clock::time_point& t);
+
+/**
+ *
+ */
+timeval ToTimeval(std::chrono::microseconds microseconds);
+
+template <class Rep, class Period>
+inline timeval toTimeval(std::chrono::duration<Rep, Period> duration) {
+  return toTimeval(
+      std::chrono::duration_cast<std::chrono::microseconds>(duration));
+}
 
 // Generates a random uint64_t.
 uint64_t GenerateId();
