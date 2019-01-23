@@ -121,3 +121,37 @@ def lightstep_catch_test(
         deps = deps,
         external_deps = external_deps + ["//3rd_party/catch2:main_lib"],
     )
+
+def lightstep_google_benchmark(
+        name,
+        srcs = [],
+        data = [],
+        visibility = None,
+        external_deps = [],
+        deps = [],
+        linkopts = []):
+  native.cc_binary(
+      name = name,
+      srcs = srcs,
+      data = data,
+      deps = deps + ["@com_google_benchmark//:benchmark"],
+      testonly = 1
+  )
+  native.cc_test(
+      name = name + "_test",
+      srcs = srcs,
+      args = ["--benchmark_min_time=0"],
+      data = data,
+      copts = lightstep_include_copts() + lightstep_copts(),
+      linkstatic = 1,
+      deps = deps + ["@com_google_benchmark//:benchmark"],
+  )
+  native.genrule(
+      name = name + "_result",
+      outs = [
+          name + "_result.txt",
+      ],
+      tools = [":" + name] + data,
+      testonly = 1,
+      cmd = "$(location :%s) --benchmark_color=false &> $@" % name,
+)

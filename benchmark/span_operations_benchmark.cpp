@@ -1,6 +1,8 @@
-#include <benchmark/benchmark.h>
-#include <lightstep/tracer.h>
 #include <cassert>
+
+#include "lightstep/tracer.h"
+
+#include "benchmark/benchmark.h"
 
 namespace {
 class NullTransporter final : public lightstep::SyncTransporter {

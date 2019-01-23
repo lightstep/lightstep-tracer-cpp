@@ -43,3 +43,13 @@ cpp_grpc_compile()
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 
 grpc_deps()
+
+#######################################
+# Testing dependencies
+#######################################
+
+git_repository(
+    name = "com_google_benchmark",
+    commit = "e776aa0275e293707b6a0901e0e8d8a8a3679508",
+    remote = "https://github.com/google/benchmark",
+)
