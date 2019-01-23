@@ -1,29 +1,58 @@
 version: 2
 jobs:
+  cmake_no_grpc:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_opentracing.sh
+      - run: ./ci/install_protobuf.sh
+      - run: ./ci/do_ci.sh cmake.minimal
+      - store_artifacts:
+          path: /build/Testing/Temporary/LastTest.log
+          destination: Test.log
+
+  cmake_with_grpc:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_grpc.sh
+      - run: ./ci/install_libevent.sh
+      - run: ./ci/install_opentracing.sh
+      - run: ./ci/do_ci.sh cmake.full
+      - store_artifacts:
+          path: /build/Testing/Temporary/LastTest.log
+          destination: Test.log
   asan:
     docker:
       - image: ubuntu:18.04
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
-      - run: ./ci/install_grpc.sh
-      - run: ./ci/install_opentracing.sh
-      - run: ./ci/do_ci.sh cmake.asan
-      - store_artifacts:
-          path: /build/Testing/Temporary/LastTest.log
-          destination: Test.log
+      - run: ./ci/do_ci.sh bazel.asan
+
   tsan:
     docker:
       - image: ubuntu:18.04
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
-      - run: ./ci/install_grpc.sh
-      - run: ./ci/install_opentracing.sh
-      - run: ./ci/do_ci.sh cmake.tsan
+      - run: ./ci/do_ci.sh bazel.asan
+
+  benchmark:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: ./ci/setup_build_environment.sh
+      - run: ./ci/do_ci.sh bazel.benchmark
       - store_artifacts:
-          path: /build/Testing/Temporary/LastTest.log
-          destination: Test.log
+          path: /benchmark
+          desination: benchmark
+
   clang_tidy:
     docker:
       - image: ubuntu:18.04
@@ -37,18 +66,7 @@ jobs:
       - store_artifacts:
           path: /build/Testing/Temporary/LastTest.log
           destination: Test.log
-  build_with_no_grpc:
-    docker:
-      - image: ubuntu:18.04
-    steps:
-      - checkout
-      - run: ./ci/setup_build_environment.sh
-      - run: ./ci/install_opentracing.sh
-      - run: ./ci/install_protobuf.sh
-      - run: ./ci/do_ci.sh cmake.no_grpc
-      - store_artifacts:
-          path: /build/Testing/Temporary/LastTest.log
-          destination: Test.log
+
   build_plugin:
     docker:
       - image: ubuntu:18.04
@@ -59,37 +77,6 @@ jobs:
       - store_artifacts:
           path: /liblightstep_tracer_plugin.so
           destination: liblightstep_tracer_plugin.so
-  build_bazel:
-    docker:
-      - image: ubuntu:18.04
-    resource_class: large
-    steps:
-      - checkout
-      - run: ./ci/setup_build_environment.sh
-      - run: ./ci/install_bazel.sh
-      - run: ./ci/do_ci.sh bazel.build
-  release:
-    docker:
-      - image: ubuntu:18.04
-    steps:
-      - run: apt-get -qq update; apt-get -y install git ssh
-      - checkout
-      - run: ./ci/setup_build_environment.sh
-      - run: ./ci/do_ci.sh release
-
-  benchmark:
-    docker:
-      - image: ubuntu:18.04
-    steps:
-      - checkout
-      - run: ./ci/setup_build_environment.sh
-      - run: ./ci/install_grpc.sh
-      - run: ./ci/install_benchmark.sh
-      - run: ./ci/install_opentracing.sh
-      - run: ./ci/do_ci.sh benchmark
-      - store_artifacts:
-          path: /benchmark-results
-          desination: benchmark-results
 
   coverage:
     docker:
@@ -114,11 +101,12 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v[0-9]+(\.[0-9]+)*$/
+      - cmake_no_grpc
+      - cmake_with_grpc
       - asan
       - tsan
-      - clang_tidy
-      - build_with_no_grpc
-      - build_plugin
-      - build_bazel
-      - coverage
       - benchmark
+      - coverage
+      # - clang_tidy
+      # - build_plugin
+      # - build_bazel
