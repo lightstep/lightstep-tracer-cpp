@@ -109,6 +109,5 @@ workflows:
       - tsan
       - benchmark
       - coverage
+      - build_plugin
       # - clang_tidy
-      # - build_plugin
-      # - build_bazel

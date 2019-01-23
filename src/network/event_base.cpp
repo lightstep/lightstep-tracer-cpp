@@ -13,10 +13,6 @@ namespace lightstep {
 // constructor
 //------------------------------------------------------------------------------
 EventBase::EventBase() {
-  auto config = event_config_new();
-  if (config == nullptr) {
-    throw std::runtime_error{"event_config_new failed"};
-  }
   event_base_ = event_base_new();
   if (event_base_ == nullptr) {
     throw std::runtime_error{"event_base_new failed"};

@@ -4,6 +4,7 @@ set -e
 
 [ -z "${OPENTRACING_VERSION}" ] && export OPENTRACING_VERSION="v1.5.0"
 [ -z "${GRPC_VERSION}" ] && export GRPC_VERSION="v1.10.0"
+[ -z "${LIBEVENT_VERSION}" ] && export LIBEVENT_VERSION="v2.1.8"
 
 # Compile for a portable cpu architecture
 export CFLAGS="-march=x86-64 -fPIC"
@@ -28,6 +29,19 @@ cp bins/opt/grpc_cpp_plugin /usr/local/bin
 mkdir -p /usr/local/lib/pkgconfig
 cp libs/opt/pkgconfig/*.pc /usr/local/lib/pkgconfig
 cd third_party/protobuf
+make install
+
+# Build libevent
+cd "${BUILD_DIR}"
+git clone -b release-${LIBEVENT_VERSION/v/}-stable https://github.com/libevent/libevent
+cd libevent
+./autogen.sh
+./configure \
+    --enable-shared=no \
+    --enable-static=yes \
+    --with-pic \
+    --disable-openssl
+make
 make install
 
 # Build OpenTracing
@@ -55,6 +69,7 @@ EOF
 cmake -DCMAKE_BUILD_TYPE=Release \
       -DBUILD_TESTING=OFF \
       -DBUILD_STATIC_LIBS=OFF \
+      -DWITH_LIBEVENT=ON \
       -DCMAKE_SHARED_LINKER_FLAGS="-static-libstdc++ -static-libgcc -Wl,--version-script=${PWD}/export.map" \
       -DDEFAULT_SSL_ROOTS_PEM:STRING=${BUILD_DIR}/grpc/etc/roots.pem \
       "${SRC_DIR}"
