@@ -229,3 +229,11 @@ if (BUILD_STATIC_LIBS)
   install(TARGETS lightstep_tracer-static
           ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
+
+# ==============================================================================
+# Build tests and examples
+include(CTest)
+if (BUILD_TESTING AND BUILD_SHARED_LIBS)
+  add_subdirectory(test/cmake)
+  add_subdirectory(example)
+endif()
