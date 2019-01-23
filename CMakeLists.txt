@@ -37,7 +37,7 @@ include(GNUInstallDirs)
 option(WITH_GRPC "Build with support for gRPC." ON)
 option(WITH_LIBEVENT "Build with support for libevent." OFF)
 option(WITH_DYNAMIC_LOAD "Build support for dynamic loading." ON)
-option(HEADERS_ONLY "Only generate config.h and version.h." OFF)
+option(HEADERS_ONLY "Only generate version.h." OFF)
 
 # Allow a user to specify an optional default roots.pem file to embed into the 
 # library. 
@@ -69,7 +69,6 @@ endif()
 # Set up generated header files config.h and version.h
 
 configure_file(version.h.in include/lightstep/version.h)
-configure_file(config.h.in include/lightstep/config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lightstep 
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
