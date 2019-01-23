@@ -35,6 +35,7 @@ include(CPack)
 include(GNUInstallDirs)
 
 option(WITH_GRPC "Build with support for gRPC." ON)
+option(WITH_LIBEVENT "Build with support for libevent." OFF)
 option(WITH_DYNAMIC_LOAD "Build support for dynamic loading." ON)
 option(HEADERS_ONLY "Only generate config.h and version.h." OFF)
 
@@ -52,7 +53,7 @@ set(DEFAULT_SSL_ROOTS_PEM "" CACHE STRING "Path to a default roots.pem file to e
 
 if (WITH_GRPC)
   set(LIGHTSTEP_USE_GRPC 1)
-elseif(WITH_DYNAMIC_LOAD)
+elseif(WITH_DYNAMIC_LOAD AND NOT WITH_LIBEVENT)
   message(WARNING "WITH_GRPC is not set; building without dynamic loading support.")
   set(WITH_DYNAMIC_LOAD 0)
 endif()
@@ -85,6 +86,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ==============================================================================
 # Find packages
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 find_package(Protobuf REQUIRED)
 
@@ -125,6 +128,12 @@ if (WITH_GRPC)
   endif()
 endif()
 
+if (WITH_LIBEVENT)
+  find_package(Libevent REQUIRED)
+  list(APPEND LIGHTSTEP_LINK_LIBRARIES   ${LIBEVENT_LIBRARIES})
+  include_directories(SYSTEM ${LIBEVENT_INCLUDE_DIRS})
+endif()
+
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
@@ -154,7 +163,6 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/recorder/report_builder.cpp
                    src/recorder/auto_recorder.cpp
                    src/recorder/manual_recorder.cpp
-                   src/recorder/grpc_transporter.cpp
                    src/recorder/transporter.cpp
                    src/tracer/propagation.cpp
                    src/tracer/binary_carrier.cpp
@@ -165,6 +173,21 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/tracer/lightstep_tracer_factory.cpp
                    src/tracer/tracer.cpp
                    )
+
+if (WITH_GRPC)
+  list(APPEND LIGHTSTEP_SRCS src/recorder/grpc_transporter/grpc_transporter.cpp)
+else()
+  list(APPEND LIGHTSTEP_SRCS src/recorder/no_grpc_transporter.cpp)
+endif()
+
+if (WITH_LIBEVENT)
+  list(APPEND LIGHTSTEP_SRCS src/recorder/stream_recorder/stream_recorder.cpp
+                             src/network/event_base.cpp
+                             src/network/timer_event.cpp
+  )
+else()
+  list(APPEND LIGHTSTEP_SRCS src/recorder/no_stream_recorder.cpp)
+endif()
 
 if (WITH_DYNAMIC_LOAD)
   list(APPEND LIGHTSTEP_SRCS src/tracer/dynamic_load.cpp)

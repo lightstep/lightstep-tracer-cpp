@@ -2,6 +2,8 @@
 
 #include "network/event_base.h"
 
+#include <sys/time.h>
+
 struct event;
 
 namespace lightstep {
