@@ -32,6 +32,7 @@ jobs:
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_bazel.sh
       - run: ./ci/do_ci.sh bazel.asan
 
   tsan:
@@ -40,6 +41,7 @@ jobs:
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_bazel.sh
       - run: ./ci/do_ci.sh bazel.asan
 
   benchmark:
@@ -48,6 +50,7 @@ jobs:
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_bazel.sh
       - run: ./ci/do_ci.sh bazel.benchmark
       - store_artifacts:
           path: /benchmark
@@ -84,9 +87,8 @@ jobs:
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
-      - run: ./ci/install_grpc.sh
-      - run: ./ci/install_opentracing.sh
-      - run: ./ci/do_ci.sh coverage
+      - run: ./ci/install_bazel.sh
+      - run: ./ci/do_ci.sh bazel.coverage
       - store_artifacts:
           path: /coverage
           desination: coverage

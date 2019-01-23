@@ -68,7 +68,7 @@ elif [[ "$1" == "bazel.benchmark" ]]; then
         //benchmark/...
   copy_benchmark_results
   exit 0
-elif [[ "$1" == "coverage" ]]; then
+elif [[ "$1" == "bazel.coverage" ]]; then
   mkdir -p /coverage
   rm -rf /coverage/*
   bazel coverage \

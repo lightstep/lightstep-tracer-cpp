@@ -18,4 +18,3 @@ apt-get install --no-install-recommends --no-install-suggests -y \
                 vim \
                 gdb \
                 python python-setuptools python-pip
-pip install gcovr
