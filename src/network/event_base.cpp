@@ -53,7 +53,7 @@ void EventBase::Dispatch() const {
   auto rcode = event_base_dispatch(event_base_);
   if (rcode != 0) {
     std::ostringstream oss;
-    oss << "event_base_Dispatch faild with rcode = " << rcode;
+    oss << "event_base_dispatch faild with rcode = " << rcode;
     throw std::runtime_error{oss.str()};
   }
 }
