@@ -17,7 +17,7 @@ struct StreamRecorderOptions {
   // The amount of time between executions of StreamRecorder's polling callback.
   //
   // Note: This should be a short duration; otherwise, the recorder can hang the
-  // processes when exiting.
+  // process when exiting.
   std::chrono::microseconds polling_period =
       std::chrono::duration_cast<std::chrono::microseconds>(
           std::chrono::milliseconds{10});

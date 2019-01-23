@@ -1,5 +1,7 @@
 #include "stream_recorder.h"
 
+#include <exception>
+
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // MakeTimerCallback
@@ -62,14 +64,24 @@ void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
 //--------------------------------------------------------------------------------------------------
 // Run
 //--------------------------------------------------------------------------------------------------
-void StreamRecorder::Run() noexcept { event_base_.Dispatch(); }
+void StreamRecorder::Run() noexcept try {
+  event_base_.Dispatch();
+} catch (const std::exception& e) {
+  logger_.Error("StreamRecorder::Run failed: ", e.what());
+}
 
 //--------------------------------------------------------------------------------------------------
 // Poll
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::Poll() noexcept {
   if (exit_) {
-    return event_base_.LoopBreak();
+    try {
+      return event_base_.LoopBreak();
+    } catch (const std::exception& e) {
+      logger_.Error("StreamRecorder: failed to break out of event loop: ",
+                    e.what());
+      std::terminate();
+    }
   }
   if (span_buffer_.size() > early_flush_marker_) {
     Flush();
@@ -79,7 +91,7 @@ void StreamRecorder::Poll() noexcept {
 //--------------------------------------------------------------------------------------------------
 // Flush
 //--------------------------------------------------------------------------------------------------
-void StreamRecorder::Flush() noexcept {
+void StreamRecorder::Flush() noexcept try {
   while (!exit_) {
     // Placeholder code. This will be replaced by code that streams spans over
     // the network.
@@ -91,6 +103,8 @@ void StreamRecorder::Flush() noexcept {
     std::this_thread::yield();
   }
   flush_timer_.Reset();
+} catch (const std::exception& e) {
+  logger_.Error("StreamRecorder::Flush failed: ", e.what());
 }
 
 //--------------------------------------------------------------------------------------------------
