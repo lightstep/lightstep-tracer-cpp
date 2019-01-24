@@ -5,7 +5,7 @@
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
-// MakeTrcer
+// MakeTracer
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<std::shared_ptr<opentracing::Tracer>>
 LightStepTracerFactory::MakeTracer(const char* configuration,
