@@ -37,7 +37,7 @@ TEST_CASE("TimerEvent") {
     auto libevent_handle = timer_event.libevent_handle();
     REQUIRE(libevent_handle != nullptr);
     TimerEvent timer_event2{std::move(timer_event)};
-    REQUIRE(timer_event2.libevent_handle() != libevent_handle);
+    REQUIRE(timer_event2.libevent_handle() == libevent_handle);
   }
 
   SECTION("TimerEvent can be move assigned.") {
