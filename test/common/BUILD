@@ -1,0 +1,81 @@
+load(
+    "//bazel:lightstep_build_system.bzl",
+    "lightstep_catch_test",
+    "lightstep_cc_test",
+    "lightstep_package",
+)
+
+lightstep_package()
+
+lightstep_catch_test(
+    name = "atomic_bit_set_test",
+    srcs = [
+        "atomic_bit_set_test.cpp",
+    ],
+    deps = [
+        "//src/common:atomic_bit_set_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "bipart_memory_stream_test",
+    srcs = [
+        "bipart_memory_stream_test.cpp",
+    ],
+    deps = [
+        "//src/common:bipart_memory_stream_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "circular_buffer_test",
+    srcs = [
+        "circular_buffer_test.cpp",
+    ],
+    deps = [
+        "//src/common:circular_buffer_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "chunk_circular_buffer_test",
+    srcs = [
+        "chunk_circular_buffer_test.cpp",
+    ],
+    deps = [
+        "//src/common:chunk_circular_buffer_lib",
+        "//src/common:bipart_memory_stream_lib",
+        "//src/common:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "utility_test",
+    srcs = [
+        "utility_test.cpp",
+    ],
+    deps = [
+        "//src/common:utility_lib",
+        "//src/common:bipart_memory_stream_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "logger_test",
+    srcs = [
+        "logger_test.cpp",
+    ],
+    deps = [
+        "//src/common:logger_lib",
+    ],
+)
+
+lightstep_cc_test(
+    name = "fork_id_test",
+    srcs = [
+        "fork_id_test.cpp",
+    ],
+    deps = [
+        "//src/common:utility_lib",
+    ],
+)

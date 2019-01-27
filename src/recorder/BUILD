@@ -1,0 +1,122 @@
+load(
+    "//bazel:lightstep_build_system.bzl",
+    "lightstep_cc_library",
+    "lightstep_package",
+)
+
+lightstep_package()
+
+lightstep_cc_library(
+    name = "grpc_transporter_interface",
+    private_hdrs = [
+        "grpc_transporter.h",
+    ],
+    deps = [
+        "//include/lightstep:tracer_interface",
+    ],
+)
+
+lightstep_cc_library(
+    name = "no_grpc_transporter_lib",
+    srcs = [
+        "no_grpc_transporter.cpp",
+    ],
+    deps = [
+        "//include/lightstep:tracer_interface",
+        "//src/common:logger_lib",
+        ":grpc_transporter_interface",
+        "//:config_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "recorder_interface",
+    private_hdrs = [
+      "recorder.h",
+    ],
+    deps = [
+        "//lightstep-tracer-common:collector_proto_cc",
+        "//include/lightstep:tracer_interface",
+    ],
+)
+
+lightstep_cc_library(
+    name = "report_builder_lib",
+    private_hdrs = [
+        "report_builder.h",
+    ],
+    srcs = [
+        "report_builder.cpp",
+    ],
+    deps = [
+        "//lightstep-tracer-common:collector_proto_cc",
+        "//include/lightstep:tracer_interface",
+        "//src/common:utility_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "manual_recorder_lib",
+    private_hdrs = [
+        "manual_recorder.h",
+    ],
+    srcs = [
+        "manual_recorder.cpp",
+    ],
+    deps = [
+        "//src/common:logger_lib",
+        ":recorder_interface",
+        ":report_builder_lib",
+        ":transporter_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "auto_recorder_lib",
+    private_hdrs = [
+        "auto_recorder.h",
+    ],
+    srcs = [
+        "auto_recorder.cpp",
+    ],
+    deps = [
+        "//src/common:logger_lib",
+        "//src/common:condition_variable_wrapper_lib",
+        ":recorder_interface",
+        ":report_builder_lib",
+        ":transporter_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "transporter_lib",
+    srcs = [
+        "transporter.cpp",
+    ],
+    deps = [
+        "//include/lightstep:transporter_interface",
+        "//lightstep-tracer-common:collector_proto_cc",
+    ],
+)
+
+lightstep_cc_library(
+    name = "stream_recorder_interface",
+    private_hdrs = [
+        "stream_recorder.h",
+    ],
+    deps = [
+        "//src/common:logger_lib",
+        "//src/recorder:recorder_interface",
+        "//include/lightstep:tracer_interface",
+    ],
+)
+
+lightstep_cc_library(
+    name = "no_stream_recorder_lib",
+    srcs = [
+        "no_stream_recorder.cpp",
+    ],
+    deps = [
+        ":stream_recorder_interface",
+    ],
+)

@@ -6,85 +6,100 @@ set -e
 [ -z "${BUILD_DIR}" ] && export BUILD_DIR=/build
 mkdir -p "${BUILD_DIR}"
 
-if [[ "$1" == "cmake.debug" ]]; then
-  cd "${BUILD_DIR}"
-  cmake -DCMAKE_BUILD_TYPE=Debug  \
-        -DCMAKE_CXX_FLAGS="-Werror" \
-        "${SRC_DIR}"
-  make
-  make test
-  exit 0
-elif [[ "$1" == "cmake.no_grpc" ]]; then
+BAZEL_OPTIONS="--jobs 1"
+BAZEL_TEST_OPTIONS="$BAZEL_OPTIONS --test_output=errors"
+
+function copy_benchmark_results() {
+  mkdir -p "${BENCHMARK_DST_DIR}"
+  cd "${BENCHMARK_SRC_DIR}"
+  find . -name '*_result.txt' -exec bash -c \
+    'echo "$@" && mkdir -p "${BENCHMARK_DST_DIR}"/$(dirname "$@") && \
+     cp "$@" "${BENCHMARK_DST_DIR}"/"$@"' _ {} \;
+}
+
+if [[ "$1" == "cmake.minimal" ]]; then
   cd "${BUILD_DIR}"
   cmake -DCMAKE_BUILD_TYPE=Debug  \
         -DCMAKE_CXX_FLAGS="-Werror" \
         -DWITH_GRPC=OFF \
+        -DWITH_LIBEVENT=OFF \
         "${SRC_DIR}"
   make
-  make test
   exit 0
-elif [[ "$1" == "cmake.asan" ]]; then
+elif [[ "$1" == "cmake.full" ]]; then
   cd "${BUILD_DIR}"
   cmake -DCMAKE_BUILD_TYPE=Debug  \
-        -DCMAKE_CXX_FLAGS="-Werror -fno-omit-frame-pointer -fsanitize=address"  \
-        -DCMAKE_SHARED_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=address" \
-        -DCMAKE_EXE_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=address" \
-        "${SRC_DIR}"
-  make
-  make test
-  exit 0
-elif [[ "$1" == "cmake.tsan" ]]; then
-  cd "${BUILD_DIR}"
-# Testing with dynamic load seems to have some issues with TSAN so turn off
-# dynamic loading in this test for now.
-  cmake -DCMAKE_BUILD_TYPE=Debug  \
-        -DCMAKE_CXX_FLAGS="-Werror -fno-omit-frame-pointer -fsanitize=thread"  \
-        -DCMAKE_SHARED_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=thread" \
-        -DCMAKE_EXE_LINKER_FLAGS="-fno-omit-frame-pointer -fsanitize=thread" \
-        -DWITH_DYNAMIC_LOAD=OFF \
-        "${SRC_DIR}"
-  make VERBOSE=1
-  make test
-  exit 0
-elif [[ "$1" == "coverage" ]]; then
-  cd "${BUILD_DIR}"
-  cmake -DCMAKE_BUILD_TYPE=Debug \
-    -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fPIC -O0" \
-    "$SRC_DIR"
-  make VERBOSE=1
-  make test
-  cd CMakeFiles/lightstep_tracer.dir/src
-  gcovr -r "$SRC_DIR" . --html --html-details -o coverage.html
-  mkdir /coverage
-  cp *.html /coverage/
-  exit 0
-elif [[ "$1" == "benchmark" ]]; then
-  cd "${BUILD_DIR}"
-  cmake -DCMAKE_BUILD_TYPE=Release \
-        -DBUILD_BENCHMARKING=ON \
-        -DBUILD_TESTING=OFF \
-        "${SRC_DIR}"
-  make VERBOSE=1
-  mkdir /benchmark-results
-  ./benchmark/span_operations_benchmark --benchmark_color=false > /benchmark-results/span_operations_benchmark.out 2>&1
-  exit 0
-elif [[ "$1" == "cmake.clang-tidy" ]]; then
-  cd "${BUILD_DIR}"
-  cmake -DCMAKE_BUILD_TYPE=Debug  \
-        -DCMAKE_C_COMPILER=/usr/bin/clang-6.0 \
-        -DCMAKE_CXX_COMPILER=/usr/bin/clang++-6.0 \
-        -DENABLE_LINTING=ON \
         -DCMAKE_CXX_FLAGS="-Werror" \
+        -DWITH_GRPC=ON \
+        -DWITH_LIBEVENT=ON \
         "${SRC_DIR}"
   make
   make test
+  exit 0
+elif [[ "$1" == "clang_tidy" ]]; then
+  export CC=/usr/bin/clang-6.0
+  CC=/usr/bin/clang-6.0 bazel build \
+        $BAZEL_OPTIONS \
+        //src/... //test/... //benchmark/... //include/...
+  ./ci/gen_compilation_database.sh
+  ./ci/fix_compilation_database.py
+  ./ci/run_clang_tidy.sh &> /clang-tidy-result.txt
+  grep ": error:" /clang-tidy-result.txt | cat > /clang-tidy-errors.txt
+  num_errors=`wc -l /clang-tidy-errors.txt | awk '{print $1}'`
+  if [[ $num_errors -ne 0 ]]; then
+    exit 1
+  fi
+  exit 0
+elif [[ "$1" == "bazel.asan" ]]; then
+  bazel build -c dbg \
+        $BAZEL_OPTIONS \
+        --copt=-fsanitize=address \
+        --linkopt=-fsanitize=address \
+        //...
+  bazel test -c dbg \
+        $BAZEL_TEST_OPTIONS \
+        --copt=-fsanitize=address \
+        --linkopt=-fsanitize=address \
+        //...
+  exit 0
+elif [[ "$1" == "bazel.tsan" ]]; then
+  bazel build -c dbg \
+        $BAZEL_OPTIONS \
+        --copt=-fsanitize=thread \
+        --linkopt=-fsanitize=thread \
+        //...
+  bazel test -c dbg \
+        $BAZEL_TEST_OPTIONS \
+        --copt=-fsanitize=thread \
+        --linkopt=-fsanitize=thread \
+        //...
+  exit 0
+elif [[ "$1" == "bazel.benchmark" ]]; then
+  export BENCHMARK_SRC_DIR=bazel-genfiles/benchmark
+  export BENCHMARK_DST_DIR=/benchmark
+  bazel build -c opt \
+        $BAZEL_OPTIONS \
+        //benchmark/...
+  copy_benchmark_results
+  exit 0
+elif [[ "$1" == "bazel.coverage" ]]; then
+  mkdir -p /coverage
+  rm -rf /coverage/*
+  bazel coverage \
+    $BAZEL_OPTIONS \
+    --instrument_test_targets \
+    --experimental_cc_coverage \
+    --combined_report=lcov \
+    --instrumentation_filter="-3rd_party,-benchmark,-test" \
+    --coverage_report_generator=@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main \
+    //...
+  genhtml bazel-out/_coverage/_coverage_report.dat \
+          --output-directory /coverage
+  tar czf /coverage.tgz /coverage
   exit 0
 elif [[ "$1" == "plugin" ]]; then
   cd "${BUILD_DIR}"
   "${SRC_DIR}"/ci/build_plugin.sh
-  exit 0
-elif [[ "$1" == "bazel.build" ]]; then
-  bazel build //...
   exit 0
 elif [[ "$1" == "release" ]]; then
   "${SRC_DIR}"/ci/build_plugin.sh

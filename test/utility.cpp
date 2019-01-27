@@ -1,9 +1,11 @@
-#include "../src/utility.h"
+#include "test/utility.h"
+
 #include <google/protobuf/util/message_differencer.h>
 #include <algorithm>
 #include <exception>
 #include <iostream>
-#include "utility.h"
+
+#include "common/utility.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------

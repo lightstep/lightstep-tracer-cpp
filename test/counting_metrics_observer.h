@@ -1,7 +1,8 @@
 #pragma once
 
-#include <lightstep/metrics_observer.h>
 #include <atomic>
+
+#include "lightstep/metrics_observer.h"
 
 namespace lightstep {
 struct CountingMetricsObserver : MetricsObserver {

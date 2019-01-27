@@ -46,4 +46,7 @@ message TracerConfiguration {
   //
   // Note: `ssl_root_certificates` should follow the PEM format.
   string ssl_root_certificates = 10;
+
+  // Exprimental: Enable streaming recorder for faster uploading of spans.
+  bool use_stream_recorder = 11;
 }
