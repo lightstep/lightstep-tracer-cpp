@@ -63,10 +63,11 @@ jobs:
       - checkout
       - run: ./ci/setup_build_environment.sh
       - run: ./ci/install_clang.sh
+      - run: ./ci/install_bazel.sh
       - run: ./ci/do_ci.sh clang_tidy
       - store_artifacts:
-          path: /clang-tidy-output
-          destination: /clang-tidy-output
+          path: /clang-tidy-result.txt
+          destination: /clang-tidy-result.txt
       - store_artifacts:
           path: /clang-tidy-errors.txt
           destination: /clang-tidy-errors.txt
