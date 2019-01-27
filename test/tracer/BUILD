@@ -52,11 +52,8 @@ cc_binary(
     ],
 )
 
-lightstep_cc_test(
+lightstep_catch_test(
     name = "dynamic_load_test",
-    args = [
-        "--lightstep_library $(location :lightstep_plugin.so)",
-    ],
     srcs = [
         "dynamic_load_test.cpp",
     ],
@@ -65,7 +62,6 @@ lightstep_cc_test(
     ],
     deps = [
         ":in_memory_collector_lib",
-        "//3rd_party/catch2:catch2",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",

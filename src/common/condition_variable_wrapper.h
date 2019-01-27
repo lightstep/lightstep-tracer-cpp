@@ -11,7 +11,15 @@ namespace lightstep {
 // run without blocking timeout.
 class ConditionVariableWrapper {
  public:
+  ConditionVariableWrapper() noexcept = default;
+
+  ConditionVariableWrapper(ConditionVariableWrapper&&) = delete;
+  ConditionVariableWrapper(const ConditionVariableWrapper&) = delete;
+
   virtual ~ConditionVariableWrapper() = default;
+
+  ConditionVariableWrapper& operator=(ConditionVariableWrapper&&) = delete;
+  ConditionVariableWrapper& operator=(const ConditionVariableWrapper&) = delete;
 
   virtual std::chrono::steady_clock::time_point Now() const = 0;
 

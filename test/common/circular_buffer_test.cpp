@@ -9,7 +9,7 @@ using namespace lightstep;
 TEST_CASE("CircularBuffer") {
   CircularBuffer circular_buffer{5};
   REQUIRE(circular_buffer.max_size() == 5);
-  REQUIRE(circular_buffer.size() == 0);
+  REQUIRE(circular_buffer.empty());
 
   SECTION(
       "We can make a single reservation that doesn't exceed the capacity.") {
@@ -65,7 +65,7 @@ TEST_CASE("CircularBuffer") {
     REQUIRE(circular_buffer.Reserve(3).data2 != nullptr);
     REQUIRE(circular_buffer.size() == 3);
     circular_buffer.Consume(3);
-    REQUIRE(circular_buffer.size() == 0);
+    REQUIRE(circular_buffer.empty());
 
     auto placement = circular_buffer.Reserve(4);
     REQUIRE(placement.size1 == 3);

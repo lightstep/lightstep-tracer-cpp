@@ -13,7 +13,18 @@ namespace lightstep {
 // support testing.
 class TestingConditionVariableWrapper : public ConditionVariableWrapper {
  public:
+  TestingConditionVariableWrapper() = default;
+
+  TestingConditionVariableWrapper(TestingConditionVariableWrapper&&) = delete;
+  TestingConditionVariableWrapper(const TestingConditionVariableWrapper&) =
+      delete;
+
   ~TestingConditionVariableWrapper() override;
+
+  TestingConditionVariableWrapper& operator=(
+      TestingConditionVariableWrapper&&) = delete;
+  TestingConditionVariableWrapper& operator=(
+      const TestingConditionVariableWrapper&) = delete;
 
   std::chrono::steady_clock::time_point Now() const override;
 
@@ -37,10 +48,16 @@ class TestingConditionVariableWrapper : public ConditionVariableWrapper {
 
   class Event {
    public:
-    Event(const std::chrono::steady_clock::time_point& timeout)
+    explicit Event(const std::chrono::steady_clock::time_point& timeout)
         : timeout_{timeout} {}
 
+    Event(Event&&) = delete;
+    Event(const Event&) = delete;
+
     virtual ~Event() = default;
+
+    Event& operator=(Event&&) = delete;
+    Event& operator=(const Event&) = delete;
 
     virtual void Process(
         TestingConditionVariableWrapper& condition_variable) = 0;

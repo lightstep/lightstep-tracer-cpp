@@ -132,9 +132,9 @@ TEST_CASE("tracer") {
     auto noop_span = noop_tracer->StartSpan("noop");
     CHECK(noop_span);
     StartSpanOptions options;
-    options.references.push_back(
+    options.references.emplace_back(
         std::make_pair(SpanReferenceType::ChildOfRef, &noop_span->context()));
-    options.references.push_back(
+    options.references.emplace_back(
         std::make_pair(SpanReferenceType::ChildOfRef, nullptr));
     auto span = tracer->StartSpanWithOptions("a", options);
     CHECK(span);

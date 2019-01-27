@@ -34,18 +34,19 @@ TEST_CASE("TimerEvent") {
                          static_cast<void*>(&callback_context)};
 
   SECTION("TimerEvent can be move constructed.") {
+    auto libevent_handle = timer_event.libevent_handle();
+    REQUIRE(libevent_handle != nullptr);
+    TimerEvent timer_event2{std::move(timer_event)};
+    REQUIRE(timer_event2.libevent_handle() != libevent_handle);
+  }
+
+  SECTION("TimerEvent can be move assigned.") {
     TimerEvent timer_event2{event_base, TestingCallbackInterval, TimerCallback,
                             static_cast<void*>(&callback_context)};
     auto libevent_handle = timer_event.libevent_handle();
     REQUIRE(libevent_handle != nullptr);
     timer_event2 = std::move(timer_event);
-    REQUIRE(timer_event.libevent_handle() == nullptr);
     REQUIRE(timer_event2.libevent_handle() == libevent_handle);
-  }
-
-  SECTION("TimerEvent cand be move assigned.") {
-    auto libevent_handle = timer_event.libevent_handle();
-    REQUIRE(libevent_handle != nullptr);
   }
 
   SECTION("TimerEvent schedules callbacks at a given interval.") {

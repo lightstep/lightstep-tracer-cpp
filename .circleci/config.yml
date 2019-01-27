@@ -62,13 +62,14 @@ jobs:
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
-      - run: ./ci/install_grpc.sh
-      - run: ./ci/install_opentracing.sh
       - run: ./ci/install_clang.sh
-      - run: ./ci/do_ci.sh cmake.clang-tidy
+      - run: ./ci/do_ci.sh clang_tidy
       - store_artifacts:
-          path: /build/Testing/Temporary/LastTest.log
-          destination: Test.log
+          path: /clang-tidy-output
+          destination: /clang-tidy-output
+      - store_artifacts:
+          path: /clang-tidy-errors.txt
+          destination: /clang-tidy-errors.txt
 
   build_plugin:
     docker:
@@ -110,4 +111,4 @@ workflows:
       - benchmark
       - coverage
       - build_plugin
-      # - clang_tidy
+      - clang_tidy

@@ -32,7 +32,7 @@ TEST_CASE("manual_recorder") {
     auto span = tracer->StartSpan("abc");
     CHECK(span);
     span->Finish();
-    CHECK(in_memory_transporter->reports().size() == 0);
+    CHECK(in_memory_transporter->reports().empty());
     CHECK(tracer->Flush());
     in_memory_transporter->Write();
     CHECK(in_memory_transporter->reports().size() == 1);

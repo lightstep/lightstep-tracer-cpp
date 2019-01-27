@@ -10,8 +10,7 @@ opentracing::expected<void> InMemorySyncTransporter::Send(
   if (should_throw_) {
     throw std::runtime_error{"should_throw_ == true"};
   }
-  const collector::ReportRequest& report =
-      dynamic_cast<const collector::ReportRequest&>(request);
+  const auto& report = dynamic_cast<const collector::ReportRequest&>(request);
   reports_.push_back(report);
 
   spans_.reserve(spans_.size() + report.spans_size());

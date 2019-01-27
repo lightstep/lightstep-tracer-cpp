@@ -11,6 +11,9 @@ lightstep_cc_library(
     private_hdrs = [
         "grpc_transporter.h",
     ],
+    deps = [
+        "//include/lightstep:tracer_interface",
+    ],
 )
 
 lightstep_cc_library(

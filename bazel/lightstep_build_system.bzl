@@ -22,6 +22,7 @@ def lightstep_private_include_copts(includes, is_system=False):
 
 def lightstep_include_copts():
   return lightstep_private_include_copts([
+      "include",
       "src",
       "test",
   ]) + lightstep_private_include_copts([

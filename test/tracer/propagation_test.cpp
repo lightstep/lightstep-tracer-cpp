@@ -20,7 +20,8 @@ using namespace lightstep;
 // TextMapCarrier
 //------------------------------------------------------------------------------
 struct TextMapCarrier : opentracing::TextMapReader, opentracing::TextMapWriter {
-  TextMapCarrier(std::unordered_map<std::string, std::string>& text_map_)
+  explicit TextMapCarrier(
+      std::unordered_map<std::string, std::string>& text_map_)
       : text_map(text_map_) {}
 
   opentracing::expected<void> Set(
@@ -39,9 +40,8 @@ struct TextMapCarrier : opentracing::TextMapReader, opentracing::TextMapWriter {
     auto iter = text_map.find(key);
     if (iter != text_map.end()) {
       return opentracing::string_view{iter->second};
-    } else {
-      return opentracing::make_unexpected(opentracing::key_not_found_error);
     }
+    return opentracing::make_unexpected(opentracing::key_not_found_error);
   }
 
   opentracing::expected<void> ForeachKey(
@@ -51,7 +51,9 @@ struct TextMapCarrier : opentracing::TextMapReader, opentracing::TextMapWriter {
     ++foreach_key_call_count;
     for (const auto& key_value : text_map) {
       auto result = f(key_value.first, key_value.second);
-      if (!result) return result;
+      if (!result) {
+        return result;
+      }
     }
     return {};
   }
@@ -66,7 +68,8 @@ struct TextMapCarrier : opentracing::TextMapReader, opentracing::TextMapWriter {
 //------------------------------------------------------------------------------
 struct HTTPHeadersCarrier : opentracing::HTTPHeadersReader,
                             opentracing::HTTPHeadersWriter {
-  HTTPHeadersCarrier(std::unordered_map<std::string, std::string>& text_map_)
+  explicit HTTPHeadersCarrier(
+      std::unordered_map<std::string, std::string>& text_map_)
       : text_map(text_map_) {}
 
   opentracing::expected<void> Set(
@@ -82,7 +85,9 @@ struct HTTPHeadersCarrier : opentracing::HTTPHeadersReader,
           f) const override {
     for (const auto& key_value : text_map) {
       auto result = f(key_value.first, key_value.second);
-      if (!result) return result;
+      if (!result) {
+        return result;
+      }
     }
     return {};
   }

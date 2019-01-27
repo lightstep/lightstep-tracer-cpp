@@ -455,7 +455,7 @@ class auto_seeded : public SeedSeq {
     {
         // This is a constant that changes every time we compile the code
         constexpr uint32_t compile_stamp =
-            fnv(2166136261U, __DATE__ __TIME__ __FILE__);
+            fnv(2166136261U, "LKJLDSF23414lkjcas;liu23");
 
         // Some people think you shouldn't use the random device much because
         // on some platforms it could be expensive to call or "use up" vital

@@ -77,7 +77,7 @@ bool TestingConditionVariableWrapper::WaitUntil(
   if (predicate()) {
     return true;
   }
-  while (1) {
+  while (true) {
     lock.unlock();
     AddEvent(&event);
     while (!event.DecrementTicker()) {
@@ -111,7 +111,7 @@ void TestingConditionVariableWrapper::NotifyAll() {
 //------------------------------------------------------------------------------
 void TestingConditionVariableWrapper::WaitTillNextEvent() {
   auto start_timestamp = std::chrono::system_clock::now();
-  while (1) {
+  while (true) {
     {
       std::lock_guard<std::mutex> lock_guard{mutex_};
       if (!events_.empty()) {
@@ -131,7 +131,7 @@ void TestingConditionVariableWrapper::WaitTillNextEvent() {
 //------------------------------------------------------------------------------
 void TestingConditionVariableWrapper::Step() {
   auto start_timestamp = std::chrono::system_clock::now();
-  while (1) {
+  while (true) {
     {
       std::lock_guard<std::mutex> lock_guard{mutex_};
       auto iter = std::min_element(events_.begin(), events_.end(),

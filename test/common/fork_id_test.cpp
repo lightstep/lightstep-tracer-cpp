@@ -3,12 +3,12 @@
 // See https://github.com/opentracing-contrib/nginx-opentracing/issues/52
 #include "common/utility.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
 using namespace lightstep;
 

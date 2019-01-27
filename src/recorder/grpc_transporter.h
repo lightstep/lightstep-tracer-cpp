@@ -1,7 +1,7 @@
 #pragma once
 
-#include <lightstep/tracer.h>
 #include "common/logger.h"
+#include "lightstep/tracer.h"
 
 namespace lightstep {
 std::unique_ptr<SyncTransporter> MakeGrpcTransporter(

@@ -12,7 +12,6 @@ TEST_CASE("EventBase") {
     auto libevent_handle = event_base.libevent_handle();
     REQUIRE(libevent_handle != nullptr);
     EventBase event_base2{std::move(event_base)};
-    REQUIRE(event_base.libevent_handle() == nullptr);
     REQUIRE(event_base2.libevent_handle() == libevent_handle);
   }
 
@@ -21,7 +20,6 @@ TEST_CASE("EventBase") {
     REQUIRE(libevent_handle != nullptr);
     EventBase event_base2;
     event_base2 = std::move(event_base);
-    REQUIRE(event_base.libevent_handle() == nullptr);
     REQUIRE(event_base2.libevent_handle() == libevent_handle);
   }
 

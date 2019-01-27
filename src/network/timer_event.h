@@ -45,6 +45,5 @@ class TimerEvent {
  private:
   event* event_;
   timeval tv_;
-  std::chrono::microseconds interval_;
 };
 }  // namespace lightstep

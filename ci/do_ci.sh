@@ -36,6 +36,20 @@ elif [[ "$1" == "cmake.full" ]]; then
   make
   make test
   exit 0
+elif [[ "$1" == "clang_tidy" ]]; then
+  export CC=/usr/bin/clang-6.0
+  CC=/usr/bin/clang-6.0 bazel build \
+        $BAZEL_OPTIONS \
+        //src/... //test/... //benchmark/... //include/...
+  ./ci/gen_compilation_database.sh
+  ./ci/fix_compilation_database.py
+  ./ci/run_clang_tidy.sh &> /clang-tidy-result.txt
+  grep ": error:" /clang-tidy-result.txt | cat > /clang-tidy-errors.txt
+  num_errors=`wc -l /clang-tidy-errors.txt | awk '{print $1}'`
+  if [[ $num_errors -ne 0 ]]; then
+    exit 1
+  fi
+  exit 0
 elif [[ "$1" == "bazel.asan" ]]; then
   bazel build -c dbg \
         $BAZEL_OPTIONS \

@@ -21,7 +21,13 @@ class StreamRecorder final : public Recorder {
       Logger& logger, LightStepTracerOptions&& tracer_options,
       StreamRecorderOptions&& recorder_options = StreamRecorderOptions{});
 
-  ~StreamRecorder() noexcept;
+  StreamRecorder(StreamRecorder&&) = delete;
+  StreamRecorder(const StreamRecorder&) = delete;
+
+  StreamRecorder& operator=(StreamRecorder&&) = delete;
+  StreamRecorder& operator=(const StreamRecorder&) = delete;
+
+  ~StreamRecorder() noexcept override;
 
   // Recorder
   void RecordSpan(const collector::Span& span) noexcept override;

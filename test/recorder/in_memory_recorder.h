@@ -27,7 +27,9 @@ class InMemoryRecorder final : public Recorder {
 
   collector::Span top() const {
     std::lock_guard<std::mutex> lock_guard{mutex_};
-    if (spans_.empty()) throw std::runtime_error("no spans");
+    if (spans_.empty()) {
+      throw std::runtime_error("no spans");
+    }
     return spans_.back();
   }
 

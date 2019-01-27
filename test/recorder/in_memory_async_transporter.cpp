@@ -21,7 +21,7 @@ void InMemoryAsyncTransporter::Write() {
     std::cerr << "No context, success callback, or request\n";
     std::terminate();
   }
-  const collector::ReportRequest& report =
+  const auto& report =
       dynamic_cast<const collector::ReportRequest&>(*active_request_);
   reports_.push_back(report);
 

@@ -6,20 +6,18 @@
 
 #include "test/tracer/in_memory_collector.h"
 
-#define CATCH_CONFIG_RUNNER
 #include "3rd_party/catch2/catch.hpp"
 
 using namespace lightstep;
 
-static std::string lightstep_library;
 const char* const server_address = "0.0.0.0:50051";
 
 TEST_CASE("dynamic_load") {
   std::string error_message;
 
   auto handle_maybe = opentracing::DynamicallyLoadTracingLibrary(
-      lightstep_library.c_str(), error_message);
-  REQUIRE(error_message == "");
+      "test/tracer/lightstep_plugin.so", error_message);
+  REQUIRE(error_message.empty());
   REQUIRE(handle_maybe);
   auto& tracer_factory = handle_maybe->tracer_factory();
 
@@ -54,7 +52,7 @@ TEST_CASE("dynamic_load") {
       "collector_plaintext": true
     })";
     auto tracer_maybe = tracer_factory.MakeTracer(config, error_message);
-    REQUIRE(error_message == "");
+    REQUIRE(error_message.empty());
     REQUIRE(tracer_maybe);
     auto& tracer = *tracer_maybe;
 
@@ -64,25 +62,4 @@ TEST_CASE("dynamic_load") {
     auto spans = collector_service.spans();
     CHECK(spans.size() == 1);
   }
-}
-
-int main(int argc, char* argv[]) {
-  Catch::Session session;
-
-  using namespace Catch::clara;
-  auto cli = session.cli() |
-             Opt(lightstep_library, "lightstep_library")["--lightstep_library"];
-
-  session.cli(cli);
-  int rcode = session.applyCommandLine(argc, argv);
-  if (rcode != 0) {
-    return rcode;
-  }
-
-  if (lightstep_library.empty()) {
-    std::cerr << "Must provide lightstep_library!\n";
-    return -1;
-  }
-
-  return session.run();
 }

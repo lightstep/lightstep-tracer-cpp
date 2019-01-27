@@ -9,7 +9,15 @@ namespace lightstep {
 // AsyncTransporter.
 class Transporter {
  public:
+  Transporter() noexcept = default;
+
+  Transporter(const Transporter&) noexcept = default;
+  Transporter(Transporter&&) noexcept = default;
+
   virtual ~Transporter() = default;
+
+  Transporter& operator=(const Transporter&) noexcept = default;
+  Transporter& operator=(Transporter&&) noexcept = default;
 
   // Generates a valid artificial collector response.
   //
@@ -34,7 +42,14 @@ class AsyncTransporter : public Transporter {
   // Callback interface used by Send.
   class Callback {
    public:
+    Callback() noexcept = default;
+    Callback(const Callback&) noexcept = default;
+    Callback(Callback&&) noexcept = default;
+
     virtual ~Callback() = default;
+
+    Callback& operator=(const Callback&) noexcept = default;
+    Callback& operator=(Callback&&) noexcept = default;
 
     virtual void OnSuccess() noexcept = 0;
 

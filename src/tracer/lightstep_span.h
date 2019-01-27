@@ -66,19 +66,19 @@ class LightStepSpan final : public opentracing::Span,
     return span_.span_context().span_id();
   }
 
-  virtual opentracing::expected<void> Inject(
+  opentracing::expected<void> Inject(
       const PropagationOptions& propagation_options,
       std::ostream& writer) const override {
     return this->InjectImpl(propagation_options, writer);
   }
 
-  virtual opentracing::expected<void> Inject(
+  opentracing::expected<void> Inject(
       const PropagationOptions& propagation_options,
       const opentracing::TextMapWriter& writer) const override {
     return this->InjectImpl(propagation_options, writer);
   }
 
-  virtual opentracing::expected<void> Inject(
+  opentracing::expected<void> Inject(
       const PropagationOptions& propagation_options,
       const opentracing::HTTPHeadersWriter& writer) const override {
     return this->InjectImpl(propagation_options, writer);
