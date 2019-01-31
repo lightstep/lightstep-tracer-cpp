@@ -7,6 +7,16 @@ load(
 lightstep_package()
 
 lightstep_cc_library(
+    name = "ip_address_lib",
+    private_hdrs = [
+        "ip_address.h",
+    ],
+    srcs = [
+        "ip_address.cpp",
+    ],
+)
+
+lightstep_cc_library(
     name = "event_base_lib",
     private_hdrs = [
         "event_base.h",

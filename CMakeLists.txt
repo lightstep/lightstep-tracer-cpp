@@ -183,6 +183,7 @@ if (WITH_LIBEVENT)
   list(APPEND LIGHTSTEP_SRCS src/recorder/stream_recorder/stream_recorder.cpp
                              src/network/event_base.cpp
                              src/network/timer_event.cpp
+                             src/network/ip_address.cpp
   )
 else()
   list(APPEND LIGHTSTEP_SRCS src/recorder/no_stream_recorder.cpp)

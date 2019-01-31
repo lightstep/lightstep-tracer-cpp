@@ -24,6 +24,16 @@ http_archive(
     build_file = "//bazel:libevent.BUILD",
 )
 
+http_archive(
+    name = "com_github_cares_cares",
+    urls = [
+        "https://github.com/c-ares/c-ares/releases/download/cares-1_15_0/c-ares-1.15.0.tar.gz",
+    ],
+    sha256 = "6cdb97871f2930530c97deb7cf5c8fa4be5a0b02c7cea6e7c7667672a39d6852",
+    strip_prefix = "c-ares-1.15.0",
+    build_file = "//bazel:cares.BUILD",
+)
+
 git_repository(
     name = "build_stack_rules_proto",
     remote = "https://github.com/stackb/rules_proto",

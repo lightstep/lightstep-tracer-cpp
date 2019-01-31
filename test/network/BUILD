@@ -25,3 +25,13 @@ lightstep_catch_test(
         "//src/network:timer_event_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "ip_address_test",
+    srcs = [
+        "ip_address_test.cpp",
+    ],
+    deps = [
+        "//src/network:ip_address_lib",
+    ],
+)

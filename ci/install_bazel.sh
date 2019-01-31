@@ -2,15 +2,14 @@
 
 set -e
 
+[ -z "${BAZEL_VERSION}" ] && export BAZEL_VERSION="${BAZEL_VERSION}"
+
 apt-get update 
 apt-get install --no-install-recommends --no-install-suggests -y \
-         curl \
+         wget \
+         unzip \
          ca-certificates \
          openjdk-8-jdk
-echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" \
-      | tee /etc/apt/sources.list.d/bazel.list
-curl https://bazel.build/bazel-release.pub.gpg | apt-key add -
-apt-get update
-apt-get install --no-install-recommends --no-install-suggests -y \
-         bazel
-apt-get upgrade -y bazel
+wget https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh
+chmod +x bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh
+./bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh
