@@ -20,7 +20,7 @@ class DnsResolver {
   DnsResolver(const DnsResolver&) = delete;
   DnsResolver(DnsResolver&&) = delete;
 
-  virtual DnsResolver() noexcept = default;
+  virtual ~DnsResolver() noexcept = default;
 
   DnsResolver& operator=(const DnsResolver&) = delete;
   DnsResolver& operator=(DnsResolver&&) = delete;
