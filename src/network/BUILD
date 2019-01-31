@@ -48,3 +48,15 @@ lightstep_cc_library(
         "@com_github_libevent_libevent//:libevent",
     ],
 )
+
+lightstep_cc_library(
+    name = "dns_resolver_interface",
+    private_hdrs = [
+        "dns_resolver.h",
+    ],
+    deps = [
+        "//src/common:logger_lib",
+        ":event_base_lib",
+        ":ip_address_lib",
+    ],
+)
