@@ -7,12 +7,22 @@ load(
 lightstep_package()
 
 lightstep_catch_test(
+    name = "event_test",
+    srcs = [
+        "event_test.cpp",
+    ],
+    deps = [
+        "//src/network:event_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "event_base_test",
     srcs = [
         "event_base_test.cpp",
     ],
     deps = [
-        "//src/network:event_base_lib",
+        "//src/network:event_lib",
     ],
 )
 

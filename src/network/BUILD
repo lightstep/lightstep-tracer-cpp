@@ -17,11 +17,13 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "event_base_lib",
+    name = "event_lib",
     private_hdrs = [
-        "event_base.h",
+      "event.h",
+      "event_base.h",
     ],
     srcs = [
+        "event.cpp",
         "event_base.cpp",
     ],
     deps = [
@@ -42,7 +44,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:utility_lib",
-        ":event_base_lib",
+        ":event_lib",
     ],
     external_deps = [
         "@com_github_libevent_libevent//:libevent",
@@ -56,7 +58,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:logger_lib",
-        ":event_base_lib",
+        ":event_lib",
         ":ip_address_lib",
     ],
 )

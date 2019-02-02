@@ -1,5 +1,6 @@
 #pragma once
 
+#include "network/event.h"
 #include "network/event_base.h"
 
 #include <sys/time.h>
@@ -15,7 +16,7 @@ class TimerEvent {
   template <class Rep, class Period>
   TimerEvent(const EventBase& event_base,
              std::chrono::duration<Rep, Period> interval,
-             EventBase::EventCallback callback, void* context)
+             Event::Callback callback, void* context)
       : TimerEvent{
             event_base,
             std::chrono::duration_cast<std::chrono::microseconds>(interval),
@@ -23,14 +24,6 @@ class TimerEvent {
 
   TimerEvent(const EventBase& event_base, std::chrono::microseconds interval,
              EventBase::EventCallback callback, void* context);
-
-  ~TimerEvent() noexcept;
-
-  TimerEvent(TimerEvent&& other) noexcept;
-  TimerEvent(const TimerEvent&) = delete;
-
-  TimerEvent& operator=(TimerEvent&& other) noexcept;
-  TimerEvent& operator=(const TimerEvent&) = delete;
 
   /**
    * Resets the timer to start from now.
@@ -40,10 +33,12 @@ class TimerEvent {
   /**
    * @return the underlying event associated with this timer.
    */
-  const event* libevent_handle() const noexcept { return event_; }
+  const event* libevent_handle() const noexcept {
+    return event_.libevent_handle();
+  }
 
  private:
-  event* event_;
+  Event event_;
   timeval tv_;
 };
 }  // namespace lightstep

@@ -1,7 +1,8 @@
 #include <vector>
 
-#include "3rd_party/catch2/catch.hpp"
 #include "network/timer_event.h"
+
+#include "3rd_party/catch2/catch.hpp"
 
 using namespace lightstep;
 
@@ -32,23 +33,6 @@ TEST_CASE("TimerEvent") {
   callback_context.event_base = &event_base;
   TimerEvent timer_event{event_base, TestingCallbackInterval, TimerCallback,
                          static_cast<void*>(&callback_context)};
-
-  SECTION("TimerEvent can be move constructed.") {
-    auto libevent_handle = timer_event.libevent_handle();
-    REQUIRE(libevent_handle != nullptr);
-    TimerEvent timer_event2{std::move(timer_event)};
-    REQUIRE(timer_event2.libevent_handle() == libevent_handle);
-  }
-
-  SECTION("TimerEvent can be move assigned.") {
-    TimerEvent timer_event2{event_base, TestingCallbackInterval, TimerCallback,
-                            static_cast<void*>(&callback_context)};
-    auto libevent_handle = timer_event.libevent_handle();
-    REQUIRE(libevent_handle != nullptr);
-    timer_event2 = std::move(timer_event);
-    REQUIRE(timer_event2.libevent_handle() == libevent_handle);
-  }
-
   SECTION("TimerEvent schedules callbacks at a given interval.") {
     event_base.Dispatch();
     REQUIRE(callback_context.time_points.size() == 5);
