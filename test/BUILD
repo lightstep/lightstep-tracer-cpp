@@ -46,3 +46,13 @@ lightstep_cc_library(
         "//include/lightstep:metrics_observer_interface",
     ],
 )
+
+lightstep_cc_library(
+    name = "child_process_handle_lib",
+    private_hdrs = [
+        "child_process_handle.h",
+    ],
+    srcs = [
+        "child_process_handle.cpp",
+    ],
+)
