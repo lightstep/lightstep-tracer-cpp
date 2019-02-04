@@ -16,6 +16,8 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/network:dns_resolver_interface",
+        "//src/network:event_lib",
+        "//src/network:timer_event_lib",
     ],
     external_deps = [
         "@com_github_cares_cares//:ares",

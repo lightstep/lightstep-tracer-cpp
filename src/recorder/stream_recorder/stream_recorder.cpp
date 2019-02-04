@@ -4,16 +4,6 @@
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
-// MakeTimerCallback
-//--------------------------------------------------------------------------------------------------
-template <void (StreamRecorder::*MemberFunction)()>
-static EventBase::EventCallback MakeTimerCallback() {
-  return [](int /*socket*/, short /*what*/, void* context) {
-    (static_cast<StreamRecorder*>(context)->*MemberFunction)();
-  };
-}
-
-//--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
 StreamRecorder::StreamRecorder(Logger& logger,
@@ -27,10 +17,10 @@ StreamRecorder::StreamRecorder(Logger& logger,
           static_cast<size_t>(recorder_options_.max_span_buffer_bytes *
                               recorder_options.early_flush_threshold)},
       poll_timer_{event_base_, recorder_options_.polling_period,
-                  MakeTimerCallback<&StreamRecorder::Poll>(),
+                  MakeTimerCallback<StreamRecorder, &StreamRecorder::Poll>(),
                   static_cast<void*>(this)},
       flush_timer_{event_base_, recorder_options.flushing_period,
-                   MakeTimerCallback<&StreamRecorder::Flush>(),
+                   MakeTimerCallback<StreamRecorder, &StreamRecorder::Flush>(),
                    static_cast<void*>(this)} {
   thread_ = std::thread{&StreamRecorder::Run, this};
 }

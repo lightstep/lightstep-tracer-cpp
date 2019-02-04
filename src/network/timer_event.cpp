@@ -16,24 +16,27 @@ TimerEvent::TimerEvent(const EventBase& event_base,
                        Event::Callback callback, void* context)
     : event_{event_base, -1, EV_PERSIST, callback, context},
       tv_{ToTimeval(interval)} {
-  auto rcode = event_add(event_.libevent_handle(), &tv_);
-  if (rcode != 0) {
-    throw std::runtime_error{"event_add failed"};
-  }
+  event_.Add(&tv_);
 }
+
+TimerEvent::TimerEvent(const EventBase& event_base, Event::Callback callback,
+                       void* context)
+    : event_{event_base, -1, EV_PERSIST, callback, context} {}
 
 //--------------------------------------------------------------------------------------------------
 // Reset
 //--------------------------------------------------------------------------------------------------
 void TimerEvent::Reset() {
-  assert(event_.libevent_handle() != nullptr);
-  auto rcode = event_del(event_.libevent_handle());
-  if (rcode != 0) {
-    throw std::runtime_error{"event_del failed"};
+  event_.Remove();
+  event_.Add(&tv_);
+}
+
+void TimerEvent::Reset(const timeval* tv) {
+  event_.Remove();
+  if (tv == nullptr) {
+    return;
   }
-  rcode = event_add(event_.libevent_handle(), &tv_);
-  if (rcode != 0) {
-    throw std::runtime_error{"event_add failed"};
-  }
+  tv_ = *tv;
+  event_.Add(&tv_);
 }
 }  // namespace lightstep

@@ -61,4 +61,7 @@ lightstep_cc_library(
         ":event_lib",
         ":ip_address_lib",
     ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
 )

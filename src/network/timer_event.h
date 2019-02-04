@@ -13,6 +13,8 @@ namespace lightstep {
  */
 class TimerEvent {
  public:
+  TimerEvent() noexcept = default;
+
   template <class Rep, class Period>
   TimerEvent(const EventBase& event_base,
              std::chrono::duration<Rep, Period> interval,
@@ -23,22 +25,30 @@ class TimerEvent {
             callback, context} {}
 
   TimerEvent(const EventBase& event_base, std::chrono::microseconds interval,
-             EventBase::EventCallback callback, void* context);
+             Event::Callback callback, void* context);
+
+  TimerEvent(const EventBase& event_base, Event::Callback callback,
+             void* context);
 
   /**
-   * Resets the timer to start from now.
+   * Resets the timer to start anew from now.
    */
   void Reset();
 
-  /**
-   * @return the underlying event associated with this timer.
-   */
-  const event* libevent_handle() const noexcept {
-    return event_.libevent_handle();
-  }
+  void Reset(const timeval* tv);
 
  private:
   Event event_;
-  timeval tv_;
+  timeval tv_{};
 };
+
+//--------------------------------------------------------------------------------------------------
+// MakeTimerCallback
+//--------------------------------------------------------------------------------------------------
+template <class T, void (T::*MemberFunction)()>
+Event::Callback MakeTimerCallback() {
+  return [](int /*socket*/, short /*what*/, void* context) {
+    (static_cast<T*>(context)->*MemberFunction)();
+  };
+}
 }  // namespace lightstep

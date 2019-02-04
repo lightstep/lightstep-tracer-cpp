@@ -9,6 +9,12 @@
 namespace lightstep {
 class IpAddress {
  public:
+  IpAddress() noexcept;
+
+  IpAddress(const in_addr& addr) noexcept;
+
+  IpAddress(const in6_addr& addr) noexcept;
+
   IpAddress(const sockaddr& addr) noexcept;
 
   explicit IpAddress(const char* s);
@@ -32,7 +38,7 @@ class IpAddress {
   void set_port(uint16_t port) noexcept;
 
  private:
-  sockaddr_storage data_;
+  sockaddr_storage data_{};
 };
 
 bool operator==(const IpAddress& lhs, const IpAddress& rhs) noexcept;

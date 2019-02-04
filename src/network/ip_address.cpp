@@ -11,6 +11,23 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
+IpAddress::IpAddress() noexcept {
+  auto& ipv4_addr = reinterpret_cast<sockaddr_in&>(data_);
+  ipv4_addr.sin_family = AF_INET;
+}
+
+IpAddress::IpAddress(const in_addr& addr) noexcept {
+  auto& ipv4_addr = reinterpret_cast<sockaddr_in&>(data_);
+  ipv4_addr.sin_family = AF_INET;
+  ipv4_addr.sin_addr = addr;
+}
+
+IpAddress::IpAddress(const in6_addr& addr) noexcept {
+  auto& ipv6_addr = reinterpret_cast<sockaddr_in6&>(data_);
+  ipv6_addr.sin6_family = AF_INET6;
+  ipv6_addr.sin6_addr = addr;
+}
+
 IpAddress::IpAddress(const sockaddr& addr) noexcept {
   if (addr.sa_family == AF_INET) {
     reinterpret_cast<sockaddr_in&>(data_) =
