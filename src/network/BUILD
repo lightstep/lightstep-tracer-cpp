@@ -65,3 +65,13 @@ lightstep_cc_library(
         "@io_opentracing_cpp//:opentracing",
     ],
 )
+
+lightstep_cc_library(
+    name = "no_dns_resolver_lib",
+    srcs = [
+        "no_dns_resolver.cpp",
+    ],
+    deps = [
+        ":dns_resolver_interface",
+    ],
+)

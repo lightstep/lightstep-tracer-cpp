@@ -61,7 +61,7 @@ class DnsResolver {
   DnsResolver& operator=(const DnsResolver&) = delete;
   DnsResolver& operator=(DnsResolver&&) = delete;
 
-  virtual void Resolve(const char* host,
+  virtual void Resolve(const char* name,
                        const DnsResolutionCallback& callback) noexcept = 0;
 };
 
