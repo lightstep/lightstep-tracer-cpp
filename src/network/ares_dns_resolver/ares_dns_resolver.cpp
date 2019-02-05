@@ -8,6 +8,9 @@
 #include <event2/event.h>
 
 namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// AresDnsResolution
+//--------------------------------------------------------------------------------------------------
 namespace {
 class AresDnsResolution final : public DnsResolution {
  public:
