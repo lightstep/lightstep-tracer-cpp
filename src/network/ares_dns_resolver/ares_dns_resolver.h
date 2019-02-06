@@ -12,7 +12,7 @@ namespace lightstep {
 class AresDnsResolver : public DnsResolver {
  public:
   AresDnsResolver(Logger& logger, EventBase& event_base,
-                  DnsResolverOptions&& options);
+                  DnsResolverOptions&& resolver_options);
 
   AresDnsResolver(const AresDnsResolver&) = delete;
   AresDnsResolver(AresDnsResolver&&) = delete;
@@ -23,8 +23,8 @@ class AresDnsResolver : public DnsResolver {
   AresDnsResolver& operator=(AresDnsResolver&&) = delete;
 
   // DnsResolver
-  void Resolve(const char* name,
-               const DnsResolutionCallback& callback) noexcept override;
+  void Resolve(const char* name, int family,
+               DnsResolutionCallback& callback) noexcept override;
 
  private:
   Logger& logger_;

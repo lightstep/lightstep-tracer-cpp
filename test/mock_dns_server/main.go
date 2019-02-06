@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+  "os"
 	"strconv"
 
 	"github.com/miekg/dns"
@@ -42,14 +43,21 @@ func handleDnsRequest(w dns.ResponseWriter, r *dns.Msg) {
 }
 
 func main() {
+  if len(os.Args) != 2 {
+    log.Fatal("Must provide port")
+  }
+  port, err := strconv.Atoi(os.Args[1])
+  if err != nil {
+    log.Fatalf("Failed to parse port: %s\n", err.Error())
+  }
+
 	// attach request handler func
 	dns.HandleFunc("service.", handleDnsRequest)
 
 	// start server
-	port := 5353
 	server := &dns.Server{Addr: ":" + strconv.Itoa(port), Net: "udp"}
 	log.Printf("Starting at %d\n", port)
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	defer server.Shutdown()
 	if err != nil {
 		log.Fatalf("Failed to start server: %s\n ", err.Error())

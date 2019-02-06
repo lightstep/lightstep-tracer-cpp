@@ -28,8 +28,8 @@ class IpOnlyDnsResolver : public DnsResolver {
  public:
   explicit IpOnlyDnsResolver(Logger& logger) noexcept : logger_{logger} {}
 
-  void Resolve(const char* name,
-               const DnsResolutionCallback& callback) noexcept override {
+  void Resolve(const char* name, int family,
+               DnsResolutionCallback& callback) noexcept override {
     IpAddress ip_address;
     try {
       ip_address = IpAddress{name};
@@ -39,7 +39,11 @@ class IpOnlyDnsResolver : public DnsResolver {
                     "tracer needs to be rebuilt with c-ares support.");
       return callback.OnDnsResolution(DnsResolution{}, {});
     }
-    callback.OnDnsResolution(SingleIpDnsResolution{ip_address}, {});
+    if (ip_address.family() == family) {
+      callback.OnDnsResolution(SingleIpDnsResolution{ip_address}, {});
+    } else {
+      callback.OnDnsResolution(DnsResolution{}, {});
+    }
   }
 
  private:

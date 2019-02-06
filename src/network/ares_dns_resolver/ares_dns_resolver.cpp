@@ -14,7 +14,7 @@ namespace lightstep {
 namespace {
 class AresDnsResolution final : public DnsResolution {
  public:
-  AresDnsResolution(const hostent& hosts) noexcept : hosts_{hosts} {}
+  explicit AresDnsResolution(const hostent& hosts) noexcept : hosts_{hosts} {}
 
   // DnsResolution
   bool forEachIpAddress(
@@ -59,10 +59,36 @@ static void OnDnsResolution(void* context, int status, int /*timeouts*/,
 }
 
 //--------------------------------------------------------------------------------------------------
+// SetAresOptions
+//--------------------------------------------------------------------------------------------------
+static void SetAresOptions(const DnsResolverOptions& resolver_options,
+                           ares_options& options, int& option_mask) {
+  options.udp_port = resolver_options.resolution_server_port;
+  option_mask |= ARES_OPT_UDP_PORT;
+  options.tcp_port = resolver_options.resolution_server_port;
+  option_mask |= ARES_OPT_TCP_PORT;
+
+  if (resolver_options.timeout != std::chrono::milliseconds{0}) {
+    options.timeout = resolver_options.timeout.count();
+    option_mask |= ARES_OPT_TIMEOUTMS;
+  }
+
+  if (resolver_options.resolution_servers.empty()) {
+    return;
+  }
+
+  options.servers =
+      const_cast<in_addr*>(resolver_options.resolution_servers.data());
+  options.nservers =
+      static_cast<int>(resolver_options.resolution_servers.size());
+  option_mask |= ARES_OPT_SERVERS;
+}
+
+//--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
 AresDnsResolver::AresDnsResolver(Logger& logger, EventBase& event_base,
-                                 DnsResolverOptions&& /*options*/)
+                                 DnsResolverOptions&& resolver_options)
     : logger_{logger},
       event_base_{event_base},
       timer_{event_base,
@@ -80,6 +106,7 @@ AresDnsResolver::AresDnsResolver(Logger& logger, EventBase& event_base,
   options.sock_state_cb_data = static_cast<void*>(this);
   int option_mask = 0;
   option_mask |= ARES_OPT_SOCK_STATE_CB;
+  SetAresOptions(resolver_options, options, option_mask);
   auto status = ares_init_options(&channel_, &options, option_mask);
   if (status != ARES_SUCCESS) {
     logger_.Error("ares_init_options failed: ", ares_strerror(status));
@@ -95,11 +122,10 @@ AresDnsResolver::~AresDnsResolver() noexcept { ares_destroy(channel_); }
 //--------------------------------------------------------------------------------------------------
 // Resolve
 //--------------------------------------------------------------------------------------------------
-void AresDnsResolver::Resolve(const char* name,
-                              const DnsResolutionCallback& callback) noexcept {
-  ares_gethostbyname(
-      channel_, name, AF_UNSPEC, OnDnsResolution,
-      static_cast<void*>(const_cast<DnsResolutionCallback*>(&callback)));
+void AresDnsResolver::Resolve(const char* name, int family,
+                              DnsResolutionCallback& callback) noexcept {
+  ares_gethostbyname(channel_, name, family, OnDnsResolution,
+                     static_cast<void*>(&callback));
 }
 
 //--------------------------------------------------------------------------------------------------

@@ -13,6 +13,8 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/network/ares_dns_resolver:ares_dns_resolver_lib",
+        "//test/mock_dns_server:mock_dns_server_lib",
+        "//test:ports_lib",
     ],
 )
 

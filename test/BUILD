@@ -56,3 +56,10 @@ lightstep_cc_library(
         "child_process_handle.cpp",
     ],
 )
+
+lightstep_cc_library(
+    name = "ports_lib",
+    private_hdrs = [
+        "ports.h",
+    ],
+)

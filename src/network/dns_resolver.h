@@ -12,9 +12,9 @@
 
 namespace lightstep {
 struct DnsResolverOptions {
-  std::vector<IpAddress> resolution_servers;
+  std::vector<in_addr> resolution_servers;
   uint16_t resolution_server_port{53};
-  std::chrono::microseconds timeout;
+  std::chrono::milliseconds timeout;
 };
 
 class DnsResolution {
@@ -46,9 +46,9 @@ class DnsResolutionCallback {
       default;
   DnsResolutionCallback& operator=(DnsResolutionCallback&&) noexcept = default;
 
-  virtual void OnDnsResolution(const DnsResolution& dns_resolution,
-                               opentracing::string_view error_message) const
-      noexcept = 0;
+  virtual void OnDnsResolution(
+      const DnsResolution& dns_resolution,
+      opentracing::string_view error_message) noexcept = 0;
 };
 
 class DnsResolver {
@@ -62,8 +62,8 @@ class DnsResolver {
   DnsResolver& operator=(const DnsResolver&) = delete;
   DnsResolver& operator=(DnsResolver&&) = delete;
 
-  virtual void Resolve(const char* name,
-                       const DnsResolutionCallback& callback) noexcept = 0;
+  virtual void Resolve(const char* name, int family,
+                       DnsResolutionCallback& callback) noexcept = 0;
 };
 
 std::unique_ptr<DnsResolver> MakeDnsResolver(Logger& logger,

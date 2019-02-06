@@ -18,9 +18,11 @@ namespace lightstep {
 static int StartChild(const char* command,
                       const std::vector<std::string>& arguments) {
   std::vector<const char*> argv;
-  argv.reserve(arguments.size());
+  argv.reserve(arguments.size() + 2);
+  argv.push_back(command);
   std::transform(arguments.begin(), arguments.end(), std::back_inserter(argv),
                  [](const std::string& s) { return s.data(); });
+  argv.push_back(nullptr);
   auto rcode = ::fork();
   if (rcode == -1) {
     std::cerr << "fork failed: " << std::strerror(errno) << "\n";
@@ -72,22 +74,19 @@ void ChildProcessHandle::KillChild() noexcept {
   if (pid_ == -1) {
     return;
   }
+  auto rcode = kill(pid_, SIGTERM);
+  if (rcode != 0) {
+    std::cerr << "failed to kill child process: " << std::strerror(errno)
+              << "\n";
+    std::terminate();
+  }
+
   int status;
-  auto rcode = ::waitpid(pid_, &status, 0);
+  rcode = ::waitpid(pid_, &status, 0);
   if (rcode != pid_) {
     std::cerr << "failed to kill child: waitpid returned " << rcode << "\n";
     std::terminate();
   }
   pid_ = -1;
-  if (!WIFEXITED(status)) {
-    std::cerr << "child process exited abnormally\n";
-    std::terminate();
-  }
-  int exit_status = WEXITSTATUS(status);
-  if (exit_status != 0) {
-    std::cerr << "child process exited with non-zero status " << exit_status
-              << "\n";
-    std::terminate();
-  }
 }
 }  // namespace lightstep
