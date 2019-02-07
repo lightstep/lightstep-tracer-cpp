@@ -180,4 +180,14 @@ void AresDnsResolver::UpdateTimer() {
   auto tv = ares_timeout(channel_, nullptr, &timeout);
   timer_.Reset(tv);
 }
+
+//--------------------------------------------------------------------------------------------------
+// MakeDnsResolver
+//--------------------------------------------------------------------------------------------------
+std::unique_ptr<DnsResolver> MakeDnsResolver(Logger& logger,
+                                             EventBase& event_base,
+                                             DnsResolverOptions&& options) {
+  return std::unique_ptr<DnsResolver>{
+      new AresDnsResolver{logger, event_base, std::move(options)}};
+}
 }  // namespace lightstep

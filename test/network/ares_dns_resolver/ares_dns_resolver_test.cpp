@@ -11,30 +11,55 @@
 
 using namespace lightstep;
 
+const auto ResolutionTimeout = std::chrono::milliseconds{100};
+
 TEST_CASE("AresDnsResolver") {
   Logger logger;
   EventBase event_base;
   DnsResolverOptions options;
+  options.timeout = ResolutionTimeout;
   MockDnsServerHandle dns_server{
       static_cast<uint16_t>(PortAssignments::AresDnsResolverTest)};
   options.resolution_server_port =
       static_cast<uint16_t>(PortAssignments::AresDnsResolverTest);
   options.resolution_servers = {IpAddress{"127.0.0.1"}.ipv4_address().sin_addr};
-  AresDnsResolver resolver{logger, event_base, std::move(options)};
+  auto resolver = MakeDnsResolver(logger, event_base, std::move(options));
   MockDnsResolutionCallback callback{event_base};
 
   SECTION("We can resolve ipv4 addresses.") {
-    resolver.Resolve("test.service", AF_INET, callback);
+    resolver->Resolve("test.service", AF_INET, callback);
     event_base.Dispatch();
     REQUIRE(callback.ipAddresses() ==
             std::vector<IpAddress>{IpAddress{"192.168.0.2"}});
   }
 
   SECTION("We can resolve ipv6 addresses.") {
-    resolver.Resolve("ipv6.service", AF_INET6, callback);
+    resolver->Resolve("ipv6.service", AF_INET6, callback);
     event_base.Dispatch();
     REQUIRE(callback.ipAddresses() ==
             std::vector<IpAddress>{
                 IpAddress{"2001:0db8:85a3:0000:0000:8a2e:0370:7334"}});
+  }
+
+  SECTION("If no answer is received, then the query times out.") {
+    resolver->Resolve("timeout.service", AF_INET, callback);
+    event_base.Dispatch();
+    REQUIRE(callback.ipAddresses().empty());
+    REQUIRE(!callback.errorMessage().empty());
+  }
+
+  SECTION("The dns resolver doesn't block the process from exiting.") {
+    event_base.OnTimeout(
+        ResolutionTimeout / 4,
+        [](int /*file_descriptor*/, short /*what*/, void* context) {
+          static_cast<EventBase*>(context)->LoopBreak();
+        },
+        static_cast<void*>(&event_base));
+    resolver->Resolve("timeout.service", AF_INET, callback);
+    auto t1 = std::chrono::system_clock::now();
+    event_base.Dispatch();
+    auto t2 = std::chrono::system_clock::now();
+    REQUIRE((t2 - t1) < ResolutionTimeout / 2);
+    resolver.reset();
   }
 }

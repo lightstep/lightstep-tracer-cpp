@@ -5,6 +5,7 @@ import (
 	"log"
   "os"
 	"strconv"
+  "time"
 
 	"github.com/miekg/dns"
 )
@@ -14,11 +15,20 @@ var records = map[string]string{
   "ipv6.service.": "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
 }
 
+func loopForever() {
+  for {
+    time.Sleep(10 * time.Millisecond)
+  }
+}
+
 func parseQuery(m *dns.Msg) {
 	for _, q := range m.Question {
 		switch q.Qtype {
 		case dns.TypeA:
 			log.Printf("Query for %s\n", q.Name)
+      if q.Name == "timeout.service." {
+        go loopForever()
+      }
 			ip := records[q.Name]
 			if ip != "" {
 				rr, err := dns.NewRR(fmt.Sprintf("%s A %s", q.Name, ip))

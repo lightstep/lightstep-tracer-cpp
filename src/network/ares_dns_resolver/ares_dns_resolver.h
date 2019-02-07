@@ -42,4 +42,8 @@ class AresDnsResolver : public DnsResolver {
 
   void UpdateTimer();
 };
+
+std::unique_ptr<DnsResolver> MakeDnsResolver(Logger& logger,
+                                             EventBase& event_base,
+                                             DnsResolverOptions&& options);
 }  // namespace lightstep
