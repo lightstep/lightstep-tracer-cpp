@@ -75,3 +75,16 @@ lightstep_cc_library(
         ":dns_resolver_interface",
     ],
 )
+
+lightstep_cc_library(
+    name = "socket_lib",
+    private_hdrs = [
+        "socket.h",
+    ],
+    srcs = [
+        "socket.cpp",
+    ],
+    deps = [
+        ":ip_address_lib",
+    ],
+)

@@ -45,3 +45,13 @@ lightstep_catch_test(
         "//src/network:ip_address_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "socket_test",
+    srcs = [
+        "socket_test.cpp",
+    ],
+    deps = [
+        "//src/network:socket_lib",
+    ],
+)
