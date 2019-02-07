@@ -11,6 +11,7 @@ import (
 
 var records = map[string]string{
 	"test.service.": "192.168.0.2",
+  "ipv6.service.": "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
 }
 
 func parseQuery(m *dns.Msg) {
@@ -21,6 +22,15 @@ func parseQuery(m *dns.Msg) {
 			ip := records[q.Name]
 			if ip != "" {
 				rr, err := dns.NewRR(fmt.Sprintf("%s A %s", q.Name, ip))
+				if err == nil {
+					m.Answer = append(m.Answer, rr)
+				}
+			}
+		case dns.TypeAAAA:
+			log.Printf("Query for %s\n", q.Name)
+			ip := records[q.Name]
+			if ip != "" {
+				rr, err := dns.NewRR(fmt.Sprintf("%s AAAA %s", q.Name, ip))
 				if err == nil {
 					m.Answer = append(m.Answer, rr)
 				}

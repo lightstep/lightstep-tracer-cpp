@@ -63,3 +63,17 @@ lightstep_cc_library(
         "ports.h",
     ],
 )
+
+lightstep_cc_library(
+    name = "mock_dns_resolution_callback_lib",
+    private_hdrs = [
+        "mock_dns_resolution_callback.h",
+    ],
+    srcs = [
+      "mock_dns_resolution_callback.cpp",
+    ],
+    deps = [
+        "//src/network:dns_resolver_interface",
+        "//src/network:event_lib",
+    ],
+)

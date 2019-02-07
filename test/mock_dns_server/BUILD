@@ -29,6 +29,10 @@ lightstep_cc_library(
     ],
     deps = [
         "//test:child_process_handle_lib",
+        "//test:utility_lib",
+        "//test:mock_dns_resolution_callback_lib",
+        "//src/network/ares_dns_resolver:ares_dns_resolver_lib",
+        "//src/network:socket_lib",
     ],
     data = [
         ":mock_dns_server",
