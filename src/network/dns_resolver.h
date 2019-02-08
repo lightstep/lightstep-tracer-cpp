@@ -28,7 +28,7 @@ class DnsResolution {
   DnsResolution& operator=(const DnsResolution&) noexcept = default;
   DnsResolution& operator=(DnsResolution&&) noexcept = default;
 
-  virtual bool forEachIpAddress(
+  virtual bool ForeachIpAddress(
       std::function<bool(const IpAddress& ip_address)> /*f*/) const {
     return true;
   }

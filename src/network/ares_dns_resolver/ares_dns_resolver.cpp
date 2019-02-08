@@ -17,7 +17,7 @@ class AresDnsResolution final : public DnsResolution {
   explicit AresDnsResolution(const hostent& hosts) noexcept : hosts_{hosts} {}
 
   // DnsResolution
-  bool forEachIpAddress(
+  bool ForeachIpAddress(
       std::function<bool(const IpAddress& ip_address)> f) const override {
     for (int i = 0; hosts_.h_addr_list[i]; ++i) {
       IpAddress ip_address;

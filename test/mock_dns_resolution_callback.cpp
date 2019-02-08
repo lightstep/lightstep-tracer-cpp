@@ -4,7 +4,7 @@ namespace lightstep {
 void MockDnsResolutionCallback::OnDnsResolution(
     const DnsResolution& resolution,
     opentracing::string_view error_message) noexcept {
-  resolution.forEachIpAddress([&](const IpAddress& ip_address) {
+  resolution.ForeachIpAddress([&](const IpAddress& ip_address) {
     ip_addresses_.push_back(ip_address);
     return true;
   });
