@@ -22,7 +22,7 @@ inline bool IsEventuallyTrue(
     F f, Duration1 polling_interval = std::chrono::milliseconds{50},
     Duration2 timeout = std::chrono::minutes{2}) {
   auto start = std::chrono::system_clock::now();
-  while (1) {
+  while (true) {
     if (f()) {
       return true;
     }

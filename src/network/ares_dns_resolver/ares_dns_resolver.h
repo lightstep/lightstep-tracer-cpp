@@ -9,7 +9,10 @@
 struct ares_channeldata;
 
 namespace lightstep {
-class AresDnsResolver : public DnsResolver {
+/**
+ * A DnsResolver using the c-ares library.
+ */
+class AresDnsResolver final : public DnsResolver {
  public:
   AresDnsResolver(Logger& logger, EventBase& event_base,
                   DnsResolverOptions&& resolver_options);

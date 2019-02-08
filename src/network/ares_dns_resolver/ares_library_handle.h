@@ -1,6 +1,9 @@
 #pragma once
 
 namespace lightstep {
+/**
+ * Manages initialization of the c-ares library.
+ */
 class AresLibraryHandle {
  public:
   AresLibraryHandle(const AresLibraryHandle&) = delete;
@@ -9,6 +12,9 @@ class AresLibraryHandle {
   AresLibraryHandle& operator=(const AresLibraryHandle&) = delete;
   AresLibraryHandle& operator=(AresLibraryHandle&&) = delete;
 
+  /**
+   * @return if the libevent library initialization was successful.
+   */
   bool initialized() const noexcept;
 
   // We use a global variable to initialize the ares library because

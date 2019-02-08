@@ -31,7 +31,7 @@ static int StartChild(const char* command,
   if (rcode != 0) {
     return rcode;
   }
-  rcode = ::execv(command, const_cast<char* const*>(argv.data()));
+  ::execv(command, const_cast<char* const*>(argv.data()));
 
   // Only run this code if execv failed
   std::cerr << "execv failed: " << std::strerror(errno) << "\n";
