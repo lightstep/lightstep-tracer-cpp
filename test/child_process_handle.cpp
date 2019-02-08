@@ -74,7 +74,7 @@ void ChildProcessHandle::KillChild() noexcept {
   if (pid_ == -1) {
     return;
   }
-  auto rcode = kill(pid_, SIGTERM);
+  auto rcode = kill(pid_, SIGKILL);
   if (rcode != 0) {
     std::cerr << "failed to kill child process: " << std::strerror(errno)
               << "\n";
