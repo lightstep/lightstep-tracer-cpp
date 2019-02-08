@@ -17,4 +17,5 @@ apt-get install --no-install-recommends --no-install-suggests -y \
                 lcov \
                 vim \
                 gdb \
+                wget \
                 python python-setuptools python-pip
