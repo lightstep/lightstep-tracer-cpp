@@ -32,7 +32,7 @@ elif [[ "$1" == "cmake.full" ]]; then
         -DCMAKE_CXX_FLAGS="-Werror" \
         -DWITH_GRPC=ON \
         -DWITH_LIBEVENT=ON \
-        -DWIH_CARES=ON |
+        -DWIH_CARES=ON \
         "${SRC_DIR}"
   make
   make test
