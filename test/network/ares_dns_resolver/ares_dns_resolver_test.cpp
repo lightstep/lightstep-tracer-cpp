@@ -29,14 +29,14 @@ TEST_CASE("AresDnsResolver") {
   SECTION("We can resolve ipv4 addresses.") {
     resolver->Resolve("test.service", AF_INET, callback);
     event_base.Dispatch();
-    REQUIRE(callback.ipAddresses() ==
+    REQUIRE(callback.ip_addresses() ==
             std::vector<IpAddress>{IpAddress{"192.168.0.2"}});
   }
 
   SECTION("We can resolve ipv6 addresses.") {
     resolver->Resolve("ipv6.service", AF_INET6, callback);
     event_base.Dispatch();
-    REQUIRE(callback.ipAddresses() ==
+    REQUIRE(callback.ip_addresses() ==
             std::vector<IpAddress>{
                 IpAddress{"2001:0db8:85a3:0000:0000:8a2e:0370:7334"}});
   }
@@ -44,8 +44,8 @@ TEST_CASE("AresDnsResolver") {
   SECTION("If no answer is received, then the query times out.") {
     resolver->Resolve("timeout.service", AF_INET, callback);
     event_base.Dispatch();
-    REQUIRE(callback.ipAddresses().empty());
-    REQUIRE(!callback.errorMessage().empty());
+    REQUIRE(callback.ip_addresses().empty());
+    REQUIRE(!callback.error_message().empty());
   }
 
   SECTION("The dns resolver doesn't block the process from exiting.") {

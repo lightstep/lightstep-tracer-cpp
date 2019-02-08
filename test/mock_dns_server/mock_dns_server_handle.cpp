@@ -26,7 +26,7 @@ static bool IsMockServerUp(uint16_t port) {
   AresDnsResolver resolver{logger, event_base, std::move(options)};
   resolver.Resolve("test.service", AF_INET, callback);
   event_base.Dispatch();
-  return callback.ipAddresses().size() == 1;
+  return callback.ip_addresses().size() == 1;
 }
 
 //--------------------------------------------------------------------------------------------------

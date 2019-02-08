@@ -16,18 +16,18 @@ TEST_CASE("NoDnsResolver") {
 
   SECTION("We can resolve raw ip addresses.") {
     resolver->Resolve("192.168.0.2", AF_INET, callback);
-    REQUIRE(callback.ipAddresses() ==
+    REQUIRE(callback.ip_addresses() ==
             std::vector<IpAddress>{IpAddress{"192.168.0.2"}});
-    REQUIRE(callback.errorMessage().empty());
+    REQUIRE(callback.error_message().empty());
   }
 
   SECTION("Resolving an ipv4 address as ipv6 fails.") {
     resolver->Resolve("192.168.0.2", AF_INET6, callback);
-    REQUIRE(callback.ipAddresses().empty());
+    REQUIRE(callback.ip_addresses().empty());
   }
 
   SECTION("Resolving a non-ip address fails.") {
     resolver->Resolve("www.google.com", AF_INET, callback);
-    REQUIRE(callback.ipAddresses().empty());
+    REQUIRE(callback.ip_addresses().empty());
   }
 }

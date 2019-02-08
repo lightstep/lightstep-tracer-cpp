@@ -13,11 +13,11 @@ class MockDnsResolutionCallback final : public DnsResolutionCallback {
       const DnsResolution& resolution,
       opentracing::string_view error_message) noexcept override;
 
-  const std::vector<IpAddress> ipAddresses() const noexcept {
+  const std::vector<IpAddress> ip_addresses() const noexcept {
     return ip_addresses_;
   }
 
-  const std::string& errorMessage() const noexcept { return error_message_; }
+  const std::string& error_message() const noexcept { return error_message_; }
 
  private:
   EventBase& event_base_;
