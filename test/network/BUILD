@@ -55,3 +55,14 @@ lightstep_catch_test(
         "//src/network:socket_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "no_dns_resolver_test",
+    srcs = [
+        "no_dns_resolver_test.cpp",
+    ],
+    deps = [
+      "//test:mock_dns_resolution_callback_lib",
+      "//src/network:no_dns_resolver_lib",
+    ],
+)
