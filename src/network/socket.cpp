@@ -47,7 +47,7 @@ Socket::~Socket() noexcept {
 //------------------------------------------------------------------------------
 void Socket::SetNonblocking() {
   int rcode = ::fcntl(file_descriptor_, F_SETFL,
-                      fcntl(file_descriptor_, F_GETFL, 0) | O_NONBLOCK);
+                      ::fcntl(file_descriptor_, F_GETFL, 0) | O_NONBLOCK);
   if (rcode == -1) {
     std::ostringstream oss;
     oss << "failed to set the socket as non-blocking: " << std::strerror(errno);
@@ -59,8 +59,8 @@ void Socket::SetNonblocking() {
 // SetBlocking
 //------------------------------------------------------------------------------
 void Socket::SetBlocking() {
-  int rcode = fcntl(file_descriptor_, F_SETFL,
-                    fcntl(file_descriptor_, F_GETFL, 0) & ~O_NONBLOCK);
+  int rcode = ::fcntl(file_descriptor_, F_SETFL,
+                      ::fcntl(file_descriptor_, F_GETFL, 0) & ~O_NONBLOCK);
   if (rcode == -1) {
     std::ostringstream oss;
     oss << "failed to set the socket as blocking: " << std::strerror(errno);

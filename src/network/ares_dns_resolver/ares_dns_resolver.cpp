@@ -17,9 +17,9 @@ class AresDnsResolution final : public DnsResolution {
   explicit AresDnsResolution(const hostent& hosts) noexcept : hosts_{hosts} {}
 
   // DnsResolution
-  bool ForeachIpAddress(
-      std::function<bool(const IpAddress& ip_address)> f) const override {
-    for (int i = 0; hosts_.h_addr_list[i]; ++i) {
+  bool ForeachIpAddress(const std::function<bool(const IpAddress& ip_address)>&
+                            f) const override {
+    for (int i = 0; hosts_.h_addr_list[i] != nullptr; ++i) {
       IpAddress ip_address;
       if (hosts_.h_addrtype == AF_INET) {
         ip_address =
@@ -158,9 +158,9 @@ void AresDnsResolver::OnSocketStateChange(int file_descriptor, int read,
 //--------------------------------------------------------------------------------------------------
 void AresDnsResolver::OnEvent(int file_descriptor, short what) noexcept try {
   auto read_file_descriptor =
-      what & EV_READ ? file_descriptor : ARES_SOCKET_BAD;
+      (what & EV_READ) != 0 ? file_descriptor : ARES_SOCKET_BAD;
   auto write_file_descriptor =
-      what & EV_WRITE ? file_descriptor : ARES_SOCKET_BAD;
+      (what & EV_WRITE) != 0 ? file_descriptor : ARES_SOCKET_BAD;
   ares_process_fd(channel_, read_file_descriptor, write_file_descriptor);
   UpdateTimer();
 } catch (const std::exception& e) {

@@ -5,13 +5,13 @@ namespace lightstep {
 // SingleIpDnsResolution
 //--------------------------------------------------------------------------------------------------
 namespace {
-class SingleIpDnsResolution : public DnsResolution {
+class SingleIpDnsResolution final : public DnsResolution {
  public:
   explicit SingleIpDnsResolution(const IpAddress& ip_address) noexcept
       : ip_address_{ip_address} {}
 
-  bool ForeachIpAddress(
-      std::function<bool(const IpAddress& ip_address)> f) const override {
+  bool ForeachIpAddress(const std::function<bool(const IpAddress& ip_address)>&
+                            f) const override {
     return f(ip_address_);
   }
 
@@ -24,7 +24,7 @@ class SingleIpDnsResolution : public DnsResolution {
 // IpOnlyDnsResolver
 //--------------------------------------------------------------------------------------------------
 namespace {
-class IpOnlyDnsResolver : public DnsResolver {
+class IpOnlyDnsResolver final : public DnsResolver {
  public:
   explicit IpOnlyDnsResolver(Logger& logger) noexcept : logger_{logger} {}
 

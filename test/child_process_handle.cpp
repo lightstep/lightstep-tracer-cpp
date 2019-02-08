@@ -74,6 +74,10 @@ void ChildProcessHandle::KillChild() noexcept {
   if (pid_ == -1) {
     return;
   }
+  // Note: We do a hard kill here because TSAN does signal handling interception
+  // that prevents the child process from receiving an ordinary SIGTERM.
+  //
+  // See https://github.com/google/sanitizers/issues/838
   auto rcode = kill(pid_, SIGKILL);
   if (rcode != 0) {
     std::cerr << "failed to kill child process: " << std::strerror(errno)

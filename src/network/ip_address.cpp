@@ -68,7 +68,8 @@ void IpAddress::set_port(uint16_t port) noexcept {
   if (family() == AF_INET) {
     reinterpret_cast<sockaddr_in&>(data_).sin_port = htons(port);
     return;
-  } else if (family() == AF_INET6) {
+  }
+  if (family() == AF_INET6) {
     reinterpret_cast<sockaddr_in6&>(data_).sin6_port = htons(port);
     return;
   }
@@ -86,7 +87,8 @@ bool operator==(const IpAddress& lhs, const IpAddress& rhs) noexcept {
     return std::memcmp(static_cast<const void*>(&lhs.ipv4_address()),
                        static_cast<const void*>(&rhs.ipv4_address()),
                        sizeof(lhs.ipv4_address())) == 0;
-  } else if (lhs.family() == AF_INET6) {
+  }
+  if (lhs.family() == AF_INET6) {
     return std::memcmp(static_cast<const void*>(&lhs.ipv6_address()),
                        static_cast<const void*>(&rhs.ipv6_address()),
                        sizeof(lhs.ipv6_address())) == 0;

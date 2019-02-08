@@ -3,6 +3,12 @@
 namespace lightstep {
 class AresLibraryHandle {
  public:
+  AresLibraryHandle(const AresLibraryHandle&) = delete;
+  AresLibraryHandle(AresLibraryHandle&&) = delete;
+
+  AresLibraryHandle& operator=(const AresLibraryHandle&) = delete;
+  AresLibraryHandle& operator=(AresLibraryHandle&&) = delete;
+
   bool initialized() const noexcept;
 
   // We use a global variable to initialize the ares library because
