@@ -4,6 +4,9 @@
 #include <vector>
 
 namespace lightstep {
+/**
+ * Manages a child process.
+ */
 class ChildProcessHandle {
  public:
   ChildProcessHandle() noexcept = default;

@@ -16,6 +16,15 @@ bool HasRelationship(opentracing::SpanReferenceType relationship,
                      const collector::Span& span_a,
                      const collector::Span& span_b);
 
+/**
+ * Continually polls a provied functor until either it returns true or a timeout
+ * is reached.
+ * @param f supplies the functor to poll.
+ * @param polling_interval supplies the amount of time between polls.
+ * @param timeout supplies the timeout.
+ * @return true if the functor returned true within the timeout; false,
+ * otherwise.
+ */
 template <class F, class Duration1 = std::chrono::milliseconds,
           class Duration2 = std::chrono::minutes>
 inline bool IsEventuallyTrue(

@@ -9,6 +9,9 @@ struct event;
 namespace lightstep {
 class EventBase;
 
+/**
+ * Wrapper for libevent's event struct.
+ */
 class Event {
  public:
   using Callback = void (*)(int socket, short what, void* context);
@@ -27,6 +30,9 @@ class Event {
   Event& operator=(const Event&) = delete;
   Event& operator=(Event&& other) noexcept;
 
+  /**
+   * @return the underlying event.
+   */
   event* libevent_handle() const noexcept { return event_; }
 
   /**
@@ -53,9 +59,11 @@ class Event {
   void FreeEvent() noexcept;
 };
 
-//--------------------------------------------------------------------------------------------------
-// MakeEventCallback
-//--------------------------------------------------------------------------------------------------
+/**
+ * For a given method, creates an event callback function that can be passed to
+ * libevent.
+ * @return a function pointer that can be passed to libevent.
+ */
 template <class T, void (T::*MemberFunction)(int, short)>
 Event::Callback MakeEventCallback() {
   return [](int socket, short what, void* context) {

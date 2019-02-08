@@ -4,6 +4,9 @@
 #include "test/child_process_handle.h"
 
 namespace lightstep {
+/**
+ * Manages a mock dns server started as a child process.
+ */
 class MockDnsServerHandle {
  public:
   MockDnsServerHandle() noexcept = default;

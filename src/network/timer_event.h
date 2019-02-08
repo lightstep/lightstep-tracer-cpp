@@ -42,9 +42,11 @@ class TimerEvent {
   timeval tv_{};
 };
 
-//--------------------------------------------------------------------------------------------------
-// MakeTimerCallback
-//--------------------------------------------------------------------------------------------------
+/**
+ * For a given method, creates a timer callback function that can be passed to
+ * libevent.
+ * @return a function pointer that can be passed to libevent.
+ */
 template <class T, void (T::*MemberFunction)()>
 Event::Callback MakeTimerCallback() {
   return [](int /*socket*/, short /*what*/, void* context) {

@@ -3,22 +3,22 @@ package main
 import (
 	"fmt"
 	"log"
-  "os"
+	"os"
 	"strconv"
-  "time"
+	"time"
 
 	"github.com/miekg/dns"
 )
 
 var records = map[string]string{
 	"test.service.": "192.168.0.2",
-  "ipv6.service.": "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+	"ipv6.service.": "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
 }
 
 func loopForever() {
-  for {
-    time.Sleep(10 * time.Millisecond)
-  }
+	for {
+		time.Sleep(10 * time.Millisecond)
+	}
 }
 
 func parseQuery(m *dns.Msg) {
@@ -26,9 +26,9 @@ func parseQuery(m *dns.Msg) {
 		switch q.Qtype {
 		case dns.TypeA:
 			log.Printf("Query for %s\n", q.Name)
-      if q.Name == "timeout.service." {
-        go loopForever()
-      }
+			if q.Name == "timeout.service." {
+				go loopForever()
+			}
 			ip := records[q.Name]
 			if ip != "" {
 				rr, err := dns.NewRR(fmt.Sprintf("%s A %s", q.Name, ip))
@@ -63,13 +63,13 @@ func handleDnsRequest(w dns.ResponseWriter, r *dns.Msg) {
 }
 
 func main() {
-  if len(os.Args) != 2 {
-    log.Fatal("Must provide port")
-  }
-  port, err := strconv.Atoi(os.Args[1])
-  if err != nil {
-    log.Fatalf("Failed to parse port: %s\n", err.Error())
-  }
+	if len(os.Args) != 2 {
+		log.Fatal("Must provide port")
+	}
+	port, err := strconv.Atoi(os.Args[1])
+	if err != nil {
+		log.Fatalf("Failed to parse port: %s\n", err.Error())
+	}
 
 	// attach request handler func
 	dns.HandleFunc("service.", handleDnsRequest)

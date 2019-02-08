@@ -8,7 +8,7 @@ struct event_base;
 
 namespace lightstep {
 /**
- * Wrapper for libevent's event_base class.
+ * Wrapper for libevent's event_base struct.
  */
 class EventBase {
  public:
