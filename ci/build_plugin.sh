@@ -20,6 +20,7 @@ cd c-ares-${CARES_VERSION}
 ./configure --with-pic=yes \
             --enable-shared=no \
             --enable-static=yes
+make && make install
 
 ### Build gRPC
 cd "${BUILD_DIR}"

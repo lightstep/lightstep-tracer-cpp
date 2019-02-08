@@ -8,6 +8,7 @@ apt-get install --no-install-recommends --no-install-suggests -y \
                 pkg-config \
                 git \
                 ca-certificates \
+                curl \
                 automake \
                 autogen \
                 autoconf \
