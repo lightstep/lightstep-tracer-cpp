@@ -33,13 +33,13 @@ TEST_CASE("auto_recorder") {
   CHECK(tracer);
 
   // Ensure that the writer thread is waiting.
-  condition_variable->WaitTillNextEvent();
+  REQUIRE_NOTHROW(condition_variable->WaitTillNextEvent());
 
   SECTION(
       "The writer thread waits until `now() + reporting_period` to "
       "send a report") {
     auto now = condition_variable->Now();
-    condition_variable->WaitTillNextEvent();
+    REQUIRE_NOTHROW(condition_variable->WaitTillNextEvent());
     auto event = condition_variable->next_event();
     CHECK(dynamic_cast<const TestingConditionVariableWrapper::WaitEvent*>(
               event) != nullptr);
@@ -50,12 +50,12 @@ TEST_CASE("auto_recorder") {
       "If the writer thread takes longer than `reporting_period` to run, then "
       "it runs again immediately upon finishing.") {
     auto now = condition_variable->Now() + 2 * reporting_period;
-    condition_variable->WaitTillNextEvent();
+    REQUIRE_NOTHROW(condition_variable->WaitTillNextEvent());
     auto span = tracer->StartSpan("abc");
     span->Finish();
     condition_variable->set_now(now);
-    condition_variable->Step();
-    condition_variable->WaitTillNextEvent();
+    REQUIRE_NOTHROW(condition_variable->Step());
+    REQUIRE_NOTHROW(condition_variable->WaitTillNextEvent());
     auto event = condition_variable->next_event();
     CHECK(dynamic_cast<const TestingConditionVariableWrapper::WaitEvent*>(
               event) != nullptr);
@@ -67,12 +67,12 @@ TEST_CASE("auto_recorder") {
       "If the writer thread takes time between 0 and `reporting_period` to "
       "run, then it subtracts the elapse time from the next timeout") {
     auto now = condition_variable->Now() + 3 * reporting_period / 2;
-    condition_variable->WaitTillNextEvent();
+    REQUIRE_NOTHROW(condition_variable->WaitTillNextEvent());
     auto span = tracer->StartSpan("abc");
     span->Finish();
     condition_variable->set_now(now);
-    condition_variable->Step();
-    condition_variable->WaitTillNextEvent();
+    REQUIRE_NOTHROW(condition_variable->Step());
+    REQUIRE_NOTHROW(condition_variable->WaitTillNextEvent());
     auto event = condition_variable->next_event();
     CHECK(dynamic_cast<const TestingConditionVariableWrapper::WaitEvent*>(
               event) != nullptr);
@@ -89,25 +89,10 @@ TEST_CASE("auto_recorder") {
 
     auto span = tracer->StartSpan("abc");
     span->Finish();
-    condition_variable->Step();
-    condition_variable->WaitTillNextEvent();
+    REQUIRE_NOTHROW(condition_variable->Step());
+    REQUIRE_NOTHROW(condition_variable->WaitTillNextEvent());
     condition_variable->set_block_notify_all(false);
-    condition_variable->Step();
-    CHECK(!recorder->is_writer_running());
-  }
-
-  SECTION(
-      "If a collector sends back a disable command, then the tracer stops "
-      "sending reports") {
-    in_memory_transporter->set_should_disable(true);
-    condition_variable->set_block_notify_all(true);
-
-    auto span = tracer->StartSpan("abc");
-    span->Finish();
-    condition_variable->Step();
-    condition_variable->WaitTillNextEvent();
-    condition_variable->set_block_notify_all(false);
-    condition_variable->Step();
+    REQUIRE_NOTHROW(condition_variable->Step());
     CHECK(!recorder->is_writer_running());
   }
 
@@ -125,17 +110,17 @@ TEST_CASE("auto_recorder") {
               condition_variable->next_event()) != nullptr);
 
     // Wait until the first report gets sent.
-    condition_variable->Step();
-    condition_variable->Step();
+    REQUIRE_NOTHROW(condition_variable->Step());
+    REQUIRE_NOTHROW(condition_variable->Step());
     condition_variable->set_block_notify_all(false);
 
     auto span = tracer->StartSpan("xyz");
     CHECK(span);
     span->Finish();
     // Ensure that the second report gets sent.
-    condition_variable->Step();
-    condition_variable->Step();
-    condition_variable->WaitTillNextEvent();
+    REQUIRE_NOTHROW(condition_variable->Step());
+    REQUIRE_NOTHROW(condition_variable->Step());
+    REQUIRE_NOTHROW(condition_variable->WaitTillNextEvent());
 
     auto reports = in_memory_transporter->reports();
     CHECK(reports.size() == 2);
@@ -150,8 +135,8 @@ TEST_CASE("auto_recorder") {
       "successfully flushed.") {
     auto span = tracer->StartSpan("abc");
     span->Finish();
-    condition_variable->Step();
-    condition_variable->WaitTillNextEvent();
+    REQUIRE_NOTHROW(condition_variable->Step());
+    REQUIRE_NOTHROW(condition_variable->WaitTillNextEvent());
     CHECK(metrics_observer->num_flushes == 1);
   }
 
@@ -162,8 +147,8 @@ TEST_CASE("auto_recorder") {
     span1->Finish();
     auto span2 = tracer->StartSpan("abc");
     span2->Finish();
-    condition_variable->Step();
-    condition_variable->WaitTillNextEvent();
+    REQUIRE_NOTHROW(condition_variable->Step());
+    REQUIRE_NOTHROW(condition_variable->WaitTillNextEvent());
     CHECK(metrics_observer->num_spans_sent == 2);
   }
 
@@ -176,8 +161,8 @@ TEST_CASE("auto_recorder") {
       span->Finish();
     }
     condition_variable->set_block_notify_all(false);
-    condition_variable->Step();
-    condition_variable->WaitTillNextEvent();
+    REQUIRE_NOTHROW(condition_variable->Step());
+    REQUIRE_NOTHROW(condition_variable->WaitTillNextEvent());
     CHECK(metrics_observer->num_spans_sent == max_buffered_spans);
     CHECK(metrics_observer->num_spans_dropped == 1);
   }
@@ -199,8 +184,8 @@ TEST_CASE("auto_recorder") {
     CHECK(dynamic_cast<const TestingConditionVariableWrapper::NotifyAllEvent*>(
               condition_variable->next_event()) == nullptr);
     condition_variable->set_block_notify_all(false);
-    condition_variable->Step();
-    condition_variable->WaitTillNextEvent();
+    REQUIRE_NOTHROW(condition_variable->Step());
+    REQUIRE_NOTHROW(condition_variable->WaitTillNextEvent());
     condition_variable->set_block_notify_all(true);
 
     for (size_t i = 0; i < max_buffered_spans_new; ++i) {
@@ -213,7 +198,7 @@ TEST_CASE("auto_recorder") {
     CHECK(dynamic_cast<const TestingConditionVariableWrapper::NotifyAllEvent*>(
               condition_variable->next_event()) != nullptr);
     condition_variable->set_block_notify_all(false);
-    condition_variable->Step();
-    condition_variable->WaitTillNextEvent();
+    REQUIRE_NOTHROW(condition_variable->Step());
+    REQUIRE_NOTHROW(condition_variable->WaitTillNextEvent());
   }
 }
