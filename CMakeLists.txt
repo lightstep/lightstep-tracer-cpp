@@ -166,6 +166,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/common/chunk_circular_buffer.cpp
                    src/common/in_memory_stream.cpp
                    src/common/logger.cpp
+                   src/common/random.cpp
                    src/recorder/report_builder.cpp
                    src/recorder/auto_recorder.cpp
                    src/recorder/manual_recorder.cpp

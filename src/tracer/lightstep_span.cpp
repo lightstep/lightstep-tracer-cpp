@@ -1,5 +1,7 @@
 #include "tracer/lightstep_span.h"
 #include <opentracing/ext/tags.h>
+
+#include "common/random.h"
 #include "common/utility.h"
 
 using opentracing::SystemTime;

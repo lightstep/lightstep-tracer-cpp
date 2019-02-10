@@ -32,9 +32,6 @@ inline timeval toTimeval(std::chrono::duration<Rep, Period> duration) {
       std::chrono::duration_cast<std::chrono::microseconds>(duration));
 }
 
-// Generates a random uint64_t.
-uint64_t GenerateId();
-
 // Attempts to determine the name of the executable invoked.  Returns
 // "c++-program" if unsuccessful.
 std::string GetProgramName();

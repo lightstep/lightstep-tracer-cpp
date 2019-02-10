@@ -76,6 +76,6 @@ lightstep_cc_test(
         "fork_id_test.cpp",
     ],
     deps = [
-        "//src/common:utility_lib",
+        "//src/common:random_lib",
     ],
 )

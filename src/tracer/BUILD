@@ -84,6 +84,8 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:logger_lib",
+        "//src/common:utility_lib",
+        "//src/common:random_lib",
         "//src/recorder:recorder_interface",
         ":lightstep_span_context_interface",
     ],

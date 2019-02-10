@@ -79,6 +79,22 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "random_lib",
+    private_hdrs = [
+        "random.h",
+    ],
+    srcs = [
+        "random.cpp",
+    ],
+    deps = [
+        "//3rd_party/randutils:randutils_lib",
+    ],
+    linkopts = [
+        "-pthread",
+    ],
+)
+
+lightstep_cc_library(
     name = "utility_lib",
     private_hdrs = [
         "utility.h",
@@ -89,7 +105,6 @@ lightstep_cc_library(
     deps = [
         "//lightstep-tracer-common:collector_proto_cc",
         ":logger_lib",
-        "//3rd_party/randutils:randutils_lib",
     ],
     external_deps = [
         "@com_google_protobuf//:protobuf",
