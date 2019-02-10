@@ -56,19 +56,6 @@ void Socket::SetNonblocking() {
 }
 
 //------------------------------------------------------------------------------
-// SetBlocking
-//------------------------------------------------------------------------------
-void Socket::SetBlocking() {
-  int rcode = ::fcntl(file_descriptor_, F_SETFL,
-                      ::fcntl(file_descriptor_, F_GETFL, 0) & ~O_NONBLOCK);
-  if (rcode == -1) {
-    std::ostringstream oss;
-    oss << "failed to set the socket as blocking: " << std::strerror(errno);
-    throw std::runtime_error{oss.str()};
-  }
-}
-
-//------------------------------------------------------------------------------
 // SetReuseAddress
 //------------------------------------------------------------------------------
 void Socket::SetReuseAddress() {

@@ -35,11 +35,6 @@ class Socket {
   void SetNonblocking();
 
   /**
-   * makes the socket blocking.
-   */
-  void SetBlocking();
-
-  /**
    * Makes the socket's address be reusable.
    */
   void SetReuseAddress();

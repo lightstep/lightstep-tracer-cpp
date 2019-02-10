@@ -94,8 +94,8 @@ AresDnsResolver::AresDnsResolver(Logger& logger, EventBase& event_base,
       timer_{event_base,
              MakeTimerCallback<AresDnsResolver, &AresDnsResolver::OnTimeout>(),
              static_cast<void*>(this)} {
-  if (!AresLibraryHandle::Instance.initialized()) {
-    throw std::runtime_error{"ares not initialized"};
+  if (ares_library_handle_ == nullptr) {
+    throw std::runtime_error{"ares failed to initialize"};
   }
   struct ares_options options = {};
   options.sock_state_cb = [](void* context, int file_descriptor, int read,

@@ -16,7 +16,6 @@ TEST_CASE("Socket") {
   SECTION("We can change options on a socket") {
     Socket s1;
     s1.SetNonblocking();
-    s1.SetBlocking();
     s1.SetReuseAddress();
   }
 }

@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include "network/ares_dns_resolver/ares_library_handle.h"
 #include "network/dns_resolver.h"
 #include "network/event.h"
 #include "network/timer_event.h"
@@ -30,6 +31,8 @@ class AresDnsResolver final : public DnsResolver {
                DnsResolutionCallback& callback) noexcept override;
 
  private:
+  std::shared_ptr<const AresLibraryHandle> ares_library_handle_{
+      AresLibraryHandle::Instance};
   Logger& logger_;
   EventBase& event_base_;
   ares_channeldata* channel_;
