@@ -1,5 +1,6 @@
 #pragma once
 
+#include "network/event.h"
 #include "network/event_base.h"
 
 #include <sys/time.h>
@@ -12,38 +13,44 @@ namespace lightstep {
  */
 class TimerEvent {
  public:
+  TimerEvent() noexcept = default;
+
   template <class Rep, class Period>
   TimerEvent(const EventBase& event_base,
              std::chrono::duration<Rep, Period> interval,
-             EventBase::EventCallback callback, void* context)
+             Event::Callback callback, void* context)
       : TimerEvent{
             event_base,
             std::chrono::duration_cast<std::chrono::microseconds>(interval),
             callback, context} {}
 
   TimerEvent(const EventBase& event_base, std::chrono::microseconds interval,
-             EventBase::EventCallback callback, void* context);
+             Event::Callback callback, void* context);
 
-  ~TimerEvent() noexcept;
-
-  TimerEvent(TimerEvent&& other) noexcept;
-  TimerEvent(const TimerEvent&) = delete;
-
-  TimerEvent& operator=(TimerEvent&& other) noexcept;
-  TimerEvent& operator=(const TimerEvent&) = delete;
+  TimerEvent(const EventBase& event_base, Event::Callback callback,
+             void* context);
 
   /**
-   * Resets the timer to start from now.
+   * Resets the timer to start anew from now.
    */
   void Reset();
 
-  /**
-   * @return the underlying event associated with this timer.
-   */
-  const event* libevent_handle() const noexcept { return event_; }
+  void Reset(const timeval* tv);
 
  private:
-  event* event_;
-  timeval tv_;
+  Event event_;
+  timeval tv_{};
 };
+
+/**
+ * For a given method, creates a timer callback function that can be passed to
+ * libevent.
+ * @return a function pointer that can be passed to libevent.
+ */
+template <class T, void (T::*MemberFunction)()>
+Event::Callback MakeTimerCallback() {
+  return [](int /*socket*/, short /*what*/, void* context) {
+    (static_cast<T*>(context)->*MemberFunction)();
+  };
+}
 }  // namespace lightstep

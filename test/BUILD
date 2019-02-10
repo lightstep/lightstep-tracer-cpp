@@ -46,3 +46,34 @@ lightstep_cc_library(
         "//include/lightstep:metrics_observer_interface",
     ],
 )
+
+lightstep_cc_library(
+    name = "child_process_handle_lib",
+    private_hdrs = [
+        "child_process_handle.h",
+    ],
+    srcs = [
+        "child_process_handle.cpp",
+    ],
+)
+
+lightstep_cc_library(
+    name = "ports_lib",
+    private_hdrs = [
+        "ports.h",
+    ],
+)
+
+lightstep_cc_library(
+    name = "mock_dns_resolution_callback_lib",
+    private_hdrs = [
+        "mock_dns_resolution_callback.h",
+    ],
+    srcs = [
+      "mock_dns_resolution_callback.cpp",
+    ],
+    deps = [
+        "//src/network:dns_resolver_interface",
+        "//src/network:event_lib",
+    ],
+)

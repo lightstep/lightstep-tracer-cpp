@@ -3,6 +3,7 @@
 #include <chrono>
 #include <exception>
 #include <iostream>
+#include <stdexcept>
 #include <thread>
 
 namespace lightstep {
@@ -120,8 +121,7 @@ void TestingConditionVariableWrapper::WaitTillNextEvent() {
     }
     std::this_thread::yield();
     if (std::chrono::system_clock::now() - start_timestamp > Timeout) {
-      std::cerr << "WaitTilNextEvent timed out\n";
-      std::terminate();
+      throw std::runtime_error{"WaitTilNext event timed out"};
     }
   }
 }
@@ -148,8 +148,7 @@ void TestingConditionVariableWrapper::Step() {
     }
     std::this_thread::yield();
     if (std::chrono::system_clock::now() - start_timestamp > Timeout) {
-      std::cerr << "Step timed out\n";
-      std::terminate();
+      throw std::runtime_error{"Step timed out"};
     }
   }
 }

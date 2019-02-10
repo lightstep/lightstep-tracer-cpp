@@ -7,12 +7,22 @@ load(
 lightstep_package()
 
 lightstep_catch_test(
+    name = "event_test",
+    srcs = [
+        "event_test.cpp",
+    ],
+    deps = [
+        "//src/network:event_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "event_base_test",
     srcs = [
         "event_base_test.cpp",
     ],
     deps = [
-        "//src/network:event_base_lib",
+        "//src/network:event_lib",
     ],
 )
 
@@ -23,5 +33,36 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/network:timer_event_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "ip_address_test",
+    srcs = [
+        "ip_address_test.cpp",
+    ],
+    deps = [
+        "//src/network:ip_address_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "socket_test",
+    srcs = [
+        "socket_test.cpp",
+    ],
+    deps = [
+        "//src/network:socket_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "no_dns_resolver_test",
+    srcs = [
+        "no_dns_resolver_test.cpp",
+    ],
+    deps = [
+      "//test:mock_dns_resolution_callback_lib",
+      "//src/network:no_dns_resolver_lib",
     ],
 )

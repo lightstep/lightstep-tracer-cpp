@@ -7,11 +7,23 @@ load(
 lightstep_package()
 
 lightstep_cc_library(
-    name = "event_base_lib",
+    name = "ip_address_lib",
     private_hdrs = [
-        "event_base.h",
+        "ip_address.h",
     ],
     srcs = [
+        "ip_address.cpp",
+    ],
+)
+
+lightstep_cc_library(
+    name = "event_lib",
+    private_hdrs = [
+      "event.h",
+      "event_base.h",
+    ],
+    srcs = [
+        "event.cpp",
         "event_base.cpp",
     ],
     deps = [
@@ -32,9 +44,47 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:utility_lib",
-        ":event_base_lib",
+        ":event_lib",
     ],
     external_deps = [
         "@com_github_libevent_libevent//:libevent",
+    ],
+)
+
+lightstep_cc_library(
+    name = "dns_resolver_interface",
+    private_hdrs = [
+        "dns_resolver.h",
+    ],
+    deps = [
+        "//src/common:logger_lib",
+        ":event_lib",
+        ":ip_address_lib",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_cc_library(
+    name = "no_dns_resolver_lib",
+    srcs = [
+        "no_dns_resolver.cpp",
+    ],
+    deps = [
+        ":dns_resolver_interface",
+    ],
+)
+
+lightstep_cc_library(
+    name = "socket_lib",
+    private_hdrs = [
+        "socket.h",
+    ],
+    srcs = [
+        "socket.cpp",
+    ],
+    deps = [
+        ":ip_address_lib",
     ],
 )

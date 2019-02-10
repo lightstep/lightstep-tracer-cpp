@@ -73,7 +73,7 @@ void EventBase::LoopBreak() const {
 // OnTimeout
 //------------------------------------------------------------------------------
 void EventBase::OnTimeout(std::chrono::microseconds timeout,
-                          EventCallback callback, void* context) {
+                          Event::Callback callback, void* context) {
   auto tv = ToTimeval(timeout);
   auto rcode =
       event_base_once(event_base_, -1, EV_TIMEOUT, callback, context, &tv);

@@ -24,6 +24,16 @@ http_archive(
     build_file = "//bazel:libevent.BUILD",
 )
 
+http_archive(
+    name = "com_github_cares_cares",
+    urls = [
+        "https://github.com/c-ares/c-ares/releases/download/cares-1_15_0/c-ares-1.15.0.tar.gz",
+    ],
+    sha256 = "6cdb97871f2930530c97deb7cf5c8fa4be5a0b02c7cea6e7c7667672a39d6852",
+    strip_prefix = "c-ares-1.15.0",
+    build_file = "//bazel:cares.BUILD",
+)
+
 git_repository(
     name = "build_stack_rules_proto",
     remote = "https://github.com/stackb/rules_proto",
@@ -52,4 +62,29 @@ git_repository(
     name = "com_google_benchmark",
     commit = "e776aa0275e293707b6a0901e0e8d8a8a3679508",
     remote = "https://github.com/google/benchmark",
+)
+
+http_archive(
+    name = "io_bazel_rules_go",
+    urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.17.0/rules_go-0.17.0.tar.gz"],
+    sha256 = "492c3ac68ed9dcf527a07e6a1b2dcbf199c6bf8b35517951467ac32e421c06c1",
+)
+
+load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
+go_rules_dependencies()
+go_register_toolchains()
+
+http_archive(
+    name = "bazel_gazelle",
+    urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.16.0/bazel-gazelle-0.16.0.tar.gz"],
+    sha256 = "7949fc6cc17b5b191103e97481cf8889217263acf52e00b560683413af204fcb",
+)
+
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+gazelle_dependencies()
+
+go_repository(
+	name = "com_github_miekg_dns",
+	importpath = "github.com/miekg/dns",
+	tag = "v1.1.4",
 )

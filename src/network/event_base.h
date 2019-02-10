@@ -2,16 +2,16 @@
 
 #include <chrono>
 
+#include "network/event.h"
+
 struct event_base;
 
 namespace lightstep {
 /**
- * Wrapper for libevent's event_base class.
+ * Wrapper for libevent's event_base struct.
  */
 class EventBase {
  public:
-  using EventCallback = void (*)(int socket, short what, void* context);
-
   EventBase();
 
   EventBase(EventBase&& other) noexcept;
@@ -43,7 +43,7 @@ class EventBase {
    * @param callback supplies the callback to invoke.
    * @param context supplies an arbitrary argument to pass to the callback.
    */
-  void OnTimeout(std::chrono::microseconds timeout, EventCallback callback,
+  void OnTimeout(std::chrono::microseconds timeout, Event::Callback callback,
                  void* context);
 
   /**
@@ -53,7 +53,7 @@ class EventBase {
    */
   template <class Rep, class Period>
   void OnTimeout(std::chrono::duration<Rep, Period> timeout,
-                 EventCallback callback, void* context) {
+                 Event::Callback callback, void* context) {
     OnTimeout(std::chrono::duration_cast<std::chrono::microseconds>(timeout),
               callback, context);
   }

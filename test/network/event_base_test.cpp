@@ -1,7 +1,8 @@
 #include <chrono>
 
-#include "3rd_party/catch2/catch.hpp"
 #include "network/event_base.h"
+
+#include "3rd_party/catch2/catch.hpp"
 
 using namespace lightstep;
 

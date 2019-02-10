@@ -2,6 +2,7 @@
 
 #include <google/protobuf/util/message_differencer.h>
 #include <algorithm>
+#include <chrono>
 #include <exception>
 #include <iostream>
 

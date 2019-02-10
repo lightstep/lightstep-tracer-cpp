@@ -36,6 +36,7 @@ include(GNUInstallDirs)
 
 option(WITH_GRPC "Build with support for gRPC." ON)
 option(WITH_LIBEVENT "Build with support for libevent." OFF)
+option(WITH_CARES "Build with support for dns resolution using c-ares." OFF)
 option(WITH_DYNAMIC_LOAD "Build support for dynamic loading." ON)
 option(HEADERS_ONLY "Only generate version.h." OFF)
 
@@ -133,6 +134,12 @@ if (WITH_LIBEVENT)
   include_directories(SYSTEM ${LIBEVENT_INCLUDE_DIRS})
 endif()
 
+if (WITH_CARES)
+  find_package(CARES REQUIRED)
+  list(APPEND LIGHTSTEP_LINK_LIBRARIES   ${CARES_LIBRARIES})
+  include_directories(SYSTEM ${CARES_INCLUDE_DIR})
+endif()
+
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
@@ -181,9 +188,19 @@ endif()
 
 if (WITH_LIBEVENT)
   list(APPEND LIGHTSTEP_SRCS src/recorder/stream_recorder/stream_recorder.cpp
+                             src/network/event.cpp
                              src/network/event_base.cpp
                              src/network/timer_event.cpp
+                             src/network/ip_address.cpp
+                             src/network/socket.cpp
   )
+  if (WITH_CARES)
+    list(APPEND LIGHTSTEP_SRCS src/network/ares_dns_resolver/ares_dns_resolver.cpp
+                               src/network/ares_dns_resolver/ares_library_handle.cpp
+    )
+  else()
+    list(APPEND LIGHTSTEP_SRCS src/network/no_dns_resolver.cpp)
+  endif()
 else()
   list(APPEND LIGHTSTEP_SRCS src/recorder/no_stream_recorder.cpp)
 endif()
