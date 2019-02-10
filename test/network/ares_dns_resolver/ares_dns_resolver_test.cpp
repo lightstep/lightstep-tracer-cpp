@@ -23,7 +23,7 @@ TEST_CASE("AresDnsResolver") {
   options.resolution_server_port =
       static_cast<uint16_t>(PortAssignments::AresDnsResolverTest);
   options.resolution_servers = {IpAddress{"127.0.0.1"}.ipv4_address().sin_addr};
-  auto resolver = MakeDnsResolver(logger, event_base, std::move(options));
+  auto resolver = MakeDnsResolver(logger, event_base, options);
   MockDnsResolutionCallback callback{event_base};
 
   SECTION("We can resolve ipv4 addresses.") {
