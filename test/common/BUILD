@@ -70,6 +70,16 @@ lightstep_catch_test(
     ],
 )
 
+lightstep_catch_test(
+    name = "random_test",
+    srcs = [
+        "random_test.cpp",
+    ],
+    deps = [
+        "//src/common:random_lib",
+    ],
+)
+
 lightstep_cc_test(
     name = "fork_id_test",
     srcs = [

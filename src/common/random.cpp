@@ -1,5 +1,6 @@
 #include "common/random.h"
 
+#include <cassert>
 #include <random>
 
 #include "lightstep/randutils.h"
@@ -44,4 +45,15 @@ static std::mt19937_64& GetRandomNumberGenerator() {
 // GenerateId
 //--------------------------------------------------------------------------------------------------
 uint64_t GenerateId() { return GetRandomNumberGenerator()(); }
+
+//--------------------------------------------------------------------------------------------------
+// GenerateRandomDuration
+//--------------------------------------------------------------------------------------------------
+std::chrono::nanoseconds GenerateRandomDuration(std::chrono::nanoseconds a,
+                                                std::chrono::nanoseconds b) {
+  assert(a <= b);
+  std::uniform_int_distribution<std::chrono::nanoseconds::rep> distribution{
+      a.count(), b.count()};
+  return std::chrono::nanoseconds{distribution(GetRandomNumberGenerator())};
+}
 }  // namespace lightstep
