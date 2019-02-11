@@ -8,8 +8,10 @@ TEST_CASE("SeparateEndpoints") {
   std::vector<std::pair<int, uint16_t>> indexed_endpoints;
 
   SECTION("Endpoints with the same host are separated out.") {
-    std::tie(hosts, indexed_endpoints) =
-        SeparateEndpoints({{"abc", 123}, {"xyz", 456}, {"abc", 789}});
+    std::vector<std::pair<std::string, uint16_t>> endpoints = {
+        {"abc", 123}, {"xyz", 456}, {"abc", 789}};
+
+    std::tie(hosts, indexed_endpoints) = SeparateEndpoints(endpoints);
     REQUIRE(hosts.size() == 2);
     REQUIRE(hosts[0] == std::string{"abc"});
     REQUIRE(hosts[1] == std::string{"xyz"});
