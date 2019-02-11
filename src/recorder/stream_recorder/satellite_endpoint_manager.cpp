@@ -1,3 +1,63 @@
 #include "recorder/stream_recorder/satellite_endpoint_manager.h"
 
-namespace lightstep {}  // namespace lightstep
+#include <stdexcept>
+
+#include "recorder/stream_recorder/utility.h"
+
+namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// constructor
+//--------------------------------------------------------------------------------------------------
+SatelliteEndpointManager::SatelliteEndpointManager(
+    Logger& logger, EventBase& event_base,
+    const LightStepTracerOptions& tracer_options,
+    const StreamRecorderOptions& recorder_options)
+    : dns_resolver_{MakeDnsResolver(logger, event_base,
+                                    recorder_options.dns_resolver_options)} {
+  if (tracer_options.satellite_endpoints.empty()) {
+    throw std::runtime_error{"no satellite endpoints provided"};
+  }
+  std::vector<const char*> hosts;
+  std::tie(hosts, endpoints_) =
+      SeparateEndpoints(tracer_options.satellite_endpoints);
+
+  host_managers_.reserve(hosts.size());
+  for (auto& name : hosts) {
+    host_managers_.emplace_back(SatelliteHostManager{
+        SatelliteDnsResolutionManager{logger, event_base, *dns_resolver_,
+                                      recorder_options, AF_INET, name},
+        SatelliteDnsResolutionManager{logger, event_base, *dns_resolver_,
+                                      recorder_options, AF_INET6, name},
+        0});
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+// RequestEndpoint
+//--------------------------------------------------------------------------------------------------
+IpAddress SatelliteEndpointManager::RequestEndpoint() noexcept {
+  auto endpoint_index_start = endpoint_index_;
+  while (1) {
+    int host_index;
+    uint16_t port;
+    std::tie(host_index, port) =
+        endpoints_[endpoint_index_++ % endpoints_.size()];
+    auto& host_manager = host_managers_[host_index];
+
+    // RequestEndpoint shouldn't be called until at least one host name is
+    // resolved.
+    assert(endpoint_index_ != endpoint_index_start + endpoints_.size());
+
+    auto& ip_addresses = !host_manager.ipv4_resolutions.ip_addresses().empty()
+                             ? host_manager.ipv4_resolutions.ip_addresses()
+                             : host_manager.ipv6_resolutions.ip_addresses();
+    if (ip_addresses.empty()) {
+      continue;
+    }
+    auto result =
+        ip_addresses[host_manager.address_index++ % ip_addresses.size()];
+    result.set_port(port);
+    return result;
+  }
+}
+}  // namespace lightstep

@@ -11,6 +11,9 @@ lightstep_cc_library(
     private_hdrs = [
         "stream_recorder_options.h",
     ],
+    deps = [
+        "//src/network:dns_resolver_interface",
+    ],
 )
 
 lightstep_cc_library(
@@ -41,9 +44,35 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:logger_lib",
+        "//src/common:random_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",
         "//src/network:dns_resolver_interface",
         ":stream_recorder_options_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "satellite_endpoint_manager_lib",
+    private_hdrs = [
+        "satellite_endpoint_manager.h",
+    ],
+    srcs = [
+        "satellite_endpoint_manager.cpp",
+    ],
+    deps = [
+        ":satellite_dns_resolution_manager_lib",
+        ":utility_lib",
+        "//src/network:dns_resolver_interface",
+    ],
+)
+
+lightstep_cc_library(
+    name = "utility_lib",
+    private_hdrs = [
+        "utility.h",
+    ],
+    srcs = [
+        "utility.cpp",
     ],
 )

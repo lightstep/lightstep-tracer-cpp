@@ -16,7 +16,7 @@ class SatelliteDnsResolutionManager final : public DnsResolutionCallback {
   SatelliteDnsResolutionManager(Logger& logger, EventBase& event_base,
                                 DnsResolver& dns_resolver,
                                 const StreamRecorderOptions& recorder_options,
-                                int family, const std::string& name);
+                                int family, const char* name);
 
   const std::vector<IpAddress>& ip_addresses() const noexcept {
     return ip_addresses_;
@@ -33,14 +33,14 @@ class SatelliteDnsResolutionManager final : public DnsResolutionCallback {
   DnsResolver& dns_resolver_;
   const StreamRecorderOptions& recorder_options_;
   int family_;
-  std::string name_;
+  const char* name_;
 
   std::vector<IpAddress> ip_addresses_;
 
-  void OnReset() noexcept;
+  void OnRefresh() noexcept;
 
   void OnFailure() noexcept;
 
-  void ScheduleReset() noexcept;
+  void ScheduleRefresh() noexcept;
 };
 }  // namespace lightstep
