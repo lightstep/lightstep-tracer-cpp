@@ -38,15 +38,15 @@ SatelliteEndpointManager::SatelliteEndpointManager(
 IpAddress SatelliteEndpointManager::RequestEndpoint() noexcept {
   auto endpoint_index_start = endpoint_index_;
   while (1) {
+    // RequestEndpoint shouldn't be called until at least one host name is
+    // resolved.
+    assert(endpoint_index_ != endpoint_index_start + endpoints_.size());
+
     int host_index;
     uint16_t port;
     std::tie(host_index, port) =
         endpoints_[endpoint_index_++ % endpoints_.size()];
     auto& host_manager = host_managers_[host_index];
-
-    // RequestEndpoint shouldn't be called until at least one host name is
-    // resolved.
-    assert(endpoint_index_ != endpoint_index_start + endpoints_.size());
 
     auto& ip_addresses = !host_manager.ipv4_resolutions.ip_addresses().empty()
                              ? host_manager.ipv4_resolutions.ip_addresses()
