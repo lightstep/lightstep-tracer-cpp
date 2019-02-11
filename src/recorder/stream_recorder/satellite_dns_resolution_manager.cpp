@@ -36,7 +36,7 @@ void SatelliteDnsResolutionManager::OnDnsResolution(
     return true;
   });
   if (ip_addresses.empty()) {
-    logger_.Debug("Dns resolution returned to addresses for ", name_);
+    logger_.Debug("Dns resolution returned no addresses for ", name_);
     return OnFailure();
   }
   ip_addresses_ = std::move(ip_addresses);
