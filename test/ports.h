@@ -3,5 +3,8 @@
 #include <cstdint>
 
 namespace lightstep {
-enum class PortAssignments : uint16_t { AresDnsResolverTest = 9000 };
+enum class PortAssignments : uint16_t {
+  AresDnsResolverTest = 9000,
+  SatelliteDnsResolutionManagerTest
+};
 }  // namespace lightstep

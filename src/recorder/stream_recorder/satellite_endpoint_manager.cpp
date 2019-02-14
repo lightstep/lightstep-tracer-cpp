@@ -11,9 +11,11 @@ namespace lightstep {
 SatelliteEndpointManager::SatelliteEndpointManager(
     Logger& logger, EventBase& event_base,
     const LightStepTracerOptions& tracer_options,
-    const StreamRecorderOptions& recorder_options)
+    const StreamRecorderOptions& recorder_options,
+    std::function<void()> on_ready_callback)
     : dns_resolver_{MakeDnsResolver(logger, event_base,
-                                    recorder_options.dns_resolver_options)} {
+                                    recorder_options.dns_resolver_options)},
+      on_ready_callback_{std::move(on_ready_callback)} {
   if (tracer_options.satellite_endpoints.empty()) {
     throw std::runtime_error{"no satellite endpoints provided"};
   }
@@ -22,12 +24,15 @@ SatelliteEndpointManager::SatelliteEndpointManager(
       SeparateEndpoints(tracer_options.satellite_endpoints);
 
   host_managers_.reserve(hosts.size());
+  auto on_resolution_ready = [this] { this->OnResolutionReady(); };
   for (auto& name : hosts) {
     host_managers_.emplace_back(SatelliteHostManager{
         SatelliteDnsResolutionManager{logger, event_base, *dns_resolver_,
-                                      recorder_options, AF_INET, name},
+                                      recorder_options, AF_INET, name,
+                                      on_resolution_ready},
         SatelliteDnsResolutionManager{logger, event_base, *dns_resolver_,
-                                      recorder_options, AF_INET6, name},
+                                      recorder_options, AF_INET6, name,
+                                      on_resolution_ready},
         0});
   }
 }
@@ -58,6 +63,16 @@ IpAddress SatelliteEndpointManager::RequestEndpoint() noexcept {
         ip_addresses[host_manager.address_index++ % ip_addresses.size()];
     result.set_port(port);
     return result;
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+// OnResolutionReady
+//--------------------------------------------------------------------------------------------------
+void SatelliteEndpointManager::OnResolutionReady() noexcept {
+  ++num_resolutions_ready_;
+  if (num_resolutions_ready_ == 1) {
+    on_ready_callback_();
   }
 }
 }  // namespace lightstep

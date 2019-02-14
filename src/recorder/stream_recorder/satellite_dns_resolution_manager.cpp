@@ -9,13 +9,15 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 SatelliteDnsResolutionManager::SatelliteDnsResolutionManager(
     Logger& logger, EventBase& event_base, DnsResolver& dns_resolver,
-    const StreamRecorderOptions& recorder_options, int family, const char* name)
+    const StreamRecorderOptions& recorder_options, int family, const char* name,
+    std::function<void()> on_ready_callback)
     : logger_{logger},
       event_base_{event_base},
       dns_resolver_{dns_resolver},
       recorder_options_{recorder_options},
       family_{family},
-      name_{name} {
+      name_{name},
+      on_ready_callback_{std::move(on_ready_callback)} {
   dns_resolver_.Resolve(name_, family_, *this);
 }
 
@@ -39,7 +41,11 @@ void SatelliteDnsResolutionManager::OnDnsResolution(
     logger_.Debug("Dns resolution returned no addresses for ", name_);
     return OnFailure();
   }
+  bool first_resolution = ip_addresses_.empty();
   ip_addresses_ = std::move(ip_addresses);
+  if (first_resolution) {
+    on_ready_callback_();
+  }
   ScheduleRefresh();
 } catch (const std::exception& e) {
   logger_.Error("OnDnsResolution failed: ", e.what());

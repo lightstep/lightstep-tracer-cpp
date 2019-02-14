@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -16,7 +17,16 @@ class SatelliteDnsResolutionManager final : public DnsResolutionCallback {
   SatelliteDnsResolutionManager(Logger& logger, EventBase& event_base,
                                 DnsResolver& dns_resolver,
                                 const StreamRecorderOptions& recorder_options,
-                                int family, const char* name);
+                                int family, const char* name,
+                                std::function<void()> on_ready_callback);
+
+  SatelliteDnsResolutionManager(const SatelliteDnsResolutionManager&) = delete;
+  SatelliteDnsResolutionManager(SatelliteDnsResolutionManager&&) = delete;
+
+  SatelliteDnsResolutionManager& operator=(
+      const SatelliteDnsResolutionManager&) = delete;
+  SatelliteDnsResolutionManager& operator=(SatelliteDnsResolutionManager&&) =
+      delete;
 
   const std::vector<IpAddress>& ip_addresses() const noexcept {
     return ip_addresses_;
@@ -34,6 +44,7 @@ class SatelliteDnsResolutionManager final : public DnsResolutionCallback {
   const StreamRecorderOptions& recorder_options_;
   int family_;
   const char* name_;
+  std::function<void()> on_ready_callback_;
 
   std::vector<IpAddress> ip_addresses_;
 
