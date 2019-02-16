@@ -32,6 +32,14 @@ func handleIpv4Query(m *dns.Msg, name string) {
     } else {
       addIpv4Address(m, name, "192.168.0.3")
     }
+  case "flaky.service.":
+    count := atomic.LoadUint64(&counter)
+    atomic.AddUint64(&counter, 1)
+    if count % 2 == 0 {
+      return
+    } else {
+      addIpv4Address(m, name, "192.168.0.1")
+    }
   }
 }
 
@@ -52,13 +60,13 @@ func parseQuery(m *dns.Msg) {
 }
 
 func handleDnsRequest(w dns.ResponseWriter, r *dns.Msg) {
-	m := new(dns.Msg)
+  m := new(dns.Msg)
 	m.SetReply(r)
 	m.Compress = false
 
 	switch r.Opcode {
 	case dns.OpcodeQuery:
-		parseQuery(m)
+    parseQuery(m)
 	}
 
 	w.WriteMsg(m)

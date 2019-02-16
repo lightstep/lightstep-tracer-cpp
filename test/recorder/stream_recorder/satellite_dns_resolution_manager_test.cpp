@@ -14,6 +14,8 @@ const auto DnsFailureRetryPeriod =
     std::chrono::duration_cast<std::chrono::microseconds>(
         std::chrono::milliseconds{100});
 
+const auto ResolutionTimeout = std::chrono::milliseconds{100};
+
 TEST_CASE("SatelliteDnsResolutionManager") {
   MockDnsServerHandle dns_server{static_cast<uint16_t>(
       PortAssignments::SatelliteDnsResolutionManagerTest)};
@@ -27,6 +29,7 @@ TEST_CASE("SatelliteDnsResolutionManager") {
       static_cast<uint16_t>(PortAssignments::SatelliteDnsResolutionManagerTest);
   resolver_options.resolution_servers = {
       IpAddress{"127.0.0.1"}.ipv4_address().sin_addr};
+  resolver_options.timeout = ResolutionTimeout;
   Logger logger;
   EventBase event_base;
 
@@ -59,5 +62,14 @@ TEST_CASE("SatelliteDnsResolutionManager") {
     event_base.Dispatch();
     REQUIRE(resolution_manager.ip_addresses() ==
             std::vector<IpAddress>{IpAddress{"192.168.0.3"}});
+  }
+
+  SECTION("Dns resolutions are retried when if there's an error.") {
+    SatelliteDnsResolutionManager resolution_manager{
+        logger,  event_base,      *resolver,        recorder_options,
+        AF_INET, "flaky.service", on_ready_callback};
+    event_base.Dispatch();
+    REQUIRE(resolution_manager.ip_addresses() ==
+            std::vector<IpAddress>{IpAddress{"192.168.0.1"}});
   }
 }
