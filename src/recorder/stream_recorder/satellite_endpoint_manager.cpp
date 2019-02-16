@@ -26,14 +26,14 @@ SatelliteEndpointManager::SatelliteEndpointManager(
   host_managers_.reserve(hosts.size());
   auto on_resolution_ready = [this] { this->OnResolutionReady(); };
   for (auto& name : hosts) {
-    host_managers_.emplace_back(SatelliteHostManager{
-        SatelliteDnsResolutionManager{logger, event_base, *dns_resolver_,
-                                      recorder_options, AF_INET, name,
-                                      on_resolution_ready},
-        SatelliteDnsResolutionManager{logger, event_base, *dns_resolver_,
-                                      recorder_options, AF_INET6, name,
-                                      on_resolution_ready},
-        0});
+    SatelliteHostManager host_manager;
+    host_manager.ipv4_resolutions.reset(new SatelliteDnsResolutionManager{
+        logger, event_base, *dns_resolver_, recorder_options, AF_INET, name,
+        on_resolution_ready});
+    host_manager.ipv6_resolutions.reset(new SatelliteDnsResolutionManager{
+        logger, event_base, *dns_resolver_, recorder_options, AF_INET6, name,
+        on_resolution_ready});
+    host_managers_.emplace_back(std::move(host_manager));
   }
 }
 
@@ -53,9 +53,9 @@ IpAddress SatelliteEndpointManager::RequestEndpoint() noexcept {
         endpoints_[endpoint_index_++ % endpoints_.size()];
     auto& host_manager = host_managers_[host_index];
 
-    auto& ip_addresses = !host_manager.ipv4_resolutions.ip_addresses().empty()
-                             ? host_manager.ipv4_resolutions.ip_addresses()
-                             : host_manager.ipv6_resolutions.ip_addresses();
+    auto& ip_addresses = !host_manager.ipv4_resolutions->ip_addresses().empty()
+                             ? host_manager.ipv4_resolutions->ip_addresses()
+                             : host_manager.ipv6_resolutions->ip_addresses();
     if (ip_addresses.empty()) {
       continue;
     }

@@ -10,9 +10,9 @@
 namespace lightstep {
 class SatelliteEndpointManager {
   struct SatelliteHostManager {
-    SatelliteDnsResolutionManager ipv4_resolutions;
-    SatelliteDnsResolutionManager ipv6_resolutions;
-    uint32_t address_index;
+    std::unique_ptr<SatelliteDnsResolutionManager> ipv4_resolutions;
+    std::unique_ptr<SatelliteDnsResolutionManager> ipv6_resolutions;
+    uint32_t address_index{0};
   };
   struct SatelliteEndpoint {
     int host_index;

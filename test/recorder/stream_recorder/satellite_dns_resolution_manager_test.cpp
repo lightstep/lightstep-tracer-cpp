@@ -6,14 +6,26 @@
 #include "test/ports.h"
 using namespace lightstep;
 
+const auto DnsRefreshPeriod =
+    std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::milliseconds{100});
+
+const auto DnsFailureRetryPeriod =
+    std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::milliseconds{100});
+
 TEST_CASE("SatelliteDnsResolutionManager") {
   MockDnsServerHandle dns_server{static_cast<uint16_t>(
       PortAssignments::SatelliteDnsResolutionManagerTest)};
 
   StreamRecorderOptions recorder_options;
-  recorder_options.dns_resolver_options.resolution_server_port =
+  recorder_options.min_dns_resolution_refresh_period = DnsRefreshPeriod;
+  recorder_options.max_dns_resolution_refresh_period = DnsRefreshPeriod;
+  recorder_options.dns_failure_retry_period = DnsFailureRetryPeriod;
+  auto& resolver_options = recorder_options.dns_resolver_options;
+  resolver_options.resolution_server_port =
       static_cast<uint16_t>(PortAssignments::SatelliteDnsResolutionManagerTest);
-  recorder_options.dns_resolver_options.resolution_servers = {
+  resolver_options.resolution_servers = {
       IpAddress{"127.0.0.1"}.ipv4_address().sin_addr};
   Logger logger;
   EventBase event_base;
@@ -30,5 +42,22 @@ TEST_CASE("SatelliteDnsResolutionManager") {
     event_base.Dispatch();
     REQUIRE(resolution_manager.ip_addresses() ==
             std::vector<IpAddress>{IpAddress{"192.168.0.2"}});
+  }
+
+  SECTION("Dns resolutions are periodically refreshed.") {
+    SatelliteDnsResolutionManager resolution_manager{
+        logger,  event_base,     *resolver,        recorder_options,
+        AF_INET, "flip.service", on_ready_callback};
+    event_base.Dispatch();
+    REQUIRE(resolution_manager.ip_addresses() ==
+            std::vector<IpAddress>{IpAddress{"192.168.0.2"}});
+    event_base.OnTimeout(1.5 * DnsRefreshPeriod,
+                         [](int /*socket*/, short /*what*/, void* context) {
+                           static_cast<EventBase*>(context)->LoopBreak();
+                         },
+                         static_cast<void*>(&event_base));
+    event_base.Dispatch();
+    REQUIRE(resolution_manager.ip_addresses() ==
+            std::vector<IpAddress>{IpAddress{"192.168.0.3"}});
   }
 }

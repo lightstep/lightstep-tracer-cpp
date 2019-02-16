@@ -5,20 +5,34 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"time"
+  "sync/atomic"
 
 	"github.com/miekg/dns"
 )
 
-var records = map[string]string{
-	"test.service.": "192.168.0.2",
-	"ipv6.service.": "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+var counter = uint64(0)
+
+func addIpv4Address(m *dns.Msg, name string, ip string) {
+  rr, err := dns.NewRR(fmt.Sprintf("%s A %s", name, ip))
+  if err != nil {
+		log.Fatalf("addIpv4Address failed: %s\n ", err.Error())
+  }
+  m.Answer = append(m.Answer, rr)
 }
 
-func loopForever() {
-	for {
-		time.Sleep(10 * time.Millisecond)
-	}
+func handleIpv4Query(m *dns.Msg, name string) {
+  switch name {
+  case "test.service.":
+    addIpv4Address(m, name, "192.168.0.2")
+  case "flip.service.":
+    count := atomic.LoadUint64(&counter)
+    atomic.AddUint64(&counter, 1)
+    if count % 2 == 0 {
+      addIpv4Address(m, name, "192.168.0.2")
+    } else {
+      addIpv4Address(m, name, "192.168.0.3")
+    }
+  }
 }
 
 func parseQuery(m *dns.Msg) {
@@ -26,25 +40,13 @@ func parseQuery(m *dns.Msg) {
 		switch q.Qtype {
 		case dns.TypeA:
 			log.Printf("Query for %s\n", q.Name)
-			if q.Name == "timeout.service." {
-				go loopForever()
-			}
-			ip := records[q.Name]
-			if ip != "" {
-				rr, err := dns.NewRR(fmt.Sprintf("%s A %s", q.Name, ip))
-				if err == nil {
-					m.Answer = append(m.Answer, rr)
-				}
-			}
+      handleIpv4Query(m, q.Name)
 		case dns.TypeAAAA:
 			log.Printf("Query for %s\n", q.Name)
-			ip := records[q.Name]
-			if ip != "" {
-				rr, err := dns.NewRR(fmt.Sprintf("%s AAAA %s", q.Name, ip))
-				if err == nil {
-					m.Answer = append(m.Answer, rr)
-				}
-			}
+      rr, err := dns.NewRR(fmt.Sprintf("%s AAAA %s", q.Name, "2001:0db8:85a3:0000:0000:8a2e:0370:7334"))
+      if err == nil {
+        m.Answer = append(m.Answer, rr)
+      }
 		}
 	}
 }
