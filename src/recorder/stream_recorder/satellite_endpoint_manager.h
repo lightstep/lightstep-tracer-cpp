@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <functional>
 
+#include "common/noncopyable.h"
 #include "lightstep/tracer.h"
 #include "network/dns_resolver.h"
 #include "recorder/stream_recorder/satellite_dns_resolution_manager.h"
@@ -11,7 +12,7 @@ namespace lightstep {
 /**
  * Manages the resolution and assignment of satellite endpoints.
  */
-class SatelliteEndpointManager {
+class SatelliteEndpointManager : private Noncopyable {
   struct SatelliteHostManager {
     std::unique_ptr<SatelliteDnsResolutionManager> ipv4_resolutions;
     std::unique_ptr<SatelliteDnsResolutionManager> ipv6_resolutions;
@@ -23,14 +24,6 @@ class SatelliteEndpointManager {
                            const LightStepTracerOptions& tracer_options,
                            const StreamRecorderOptions& recorder_options,
                            std::function<void()> on_ready_callback);
-
-  SatelliteEndpointManager(const SatelliteEndpointManager&) = delete;
-  SatelliteEndpointManager(SatelliteEndpointManager&&) = delete;
-
-  ~SatelliteEndpointManager() noexcept = default;
-
-  SatelliteEndpointManager& operator=(const SatelliteEndpointManager&) = delete;
-  SatelliteEndpointManager& operator=(SatelliteEndpointManager&&) = delete;
 
   /**
    * Assigns satellite endpoints using round robin.

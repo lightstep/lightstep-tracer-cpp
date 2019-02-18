@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include "common/noncopyable.h"
 #include "network/ares_dns_resolver/ares_library_handle.h"
 #include "network/dns_resolver.h"
 #include "network/event.h"
@@ -13,18 +14,12 @@ namespace lightstep {
 /**
  * A DnsResolver using the c-ares library.
  */
-class AresDnsResolver final : public DnsResolver {
+class AresDnsResolver final : public DnsResolver, private Noncopyable {
  public:
   AresDnsResolver(Logger& logger, EventBase& event_base,
                   const DnsResolverOptions& resolver_options);
 
-  AresDnsResolver(const AresDnsResolver&) = delete;
-  AresDnsResolver(AresDnsResolver&&) = delete;
-
   ~AresDnsResolver() noexcept override;
-
-  AresDnsResolver& operator=(const AresDnsResolver&) = delete;
-  AresDnsResolver& operator=(AresDnsResolver&&) = delete;
 
   // DnsResolver
   void Resolve(const char* name, int family,

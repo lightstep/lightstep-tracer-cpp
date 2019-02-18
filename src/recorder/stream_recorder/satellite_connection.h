@@ -1,19 +1,13 @@
 #pragma once
 
+#include "common/noncopyable.h"
+
 namespace lightstep {
 class SatelliteConnectionManager;
 
-class SatelliteConnection {
+class SatelliteConnection : private Noncopyable {
  public:
   SatelliteConnection(SatelliteConnectionManager& connection_manager) noexcept;
-
-  SatelliteConnection(const SatelliteConnection&) = delete;
-  SatelliteConnection(SatelliteConnection&&) = delete;
-
-  ~SatelliteConnection() noexcept = default;
-
-  SatelliteConnection& operator=(const SatelliteConnection&) = delete;
-  SatelliteConnection& operator=(SatelliteConnection&&) = delete;
 
  private:
   SatelliteConnectionManager& connection_manager_;

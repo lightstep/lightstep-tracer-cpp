@@ -15,6 +15,7 @@ lightstep_cc_library(
         "ares_library_handle.cpp",
     ],
     deps = [
+        "//src/common:noncopyable_lib",
         "//src/network:dns_resolver_interface",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",

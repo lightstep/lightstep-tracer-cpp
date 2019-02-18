@@ -5,6 +5,7 @@
 
 #include "common/chunk_circular_buffer.h"
 #include "common/logger.h"
+#include "common/noncopyable.h"
 #include "lightstep/tracer.h"
 #include "network/event_base.h"
 #include "network/timer_event.h"
@@ -20,12 +21,6 @@ class StreamRecorder final : public Recorder {
   StreamRecorder(
       Logger& logger, LightStepTracerOptions&& tracer_options,
       StreamRecorderOptions&& recorder_options = StreamRecorderOptions{});
-
-  StreamRecorder(StreamRecorder&&) = delete;
-  StreamRecorder(const StreamRecorder&) = delete;
-
-  StreamRecorder& operator=(StreamRecorder&&) = delete;
-  StreamRecorder& operator=(const StreamRecorder&) = delete;
 
   ~StreamRecorder() noexcept override;
 
