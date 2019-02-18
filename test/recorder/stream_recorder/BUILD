@@ -29,6 +29,16 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "satellite_connection_test",
+    srcs = [
+        "satellite_connection_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:satellite_connection_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "satellite_endpoint_manager_test",
     srcs = [
         "satellite_endpoint_manager_test.cpp",
