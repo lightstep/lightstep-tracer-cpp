@@ -22,6 +22,8 @@ class IpAddress {
 
   explicit IpAddress(const char* s);
 
+  IpAddress(const char* s, uint16_t port);
+
   /**
    * @return the system sockaddr object associated with this ip address.
    */

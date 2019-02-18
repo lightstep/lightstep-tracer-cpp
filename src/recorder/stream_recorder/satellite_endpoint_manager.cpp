@@ -13,9 +13,9 @@ SatelliteEndpointManager::SatelliteEndpointManager(
     const LightStepTracerOptions& tracer_options,
     const StreamRecorderOptions& recorder_options,
     std::function<void()> on_ready_callback)
-    : dns_resolver_{MakeDnsResolver(logger, event_base,
-                                    recorder_options.dns_resolver_options)},
-      on_ready_callback_{std::move(on_ready_callback)} {
+    : on_ready_callback_{std::move(on_ready_callback)},
+      dns_resolver_{MakeDnsResolver(logger, event_base,
+                                    recorder_options.dns_resolver_options)} {
   if (tracer_options.satellite_endpoints.empty()) {
     throw std::runtime_error{"no satellite endpoints provided"};
   }
