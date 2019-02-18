@@ -51,6 +51,7 @@ lightstep_cc_library(
     deps = [
         "//lightstep-tracer-common:collector_proto_cc",
         "//include/lightstep:tracer_interface",
+        "//src/common:random_lib",
         "//src/common:utility_lib",
     ],
 )
@@ -65,6 +66,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:logger_lib",
+        "//src/common:utility_lib",
         ":recorder_interface",
         ":report_builder_lib",
         ":transporter_lib",
@@ -81,6 +83,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:logger_lib",
+        "//src/common:utility_lib",
         "//src/common:condition_variable_wrapper_lib",
         ":recorder_interface",
         ":report_builder_lib",

@@ -54,9 +54,9 @@ class IpOnlyDnsResolver final : public DnsResolver {
 //--------------------------------------------------------------------------------------------------
 // MakeDnsResolver
 //--------------------------------------------------------------------------------------------------
-std::unique_ptr<DnsResolver> MakeDnsResolver(Logger& logger,
-                                             EventBase& /*event_base*/,
-                                             DnsResolverOptions&& /*options*/) {
+std::unique_ptr<DnsResolver> MakeDnsResolver(
+    Logger& logger, EventBase& /*event_base*/,
+    const DnsResolverOptions& /*options*/) {
   return std::unique_ptr<DnsResolver>{new IpOnlyDnsResolver{logger}};
 }
 }  // namespace lightstep

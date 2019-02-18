@@ -1,9 +1,33 @@
 #include "tracer/lightstep_tracer_factory.h"
+
+#include <limits>
+
 #include <google/protobuf/util/json_util.h>
 #include <lightstep/tracer.h>
 #include "lightstep-tracer-configuration/tracer_configuration.pb.h"
 
 namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// GetSatelliteEndpoints
+//--------------------------------------------------------------------------------------------------
+static std::vector<std::pair<std::string, uint16_t>> GetSatelliteEndpoints(
+    const tracer_configuration::TracerConfiguration& tracer_configuration) {
+  std::vector<std::pair<std::string, uint16_t>> result;
+  const auto& satellite_endpoints = tracer_configuration.satellite_endpoints();
+  result.reserve(satellite_endpoints.size());
+  for (auto& endpoint : satellite_endpoints) {
+    auto port = endpoint.port();
+    if (port == 0) {
+      throw std::runtime_error{"endpoint port outside of range"};
+    }
+    if (port > std::numeric_limits<uint16_t>::max()) {
+      throw std::runtime_error{"endpoint port outside of range"};
+    }
+    result.emplace_back(endpoint.host(), static_cast<uint16_t>(port));
+  }
+  return result;
+}
+
 //--------------------------------------------------------------------------------------------------
 // MakeTracer
 //--------------------------------------------------------------------------------------------------
@@ -47,6 +71,8 @@ LightStepTracerFactory::MakeTracer(const char* configuration,
   }
 
   options.use_stream_recorder = tracer_configuration.use_stream_recorder();
+
+  options.satellite_endpoints = GetSatelliteEndpoints(tracer_configuration);
 
   auto result = std::shared_ptr<opentracing::Tracer>{
       MakeLightStepTracer(std::move(options))};

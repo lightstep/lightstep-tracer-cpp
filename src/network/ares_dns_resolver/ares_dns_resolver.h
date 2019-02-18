@@ -16,7 +16,7 @@ namespace lightstep {
 class AresDnsResolver final : public DnsResolver {
  public:
   AresDnsResolver(Logger& logger, EventBase& event_base,
-                  DnsResolverOptions&& resolver_options);
+                  const DnsResolverOptions& resolver_options);
 
   AresDnsResolver(const AresDnsResolver&) = delete;
   AresDnsResolver(AresDnsResolver&&) = delete;

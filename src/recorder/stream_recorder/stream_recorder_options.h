@@ -3,6 +3,8 @@
 #include <chrono>
 #include <cstddef>
 
+#include "network/dns_resolver.h"
+
 namespace lightstep {
 /**
  * Options to tweak the behavior of StreamRecorder.
@@ -30,5 +32,23 @@ struct StreamRecorderOptions {
   // If the span buffer fills past this fraction of its max size, then we do
   // flush the span buffer early.
   double early_flush_threshold = 0.5;
+
+  // Options to use when resolving satellite host names.
+  DnsResolverOptions dns_resolver_options;
+
+  // Dns resolutions will be cached and refreshed at a random point within the
+  // specified window from their last refresh.
+  std::chrono::microseconds min_dns_resolution_refresh_period =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          std::chrono::minutes{5});
+  std::chrono::microseconds max_dns_resolution_refresh_period =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          std::chrono::minutes{6});
+
+  // The amount of time to wait until trying dns resolution again after a
+  // failure.
+  std::chrono::microseconds dns_failure_retry_period =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          std::chrono::seconds{5});
 };
 }  // namespace lightstep

@@ -104,5 +104,5 @@ class DnsResolver {
  */
 std::unique_ptr<DnsResolver> MakeDnsResolver(Logger& logger,
                                              EventBase& event_base,
-                                             DnsResolverOptions&& options);
+                                             const DnsResolverOptions& options);
 }  // namespace lightstep

@@ -61,6 +61,10 @@ IpAddress::IpAddress(const char* s) {
   throw std::runtime_error{oss.str()};
 }
 
+IpAddress::IpAddress(const char* s, uint16_t port) : IpAddress{s} {
+  set_port(port);
+}
+
 //--------------------------------------------------------------------------------------------------
 // set_port
 //--------------------------------------------------------------------------------------------------

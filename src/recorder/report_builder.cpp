@@ -1,4 +1,6 @@
 #include "recorder/report_builder.h"
+
+#include "common/random.h"
 #include "common/utility.h"
 
 namespace lightstep {

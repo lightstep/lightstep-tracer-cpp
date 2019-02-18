@@ -88,7 +88,7 @@ static void SetAresOptions(const DnsResolverOptions& resolver_options,
 // constructor
 //--------------------------------------------------------------------------------------------------
 AresDnsResolver::AresDnsResolver(Logger& logger, EventBase& event_base,
-                                 DnsResolverOptions&& resolver_options)
+                                 const DnsResolverOptions& resolver_options)
     : logger_{logger},
       event_base_{event_base},
       timer_{event_base,
@@ -184,10 +184,9 @@ void AresDnsResolver::UpdateTimer() {
 //--------------------------------------------------------------------------------------------------
 // MakeDnsResolver
 //--------------------------------------------------------------------------------------------------
-std::unique_ptr<DnsResolver> MakeDnsResolver(Logger& logger,
-                                             EventBase& event_base,
-                                             DnsResolverOptions&& options) {
+std::unique_ptr<DnsResolver> MakeDnsResolver(
+    Logger& logger, EventBase& event_base, const DnsResolverOptions& options) {
   return std::unique_ptr<DnsResolver>{
-      new AresDnsResolver{logger, event_base, std::move(options)}};
+      new AresDnsResolver{logger, event_base, options}};
 }
 }  // namespace lightstep

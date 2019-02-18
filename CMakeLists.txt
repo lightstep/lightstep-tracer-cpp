@@ -166,6 +166,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/common/chunk_circular_buffer.cpp
                    src/common/in_memory_stream.cpp
                    src/common/logger.cpp
+                   src/common/random.cpp
                    src/recorder/report_builder.cpp
                    src/recorder/auto_recorder.cpp
                    src/recorder/manual_recorder.cpp
@@ -188,6 +189,9 @@ endif()
 
 if (WITH_LIBEVENT)
   list(APPEND LIGHTSTEP_SRCS src/recorder/stream_recorder/stream_recorder.cpp
+                             src/recorder/stream_recorder/satellite_dns_resolution_manager.cpp
+                             src/recorder/stream_recorder/satellite_endpoint_manager.cpp
+                             src/recorder/stream_recorder/utility.cpp
                              src/network/event.cpp
                              src/network/event_base.cpp
                              src/network/timer_event.cpp

@@ -1,7 +1,7 @@
 // Verifies that IDs don't clash after forking the process.
 //
 // See https://github.com/opentracing-contrib/nginx-opentracing/issues/52
-#include "common/utility.h"
+#include "common/random.h"
 
 #include <sys/mman.h>
 #include <sys/types.h>

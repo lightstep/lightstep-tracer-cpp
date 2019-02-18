@@ -11,7 +11,8 @@ using namespace lightstep;
 TEST_CASE("NoDnsResolver") {
   Logger logger;
   EventBase event_base;
-  auto resolver = MakeDnsResolver(logger, event_base, DnsResolverOptions{});
+  DnsResolverOptions resolver_options;
+  auto resolver = MakeDnsResolver(logger, event_base, resolver_options);
   MockDnsResolutionCallback callback{event_base};
 
   SECTION("We can resolve raw ip addresses.") {
