@@ -26,7 +26,7 @@ class SatelliteDnsResolutionManager final : public DnsResolutionCallback {
   SatelliteDnsResolutionManager(const SatelliteDnsResolutionManager&) = delete;
   SatelliteDnsResolutionManager(SatelliteDnsResolutionManager&&) = delete;
 
-  ~SatelliteDnsResolutionManager() noexcept = default;
+  ~SatelliteDnsResolutionManager() noexcept override = default;
 
   SatelliteDnsResolutionManager& operator=(
       const SatelliteDnsResolutionManager&) = delete;
