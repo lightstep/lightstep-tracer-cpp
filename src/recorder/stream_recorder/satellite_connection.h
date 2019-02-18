@@ -3,13 +3,13 @@
 #include "common/noncopyable.h"
 
 namespace lightstep {
-class SatelliteConnectionManager;
+class SatelliteStreamer;
 
 class SatelliteConnection : private Noncopyable {
  public:
-  SatelliteConnection(SatelliteConnectionManager& connection_manager) noexcept;
+  SatelliteConnection(SatelliteStreamer& streamer) noexcept;
 
  private:
-  SatelliteConnectionManager& connection_manager_;
+  SatelliteStreamer& streamer_;
 };
 }  // namespace lightstep

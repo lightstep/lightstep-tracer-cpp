@@ -71,14 +71,14 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "satellite_connection_lib",
+    name = "satellite_streamer_lib",
     private_hdrs = [
         "satellite_connection.h",
-        "satellite_connection_manager.h",
+        "satellite_streamer.h",
     ],
     srcs = [
         "satellite_connection.cpp",
-        "satellite_connection_manager.cpp",
+        "satellite_streamer.cpp",
     ],
     deps = [
         ":satellite_endpoint_manager_lib",

@@ -1,10 +1,11 @@
 #include "recorder/stream_recorder/satellite_connection.h"
 
+#include "recorder/stream_recorder/satellite_streamer.h"
+
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-SatelliteConnection::SatelliteConnection(
-    SatelliteConnectionManager& connection_manager) noexcept
-    : connection_manager_{connection_manager} {}
+SatelliteConnection::SatelliteConnection(SatelliteStreamer& streamer) noexcept
+    : streamer_{streamer} {}
 }  // namespace lightstep

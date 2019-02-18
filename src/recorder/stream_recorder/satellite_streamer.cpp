@@ -1,10 +1,10 @@
-#include "recorder/stream_recorder/satellite_connection_manager.h"
+#include "recorder/stream_recorder/satellite_streamer.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-SatelliteConnectionManager::SatelliteConnectionManager(
+SatelliteStreamer::SatelliteStreamer(
     Logger& logger, EventBase& event_base,
     const LightStepTracerOptions& tracer_options,
     const StreamRecorderOptions& recorder_options,
@@ -16,5 +16,5 @@ SatelliteConnectionManager::SatelliteConnectionManager(
 //--------------------------------------------------------------------------------------------------
 // OnEndpointManagerReady
 //--------------------------------------------------------------------------------------------------
-void SatelliteConnectionManager::OnEndpointManagerReady() noexcept {}
+void SatelliteStreamer::OnEndpointManagerReady() noexcept {}
 }  // namespace lightstep

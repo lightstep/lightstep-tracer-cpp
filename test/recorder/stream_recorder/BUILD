@@ -34,7 +34,7 @@ lightstep_catch_test(
         "satellite_connection_test.cpp",
     ],
     deps = [
-        "//src/recorder/stream_recorder:satellite_connection_lib",
+        "//src/recorder/stream_recorder:satellite_streamer_lib",
     ],
 )
 
