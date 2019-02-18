@@ -17,10 +17,6 @@ class SatelliteEndpointManager {
     std::unique_ptr<SatelliteDnsResolutionManager> ipv6_resolutions;
     uint32_t address_index{0};
   };
-  struct SatelliteEndpoint {
-    int host_index;
-    uint16_t port;
-  };
 
  public:
   SatelliteEndpointManager(Logger& logger, EventBase& event_base,

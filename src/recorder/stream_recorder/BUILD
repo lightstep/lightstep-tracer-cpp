@@ -79,6 +79,7 @@ lightstep_cc_library(
     ],
     deps = [
         ":satellite_endpoint_manager_lib",
+        "//src/common:chunk_circular_buffer_lib",
     ],
 )
 
