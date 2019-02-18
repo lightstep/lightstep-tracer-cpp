@@ -61,11 +61,11 @@
     "use_stream_recorder": {
       "type": "boolean",
       "description": "`use_stream_recorder` enables the streaming recorder for faster uploading of spans."
-    }
+    },
 
     "satellite_endpoints": {
       "type": "array",
-      "items": { "$ref": "#/definitions/endpoint" }
+      "items": { "$ref": "#/definitions/endpoint" },
       "description": "A list of satellite endpoints to upload spans to."
     }
   },
