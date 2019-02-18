@@ -18,4 +18,11 @@ TEST_CASE("SeparateEndpoints") {
     REQUIRE(indexed_endpoints == std::vector<std::pair<int, uint16_t>>{
                                      {0, 123}, {1, 456}, {0, 789}});
   }
+
+  SECTION("Case is ignored when comparing hosts.") {
+    std::vector<std::pair<std::string, uint16_t>> endpoints = {{"abc", 123},
+                                                               {"ABC", 456}};
+    std::tie(hosts, indexed_endpoints) = SeparateEndpoints(endpoints);
+    REQUIRE(hosts.size() == 1);
+  }
 }
