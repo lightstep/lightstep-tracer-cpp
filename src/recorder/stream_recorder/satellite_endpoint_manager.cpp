@@ -42,7 +42,7 @@ SatelliteEndpointManager::SatelliteEndpointManager(
 //--------------------------------------------------------------------------------------------------
 IpAddress SatelliteEndpointManager::RequestEndpoint() noexcept {
   auto endpoint_index_start = endpoint_index_;
-  while (1) {
+  while (true) {
     // RequestEndpoint shouldn't be called until at least one host name is
     // resolved.
     assert(endpoint_index_ != endpoint_index_start + endpoints_.size());

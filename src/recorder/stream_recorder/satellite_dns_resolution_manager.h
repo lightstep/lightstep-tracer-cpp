@@ -12,6 +12,9 @@
 #include "recorder/stream_recorder/stream_recorder_options.h"
 
 namespace lightstep {
+/**
+ * Manages the DNS resolution of a host.
+ */
 class SatelliteDnsResolutionManager final : public DnsResolutionCallback {
  public:
   SatelliteDnsResolutionManager(Logger& logger, EventBase& event_base,
@@ -23,11 +26,16 @@ class SatelliteDnsResolutionManager final : public DnsResolutionCallback {
   SatelliteDnsResolutionManager(const SatelliteDnsResolutionManager&) = delete;
   SatelliteDnsResolutionManager(SatelliteDnsResolutionManager&&) = delete;
 
+  ~SatelliteDnsResolutionManager() noexcept = default;
+
   SatelliteDnsResolutionManager& operator=(
       const SatelliteDnsResolutionManager&) = delete;
   SatelliteDnsResolutionManager& operator=(SatelliteDnsResolutionManager&&) =
       delete;
 
+  /**
+   * @return the vector of IP addresses the host resolves to.
+   */
   const std::vector<IpAddress>& ip_addresses() const noexcept {
     return ip_addresses_;
   }

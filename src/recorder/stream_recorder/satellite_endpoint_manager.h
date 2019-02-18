@@ -8,6 +8,9 @@
 #include "recorder/stream_recorder/satellite_dns_resolution_manager.h"
 
 namespace lightstep {
+/**
+ * Manages the resolution and assignment of satellite endpoints.
+ */
 class SatelliteEndpointManager {
   struct SatelliteHostManager {
     std::unique_ptr<SatelliteDnsResolutionManager> ipv4_resolutions;
@@ -28,9 +31,15 @@ class SatelliteEndpointManager {
   SatelliteEndpointManager(const SatelliteEndpointManager&) = delete;
   SatelliteEndpointManager(SatelliteEndpointManager&&) = delete;
 
+  ~SatelliteEndpointManager() noexcept = default;
+
   SatelliteEndpointManager& operator=(const SatelliteEndpointManager&) = delete;
   SatelliteEndpointManager& operator=(SatelliteEndpointManager&&) = delete;
 
+  /**
+   * Assigns satellite endpoints using round robin.
+   * @return a satellite endpoint.
+   */
   IpAddress RequestEndpoint() noexcept;
 
  private:
