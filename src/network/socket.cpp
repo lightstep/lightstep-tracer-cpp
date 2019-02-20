@@ -36,10 +36,16 @@ Socket::Socket(Socket&& other) noexcept {
 //------------------------------------------------------------------------------
 // destructor
 //------------------------------------------------------------------------------
-Socket::~Socket() noexcept {
-  if (file_descriptor_ != -1) {
-    ::close(file_descriptor_);
-  }
+Socket::~Socket() noexcept { Free(); }
+
+//--------------------------------------------------------------------------------------------------
+// operator=
+//--------------------------------------------------------------------------------------------------
+Socket& Socket::operator=(Socket&& other) noexcept {
+  Free();
+  file_descriptor_ = other.file_descriptor_;
+  other.file_descriptor_ = -1;
+  return *this;
 }
 
 //------------------------------------------------------------------------------
@@ -52,6 +58,15 @@ void Socket::SetNonblocking() {
     std::ostringstream oss;
     oss << "failed to set the socket as non-blocking: " << std::strerror(errno);
     throw std::runtime_error{oss.str()};
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+// Free
+//--------------------------------------------------------------------------------------------------
+void Socket::Free() noexcept {
+  if (file_descriptor_ != -1) {
+    ::close(file_descriptor_);
   }
 }
 
@@ -83,8 +98,10 @@ void Socket::Connect(const sockaddr& addr, size_t addrlen) {
   }
 }
 
-Socket Connect(const IpAddress& ip_address, int type) {
-  Socket socket{ip_address.family(), type};
+Socket Connect(const IpAddress& ip_address) {
+  Socket socket{ip_address.family(), SOCK_STREAM};
+  socket.SetNonblocking();
+  socket.SetReuseAddress();
   switch (ip_address.family()) {
     case AF_INET:
       socket.Connect(ip_address.addr(), sizeof(ip_address.ipv4_address()));
@@ -95,8 +112,6 @@ Socket Connect(const IpAddress& ip_address, int type) {
     default:
       throw std::runtime_error{"Unknown socket family."};
   }
-  socket.SetNonblocking();
-  socket.SetReuseAddress();
   return socket;
 }
 }  // namespace lightstep

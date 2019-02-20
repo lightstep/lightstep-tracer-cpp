@@ -20,7 +20,7 @@ class Socket {
 
   ~Socket() noexcept;
 
-  Socket& operator=(Socket&& other) noexcept = delete;
+  Socket& operator=(Socket&& other) noexcept;
 
   Socket& operator=(const Socket&) = delete;
 
@@ -48,6 +48,8 @@ class Socket {
 
  private:
   int file_descriptor_{-1};
+
+  void Free() noexcept;
 };
 
 /**
@@ -56,5 +58,5 @@ class Socket {
  * @param type supplies the type of connection.
  * @return a non-blocking Socket for the connection.
  */
-Socket Connect(const IpAddress& ip_address, int type);
+Socket Connect(const IpAddress& ip_address);
 }  // namespace lightstep

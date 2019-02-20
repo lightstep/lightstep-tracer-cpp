@@ -36,8 +36,8 @@ struct StreamRecorderOptions {
   // Options to use when resolving satellite host names.
   DnsResolverOptions dns_resolver_options;
 
-  // Dns resolutions will be cached and refreshed at a random point within the
-  // specified window from their last refresh.
+  // Dns resolutions will be cached and refreshed at a random point of time
+  // within the specified window from their last refresh.
   std::chrono::microseconds min_dns_resolution_refresh_period =
       std::chrono::duration_cast<std::chrono::microseconds>(
           std::chrono::minutes{5});
@@ -50,5 +50,29 @@ struct StreamRecorderOptions {
   std::chrono::microseconds dns_failure_retry_period =
       std::chrono::duration_cast<std::chrono::microseconds>(
           std::chrono::seconds{5});
+
+  // The number of connections to make to satellites for streaming.
+  int num_satellite_connections = 8;
+
+  // The amount of time to wait for a satellite connection to be writable before
+  // reconnecting.
+  std::chrono::microseconds satellite_write_timeout =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          std::chrono::seconds{5});
+
+  // The amount of time to wait until attempting to reconnect to a satellite
+  // after a failure.
+  std::chrono::microseconds satellite_failure_retry_period =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          std::chrono::seconds{5});
+
+  // Satellite connections will be reestablished at a random point of time
+  // within the specified window from when the connection was last established.
+  std::chrono::microseconds min_satellite_reconnect_period =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          std::chrono::seconds{45});
+  std::chrono::microseconds max_satellite_reconnect_period =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          std::chrono::seconds{60});
 };
 }  // namespace lightstep
