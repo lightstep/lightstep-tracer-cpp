@@ -22,7 +22,7 @@ class SatelliteConnection : private Noncopyable {
 
   void Connect() noexcept;
 
-  void FreeSocket() noexcept;
+  void FreeSocket();
 
   void HandleFailure() noexcept;
 

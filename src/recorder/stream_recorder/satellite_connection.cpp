@@ -50,7 +50,6 @@ void SatelliteConnection::Connect() noexcept try {
                               &SatelliteConnection::OnWritable>(),
             static_cast<void*>(this)};
   write_event_.Add(streamer_.recorder_options().satellite_write_timeout);
-
 } catch (const std::exception& e) {
   streamer_.logger().Error("Connect failed: ", e.what());
   HandleFailure();
@@ -59,7 +58,7 @@ void SatelliteConnection::Connect() noexcept try {
 //--------------------------------------------------------------------------------------------------
 // FreeSocket
 //--------------------------------------------------------------------------------------------------
-void SatelliteConnection::FreeSocket() noexcept {
+void SatelliteConnection::FreeSocket() {
   socket_ = Socket{-1};
   read_event_ = Event{};
   write_event_ = Event{};
