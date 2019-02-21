@@ -25,6 +25,8 @@ class SatelliteDnsResolutionManager final : public DnsResolutionCallback,
                                 int family, const char* name,
                                 std::function<void()> on_ready_callback);
 
+  void Start() noexcept;
+
   /**
    * @return the vector of IP addresses the host resolves to.
    */

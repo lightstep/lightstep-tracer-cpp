@@ -42,6 +42,7 @@ TEST_CASE("SatelliteDnsResolutionManager") {
     SatelliteDnsResolutionManager resolution_manager{
         logger,  event_base,     *resolver,        recorder_options,
         AF_INET, "test.service", on_ready_callback};
+    resolution_manager.Start();
     event_base.Dispatch();
     REQUIRE(resolution_manager.ip_addresses() ==
             std::vector<IpAddress>{IpAddress{"192.168.0.2"}});
@@ -51,6 +52,7 @@ TEST_CASE("SatelliteDnsResolutionManager") {
     SatelliteDnsResolutionManager resolution_manager{
         logger,  event_base,     *resolver,        recorder_options,
         AF_INET, "flip.service", on_ready_callback};
+    resolution_manager.Start();
     event_base.Dispatch();
     REQUIRE(resolution_manager.ip_addresses() ==
             std::vector<IpAddress>{IpAddress{"192.168.0.2"}});
@@ -68,6 +70,7 @@ TEST_CASE("SatelliteDnsResolutionManager") {
     SatelliteDnsResolutionManager resolution_manager{
         logger,  event_base,      *resolver,        recorder_options,
         AF_INET, "flaky.service", on_ready_callback};
+    resolution_manager.Start();
     event_base.Dispatch();
     REQUIRE(resolution_manager.ip_addresses() ==
             std::vector<IpAddress>{IpAddress{"192.168.0.1"}});

@@ -115,13 +115,13 @@ void SatelliteConnection::OnReadable(int file_descriptor,
     }
   }
 
-  if (rcode == EAGAIN || rcode == EWOULDBLOCK) {
-    return read_event_.Add(nullptr);
-  }
-
   if (rcode == 0) {
     streamer_.logger().Warn("Socket closed by satellite");
     return OnSocketError();
+  }
+  assert(rcode == -1);
+  if (errno == EAGAIN || errno == EWOULDBLOCK) {
+    return read_event_.Add(nullptr);
   }
   streamer_.logger().Error("Satellite socket error: ", std::strerror(errno));
   return OnSocketError();

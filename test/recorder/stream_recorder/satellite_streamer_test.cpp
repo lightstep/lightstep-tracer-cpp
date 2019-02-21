@@ -3,4 +3,4 @@
 #include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
 
-TEST_CASE("SatelliteConnection") {}
+TEST_CASE("SatelliteStreamer") {}

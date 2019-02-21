@@ -87,30 +87,36 @@ void Socket::SetReuseAddress() {
 //--------------------------------------------------------------------------------------------------
 // Connect
 //--------------------------------------------------------------------------------------------------
-void Socket::Connect(const sockaddr& addr, size_t addrlen) {
+int Socket::Connect(const sockaddr& addr, size_t addrlen) noexcept {
   assert(file_descriptor_ != -1);
-  auto rcode =
-      ::connect(file_descriptor_, &addr, static_cast<socklen_t>(addrlen));
-  if (rcode == -1) {
-    std::ostringstream oss;
-    oss << "connect failed: " << std::strerror(errno);
-    throw std::runtime_error{oss.str()};
-  }
+  return ::connect(file_descriptor_, &addr, static_cast<socklen_t>(addrlen));
 }
 
 Socket Connect(const IpAddress& ip_address) {
   Socket socket{ip_address.family(), SOCK_STREAM};
   socket.SetNonblocking();
   socket.SetReuseAddress();
+  int rcode;
   switch (ip_address.family()) {
     case AF_INET:
-      socket.Connect(ip_address.addr(), sizeof(ip_address.ipv4_address()));
+      rcode =
+          socket.Connect(ip_address.addr(), sizeof(ip_address.ipv4_address()));
       break;
     case AF_INET6:
-      socket.Connect(ip_address.addr(), sizeof(ip_address.ipv6_address()));
+      rcode =
+          socket.Connect(ip_address.addr(), sizeof(ip_address.ipv6_address()));
       break;
     default:
       throw std::runtime_error{"Unknown socket family."};
+  }
+  if (rcode == 0) {
+    return socket;
+  }
+  assert(rcode == -1);
+  if (errno != EINPROGRESS) {
+    std::ostringstream oss;
+    oss << "connect failed: " << std::strerror(errno);
+    throw std::runtime_error{oss.str()};
   }
   return socket;
 }

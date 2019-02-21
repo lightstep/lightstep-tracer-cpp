@@ -21,7 +21,9 @@ StreamRecorder::StreamRecorder(Logger& logger,
                   static_cast<void*>(this)},
       flush_timer_{event_base_, recorder_options.flushing_period,
                    MakeTimerCallback<StreamRecorder, &StreamRecorder::Flush>(),
-                   static_cast<void*>(this)} {
+                   static_cast<void*>(this)},
+      streamer_{logger_, event_base_, tracer_options_, recorder_options_,
+                span_buffer_} {
   thread_ = std::thread{&StreamRecorder::Run, this};
 }
 
@@ -82,16 +84,7 @@ void StreamRecorder::Poll() noexcept {
 // Flush
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::Flush() noexcept try {
-  while (!exit_) {
-    // Placeholder code. This will be replaced by code that streams spans over
-    // the network.
-    span_buffer_.Allot();
-    span_buffer_.Consume(span_buffer_.num_bytes_allotted());
-    if (span_buffer_.empty()) {
-      break;
-    }
-    std::this_thread::yield();
-  }
+  streamer_.Flush();
   flush_timer_.Reset();
 } catch (const std::exception& e) {
   logger_.Error("StreamRecorder::Flush failed: ", e.what());

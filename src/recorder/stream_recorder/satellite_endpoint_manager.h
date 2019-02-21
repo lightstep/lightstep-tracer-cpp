@@ -25,6 +25,8 @@ class SatelliteEndpointManager : private Noncopyable {
                            const StreamRecorderOptions& recorder_options,
                            std::function<void()> on_ready_callback);
 
+  void Start() noexcept;
+
   /**
    * Assigns satellite endpoints using round robin.
    * @return a satellite endpoint.

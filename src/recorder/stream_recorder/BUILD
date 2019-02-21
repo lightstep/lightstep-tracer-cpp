@@ -32,6 +32,7 @@ lightstep_cc_library(
         "//src/network:timer_event_lib",
         "//src/recorder:stream_recorder_interface",
         ":stream_recorder_options_lib",
+        ":satellite_streamer_lib",
     ],
 )
 

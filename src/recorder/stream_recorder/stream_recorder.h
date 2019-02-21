@@ -10,6 +10,7 @@
 #include "network/event_base.h"
 #include "network/timer_event.h"
 #include "recorder/stream_recorder.h"
+#include "recorder/stream_recorder/satellite_streamer.h"
 #include "recorder/stream_recorder/stream_recorder_options.h"
 
 namespace lightstep {
@@ -24,6 +25,8 @@ class StreamRecorder final : public Recorder {
 
   ~StreamRecorder() noexcept override;
 
+  bool empty() const noexcept { return span_buffer_.empty(); }
+
   // Recorder
   void RecordSpan(const collector::Span& span) noexcept override;
 
@@ -37,6 +40,8 @@ class StreamRecorder final : public Recorder {
   EventBase event_base_;
   TimerEvent poll_timer_;
   TimerEvent flush_timer_;
+
+  SatelliteStreamer streamer_;
 
   std::thread thread_;
   std::atomic<bool> exit_{false};

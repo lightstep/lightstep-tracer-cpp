@@ -1,5 +1,8 @@
 #include "recorder/stream_recorder/satellite_streamer.h"
 
+#include <algorithm>
+#include <cassert>
+
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
@@ -20,18 +23,35 @@ SatelliteStreamer::SatelliteStreamer(
   for (int i = 0; i < recorder_options.num_satellite_connections; ++i) {
     connections_.emplace_back(new SatelliteConnection{*this});
   }
+  endpoint_manager_.Start();
 }
 
 //--------------------------------------------------------------------------------------------------
 // Flush
 //--------------------------------------------------------------------------------------------------
-void SatelliteStreamer::Flush() noexcept {}
+void SatelliteStreamer::Flush() noexcept {
+  // Stub that will be replaced by code that sends spans to satellites.
+  if (writable_connections_.empty()) {
+    return;
+  }
+  while (1) {
+    span_buffer_.Allot();
+    span_buffer_.Consume(span_buffer_.num_bytes_allotted());
+    if (span_buffer_.empty()) {
+      break;
+    }
+  }
+}
 
 //--------------------------------------------------------------------------------------------------
 // OnConnectionWritable
 //--------------------------------------------------------------------------------------------------
 void SatelliteStreamer::OnConnectionWritable(
-    SatelliteConnection* /*connection*/) noexcept {}
+    SatelliteConnection* connection) noexcept {
+  assert(std::find(writable_connections_.begin(), writable_connections_.end(),
+                   connection) == writable_connections_.end());
+  writable_connections_.emplace_back(connection);
+}
 
 //--------------------------------------------------------------------------------------------------
 // OnEndpointManagerReady

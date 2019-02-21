@@ -15,3 +15,21 @@ go_binary(
 	],
   out = "mock_satellite",
 )
+
+lightstep_cc_library(
+    name = "mock_satellite_lib",
+    private_hdrs = [
+        "mock_satellite_handle.h",
+    ],
+    srcs = [
+        "mock_satellite_handle.cpp",
+    ],
+    deps = [
+        "//test:child_process_handle_lib",
+        "//test:utility_lib",
+        "//src/network:socket_lib",
+    ],
+    data = [
+        ":mock_satellite",
+    ],
+)

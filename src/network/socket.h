@@ -43,8 +43,9 @@ class Socket {
    * Establishes a connection to a given address.
    * @param addr supplies the sockaddr to connect to.
    * @param addrlen supplies the length of the address.
+   * @return the return code of the system call ::connect.
    */
-  void Connect(const sockaddr& addr, size_t addrlen);
+  int Connect(const sockaddr& addr, size_t addrlen) noexcept;
 
  private:
   int file_descriptor_{-1};
