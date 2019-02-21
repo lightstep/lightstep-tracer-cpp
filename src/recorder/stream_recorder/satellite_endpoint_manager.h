@@ -25,6 +25,9 @@ class SatelliteEndpointManager : private Noncopyable {
                            const StreamRecorderOptions& recorder_options,
                            std::function<void()> on_ready_callback);
 
+  /**
+   * Start resolving hosts to ip addresses.
+   */
   void Start() noexcept;
 
   /**

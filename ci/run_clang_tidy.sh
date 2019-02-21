@@ -27,6 +27,7 @@ CHECKS="\
 -hicpp-signed-bitwise,\
 -hicpp-no-array-decay,\
 -hicpp-special-member-functions,\
+-cppcoreguidelines-special-member-functions,\
 -cppcoreguidelines-pro-type-member-init,\
 -cppcoreguidelines-owning-memory,\
 -cppcoreguidelines-pro-type-reinterpret-cast,\

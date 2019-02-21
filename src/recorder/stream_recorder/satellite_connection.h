@@ -11,6 +11,9 @@ class SatelliteConnection : private Noncopyable {
  public:
   explicit SatelliteConnection(SatelliteStreamer& streamer);
 
+  /**
+   * Start establishing a connection to a satellite.
+   */
   void Start() noexcept;
 
  private:

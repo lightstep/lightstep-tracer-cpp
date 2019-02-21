@@ -16,20 +16,39 @@ class SatelliteStreamer : private Noncopyable {
                     const StreamRecorderOptions& recorder_options,
                     ChunkCircularBuffer& span_buffer);
 
+  /**
+   * @return the associated Logger.
+   */
   Logger& logger() const noexcept { return logger_; }
 
+  /**
+   * @return the associated EventBase.
+   */
   EventBase& event_base() const noexcept { return event_base_; }
 
+  /**
+   * @return the associated StreamRecorderOptions.
+   */
   const StreamRecorderOptions& recorder_options() const noexcept {
     return recorder_options_;
   }
 
+  /**
+   * @return an SatelliteEndpointManager for load balancing.
+   */
   SatelliteEndpointManager& endpoint_manager() noexcept {
     return endpoint_manager_;
   }
 
+  /**
+   * Flush data to satellites if connections are available.
+   */
   void Flush() noexcept;
 
+  /**
+   * Callback to indicate that a satellite connection is ready for writing.
+   * @param SatelliteConnection the writable satellite connection.
+   */
   void OnConnectionWritable(SatelliteConnection* connection) noexcept;
 
  private:

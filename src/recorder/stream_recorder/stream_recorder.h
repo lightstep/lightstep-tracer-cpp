@@ -25,6 +25,9 @@ class StreamRecorder final : public Recorder, private Noncopyable {
 
   ~StreamRecorder() noexcept override;
 
+  /**
+   * @return true if no spans are buffered in the recorder.
+   */
   bool empty() const noexcept { return span_buffer_.empty(); }
 
   // Recorder
