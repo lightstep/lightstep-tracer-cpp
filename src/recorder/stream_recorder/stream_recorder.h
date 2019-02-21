@@ -17,7 +17,7 @@ namespace lightstep {
 /**
  * A Recorder that load balances and streams spans to multiple satellites.
  */
-class StreamRecorder final : public Recorder {
+class StreamRecorder final : public Recorder, private Noncopyable {
  public:
   StreamRecorder(
       Logger& logger, LightStepTracerOptions&& tracer_options,

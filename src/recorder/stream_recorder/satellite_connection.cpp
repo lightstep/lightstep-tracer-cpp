@@ -107,7 +107,7 @@ void SatelliteConnection::OnReadable(int file_descriptor,
   ssize_t rcode;
 
   // Ignore the contents of any response
-  while (1) {
+  while (true) {
     rcode = ::read(file_descriptor, static_cast<void*>(buffer.data()),
                    buffer.size());
     if (rcode <= 0) {

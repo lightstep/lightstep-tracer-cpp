@@ -34,7 +34,7 @@ void SatelliteStreamer::Flush() noexcept {
   if (writable_connections_.empty()) {
     return;
   }
-  while (1) {
+  while (true) {
     span_buffer_.Allot();
     span_buffer_.Consume(span_buffer_.num_bytes_allotted());
     if (span_buffer_.empty()) {
