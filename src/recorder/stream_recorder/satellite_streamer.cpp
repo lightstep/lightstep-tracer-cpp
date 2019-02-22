@@ -54,6 +54,17 @@ void SatelliteStreamer::OnConnectionWritable(
 }
 
 //--------------------------------------------------------------------------------------------------
+// OnConnectionNonwritable
+//--------------------------------------------------------------------------------------------------
+void SatelliteStreamer::OnConnectionNonwritable(
+    SatelliteConnection* connection) noexcept {
+  writable_connections_.erase(
+      std::remove(writable_connections_.begin(), writable_connections_.end(),
+                  connection),
+      writable_connections_.end());
+}
+
+//--------------------------------------------------------------------------------------------------
 // OnEndpointManagerReady
 //--------------------------------------------------------------------------------------------------
 void SatelliteStreamer::OnEndpointManagerReady() noexcept {

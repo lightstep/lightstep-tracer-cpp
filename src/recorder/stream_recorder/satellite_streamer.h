@@ -51,6 +51,12 @@ class SatelliteStreamer : private Noncopyable {
    */
   void OnConnectionWritable(SatelliteConnection* connection) noexcept;
 
+  /**
+   * Callback to indicate that a satellite connection is no longer writable.
+   * @param SatelliteConnection the non-writable satellite connection.
+   */
+  void OnConnectionNonwritable(SatelliteConnection* connection) noexcept;
+
  private:
   Logger& logger_;
   EventBase& event_base_;

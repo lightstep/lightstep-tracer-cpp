@@ -59,6 +59,7 @@ void SatelliteConnection::Connect() noexcept try {
 // FreeSocket
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::FreeSocket() {
+  streamer_.OnConnectionNonwritable(this);
   socket_ = Socket{-1};
   read_event_ = Event{};
   write_event_ = Event{};
