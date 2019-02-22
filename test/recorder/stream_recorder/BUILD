@@ -15,6 +15,10 @@ lightstep_catch_test(
     deps = [
         "//src/tracer:lightstep_tracer_impl_lib",
         "//src/recorder/stream_recorder:stream_recorder_lib",
+        "//src/network/ares_dns_resolver:ares_dns_resolver_lib",
+        "//test/mock_satellite:mock_satellite_lib",
+        "//test:ports_lib",
+        "//test:utility_lib",
     ],
 )
 
@@ -25,6 +29,16 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/recorder/stream_recorder:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "satellite_streamer_test",
+    srcs = [
+        "satellite_streamer_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:satellite_streamer_lib",
     ],
 )
 

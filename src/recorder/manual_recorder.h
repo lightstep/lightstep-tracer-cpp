@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/logger.h"
+#include "common/noncopyable.h"
 #include "lightstep/transporter.h"
 #include "recorder/recorder.h"
 #include "recorder/report_builder.h"
@@ -9,7 +10,8 @@ namespace lightstep {
 // ManualRecorder buffers spans finished by a tracer and sends them over to
 // the provided AsyncTransporter when FlushWithTimeout is called.
 class ManualRecorder final : public Recorder,
-                             private AsyncTransporter::Callback {
+                             private AsyncTransporter::Callback,
+                             private Noncopyable {
  public:
   ManualRecorder(Logger& logger, LightStepTracerOptions options,
                  std::unique_ptr<AsyncTransporter>&& transporter);

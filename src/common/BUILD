@@ -79,6 +79,13 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "noncopyable_lib",
+    private_hdrs = [
+        "noncopyable.h",
+    ],
+)
+
+lightstep_cc_library(
     name = "random_lib",
     private_hdrs = [
         "random.h",

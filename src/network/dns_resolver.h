@@ -17,7 +17,7 @@ namespace lightstep {
 struct DnsResolverOptions {
   std::vector<in_addr> resolution_servers;
   uint16_t resolution_server_port{53};
-  std::chrono::milliseconds timeout;
+  std::chrono::milliseconds timeout{2000};
 };
 
 /**

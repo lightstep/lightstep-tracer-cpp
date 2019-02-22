@@ -5,29 +5,30 @@
 
 #include "common/chunk_circular_buffer.h"
 #include "common/logger.h"
+#include "common/noncopyable.h"
 #include "lightstep/tracer.h"
 #include "network/event_base.h"
 #include "network/timer_event.h"
 #include "recorder/stream_recorder.h"
+#include "recorder/stream_recorder/satellite_streamer.h"
 #include "recorder/stream_recorder/stream_recorder_options.h"
 
 namespace lightstep {
 /**
  * A Recorder that load balances and streams spans to multiple satellites.
  */
-class StreamRecorder final : public Recorder {
+class StreamRecorder final : public Recorder, private Noncopyable {
  public:
   StreamRecorder(
       Logger& logger, LightStepTracerOptions&& tracer_options,
       StreamRecorderOptions&& recorder_options = StreamRecorderOptions{});
 
-  StreamRecorder(StreamRecorder&&) = delete;
-  StreamRecorder(const StreamRecorder&) = delete;
-
-  StreamRecorder& operator=(StreamRecorder&&) = delete;
-  StreamRecorder& operator=(const StreamRecorder&) = delete;
-
   ~StreamRecorder() noexcept override;
+
+  /**
+   * @return true if no spans are buffered in the recorder.
+   */
+  bool empty() const noexcept { return span_buffer_.empty(); }
 
   // Recorder
   void RecordSpan(const collector::Span& span) noexcept override;
@@ -42,6 +43,8 @@ class StreamRecorder final : public Recorder {
   EventBase event_base_;
   TimerEvent poll_timer_;
   TimerEvent flush_timer_;
+
+  SatelliteStreamer streamer_;
 
   std::thread thread_;
   std::atomic<bool> exit_{false};

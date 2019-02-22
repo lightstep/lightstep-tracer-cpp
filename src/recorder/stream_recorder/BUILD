@@ -26,11 +26,13 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:logger_lib",
+        "//src/common:noncopyable_lib",
         "//src/common:chunk_circular_buffer_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",
         "//src/recorder:stream_recorder_interface",
         ":stream_recorder_options_lib",
+        ":satellite_streamer_lib",
     ],
 )
 
@@ -45,6 +47,7 @@ lightstep_cc_library(
     deps = [
         "//src/common:logger_lib",
         "//src/common:random_lib",
+        "//src/common:noncopyable_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",
         "//src/network:dns_resolver_interface",
@@ -64,6 +67,28 @@ lightstep_cc_library(
         ":satellite_dns_resolution_manager_lib",
         ":utility_lib",
         "//src/network:dns_resolver_interface",
+        "//src/common:noncopyable_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "satellite_streamer_lib",
+    private_hdrs = [
+        "satellite_connection.h",
+        "satellite_streamer.h",
+    ],
+    srcs = [
+        "satellite_connection.cpp",
+        "satellite_streamer.cpp",
+    ],
+    deps = [
+        ":satellite_endpoint_manager_lib",
+        "//src/common:chunk_circular_buffer_lib",
+        "//src/common:noncopyable_lib",
+        "//src/common:random_lib",
+        "//src/network:socket_lib",
+        "//src/network:event_lib",
+        "//src/network:timer_event_lib",
     ],
 )
 

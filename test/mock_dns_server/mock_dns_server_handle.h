@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+
 #include "test/child_process_handle.h"
 
 namespace lightstep {

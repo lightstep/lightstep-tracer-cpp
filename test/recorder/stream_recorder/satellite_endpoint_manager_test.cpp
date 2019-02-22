@@ -31,6 +31,7 @@ TEST_CASE("SatelliteEndpointManager") {
     SatelliteEndpointManager endpoint_manager{logger, event_base,
                                               tracer_options, recorder_options,
                                               on_ready_callback};
+    endpoint_manager.Start();
     event_base.Dispatch();
     REQUIRE(endpoint_manager.RequestEndpoint() ==
             IpAddress{"192.168.0.1", 1234});
@@ -46,6 +47,7 @@ TEST_CASE("SatelliteEndpointManager") {
     SatelliteEndpointManager endpoint_manager{logger, event_base,
                                               tracer_options, recorder_options,
                                               on_ready_callback};
+    endpoint_manager.Start();
     event_base.Dispatch();
     REQUIRE(endpoint_manager.RequestEndpoint() ==
             IpAddress{"192.168.0.1", 1234});

@@ -66,6 +66,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:logger_lib",
+        "//src/common:noncopyable_lib",
         "//src/common:utility_lib",
         ":recorder_interface",
         ":report_builder_lib",
@@ -83,6 +84,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:logger_lib",
+        "//src/common:noncopyable_lib",
         "//src/common:utility_lib",
         "//src/common:condition_variable_wrapper_lib",
         ":recorder_interface",

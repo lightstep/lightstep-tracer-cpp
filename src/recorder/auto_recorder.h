@@ -7,6 +7,7 @@
 
 #include "common/condition_variable_wrapper.h"
 #include "common/logger.h"
+#include "common/noncopyable.h"
 #include "lightstep-tracer-common/collector.pb.h"
 #include "lightstep/tracer.h"
 #include "lightstep/transporter.h"
@@ -17,7 +18,7 @@ namespace lightstep {
 // AutoRecorder buffers spans finished by a tracer and sends them over to
 // the provided SyncTransporter. It uses an internal thread to regularly send
 // the reports according to the rate specified by LightStepTracerOptions.
-class AutoRecorder final : public Recorder {
+class AutoRecorder final : public Recorder, private Noncopyable {
  public:
   AutoRecorder(Logger& logger, LightStepTracerOptions&& options,
                std::unique_ptr<SyncTransporter>&& transporter);
@@ -25,11 +26,6 @@ class AutoRecorder final : public Recorder {
   AutoRecorder(Logger& logger, LightStepTracerOptions&& options,
                std::unique_ptr<SyncTransporter>&& transporter,
                std::unique_ptr<ConditionVariableWrapper>&& write_cond);
-
-  AutoRecorder(const AutoRecorder&) = delete;
-  AutoRecorder(AutoRecorder&&) = delete;
-  AutoRecorder& operator=(const AutoRecorder&) = delete;
-  AutoRecorder& operator=(AutoRecorder&&) = delete;
 
   ~AutoRecorder() override;
 

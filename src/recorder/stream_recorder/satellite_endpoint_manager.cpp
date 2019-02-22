@@ -38,6 +38,16 @@ SatelliteEndpointManager::SatelliteEndpointManager(
 }
 
 //--------------------------------------------------------------------------------------------------
+// Start
+//--------------------------------------------------------------------------------------------------
+void SatelliteEndpointManager::Start() noexcept {
+  for (auto& host_manager : host_managers_) {
+    host_manager.ipv4_resolutions->Start();
+    host_manager.ipv6_resolutions->Start();
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
 // RequestEndpoint
 //--------------------------------------------------------------------------------------------------
 IpAddress SatelliteEndpointManager::RequestEndpoint() noexcept {

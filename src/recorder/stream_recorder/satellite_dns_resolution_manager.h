@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "common/logger.h"
+#include "common/noncopyable.h"
 #include "network/dns_resolver.h"
 #include "network/event_base.h"
 #include "network/ip_address.h"
@@ -15,7 +16,8 @@ namespace lightstep {
 /**
  * Manages the DNS resolution of a host.
  */
-class SatelliteDnsResolutionManager final : public DnsResolutionCallback {
+class SatelliteDnsResolutionManager final : public DnsResolutionCallback,
+                                            private Noncopyable {
  public:
   SatelliteDnsResolutionManager(Logger& logger, EventBase& event_base,
                                 DnsResolver& dns_resolver,
@@ -23,15 +25,10 @@ class SatelliteDnsResolutionManager final : public DnsResolutionCallback {
                                 int family, const char* name,
                                 std::function<void()> on_ready_callback);
 
-  SatelliteDnsResolutionManager(const SatelliteDnsResolutionManager&) = delete;
-  SatelliteDnsResolutionManager(SatelliteDnsResolutionManager&&) = delete;
-
-  ~SatelliteDnsResolutionManager() noexcept override = default;
-
-  SatelliteDnsResolutionManager& operator=(
-      const SatelliteDnsResolutionManager&) = delete;
-  SatelliteDnsResolutionManager& operator=(SatelliteDnsResolutionManager&&) =
-      delete;
+  /**
+   * Start resolving the host an ip addresses.
+   */
+  void Start() noexcept;
 
   /**
    * @return the vector of IP addresses the host resolves to.

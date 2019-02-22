@@ -2,7 +2,6 @@
 
 #include "common/logger.h"
 #include "network/ares_dns_resolver/ares_dns_resolver.h"
-#include "network/socket.h"
 #include "test/mock_dns_resolution_callback.h"
 #include "test/utility.h"
 

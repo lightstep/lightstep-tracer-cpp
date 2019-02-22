@@ -9,31 +9,27 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 lightstep_package()
 
 go_binary(
-	name = "mock_dns_server",
+	name = "mock_satellite",
 	srcs = [
 		"main.go",
 	],
-  out = "mock_dns_server",
-	deps = [
-		"@com_github_miekg_dns//:go_default_library",
-	],
+  out = "mock_satellite",
 )
 
 lightstep_cc_library(
-    name = "mock_dns_server_lib",
+    name = "mock_satellite_lib",
     private_hdrs = [
-        "mock_dns_server_handle.h",
+        "mock_satellite_handle.h",
     ],
     srcs = [
-        "mock_dns_server_handle.cpp",
+        "mock_satellite_handle.cpp",
     ],
     deps = [
         "//test:child_process_handle_lib",
         "//test:utility_lib",
-        "//test:mock_dns_resolution_callback_lib",
-        "//src/network/ares_dns_resolver:ares_dns_resolver_lib",
+        "//src/network:socket_lib",
     ],
     data = [
-        ":mock_dns_server",
+        ":mock_satellite",
     ],
 )

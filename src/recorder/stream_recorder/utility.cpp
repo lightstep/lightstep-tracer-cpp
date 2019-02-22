@@ -2,7 +2,8 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstring>
+
+#include <strings.h>
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -17,10 +18,10 @@ SeparateEndpoints(
     hosts.emplace_back(endpoint.first.c_str());
   }
   auto less_than = [](const char* lhs, const char* rhs) {
-    return std::strcmp(lhs, rhs) < 0;
+    return strcasecmp(lhs, rhs) < 0;
   };
   auto equal_to = [](const char* lhs, const char* rhs) {
-    return std::strcmp(lhs, rhs) == 0;
+    return strcasecmp(lhs, rhs) == 0;
   };
   std::sort(hosts.begin(), hosts.end(), less_than);
   hosts.erase(std::unique(hosts.begin(), hosts.end(), equal_to), hosts.end());

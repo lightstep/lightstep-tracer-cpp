@@ -17,7 +17,12 @@ SatelliteDnsResolutionManager::SatelliteDnsResolutionManager(
       recorder_options_{recorder_options},
       family_{family},
       name_{name},
-      on_ready_callback_{std::move(on_ready_callback)} {
+      on_ready_callback_{std::move(on_ready_callback)} {}
+
+//--------------------------------------------------------------------------------------------------
+// Start
+//--------------------------------------------------------------------------------------------------
+void SatelliteDnsResolutionManager::Start() noexcept {
   dns_resolver_.Resolve(name_, family_, *this);
 }
 
