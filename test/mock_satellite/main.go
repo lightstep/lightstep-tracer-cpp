@@ -6,11 +6,13 @@ import (
     "net/http"
     "os"
     "strconv"
+    "github.com/golang/protobuf/proto"
+    "github.com/lightstep/lightstep-tracer-cpp/lightstep-tracer-common"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
-}
+const (
+  maxBufferedReports = 5
+)
 
 func main() {
 	if len(os.Args) != 2 {
@@ -20,6 +22,29 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to parse port: %s\n", err.Error())
 	}
-  http.HandleFunc("/", handler)
+  reportChannel := make(chan *collectorpb.ReportRequest, maxBufferedReports)
+  satelliteHandler := NewSatelliteHandler(reportChannel)
+  reportProcessor := NewReportProcessor(reportChannel)
+  defer reportProcessor.Close()
+  defer close(reportChannel)
+
+  http.Handle("/report", satelliteHandler)
+
+  http.HandleFunc("/spans", func (responseWriter http.ResponseWriter, request *http.Request) {
+    data, err := proto.Marshal(reportProcessor.Spans())
+    if err != nil {
+      log.Fatalf("Failed to marshal Spans: %s\n", err.Error())
+    }
+    responseWriter.Write(data)
+  })
+
+  http.HandleFunc("/reports", func (responseWriter http.ResponseWriter, request *http.Request) {
+    data, err := proto.Marshal(reportProcessor.Reports())
+    if err != nil {
+      log.Fatalf("Failed to marshal Reports: %s\n", err.Error())
+    }
+    responseWriter.Write(data)
+  })
+
   log.Fatal(http.ListenAndServe(fmt.Sprintf("localhost:%d", port), nil))
 }
