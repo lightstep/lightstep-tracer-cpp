@@ -1,27 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"io"
-	"log"
-	"net"
-	"os"
-	"strconv"
+    "fmt"
+    "log"
+    "net/http"
+    "os"
+    "strconv"
 )
 
-func handleConnection(connection net.Conn) {
-	defer connection.Close()
-	buffer := make([]byte, 512)
-	var err error
-	for {
-		_, err = connection.Read(buffer)
-		if err != nil {
-			break
-		}
-	}
-	if err != io.EOF {
-		log.Fatalf("Read failed: %s\n", err.Error())
-	}
+func handler(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
 }
 
 func main() {
@@ -32,18 +20,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to parse port: %s\n", err.Error())
 	}
-
-	listener, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
-	if err != nil {
-		log.Fatalf("Listen failed: %s\n ", err.Error())
-	}
-	defer listener.Close()
-	log.Printf("Starting at %d\n", port)
-	for {
-		connection, err := listener.Accept()
-		if err != nil {
-			log.Fatalf("Accept failed: %s\n", err.Error())
-		}
-		go handleConnection(connection)
-	}
+  http.HandleFunc("/", handler)
+  log.Fatal(http.ListenAndServe(fmt.Sprintf("localhost:%d", port), nil))
 }
