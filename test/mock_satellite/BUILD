@@ -27,6 +27,12 @@ go_binary(
     "satellitehandler.go"
 	],
   out = "mock_satellite",
+  deps = [
+      ":collector_proto_go",
+      "@com_github_golang_protobuf//proto:go_default_library",
+      "@com_github_golang_protobuf//ptypes:go_default_library",
+      "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
+  ],
 )
 
 lightstep_cc_library(

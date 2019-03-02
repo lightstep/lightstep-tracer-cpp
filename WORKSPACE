@@ -89,3 +89,10 @@ go_repository(
 	importpath = "github.com/miekg/dns",
 	tag = "v1.1.4",
 )
+
+go_repository(
+    name = "com_github_golang_protobuf",
+    importpath = "github.com/golang/protobuf",
+    tag = "v1.3.0",
+)
+
