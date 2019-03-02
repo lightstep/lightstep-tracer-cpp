@@ -13,10 +13,33 @@ go_proto_library(
     name = "collector_proto_go",
     proto = "//lightstep-tracer-common:collector_proto",
     importpath = "github.com/lightstep/lightstep-tracer-cpp/lightstep-tracer-common",
-    # importpath = "github.com/lightstep/lightstep-tracer-cpp/test/mock_satellite",
-    visibility = ["//visibility:public"],
     deps = [
         "@com_github_googleapis_googleapis//google/api:annotations_go_proto",
+    ],
+)
+
+proto_library(
+    name = "mock_satellite_proto",
+    srcs = [
+        "mock_satellite.proto",
+    ],
+    deps = [
+        "//lightstep-tracer-common:collector_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "mock_satellite_proto_cc",
+    deps = [":mock_satellite_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "mock_satellite_proto_go",
+    proto = ":mock_satellite_proto",
+    importpath = "github.com/lightstep/lightstep-tracer-cpp/test/mock_satellite",
+    deps = [
+        ":collector_proto_go",
     ],
 )
 
@@ -24,11 +47,13 @@ go_binary(
 	name = "mock_satellite",
 	srcs = [
 		"main.go",
-    "satellitehandler.go"
+    "satellitehandler.go",
+    "reportprocessor.go",
 	],
   out = "mock_satellite",
   deps = [
       ":collector_proto_go",
+      ":mock_satellite_proto_go",
       "@com_github_golang_protobuf//proto:go_default_library",
       "@com_github_golang_protobuf//ptypes:go_default_library",
       "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
