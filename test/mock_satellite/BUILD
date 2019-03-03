@@ -48,6 +48,7 @@ go_binary(
 	name = "mock_satellite",
 	srcs = [
 		"main.go",
+    "proto.go",
     "satellitehandler.go",
     "reportprocessor.go",
 	],
