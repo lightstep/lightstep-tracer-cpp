@@ -52,6 +52,18 @@ HttpConnection::~HttpConnection() noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Get
+//--------------------------------------------------------------------------------------------------
+void HttpConnection::Get(const char* uri, google::protobuf::Message& response) {
+  MakeRequest(EVHTTP_REQ_POST, uri);
+  response_message_ = &response;
+  event_base_.Dispatch();
+  if (error_) {
+    throw std::runtime_error{"Get failed"};
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
 // Post
 //--------------------------------------------------------------------------------------------------
 void HttpConnection::Post(const char* uri,
@@ -59,11 +71,11 @@ void HttpConnection::Post(const char* uri,
                           google::protobuf::Message& response) {
   auto libevent_request = MakeRequest(EVHTTP_REQ_POST, uri);
   WriteMessage(request, *evhttp_request_get_output_buffer(libevent_request));
+  response_message_ = &response;
   event_base_.Dispatch();
   if (error_) {
     throw std::runtime_error{"Post failed"};
   }
-  ReadMessage(*evhttp_request_get_input_buffer(libevent_request), response);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -79,6 +91,8 @@ evhttp_request* HttpConnection::MakeRequest(evhttp_cmd_type command, const char*
   if (rcode != 0) {
     throw std::runtime_error{"evhttp_make_request failed"};
   }
+  auto headers = evhttp_request_get_output_headers(request);
+  evhttp_add_header(headers, "Host", "localhost");
   return request;
 }
 
@@ -88,6 +102,8 @@ evhttp_request* HttpConnection::MakeRequest(evhttp_cmd_type command, const char*
 void HttpConnection::OnCompleteRequest(evhttp_request* request, void* context) noexcept {
   auto self = static_cast<HttpConnection*>(context);
   self->error_ = request == nullptr || request->response_code != 200;
+  ReadMessage(*evhttp_request_get_input_buffer(request), *self->response_message_);
+  self->response_message_ = nullptr;
   self->event_base_.LoopBreak();
 }
 } // namespace lightstep

@@ -18,12 +18,15 @@ class HttpConnection : private Noncopyable {
 
    ~HttpConnection() noexcept;
 
+   void Get(const char* uri, google::protobuf::Message& response);
+
    void Post(const char* uri, const google::protobuf::Message& request,
              google::protobuf::Message& response);
 
   private:
    EventBase event_base_;
    evhttp_connection* connection_;
+   google::protobuf::Message* response_message_{nullptr};
    bool error_{false};
 
    evhttp_request* MakeRequest(evhttp_cmd_type command, const char* uri);

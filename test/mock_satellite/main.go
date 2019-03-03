@@ -46,5 +46,5 @@ func main() {
     responseWriter.Write(data)
   })
 
-  log.Fatal(http.ListenAndServe(fmt.Sprintf("localhost:%d", port), nil))
+  log.Fatal(http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), nil))
 }
