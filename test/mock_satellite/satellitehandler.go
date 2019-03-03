@@ -60,16 +60,11 @@ func (handler* SatelliteHandler) serveStreamingHTTP(responseWriter http.Response
     ReceiveTimestamp: getCurrentTime(),
   }
   reader := bufio.NewReader(request.Body)
-  reportRequest, err := ReadStreamHeader(reader)
+  reportHeader, err := ReadStreamHeader(reader)
   if err != nil {
     log.Fatalf("ReadStreamHeader failed: %s\n", err.Error())
   }
-  handler.reportChannel <- reportRequest
-
-  // Nulify InteralMetrics so that we can reuse the report request without reporting metrics multiple times
-  reportRequest.InternalMetrics = nil
-  reportRequest.Spans = make([]*collectorpb.Span, 1)
-
+  handler.reportChannel <- reportHeader
   for {
     span, err := ReadSpan(reader)
     if err == io.EOF {
@@ -78,8 +73,13 @@ func (handler* SatelliteHandler) serveStreamingHTTP(responseWriter http.Response
     if err != nil {
       log.Fatalf("ReadSpan failed: %s\n", err.Error())
     }
-    reportRequest.Spans[0] = span
-    handler.reportChannel <- reportRequest
+    report := &collectorpb.ReportRequest{
+      Reporter: reportHeader.Reporter,
+      Auth: reportHeader.Auth,
+      Spans: make([]*collectorpb.Span, 1),
+    }
+    report.Spans[0] = span
+    handler.reportChannel <- report
   }
   sendResponse(responseWriter, response)
 }
