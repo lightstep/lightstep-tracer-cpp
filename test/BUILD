@@ -38,6 +38,24 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "http_connection_lib",
+    private_hdrs = [
+        "http_connection.h"
+    ],
+    srcs = [
+        "http_connection.cpp"
+    ],
+    deps = [
+        "//src/common:noncopyable_lib",
+        "//src/network:event_lib",
+    ],
+    external_deps = [
+        "@com_github_libevent_libevent//:libevent",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+lightstep_cc_library(
     name = "counting_metrics_observer_lib",
     private_hdrs = [
         "counting_metrics_observer.h",
