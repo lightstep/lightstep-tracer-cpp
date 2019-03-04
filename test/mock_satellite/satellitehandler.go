@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
@@ -62,10 +61,16 @@ func (handler *SatelliteHandler) serveFixedHTTP(responseWriter http.ResponseWrit
 	response := &collectorpb.ReportResponse{
 		ReceiveTimestamp: getCurrentTime(),
 	}
+	if request.ContentLength < 0 {
+		log.Fatalf("Request has unexpected content length %s\n", request.ContentLength)
+	}
 	report := &collectorpb.ReportRequest{}
-	buffer := new(bytes.Buffer)
-	buffer.ReadFrom(request.Body)
-	err := proto.Unmarshal(buffer.Bytes(), report)
+	buffer := make([]byte, request.ContentLength)
+	_, err := io.ReadFull(request.Body, buffer)
+	if err != nil {
+		log.Fatalf("Failed to read request body: %s\n", err.Error())
+	}
+	err = proto.Unmarshal(buffer, report)
 	if err != nil {
 		log.Fatalf("Failed to unmarshal ReportRequest: %s\n", err.Error())
 	}
