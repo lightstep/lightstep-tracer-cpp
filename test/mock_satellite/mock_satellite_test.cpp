@@ -66,7 +66,7 @@ TEST_CASE("MockSatellite") {
     auto s = WriteStreamingReport(report);
 
     collector::ReportResponse response;
-    connection.Post("/report-mock-streaming", s.data(), s.size(), response);
+    connection.Post("/report-mock-streaming", s, response);
     REQUIRE(mock_satellite.spans().size() == 2);
     REQUIRE(mock_satellite.reports().size() == 3);
   }

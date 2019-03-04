@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 #include "common/noncopyable.h"
 #include "network/event_base.h"
@@ -23,7 +24,7 @@ class HttpConnection : private Noncopyable {
    void Post(const char* uri, const google::protobuf::Message& request,
              google::protobuf::Message& response);
 
-   void Post(const char* uri, const char* data, size_t size,
+   void Post(const char* uri, const std::string& content,
              google::protobuf::Message& response);
 
   private:
@@ -32,7 +33,8 @@ class HttpConnection : private Noncopyable {
    google::protobuf::Message* response_message_{nullptr};
    bool error_{false};
 
-   evhttp_request* MakeRequest(evhttp_cmd_type command, const char* uri);
+   evhttp_request* MakeRequest(evhttp_cmd_type command, const char* uri,
+                               const std::string& content = {});
 
    static void OnCompleteRequest(evhttp_request* request, void* context) noexcept;
 };
