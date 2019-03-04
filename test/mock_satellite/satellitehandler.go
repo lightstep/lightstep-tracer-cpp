@@ -40,8 +40,18 @@ func sendResponse(responseWriter http.ResponseWriter, response *collectorpb.Repo
   responseWriter.Write(serializedResponse)
 }
 
-func (handler *SatelliteHandler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
+func isStreamedRequest(request *http.Request) bool {
   if request.URL.String() == "/report-mock-streaming" {
+    return true
+  }
+  if len(request.TransferEncoding) == 0 {
+    return false
+  }
+  return request.TransferEncoding[0] == "chunked"
+}
+
+func (handler *SatelliteHandler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
+  if isStreamedRequest(request) {
     handler.serveStreamingHTTP(responseWriter, request)
     return
   }
