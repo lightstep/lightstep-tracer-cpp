@@ -14,6 +14,8 @@ class MockSatelliteHandle {
   explicit MockSatelliteHandle(uint16_t port);
 
   std::vector<collector::Span> spans();
+
+  std::vector<collector::ReportRequest> reports();
  private:
   ChildProcessHandle handle_;
   HttpConnection connection_;

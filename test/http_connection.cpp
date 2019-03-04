@@ -78,6 +78,21 @@ void HttpConnection::Post(const char* uri,
   }
 }
 
+void HttpConnection::Post(const char* uri, const char* data, size_t size,
+                          google::protobuf::Message& response) {
+  auto request = MakeRequest(EVHTTP_REQ_POST, uri);
+  auto output_buffer = evhttp_request_get_output_buffer(request);
+  auto rcode = evbuffer_add(output_buffer, static_cast<const void*>(data), size);
+  if (rcode != 0) {
+    throw std::runtime_error{"evbuffer_add failure"};
+  }
+  response_message_ = &response;
+  event_base_.Dispatch();
+  if (error_) {
+    throw std::runtime_error{"Post failed"};
+  }
+}
+
 //--------------------------------------------------------------------------------------------------
 // MakeRequest
 //--------------------------------------------------------------------------------------------------
@@ -87,12 +102,16 @@ evhttp_request* HttpConnection::MakeRequest(evhttp_cmd_type command, const char*
   if (request == nullptr) {
     throw std::runtime_error{"evhttp_request_new failed"};
   }
-  auto rcode = evhttp_make_request(connection_, request, command, uri);
+  auto headers = evhttp_request_get_output_headers(request);
+  auto rcode = evhttp_add_header(headers, "Host", "localhost");
+  if (rcode != 0) {
+    evhttp_request_free(request);
+    throw std::runtime_error{"evhttp_add_header failed"};
+  }
+  rcode = evhttp_make_request(connection_, request, command, uri);
   if (rcode != 0) {
     throw std::runtime_error{"evhttp_make_request failed"};
   }
-  auto headers = evhttp_request_get_output_headers(request);
-  evhttp_add_header(headers, "Host", "localhost");
   return request;
 }
 

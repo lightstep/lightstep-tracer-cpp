@@ -47,4 +47,18 @@ std::vector<collector::Span> MockSatelliteHandle::spans() {
   }
   return result;
 }
+
+//--------------------------------------------------------------------------------------------------
+// reports
+//--------------------------------------------------------------------------------------------------
+std::vector<collector::ReportRequest> MockSatelliteHandle::reports() {
+  mock_satellite::Reports reports;
+  connection_.Get("/reports", reports);
+  std::vector<collector::ReportRequest> result;
+  result.reserve(reports.reports().size());
+  for (auto& report : reports.reports()) {
+    result.emplace_back(report);
+  }
+  return result;
+}
 }  // namespace lightstep

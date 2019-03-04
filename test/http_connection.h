@@ -23,6 +23,9 @@ class HttpConnection : private Noncopyable {
    void Post(const char* uri, const google::protobuf::Message& request,
              google::protobuf::Message& response);
 
+   void Post(const char* uri, const char* data, size_t size,
+             google::protobuf::Message& response);
+
   private:
    EventBase event_base_;
    evhttp_connection* connection_;

@@ -41,6 +41,14 @@ func sendResponse(responseWriter http.ResponseWriter, response *collectorpb.Repo
 }
 
 func (handler *SatelliteHandler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
+  if request.URL.String() == "/report-mock-streaming" {
+    handler.serveStreamingHTTP(responseWriter, request)
+    return
+  }
+  handler.serveFixedHTTP(responseWriter, request)
+}
+
+func (handler* SatelliteHandler) serveFixedHTTP(responseWriter http.ResponseWriter, request *http.Request) {
   response := &collectorpb.ReportResponse{
     ReceiveTimestamp: getCurrentTime(),
   }

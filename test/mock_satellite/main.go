@@ -29,6 +29,7 @@ func main() {
   defer close(reportChannel)
 
   http.Handle("/report", satelliteHandler)
+  http.Handle("/report-mock-streaming", satelliteHandler)
 
   http.HandleFunc("/spans", func (responseWriter http.ResponseWriter, request *http.Request) {
     data, err := proto.Marshal(reportProcessor.Spans())
