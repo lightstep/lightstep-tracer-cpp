@@ -37,7 +37,7 @@ MockSatelliteHandle::MockSatelliteHandle(uint16_t port)
 //--------------------------------------------------------------------------------------------------
 // spans
 //--------------------------------------------------------------------------------------------------
-std::vector<collector::Span> MockSatelliteHandle::spans() { 
+std::vector<collector::Span> MockSatelliteHandle::spans() {
   mock_satellite::Spans spans;
   connection_.Get("/spans", spans);
   std::vector<collector::Span> result;

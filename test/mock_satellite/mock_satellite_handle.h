@@ -3,8 +3,8 @@
 #include <cstdint>
 
 #include "test/child_process_handle.h"
-#include "test/mock_satellite/mock_satellite.pb.h"
 #include "test/http_connection.h"
+#include "test/mock_satellite/mock_satellite.pb.h"
 
 namespace lightstep {
 class MockSatelliteHandle {
@@ -16,6 +16,7 @@ class MockSatelliteHandle {
   std::vector<collector::Span> spans();
 
   std::vector<collector::ReportRequest> reports();
+
  private:
   ChildProcessHandle handle_;
   HttpConnection connection_;

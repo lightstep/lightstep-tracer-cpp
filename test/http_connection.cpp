@@ -1,9 +1,9 @@
 #include "test/http_connection.h"
 
+#include <exception>
+#include <iostream>
 #include <stdexcept>
 #include <string>
-#include <iostream>
-#include <exception>
 
 #include <event2/buffer.h>
 #include <event2/http_struct.h>
@@ -102,8 +102,8 @@ evhttp_request* HttpConnection::MakeRequest(evhttp_cmd_type command,
     std::terminate();
   }
   auto output_buffer = evhttp_request_get_output_buffer(request);
-  rcode = evbuffer_add(
-      output_buffer, static_cast<const void*>(content.data()), content.size());
+  rcode = evbuffer_add(output_buffer, static_cast<const void*>(content.data()),
+                       content.size());
   if (rcode != 0) {
     std::cerr << "evbuffer_add failure\n";
     std::terminate();
@@ -119,11 +119,13 @@ evhttp_request* HttpConnection::MakeRequest(evhttp_cmd_type command,
 //--------------------------------------------------------------------------------------------------
 // OnCompleteRequest
 //--------------------------------------------------------------------------------------------------
-void HttpConnection::OnCompleteRequest(evhttp_request* request, void* context) noexcept {
+void HttpConnection::OnCompleteRequest(evhttp_request* request,
+                                       void* context) noexcept {
   auto self = static_cast<HttpConnection*>(context);
   self->error_ = request == nullptr || request->response_code != 200;
-  ReadMessage(*evhttp_request_get_input_buffer(request), *self->response_message_);
+  ReadMessage(*evhttp_request_get_input_buffer(request),
+              *self->response_message_);
   self->response_message_ = nullptr;
   self->event_base_.LoopBreak();
 }
-} // namespace lightstep
+}  // namespace lightstep
