@@ -9,8 +9,6 @@
 namespace lightstep {
 class MockSatelliteHandle {
  public:
-  MockSatelliteHandle() noexcept = default;
-
   explicit MockSatelliteHandle(uint16_t port);
 
   std::vector<collector::Span> spans();
