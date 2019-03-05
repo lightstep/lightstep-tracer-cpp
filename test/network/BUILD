@@ -27,6 +27,26 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "fragment_input_stream_test",
+    srcs = [
+        "fragment_input_stream_test.cpp",
+    ],
+    deps = [
+        "//src/network:fragment_input_stream_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "fragment_set_test",
+    srcs = [
+        "fragment_set_test.cpp",
+    ],
+    deps = [
+        "//src/network:fragment_set_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "timer_event_test",
     srcs = [
         "timer_event_test.cpp",

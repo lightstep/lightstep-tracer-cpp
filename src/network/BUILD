@@ -52,6 +52,26 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "fragment_set_lib",
+    private_hdrs = [
+        "fragment_set.h",
+    ],
+    srcs = [
+        "fragment_set.cpp",
+    ],
+)
+
+lightstep_cc_library(
+    name = "fragment_input_stream_lib",
+    private_hdrs = [
+        "fragment_input_stream.h",
+    ],
+    deps = [
+        ":fragment_set_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "dns_resolver_interface",
     private_hdrs = [
         "dns_resolver.h",
