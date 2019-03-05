@@ -2,7 +2,7 @@ proto_library(
     name = "collector_proto",
     srcs = ["collector.proto"],
     deps = [
-        "@lightstep_vendored_googleapis//:googleapis_proto",
+        "@com_github_googleapis_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
     visibility = ["//visibility:public"],

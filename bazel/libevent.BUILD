@@ -79,7 +79,7 @@ genrule(
 cc_library(
     name = "libevent",
     srcs = [
-        "libevent/lib/libevent_core.a",
+        "libevent/lib/libevent.a",
     ],
     hdrs = include_files,
     includes = ["libevent/include"],

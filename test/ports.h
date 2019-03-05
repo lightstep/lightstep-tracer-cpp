@@ -7,6 +7,7 @@ enum class PortAssignments : uint16_t {
   AresDnsResolverTest = 9000,
   SatelliteDnsResolutionManagerTest,
   SatelliteEndpointManagerTest,
-  StreamRecorderTest
+  StreamRecorderTest,
+  MockSatelliteTest
 };
 }  // namespace lightstep

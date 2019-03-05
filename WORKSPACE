@@ -9,9 +9,10 @@ git_repository(
     commit = "ac50154a7713877f877981c33c3375003b6ebfe1",
 )
 
-local_repository(
-    name = "lightstep_vendored_googleapis",
-    path = "lightstep-tracer-common/third_party/googleapis",
+git_repository(
+    name = "com_github_googleapis_googleapis",
+    remote = "https://github.com/googleapis/googleapis",
+    commit = "41d72d444fbe445f4da89e13be02078734fb7875",
 )
 
 http_archive(
@@ -88,3 +89,10 @@ go_repository(
 	importpath = "github.com/miekg/dns",
 	tag = "v1.1.4",
 )
+
+go_repository(
+    name = "com_github_golang_protobuf",
+    importpath = "github.com/golang/protobuf",
+    tag = "v1.3.0",
+)
+
