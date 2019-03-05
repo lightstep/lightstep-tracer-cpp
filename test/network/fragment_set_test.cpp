@@ -4,5 +4,4 @@
 
 using namespace lightstep;
 
-TEST_CASE("FragmentSet") {
-}
+TEST_CASE("FragmentSet") {}

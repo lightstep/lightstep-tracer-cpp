@@ -9,7 +9,7 @@ struct FragmentPositionHelper {
   int* n;
   int fragment_index;
 };
-} // namespace
+}  // namespace
 
 //--------------------------------------------------------------------------------------------------
 // ComputeFragmentPosition
@@ -35,4 +35,4 @@ std::tuple<int, int, int> ComputeFragmentPosition(
   }
   return {static_cast<int>(fragment_sets.size()), 0, 0};
 }
-} // namespace lightstep
+}  // namespace lightstep
