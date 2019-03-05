@@ -28,10 +28,12 @@ std::tuple<int, int, int> ComputeFragmentPosition(
   int fragment_set_index = 0;
   for (auto fragment_set : fragment_sets) {
     FragmentPositionHelper position_helper{&n, 0};
-    if (!fragment_set->ForEachFragment(f, static_cast<void*>(&n))) {
+    if (!fragment_set->ForEachFragment(f,
+                                       static_cast<void*>(&position_helper))) {
       return std::make_tuple(fragment_set_index, position_helper.fragment_index,
                              *position_helper.n);
     }
+    ++fragment_set_index;
   }
   return {static_cast<int>(fragment_sets.size()), 0, 0};
 }

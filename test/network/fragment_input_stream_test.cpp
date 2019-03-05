@@ -4,31 +4,8 @@
 #include <string>
 
 #include "3rd_party/catch2/catch.hpp"
-
+#include "test/network/utility.h"
 using namespace lightstep;
-
-static std::pair<void*, int> MakeFragment(const char* s) {
-  return {static_cast<void*>(const_cast<char*>(s)),
-          static_cast<int>(std::strlen(s))};
-}
-
-template <class... Fragments>
-static FragmentInputStream<sizeof...(Fragments)> MakeFragmentInputStream(
-    Fragments... fragments) {
-  return FragmentInputStream<sizeof...(Fragments)>{MakeFragment(fragments)...};
-}
-
-static std::string ToString(const FragmentSet& fragment_set) {
-  std::string result;
-  fragment_set.ForEachFragment(
-      [](void* data, int size, void* context) {
-        static_cast<std::string*>(context)->append(static_cast<char*>(data),
-                                                   static_cast<size_t>(size));
-        return true;
-      },
-      static_cast<void*>(&result));
-  return result;
-}
 
 TEST_CASE("FragmentInputStream") {
   auto input_stream = MakeFragmentInputStream("abc", "123");
