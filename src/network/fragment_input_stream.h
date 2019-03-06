@@ -10,7 +10,7 @@
 
 namespace lightstep {
 template <size_t N>
-class FragmentInputStream : public FragmentSet {
+class FragmentInputStream final : public FragmentSet {
  public:
   explicit FragmentInputStream(
       std::initializer_list<std::pair<void*, int>> fragments) {
