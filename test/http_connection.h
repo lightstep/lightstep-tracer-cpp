@@ -19,6 +19,8 @@ class HttpConnection : private Noncopyable {
 
   ~HttpConnection() noexcept;
 
+  std::string Get(const char* uri);
+
   void Get(const char* uri, google::protobuf::Message& response);
 
   void Post(const char* uri, const google::protobuf::Message& request,
@@ -30,6 +32,7 @@ class HttpConnection : private Noncopyable {
  private:
   EventBase event_base_;
   evhttp_connection* connection_;
+  std::string result_;
   google::protobuf::Message* response_message_{nullptr};
   bool error_{false};
 

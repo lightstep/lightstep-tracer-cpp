@@ -8,6 +8,8 @@ enum class PortAssignments : uint16_t {
   SatelliteDnsResolutionManagerTest,
   SatelliteEndpointManagerTest,
   StreamRecorderTest,
-  MockSatelliteTest
+  MockSatelliteTest,
+  VectorWriteTestHttp,
+  VectorWriteTestTcp
 };
 }  // namespace lightstep

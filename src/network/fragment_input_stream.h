@@ -20,9 +20,14 @@ class FragmentInputStream : public FragmentSet {
 
   void Seek(int fragment_index, int position) noexcept {
     assert(fragment_index < static_cast<int>(N));
-    assert(position < fragments_[fragment_index].second);
-    fragment_index_ = fragment_index;
-    position_ = position;
+    if (fragment_index_ == fragment_index) {
+      position_ += position;
+    } else {
+      position_ = position;
+    }
+    fragment_index_ += fragment_index;
+    assert(fragment_index_ < static_cast<int>(N));
+    assert(position_ < fragments_[fragment_index].second);
   }
 
   void Clear() { fragment_index_ = static_cast<int>(N); }

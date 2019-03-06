@@ -72,6 +72,19 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "vector_write_lib",
+    private_hdrs = [
+        "vector_write.h",
+    ],
+    srcs = [
+        "vector_write.cpp",
+    ],
+    deps = [
+        ":fragment_set_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "dns_resolver_interface",
     private_hdrs = [
         "dns_resolver.h",

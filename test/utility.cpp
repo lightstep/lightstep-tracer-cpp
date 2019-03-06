@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "common/utility.h"
+#include "network/socket.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -67,5 +68,18 @@ bool HasRelationship(opentracing::SpanReferenceType relationship,
         return google::protobuf::util::MessageDifferencer::Equals(reference,
                                                                   other);
       });
+}
+
+//--------------------------------------------------------------------------------------------------
+// CanConnect
+//--------------------------------------------------------------------------------------------------
+bool CanConnect(uint16_t port) noexcept try {
+  Socket socket{};
+  socket.SetReuseAddress();
+  IpAddress ip_address{"127.0.0.1", port};
+  return socket.Connect(ip_address.addr(), sizeof(ip_address.ipv4_address())) ==
+         0;
+} catch (...) {
+  return false;
 }
 }  // namespace lightstep

@@ -16,6 +16,8 @@ bool HasRelationship(opentracing::SpanReferenceType relationship,
                      const collector::Span& span_a,
                      const collector::Span& span_b);
 
+bool CanConnect(uint16_t port) noexcept;
+
 /**
  * Continually polls a provied functor until either it returns true or a timeout
  * is reached.

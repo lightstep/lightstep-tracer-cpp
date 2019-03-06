@@ -10,20 +10,6 @@
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
-// ReadMessage
-//--------------------------------------------------------------------------------------------------
-static void ReadMessage(evbuffer& buffer, google::protobuf::Message& message) {
-  std::string s;
-  s.resize(evbuffer_get_length(&buffer));
-  evbuffer_copyout(&buffer, static_cast<void*>(&s[0]), s.size());
-  auto rcode = message.ParseFromString(s);
-  if (!rcode) {
-    std::cerr << "ParseFromString failed\n";
-    std::terminate();
-  }
-}
-
-//--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
 HttpConnection::HttpConnection(const char* address, uint16_t port) {
@@ -46,13 +32,22 @@ HttpConnection::~HttpConnection() noexcept {
 // Get
 //--------------------------------------------------------------------------------------------------
 void HttpConnection::Get(const char* uri, google::protobuf::Message& response) {
+  auto response_content = Get(uri);
+  auto rcode = response.ParseFromString(response_content);
+  if (!rcode) {
+    std::cerr << "ParseFromString failed\n";
+    std::terminate();
+  }
+}
+
+std::string HttpConnection::Get(const char* uri) {
   MakeRequest(EVHTTP_REQ_POST, uri);
-  response_message_ = &response;
   event_base_.Dispatch();
   if (error_) {
     std::cerr << "Get failed\n";
     std::terminate();
   }
+  return result_;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -63,13 +58,7 @@ void HttpConnection::Post(const char* uri,
                           google::protobuf::Message& response) {
   std::string content;
   request.SerializeToString(&content);
-  MakeRequest(EVHTTP_REQ_POST, uri, content);
-  response_message_ = &response;
-  event_base_.Dispatch();
-  if (error_) {
-    std::cerr << "Post failed\n";
-    std::terminate();
-  }
+  Post(uri, content, response);
 }
 
 void HttpConnection::Post(const char* uri, const std::string& content,
@@ -79,6 +68,11 @@ void HttpConnection::Post(const char* uri, const std::string& content,
   event_base_.Dispatch();
   if (error_) {
     std::cerr << "Post failed\n";
+    std::terminate();
+  }
+  auto rcode = response.ParseFromString(result_);
+  if (!rcode) {
+    std::cerr << "ParseFromString failed\n";
     std::terminate();
   }
 }
@@ -123,9 +117,18 @@ void HttpConnection::OnCompleteRequest(evhttp_request* request,
                                        void* context) noexcept {
   auto self = static_cast<HttpConnection*>(context);
   self->error_ = request == nullptr || request->response_code != 200;
-  ReadMessage(*evhttp_request_get_input_buffer(request),
-              *self->response_message_);
-  self->response_message_ = nullptr;
+  self->result_.clear();
+  auto buffer = evhttp_request_get_input_buffer(request);
+  if (buffer == nullptr) {
+    return;
+  }
+  self->result_.resize(evbuffer_get_length(buffer));
+  auto rcode = evbuffer_copyout(buffer, static_cast<void*>(&self->result_[0]),
+                                self->result_.size());
+  if (rcode == -1) {
+    std::cerr << "evbuffer_copyout failed\n";
+    std::terminate();
+  }
   self->event_base_.LoopBreak();
 }
 }  // namespace lightstep

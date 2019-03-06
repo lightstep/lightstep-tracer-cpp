@@ -63,6 +63,20 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "vector_write_test",
+    srcs = [
+        "vector_write_test.cpp",
+    ],
+    deps = [
+        "//src/network:socket_lib",
+        "//src/network:vector_write_lib",
+        "//test/echo_server:echo_server_lib",
+        "//test:ports_lib",
+        "//test/network:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "timer_event_test",
     srcs = [
         "timer_event_test.cpp",

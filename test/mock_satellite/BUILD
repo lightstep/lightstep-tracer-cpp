@@ -74,7 +74,6 @@ lightstep_cc_library(
         "//test:child_process_handle_lib",
         "//test:utility_lib",
         "//test:http_connection_lib",
-        "//src/network:socket_lib",
         ":mock_satellite_proto_cc",
     ],
     data = [

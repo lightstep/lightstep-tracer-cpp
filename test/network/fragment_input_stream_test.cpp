@@ -24,6 +24,17 @@ TEST_CASE("FragmentInputStream") {
     REQUIRE(ToString(input_stream) == "123");
   }
 
+  SECTION("Seeks are done relative to the current position.") {
+    input_stream.Seek(0, 1);
+    input_stream.Seek(0, 1);
+    REQUIRE(input_stream.num_fragments() == 2);
+    REQUIRE(ToString(input_stream) == "c123");
+    input_stream.Seek(1, 0);
+    input_stream.Seek(0, 1);
+    REQUIRE(input_stream.num_fragments() == 1);
+    REQUIRE(ToString(input_stream) == "23");
+  }
+
   SECTION("When we Clear a stream, there's nothing in it.") {
     input_stream.Clear();
     REQUIRE(input_stream.num_fragments() == 0);
