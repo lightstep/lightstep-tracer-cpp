@@ -200,6 +200,7 @@ if (WITH_LIBEVENT)
                              src/network/timer_event.cpp
                              src/network/ip_address.cpp
                              src/network/socket.cpp
+                             src/network/vector_write.cpp
   )
   if (WITH_CARES)
     list(APPEND LIGHTSTEP_SRCS src/network/ares_dns_resolver/ares_dns_resolver.cpp
