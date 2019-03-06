@@ -24,8 +24,8 @@ std::tuple<int, int, int> Write(
   for (auto fragment_set : fragment_sets) {
     fragment_set->ForEachFragment(
         [](void* data, int size, void* context) {
-          auto fragment_iter = static_cast<iovec**>(context);
-          *(*fragment_iter)++ = iovec{data, static_cast<size_t>(size)};
+          auto& fragment_iter = *static_cast<iovec**>(context);
+          *fragment_iter++ = iovec{data, static_cast<size_t>(size)};
           return true;
         },
         static_cast<void*>(&fragment_iter));
