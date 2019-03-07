@@ -50,6 +50,16 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "function_ref_test",
+    srcs = [
+        "function_ref_test.cpp",
+    ],
+    deps = [
+        "//src/common:function_ref_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "utility_test",
     srcs = [
         "utility_test.cpp",

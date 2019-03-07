@@ -56,6 +56,13 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "function_ref_lib",
+    private_hdrs = [
+        "function_ref.h",
+    ],
+)
+
+lightstep_cc_library(
     name = "in_memory_stream_lib",
     private_hdrs = [
         "in_memory_stream.h",
