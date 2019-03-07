@@ -24,6 +24,10 @@ TEST_CASE("VectorWrite") {
   REQUIRE(socket.Connect(server_address.addr(),
                          sizeof(server_address.ipv4_address())) == 0);
 
+  SECTION("Calling write with no fragments returns a zero tuple.") {
+    REQUIRE(Write(socket.file_descriptor(), {}) == std::make_tuple(0, 0, 0));
+  }
+
   SECTION("Write can be used to send fragments over a socket.") {
     auto result = Write(socket.file_descriptor(), {&fragments1, &fragments2});
     socket = Socket{};

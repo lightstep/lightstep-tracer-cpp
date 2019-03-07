@@ -19,6 +19,9 @@ std::tuple<int, int, int> Write(
   for (auto fragment_set : fragment_sets) {
     num_fragments += fragment_set->num_fragments();
   }
+  if (num_fragments == 0) {
+    return std::make_tuple(0, 0, 0);
+  }
   auto fragments = static_cast<iovec*>(alloca(sizeof(iovec) * num_fragments));
   auto fragment_iter = fragments;
   for (auto fragment_set : fragment_sets) {
