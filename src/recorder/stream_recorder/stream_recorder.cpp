@@ -40,14 +40,11 @@ StreamRecorder::~StreamRecorder() noexcept {
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
   auto serialization_callback =
-      [](google::protobuf::io::CodedOutputStream& stream, size_t /*size*/,
-         void* context) {
-        static_cast<collector::Span*>(context)->SerializeWithCachedSizes(
-            &stream);
+      [&span](google::protobuf::io::CodedOutputStream& stream) {
+        span.SerializeWithCachedSizes(&stream);
       };
   auto was_added =
-      span_buffer_.Add(serialization_callback, span.ByteSizeLong(),
-                       static_cast<void*>(const_cast<collector::Span*>(&span)));
+      span_buffer_.Add(serialization_callback, span.ByteSizeLong());
   if (!was_added) {
     logger_.Debug("Dropping span ", span.span_context().span_id());
   }

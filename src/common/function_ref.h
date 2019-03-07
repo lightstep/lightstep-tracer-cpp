@@ -8,8 +8,8 @@ template <class Sig>
 class FunctionRef;
 
 /**
- * Non-owning function reference that can be used as a more performant replacement than 
- * std::function when ownership sematics aren't needed.
+ * Non-owning function reference that can be used as a more performant
+ * replacement than std::function when ownership sematics aren't needed.
  *
  * See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0792r0.html
  *
@@ -39,7 +39,9 @@ class FunctionRef<R(Args...)> {
   template <class R_in, class... Args_in>
   void BindTo(R_in (*f)(Args_in...)) noexcept {
     using F = decltype(f);
-    if (!f) return BindTo(nullptr);
+    if (!f) {
+      return BindTo(nullptr);
+    }
     callable_ = reinterpret_cast<void*>(f);
     invoker_ = [](void* callable_, Args... args) -> R {
       return (F(callable_))(std::forward<Args>(args)...);
@@ -52,19 +54,22 @@ class FunctionRef<R(Args...)> {
   }
 
  public:
-  template <class F,
-            typename std::enable_if<
-                !std::is_same<FunctionRef, typename std::decay<F>::type>{},
-                int>::type = 0,
-            typename std::enable_if<
-                std::is_convertible<
-                    typename std::result_of<F&(Args...)>::type, R>{},
-                int>::type = 0>
+  template <
+      class F,
+      typename std::enable_if<
+          !std::is_same<FunctionRef, typename std::decay<F>::type>{},
+          int>::type = 0,
+      typename std::enable_if<
+          std::is_convertible<typename std::result_of<F&(Args...)>::type, R>{},
+          int>::type = 0>
   FunctionRef(F&& f) {
     BindTo(f);  // not forward
   }
 
   FunctionRef(std::nullptr_t) {}
+
+  FunctionRef(const FunctionRef&) noexcept = default;
+  FunctionRef(FunctionRef&&) noexcept = default;
 
   R operator()(Args... args) const {
     return invoker_(callable_, std::forward<Args>(args)...);

@@ -51,6 +51,7 @@ lightstep_cc_library(
         ":atomic_bit_set_lib",
         ":bipart_memory_stream_lib",
         ":circular_buffer_lib",
+        ":function_ref_lib",
         ":utility_lib",
     ],
 )
