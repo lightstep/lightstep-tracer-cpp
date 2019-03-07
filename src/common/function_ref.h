@@ -39,7 +39,7 @@ class FunctionRef<R(Args...)> {
   template <class R_in, class... Args_in>
   void BindTo(R_in (*f)(Args_in...)) noexcept {
     using F = decltype(f);
-    if (!f) {
+    if (f == nullptr) {
       return BindTo(nullptr);
     }
     callable_ = reinterpret_cast<void*>(f);
