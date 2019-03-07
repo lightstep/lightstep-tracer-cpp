@@ -13,19 +13,44 @@ struct evhttp_connection;
 struct evhttp_request;
 
 namespace lightstep {
+/**
+ * Manages an http connection.
+ */
 class HttpConnection : private Noncopyable {
  public:
   HttpConnection(const char* address, uint16_t port);
 
   ~HttpConnection() noexcept;
 
+  /**
+   * Sends an http get request.
+   * @param uri the uri to use for the request.
+   * @return the contents of the response.
+   */
   std::string Get(const char* uri);
 
+  /**
+   * Sends an http request and parses the response into a protobuf message.
+   * @param uri the uri to use for the request.
+   * @param response the protobuf to parse the response into.
+   */
   void Get(const char* uri, google::protobuf::Message& response);
 
+  /**
+   * Sends an http post request and parses the response into a protobuf message.
+   * @param uri the uri to use for the request.
+   * @param request a protobuf message to serialize into the request body.
+   * @param response the protobuf to parse the response into.
+   */
   void Post(const char* uri, const google::protobuf::Message& request,
             google::protobuf::Message& response);
 
+  /**
+   * Sends an http post request and parses the response into a protobuf message.
+   * @param uri the uri to use for the request.
+   * @param request a string to use in the request body.
+   * @param response the protobuf to parse the response into.
+   */
   void Post(const char* uri, const std::string& content,
             google::protobuf::Message& response);
 
