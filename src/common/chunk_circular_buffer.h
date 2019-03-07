@@ -15,10 +15,7 @@ namespace lightstep {
  */
 class ChunkCircularBuffer {
  public:
-  using Serializer = void(google::protobuf::io::CodedOutputStream& stream,
-                          size_t size, void* context);
-
-  using Serializer2 = void(google::protobuf::io::CodedOutputStream&);
+  using Serializer = void(google::protobuf::io::CodedOutputStream&);
 
   explicit ChunkCircularBuffer(size_t max_bytes);
 
@@ -34,7 +31,7 @@ class ChunkCircularBuffer {
    */
   /* bool Add(Serializer serializer, size_t size, void* context) noexcept; */
 
-  bool Add(FunctionRef<Serializer2> serializer, size_t size) noexcept;
+  bool Add(FunctionRef<Serializer> serializer, size_t size) noexcept;
 
   /**
    * Marks memory starting from the circular buffer's tail where serialization

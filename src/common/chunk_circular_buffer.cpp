@@ -15,7 +15,7 @@ ChunkCircularBuffer::ChunkCircularBuffer(size_t max_bytes)
 //--------------------------------------------------------------------------------------------------
 // Add
 //--------------------------------------------------------------------------------------------------
-bool ChunkCircularBuffer::Add(FunctionRef<Serializer2> serializer,
+bool ChunkCircularBuffer::Add(FunctionRef<Serializer> serializer,
                               size_t size) noexcept {
   assert(size > 0);
   static const auto line_terminator = "\r\n";
