@@ -9,6 +9,9 @@
 #include "network/fragment_set.h"
 
 namespace lightstep {
+/**
+ * A non-owning stream of fragments.
+ */
 template <size_t N>
 class FragmentInputStream final : public FragmentSet {
  public:
@@ -18,6 +21,13 @@ class FragmentInputStream final : public FragmentSet {
     std::copy(fragments.begin(), fragments.end(), fragments_.begin());
   }
 
+  /**
+   * Adjust the position of the fragment stream.
+   * @param fragment_index the new fragment index to reposition to relative to
+   * the current fragment index.
+   * @param position the position within fragment_index to reposition to
+   * relative to the current position.
+   */
   void Seek(int fragment_index, int position) noexcept {
     assert(fragment_index < static_cast<int>(N));
     if (fragment_index_ == fragment_index) {
@@ -30,6 +40,9 @@ class FragmentInputStream final : public FragmentSet {
     assert(position_ < fragments_[fragment_index].second);
   }
 
+  /**
+   * Repositions the stream to end of all the fragments.
+   */
   void Clear() { fragment_index_ = static_cast<int>(N); }
 
   // FragmentSet

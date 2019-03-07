@@ -9,7 +9,7 @@ class FunctionRef;
 
 /**
  * Non-owning function reference that can be used as a more performant
- * replacement than std::function when ownership sematics aren't needed.
+ * replacement for std::function when ownership sematics aren't needed.
  *
  * See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0792r0.html
  *
@@ -31,11 +31,7 @@ class FunctionRef<R(Args...)> {
           std::forward<Args>(args)...);
     };
   }
-  // when binding to a function pointer
-  // even a not identical one, check for
-  // null.  In addition, we can remove a
-  // layer of indirection and store the function
-  // pointer directly in the `void*`.
+
   template <class R_in, class... Args_in>
   void BindTo(R_in (*f)(Args_in...)) noexcept {
     using F = decltype(f);
@@ -47,7 +43,7 @@ class FunctionRef<R(Args...)> {
       return (F(callable_))(std::forward<Args>(args)...);
     };
   }
-  // binding to nothing:
+
   void BindTo(std::nullptr_t) noexcept {
     callable_ = nullptr;
     invoker_ = nullptr;
