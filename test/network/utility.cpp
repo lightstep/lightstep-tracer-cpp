@@ -16,13 +16,10 @@ std::pair<void*, int> MakeFragment(const char* s) {
 //--------------------------------------------------------------------------------------------------
 std::string ToString(const FragmentSet& fragment_set) {
   std::string result;
-  fragment_set.ForEachFragment(
-      [](void* data, int size, void* context) {
-        static_cast<std::string*>(context)->append(static_cast<char*>(data),
-                                                   static_cast<size_t>(size));
-        return true;
-      },
-      static_cast<void*>(&result));
+  fragment_set.ForEachFragment([&result](void* data, int size) {
+    result.append(static_cast<char*>(data), static_cast<size_t>(size));
+    return true;
+  });
   return result;
 }
 }  // namespace lightstep

@@ -40,11 +40,10 @@ TEST_CASE("FragmentInputStream") {
     REQUIRE(input_stream.num_fragments() == 0);
     int fragment_count = 0;
     input_stream.ForEachFragment(
-        [](void* /*data*/, int /*size*/, void* context) {
-          ++*static_cast<int*>(context);
+        [&fragment_count](void* /*data*/, int /*size*/) {
+          ++fragment_count;
           return true;
-        },
-        static_cast<void*>(&fragment_count));
+        });
     REQUIRE(fragment_count == 0);
   }
 }

@@ -59,6 +59,9 @@ lightstep_cc_library(
     srcs = [
         "fragment_set.cpp",
     ],
+    deps = [
+        "//src/common:function_ref_lib",
+    ],
 )
 
 lightstep_cc_library(

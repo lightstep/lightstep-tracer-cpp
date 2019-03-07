@@ -37,8 +37,7 @@ class FragmentInputStream final : public FragmentSet {
     return static_cast<int>(N) - fragment_index_;
   }
 
-  bool ForEachFragment(Callback callback, void* context) const
-      noexcept override {
+  bool ForEachFragment(FunctionRef<Callback> callback) const noexcept override {
     if (fragment_index_ >= static_cast<int>(N)) {
       return true;
     }
@@ -47,13 +46,13 @@ class FragmentInputStream final : public FragmentSet {
     auto result =
         callback(static_cast<void*>(static_cast<char*>(current_fragment.first) +
                                     position_),
-                 current_fragment.second - position_, context);
+                 current_fragment.second - position_);
     if (!result) {
       return false;
     }
 
     for (int i = fragment_index_ + 1; i < static_cast<int>(N); ++i) {
-      if (!callback(fragments_[i].first, fragments_[i].second, context)) {
+      if (!callback(fragments_[i].first, fragments_[i].second)) {
         return false;
       }
     }

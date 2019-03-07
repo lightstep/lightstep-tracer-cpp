@@ -25,13 +25,10 @@ std::tuple<int, int, int> Write(
   auto fragments = static_cast<iovec*>(alloca(sizeof(iovec) * num_fragments));
   auto fragment_iter = fragments;
   for (auto fragment_set : fragment_sets) {
-    fragment_set->ForEachFragment(
-        [](void* data, int size, void* context) {
-          auto& fragment_iter = *static_cast<iovec**>(context);
-          *fragment_iter++ = iovec{data, static_cast<size_t>(size)};
-          return true;
-        },
-        static_cast<void*>(&fragment_iter));
+    fragment_set->ForEachFragment([&fragment_iter](void* data, int size) {
+      *fragment_iter++ = iovec{data, static_cast<size_t>(size)};
+      return true;
+    });
   }
   assert(fragment_iter == fragments + num_fragments);
   auto rcode = ::writev(socket, fragments, num_fragments);

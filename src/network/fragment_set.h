@@ -4,10 +4,12 @@
 #include <initializer_list>
 #include <tuple>
 
+#include "common/function_ref.h"
+
 namespace lightstep {
 class FragmentSet {
  public:
-  using Callback = bool(void* data, int size, void* context);
+  using Callback = bool(void* data, int size);
 
   FragmentSet() noexcept = default;
   FragmentSet(const FragmentSet&) noexcept = default;
@@ -20,7 +22,7 @@ class FragmentSet {
 
   virtual int num_fragments() const noexcept = 0;
 
-  virtual bool ForEachFragment(Callback callback, void* context) const
+  virtual bool ForEachFragment(FunctionRef<Callback> callback) const
       noexcept = 0;
 };
 
