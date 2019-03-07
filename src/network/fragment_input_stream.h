@@ -41,7 +41,7 @@ class FragmentInputStream final : public FragmentSet {
   }
 
   /**
-   * Repositions the stream to end of all the fragments.
+   * Repositions the stream to the end of all the fragments.
    */
   void Clear() { fragment_index_ = static_cast<int>(N); }
 
