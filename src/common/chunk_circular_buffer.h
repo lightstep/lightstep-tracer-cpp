@@ -24,13 +24,9 @@ class ChunkCircularBuffer {
    * @param serializer supplies a function that writes data into a
    * CodedOutputStream that writes data into the circular buffer.
    * @param size supplies the number of bytes of the serialization.
-   * @param context supplies an arbitrary context that is passed to the
-   * serializer.
    * @return true if the the serialization was added, or false if not enough
    * space could be reserved.
    */
-  /* bool Add(Serializer serializer, size_t size, void* context) noexcept; */
-
   bool Add(FunctionRef<Serializer> serializer, size_t size) noexcept;
 
   /**

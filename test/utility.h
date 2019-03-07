@@ -16,6 +16,11 @@ bool HasRelationship(opentracing::SpanReferenceType relationship,
                      const collector::Span& span_a,
                      const collector::Span& span_b);
 
+/**
+ * Determines whether we can connect to a given localhost port.
+ * @param port supplies the port to test for connectivity.
+ * @return true if we can connect to localhost:port.
+ */
 bool CanConnect(uint16_t port) noexcept;
 
 /**
