@@ -23,14 +23,12 @@ static std::string ToString(const CircularBufferConstPlacement& placement) {
   return s;
 }
 
-static void WriteString(google::protobuf::io::CodedOutputStream& stream,
-                        size_t size, void* data) {
-  stream.WriteRaw(data, static_cast<int>(size));
-}
-
 static bool AddString(ChunkCircularBuffer& buffer, opentracing::string_view s) {
-  return buffer.Add(WriteString, s.size(),
-                    static_cast<void*>(const_cast<char*>(s.data())));
+  return buffer.Add(
+      [s](google::protobuf::io::CodedOutputStream& stream) {
+        stream.WriteRaw(s.data(), s.size());
+      },
+      s.size());
 }
 
 static thread_local std::mt19937 RandomNumberGenerator{std::random_device{}()};

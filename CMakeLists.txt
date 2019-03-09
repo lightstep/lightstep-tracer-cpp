@@ -196,9 +196,11 @@ if (WITH_LIBEVENT)
                              src/recorder/stream_recorder/utility.cpp
                              src/network/event.cpp
                              src/network/event_base.cpp
+                             src/network/fragment_set.cpp
                              src/network/timer_event.cpp
                              src/network/ip_address.cpp
                              src/network/socket.cpp
+                             src/network/vector_write.cpp
   )
   if (WITH_CARES)
     list(APPEND LIGHTSTEP_SRCS src/network/ares_dns_resolver/ares_dns_resolver.cpp

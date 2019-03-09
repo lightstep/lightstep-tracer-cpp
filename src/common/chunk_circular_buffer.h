@@ -2,6 +2,7 @@
 
 #include "common/atomic_bit_set.h"
 #include "common/circular_buffer.h"
+#include "common/function_ref.h"
 
 #include <google/protobuf/io/coded_stream.h>
 
@@ -14,8 +15,7 @@ namespace lightstep {
  */
 class ChunkCircularBuffer {
  public:
-  using Serializer = void(google::protobuf::io::CodedOutputStream& stream,
-                          size_t size, void* context);
+  using Serializer = void(google::protobuf::io::CodedOutputStream&);
 
   explicit ChunkCircularBuffer(size_t max_bytes);
 
@@ -24,12 +24,10 @@ class ChunkCircularBuffer {
    * @param serializer supplies a function that writes data into a
    * CodedOutputStream that writes data into the circular buffer.
    * @param size supplies the number of bytes of the serialization.
-   * @param context supplies an arbitrary context that is passed to the
-   * serializer.
    * @return true if the the serialization was added, or false if not enough
    * space could be reserved.
    */
-  bool Add(Serializer serializer, size_t size, void* context) noexcept;
+  bool Add(FunctionRef<Serializer> serializer, size_t size) noexcept;
 
   /**
    * Marks memory starting from the circular buffer's tail where serialization

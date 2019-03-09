@@ -11,6 +11,7 @@ CHECKS="\
 -clang-diagnostic-deprecated,\
 -llvm-include-order,\
 -llvm-header-guard,\
+-misc-forwarding-reference-overload,\
 -google-runtime-references,\
 -google-build-using-namespace,\
 -google-runtime-int,\

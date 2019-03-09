@@ -51,7 +51,15 @@ lightstep_cc_library(
         ":atomic_bit_set_lib",
         ":bipart_memory_stream_lib",
         ":circular_buffer_lib",
+        ":function_ref_lib",
         ":utility_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "function_ref_lib",
+    private_hdrs = [
+        "function_ref.h",
     ],
 )
 

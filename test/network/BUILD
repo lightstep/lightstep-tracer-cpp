@@ -1,10 +1,24 @@
 load(
     "//bazel:lightstep_build_system.bzl",
+    "lightstep_cc_library",
     "lightstep_catch_test",
     "lightstep_package",
 )
 
 lightstep_package()
+
+lightstep_cc_library(
+    name = "utility_lib",
+    private_hdrs = [
+        "utility.h",
+    ],
+    srcs = [
+        "utility.cpp",
+    ],
+    deps = [
+        "//src/network:fragment_input_stream_lib",
+    ],
+)
 
 lightstep_catch_test(
     name = "event_test",
@@ -23,6 +37,42 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/network:event_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "fragment_input_stream_test",
+    srcs = [
+        "fragment_input_stream_test.cpp",
+    ],
+    deps = [
+        "//src/network:fragment_input_stream_lib",
+        ":utility_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "fragment_set_test",
+    srcs = [
+        "fragment_set_test.cpp",
+    ],
+    deps = [
+        "//src/network:fragment_set_lib",
+        ":utility_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "vector_write_test",
+    srcs = [
+        "vector_write_test.cpp",
+    ],
+    deps = [
+        "//src/network:socket_lib",
+        "//src/network:vector_write_lib",
+        "//test/echo_server:echo_server_lib",
+        "//test:ports_lib",
+        "//test/network:utility_lib",
     ],
 )
 

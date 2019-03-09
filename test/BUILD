@@ -17,6 +17,7 @@ lightstep_cc_library(
     deps = [
         "//lightstep-tracer-common:collector_proto_cc",
         "//src/common:utility_lib",
+        "//src/network:socket_lib",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",
