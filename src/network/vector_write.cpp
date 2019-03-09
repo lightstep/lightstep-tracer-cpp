@@ -5,10 +5,10 @@
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
+#include <climits>
 
 #include <alloca.h>
 #include <sys/uio.h>
-#include <limits.h>
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
