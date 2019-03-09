@@ -8,6 +8,7 @@
 
 #include <alloca.h>
 #include <sys/uio.h>
+#include <limits.h>
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -22,6 +23,7 @@ std::tuple<int, int, int> Write(
   if (num_fragments == 0) {
     return std::make_tuple(0, 0, 0);
   }
+  assert(num_fragments < IOV_MAX);
   auto fragments = static_cast<iovec*>(alloca(sizeof(iovec) * num_fragments));
   auto fragment_iter = fragments;
   for (auto fragment_set : fragment_sets) {
