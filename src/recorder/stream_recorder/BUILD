@@ -89,6 +89,7 @@ lightstep_cc_library(
         "//src/network:socket_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",
+        ":utility_lib",
     ],
 )
 
@@ -103,5 +104,7 @@ lightstep_cc_library(
     deps = [
         "//include/lightstep:tracer_interface",
         "//lightstep-tracer-common:collector_proto_cc",
+        "//src/common:protobuf_lib",
+        "//src/common:utility_lib",
     ],
 )

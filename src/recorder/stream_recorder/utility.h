@@ -19,5 +19,5 @@ SeparateEndpoints(
     const std::vector<std::pair<std::string, uint16_t>>& endpoints);
 
 std::string WriteStreamHeaderCommonSegment(
-    const LightStepTracerOptions& tracer_options, uint64_t recorder_id);
+    const LightStepTracerOptions& tracer_options, uint64_t reporter_id);
 }  // namespace lightstep

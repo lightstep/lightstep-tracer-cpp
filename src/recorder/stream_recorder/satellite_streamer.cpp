@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <cassert>
 
+#include "common/random.h"
+#include "recorder/stream_recorder/utility.h"
+
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
@@ -15,6 +18,8 @@ SatelliteStreamer::SatelliteStreamer(
     : logger_{logger},
       event_base_{event_base},
       recorder_options_{recorder_options},
+      header_common_segment_{
+          WriteStreamHeaderCommonSegment(tracer_options, GenerateId())},
       endpoint_manager_{logger, event_base, tracer_options, recorder_options,
                         [this] { this->OnEndpointManagerReady(); }},
       span_buffer_{span_buffer} {
