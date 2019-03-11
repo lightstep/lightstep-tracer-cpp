@@ -2,6 +2,7 @@
 #include <sstream>
 
 #include "3rd_party/catch2/catch.hpp"
+#include "common/protobuf.h"
 #include "test/http_connection.h"
 #include "test/mock_satellite/mock_satellite_handle.h"
 #include "test/ports.h"
@@ -10,25 +11,24 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 using namespace lightstep;
 
-static void WriteEmbeddedMessage(
-    google::protobuf::io::CodedOutputStream& stream, uint32_t field,
-    const google::protobuf::Message& message) {
-  stream.WriteVarint32((field << 3) | 2);
-  stream.WriteVarint64(message.ByteSizeLong());
-  message.SerializeToCodedStream(&stream);
-}
-
 static std::string WriteStreamingReport(
     const collector::ReportRequest& report) {
   std::ostringstream oss;
   {
     google::protobuf::io::OstreamOutputStream zero_copy_stream{&oss};
     google::protobuf::io::CodedOutputStream coded_stream{&zero_copy_stream};
-    WriteEmbeddedMessage(coded_stream, 1, report.reporter());
-    WriteEmbeddedMessage(coded_stream, 2, report.auth());
-    WriteEmbeddedMessage(coded_stream, 6, report.internal_metrics());
+    WriteEmbeddedMessage(coded_stream,
+                         collector::ReportRequest::kReporterFieldNumber,
+                         report.reporter());
+    WriteEmbeddedMessage(coded_stream,
+                         collector::ReportRequest::kAuthFieldNumber,
+                         report.auth());
+    WriteEmbeddedMessage(coded_stream,
+                         collector::ReportRequest::kInternalMetricsFieldNumber,
+                         report.internal_metrics());
     for (auto& span : report.spans()) {
-      WriteEmbeddedMessage(coded_stream, 3, span);
+      WriteEmbeddedMessage(coded_stream,
+                           collector::ReportRequest::kSpansFieldNumber, span);
     }
   }
   return oss.str();

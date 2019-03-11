@@ -37,4 +37,13 @@ SeparateEndpoints(
   }
   return {std::move(hosts), std::move(indexed_endpoints)};
 }
+
+//--------------------------------------------------------------------------------------------------
+// WriteStreamHeaderCommonSegment
+//--------------------------------------------------------------------------------------------------
+std::string WriteStreamHeaderCommonSegment(
+    const LightStepTracerOptions& /*tracer_options*/,
+    uint64_t /*recorder_id*/) {
+  return {};
+}
 }  // namespace lightstep

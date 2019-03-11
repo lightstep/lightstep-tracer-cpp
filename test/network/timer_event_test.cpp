@@ -47,11 +47,12 @@ TEST_CASE("TimerEvent") {
   SECTION(
       "Reset can be used to restart the timer callbacks from at the current "
       "time point.") {
-    event_base.OnTimeout(5 * TestingCallbackInterval - TestingEpsilon,
-                         [](int /*socket*/, short /*what*/, void* context) {
-                           static_cast<TimerEvent*>(context)->Reset();
-                         },
-                         static_cast<void*>(&timer_event));
+    event_base.OnTimeout(
+        5 * TestingCallbackInterval - TestingEpsilon,
+        [](int /*socket*/, short /*what*/, void* context) {
+          static_cast<TimerEvent*>(context)->Reset();
+        },
+        static_cast<void*>(&timer_event));
     event_base.Dispatch();
     auto duration =
         callback_context.time_points.at(4) - callback_context.time_points.at(3);

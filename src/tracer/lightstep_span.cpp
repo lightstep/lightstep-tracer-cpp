@@ -4,10 +4,10 @@
 #include "common/random.h"
 #include "common/utility.h"
 
-using opentracing::SystemTime;
-using opentracing::SystemClock;
 using opentracing::SteadyClock;
 using opentracing::SteadyTime;
+using opentracing::SystemClock;
+using opentracing::SystemTime;
 
 namespace lightstep {
 //------------------------------------------------------------------------------

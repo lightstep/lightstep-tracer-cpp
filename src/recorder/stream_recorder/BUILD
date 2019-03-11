@@ -100,4 +100,8 @@ lightstep_cc_library(
     srcs = [
         "utility.cpp",
     ],
+    deps = [
+        "//include/lightstep:tracer_interface",
+        "//lightstep-tracer-common:collector_proto_cc",
+    ],
 )

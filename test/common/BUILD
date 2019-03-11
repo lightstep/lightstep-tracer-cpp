@@ -99,3 +99,14 @@ lightstep_cc_test(
         "//src/common:random_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "protobuf_test",
+    srcs = [
+        "protobuf_test.cpp",
+    ],
+    deps = [
+        "//src/common:protobuf_lib",
+        "//lightstep-tracer-common:collector_proto_cc",
+    ],
+)
