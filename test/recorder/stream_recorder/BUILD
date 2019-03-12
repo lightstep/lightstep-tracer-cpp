@@ -29,6 +29,7 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/recorder/stream_recorder:utility_lib",
+        "//lightstep-tracer-common:collector_proto_cc",
     ],
 )
 
