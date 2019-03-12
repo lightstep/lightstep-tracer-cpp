@@ -108,3 +108,17 @@ lightstep_cc_library(
         "//src/common:utility_lib",
     ],
 )
+
+lightstep_cc_library(
+    name = "embedded_metrics_message_lib",
+    private_hdrs = [
+        "embedded_metrics_message.h",
+    ],
+    srcs = [
+        "embedded_metrics_message.cpp",
+    ],
+    deps = [
+        "//lightstep-tracer-common:collector_proto_cc",
+        "//src/common:protobuf_lib",
+    ],
+)

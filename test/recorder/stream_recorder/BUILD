@@ -67,3 +67,13 @@ lightstep_catch_test(
         "//test:ports_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "embedded_metrics_message_test",
+    srcs = [
+        "embedded_metrics_message_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:embedded_metrics_message_lib",
+    ],
+)
