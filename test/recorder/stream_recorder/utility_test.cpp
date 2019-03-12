@@ -26,3 +26,5 @@ TEST_CASE("SeparateEndpoints") {
     REQUIRE(hosts.size() == 1);
   }
 }
+
+TEST_CASE("WriteStreamHeaderCommonFragment") {}

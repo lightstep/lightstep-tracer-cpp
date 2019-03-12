@@ -33,8 +33,10 @@ class SatelliteStreamer : private Noncopyable {
     return recorder_options_;
   }
 
-  const std::string& header_common_segment() const noexcept {
-    return header_common_segment_;
+  std::pair<void*, int> header_common_fragment() const noexcept {
+    return {
+        static_cast<void*>(const_cast<char*>(header_common_fragment_.data())),
+        static_cast<int>(header_common_fragment_.size())};
   }
 
   /**
@@ -65,7 +67,7 @@ class SatelliteStreamer : private Noncopyable {
   Logger& logger_;
   EventBase& event_base_;
   const StreamRecorderOptions& recorder_options_;
-  std::string header_common_segment_;
+  std::string header_common_fragment_;
   SatelliteEndpointManager endpoint_manager_;
   ChunkCircularBuffer& span_buffer_;
   std::vector<std::unique_ptr<SatelliteConnection>> connections_;

@@ -18,8 +18,8 @@ SatelliteStreamer::SatelliteStreamer(
     : logger_{logger},
       event_base_{event_base},
       recorder_options_{recorder_options},
-      header_common_segment_{
-          WriteStreamHeaderCommonSegment(tracer_options, GenerateId())},
+      header_common_fragment_{
+          WriteStreamHeaderCommonFragment(tracer_options, GenerateId())},
       endpoint_manager_{logger, event_base, tracer_options, recorder_options,
                         [this] { this->OnEndpointManagerReady(); }},
       span_buffer_{span_buffer} {

@@ -46,9 +46,9 @@ SeparateEndpoints(
 }
 
 //--------------------------------------------------------------------------------------------------
-// WriteStreamHeaderCommonSegment
+// WriteStreamHeaderCommonFragment
 //--------------------------------------------------------------------------------------------------
-std::string WriteStreamHeaderCommonSegment(
+std::string WriteStreamHeaderCommonFragment(
     const LightStepTracerOptions& tracer_options, uint64_t reporter_id) {
   collector::Reporter reporter;
   reporter.set_reporter_id(reporter_id);
