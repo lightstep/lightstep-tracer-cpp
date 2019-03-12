@@ -22,8 +22,12 @@ StreamRecorder::StreamRecorder(Logger& logger,
       flush_timer_{event_base_, recorder_options.flushing_period,
                    MakeTimerCallback<StreamRecorder, &StreamRecorder::Flush>(),
                    static_cast<void*>(this)},
-      streamer_{logger_, event_base_, tracer_options_, recorder_options_,
-                span_buffer_} {
+      streamer_{logger_,           event_base_, tracer_options_,
+                recorder_options_, metrics_,    span_buffer_} {
+  // If no MetricsObserver was provided, use a default one that does nothing.
+  if (tracer_options_.metrics_observer == nullptr) {
+    tracer_options_.metrics_observer.reset(new MetricsObserver{});
+  }
   thread_ = std::thread{&StreamRecorder::Run, this};
 }
 
@@ -47,6 +51,8 @@ void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
       span_buffer_.Add(serialization_callback, span.ByteSizeLong());
   if (!was_added) {
     logger_.Debug("Dropping span ", span.span_context().span_id());
+    metrics_.num_dropped_spans++;
+    tracer_options_.metrics_observer->OnSpansDropped(1);
   }
 }
 

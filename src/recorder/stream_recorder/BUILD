@@ -17,6 +17,13 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "stream_recorder_metrics_lib",
+    private_hdrs = [
+        "stream_recorder_metrics.h",
+    ],
+)
+
+lightstep_cc_library(
     name = "stream_recorder_lib",
     private_hdrs = [
         "stream_recorder.h",
@@ -32,6 +39,7 @@ lightstep_cc_library(
         "//src/network:timer_event_lib",
         "//src/recorder:stream_recorder_interface",
         ":stream_recorder_options_lib",
+        ":stream_recorder_metrics_lib",
         ":satellite_streamer_lib",
     ],
 )
@@ -89,6 +97,8 @@ lightstep_cc_library(
         "//src/network:socket_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",
+        ":stream_recorder_metrics_lib",
+        ":embedded_metrics_message_lib",
         ":utility_lib",
     ],
 )
