@@ -94,6 +94,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:logger_lib",
+        "//src/common:function_ref_lib",
         ":event_lib",
         ":ip_address_lib",
     ],

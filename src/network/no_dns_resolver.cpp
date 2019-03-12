@@ -10,8 +10,8 @@ class SingleIpDnsResolution final : public DnsResolution {
   explicit SingleIpDnsResolution(const IpAddress& ip_address) noexcept
       : ip_address_{ip_address} {}
 
-  bool ForeachIpAddress(const std::function<bool(const IpAddress& ip_address)>&
-                            f) const override {
+  bool ForeachIpAddress(
+      const FunctionRef<bool(const IpAddress& ip_address)>& f) const override {
     return f(ip_address_);
   }
 
