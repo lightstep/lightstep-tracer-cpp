@@ -31,6 +31,8 @@ class ConnectionStream {
 
   bool Flush(Writer writer);
 
+  bool completed() const noexcept { return terminal_stream_.empty(); }
+
  private:
   Fragment header_common_fragment_;
   StreamRecorderMetrics& metrics_;

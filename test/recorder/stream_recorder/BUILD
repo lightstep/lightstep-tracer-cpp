@@ -98,3 +98,13 @@ lightstep_catch_test(
         "//src/recorder/stream_recorder:connection_stream_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "host_header_test",
+    srcs = [
+        "host_header_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:host_header_lib",
+    ],
+)

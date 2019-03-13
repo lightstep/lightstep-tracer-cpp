@@ -165,3 +165,16 @@ lightstep_cc_library(
         "//src/common:protobuf_lib",
     ],
 )
+
+lightstep_cc_library(
+    name = "host_header_lib",
+    private_hdrs = [
+      "host_header.h",
+    ],
+    srcs = [
+      "host_header.cpp",
+    ],
+    deps = [
+        "//include/lightstep:tracer_interface",
+    ],
+)
