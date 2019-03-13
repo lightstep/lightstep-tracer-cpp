@@ -60,6 +60,13 @@ class FragmentInputStream {
 };
 
 /**
+ * Converts a c-string to a fragment.
+ * @param s supplies the string to convert.
+ * @return a fragment for s.
+ */
+Fragment MakeFragment(const char* s) noexcept;
+
+/**
  * Determine which fragment an index lies in.
  * @param fragment_input_streams a list of fragment sets.
  * @param n an index into the fragment sets.

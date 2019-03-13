@@ -63,6 +63,18 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "fragment_array_input_stream_test",
+    srcs = [
+        "fragment_array_input_stream_test.cpp",
+    ],
+    deps = [
+        "//src/network:fragment_array_input_stream_lib",
+        ":utility_lib",
+    ],
+)
+
+
+lightstep_catch_test(
     name = "vector_write_test",
     srcs = [
         "vector_write_test.cpp",

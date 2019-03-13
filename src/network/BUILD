@@ -65,6 +65,19 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "fragment_array_input_stream_lib",
+    private_hdrs = [
+        "fragment_array_input_stream.h",
+    ],
+    srcs = [
+        "fragment_array_input_stream.cpp",
+    ],
+    deps = [
+        ":fragment_input_stream_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "fixed_fragment_input_stream_lib",
     private_hdrs = [
         "fixed_fragment_input_stream.h",

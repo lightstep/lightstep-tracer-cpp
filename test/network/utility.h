@@ -7,13 +7,6 @@
 
 namespace lightstep {
 /**
- * Converts a c-string to a fragment.
- * @param s supplies the string to convert.
- * @return a fragment for s.
- */
-std::pair<void*, int> MakeFragment(const char* s);
-
-/**
  * Constructs a fragment stream from c-strings.
  * @param fragments the c-strings.
  * @return a fragment input stream with all the c-strings as fragments.
