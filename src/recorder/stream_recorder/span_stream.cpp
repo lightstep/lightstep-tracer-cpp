@@ -16,7 +16,7 @@ int SpanStream::num_fragments() const noexcept { return 0; }
 // ForEachFragment
 //--------------------------------------------------------------------------------------------------
 bool SpanStream::ForEachFragment(
-    FunctionRef<FragmentSet::Callback> /*callback*/) const noexcept {
+    FunctionRef<FragmentInputStream::Callback> /*callback*/) const noexcept {
   return true;
 }
 }  // namespace lightstep

@@ -52,12 +52,12 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
-    name = "fragment_set_test",
+    name = "fragment_input_stream_test",
     srcs = [
-        "fragment_set_test.cpp",
+        "fragment_input_stream_test.cpp",
     ],
     deps = [
-        "//src/network:fragment_set_lib",
+        "//src/network:fragment_input_stream_lib",
         ":utility_lib",
     ],
 )

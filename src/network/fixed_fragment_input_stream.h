@@ -6,14 +6,14 @@
 #include <initializer_list>
 #include <utility>
 
-#include "network/fragment_set.h"
+#include "network/fragment_input_stream.h"
 
 namespace lightstep {
 /**
  * A non-owning stream of fragments.
  */
 template <size_t N>
-class FixedFragmentInputStream final : public FragmentSet {
+class FixedFragmentInputStream final : public FragmentInputStream {
  public:
   FixedFragmentInputStream() noexcept {}
 
@@ -52,7 +52,7 @@ class FixedFragmentInputStream final : public FragmentSet {
    */
   void Clear() { fragment_index_ = static_cast<int>(N); }
 
-  // FragmentSet
+  // FragmentInputStream
   int num_fragments() const noexcept override {
     return static_cast<int>(N) - fragment_index_;
   }

@@ -33,7 +33,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:chunk_circular_buffer_lib",
-        "//src/network:fragment_set_lib",
+        "//src/network:fragment_input_stream_lib",
     ],
 )
 
@@ -48,7 +48,7 @@ lightstep_cc_library(
     deps = [
         "//src/common:function_ref_lib",
         "//src/common:utility_lib",
-        "//src/network:fragment_set_lib",
+        "//src/network:fragment_input_stream_lib",
         "//src/network:fixed_fragment_input_stream_lib",
         ":embedded_metrics_message_lib",
         ":span_stream_lib",

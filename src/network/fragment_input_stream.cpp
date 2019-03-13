@@ -1,13 +1,14 @@
-#include "network/fragment_set.h"
+#include "network/fragment_input_stream.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // ComputeFragmentPosition
 //--------------------------------------------------------------------------------------------------
 std::tuple<int, int, int> ComputeFragmentPosition(
-    std::initializer_list<const FragmentSet*> fragment_sets, int n) noexcept {
-  int fragment_set_index = 0;
-  for (auto fragment_set : fragment_sets) {
+    std::initializer_list<const FragmentInputStream*> fragment_input_streams,
+    int n) noexcept {
+  int fragment_input_stream_index = 0;
+  for (auto fragment_input_stream : fragment_input_streams) {
     int fragment_index = 0;
     auto f = [&n, &fragment_index](void* /*data*/, int size) {
       if (n < size) {
@@ -17,11 +18,11 @@ std::tuple<int, int, int> ComputeFragmentPosition(
       n -= size;
       return true;
     };
-    if (!fragment_set->ForEachFragment(f)) {
-      return std::make_tuple(fragment_set_index, fragment_index, n);
+    if (!fragment_input_stream->ForEachFragment(f)) {
+      return std::make_tuple(fragment_input_stream_index, fragment_index, n);
     }
-    ++fragment_set_index;
+    ++fragment_input_stream_index;
   }
-  return {static_cast<int>(fragment_sets.size()), 0, 0};
+  return {static_cast<int>(fragment_input_streams.size()), 0, 0};
 }
 }  // namespace lightstep

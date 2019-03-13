@@ -7,7 +7,7 @@
 #include "common/function_ref.h"
 #include "common/utility.h"
 #include "network/fixed_fragment_input_stream.h"
-#include "network/fragment_set.h"
+#include "network/fragment_input_stream.h"
 #include "recorder/stream_recorder/embedded_metrics_message.h"
 #include "recorder/stream_recorder/span_stream.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
@@ -19,7 +19,8 @@ class ConnectionStream {
 
  public:
   using Writer = FunctionRef<std::tuple<int, int, int>(
-      std::initializer_list<const FragmentSet*> fragment_sets)>;
+      std::initializer_list<const FragmentInputStream*>
+          fragment_input_streams)>;
 
   ConnectionStream(Fragment header_common_fragment,
                    StreamRecorderMetrics& metrics, SpanStream& span_stream);
