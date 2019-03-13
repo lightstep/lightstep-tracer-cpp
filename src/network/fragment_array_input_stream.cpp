@@ -46,7 +46,8 @@ bool FragmentArrayInputStream::ForEachFragment(
     return false;
   }
 
-  for (int i = fragment_index_ + 1; i < static_cast<int>(fragments_.size()); ++i) {
+  for (int i = fragment_index_ + 1; i < static_cast<int>(fragments_.size());
+       ++i) {
     if (!callback(fragments_[i].first, fragments_[i].second)) {
       return false;
     }
@@ -64,8 +65,7 @@ void FragmentArrayInputStream::Clear() noexcept {
 //--------------------------------------------------------------------------------------------------
 // Seek
 //--------------------------------------------------------------------------------------------------
-void FragmentArrayInputStream::Seek(int fragment_index,
-                                     int position) noexcept {
+void FragmentArrayInputStream::Seek(int fragment_index, int position) noexcept {
   assert(fragment_index < static_cast<int>(fragments_.size()));
   if (fragment_index_ == fragment_index) {
     position_ += position;

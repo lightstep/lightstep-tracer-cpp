@@ -7,7 +7,8 @@ namespace lightstep {
 // MakeFragment
 //--------------------------------------------------------------------------------------------------
 Fragment MakeFragment(const char* s) noexcept {
-  return {static_cast<void*>(const_cast<char*>(s)), static_cast<int>(std::strlen(s))};
+  return {static_cast<void*>(const_cast<char*>(s)),
+          static_cast<int>(std::strlen(s))};
 }
 
 //--------------------------------------------------------------------------------------------------

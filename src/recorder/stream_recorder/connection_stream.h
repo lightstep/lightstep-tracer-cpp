@@ -6,7 +6,7 @@
 
 #include "common/function_ref.h"
 #include "common/utility.h"
-#include "network/fixed_fragment_input_stream.h"
+#include "network/fragment_array_input_stream.h"
 #include "network/fragment_input_stream.h"
 #include "recorder/stream_recorder/embedded_metrics_message.h"
 #include "recorder/stream_recorder/span_stream.h"
@@ -22,7 +22,8 @@ class ConnectionStream {
       std::initializer_list<const FragmentInputStream*>
           fragment_input_streams)>;
 
-  ConnectionStream(Fragment header_common_fragment,
+  ConnectionStream(Fragment host_header_fragment,
+                   Fragment header_common_fragment,
                    StreamRecorderMetrics& metrics, SpanStream& span_stream);
 
   void Reset();
@@ -34,6 +35,7 @@ class ConnectionStream {
   bool completed() const noexcept { return terminal_stream_.empty(); }
 
  private:
+  Fragment host_header_fragment_;
   Fragment header_common_fragment_;
   StreamRecorderMetrics& metrics_;
   SpanStream& span_stream_;
@@ -43,8 +45,8 @@ class ConnectionStream {
                              // that add a null terminator.
   EmbeddedMetricsMessage embedded_metrics_message_;
 
-  FixedFragmentInputStream<4> header_stream_;
-  FixedFragmentInputStream<1> terminal_stream_;
+  FragmentArrayInputStream header_stream_;
+  FragmentArrayInputStream terminal_stream_;
 
   bool shutting_down_;
 

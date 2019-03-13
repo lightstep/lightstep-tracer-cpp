@@ -34,4 +34,4 @@ class FragmentArrayInputStream final : public FragmentInputStream {
   int fragment_index_{0};
   int position_{0};
 };
-} // namespace lightstep
+}  // namespace lightstep

@@ -7,14 +7,19 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // TerminalFragment
 //--------------------------------------------------------------------------------------------------
-static const Fragment TerminalFragment{
-    static_cast<void*>(const_cast<char*>("0\r\n\r\n")), 5};
+static const Fragment TerminalFragment = MakeFragment("0\r\n\r\n");
 
 //--------------------------------------------------------------------------------------------------
 // EndOfLineFragment
 //--------------------------------------------------------------------------------------------------
-static const Fragment EndOfLineFragment{
-    static_cast<void*>(const_cast<char*>("\r\n")), 2};
+static const Fragment EndOfLineFragment = MakeFragment("\r\n");
+
+//--------------------------------------------------------------------------------------------------
+// HttpRequestCommonFragment
+//--------------------------------------------------------------------------------------------------
+static const Fragment HttpRequestCommonFragment = MakeFragment(
+    "POST /reports HTTP/1.1\r\n"
+    "Transfer-Encoding:chunked\r\n");
 
 //--------------------------------------------------------------------------------------------------
 // WriteChunkHeader
@@ -31,10 +36,12 @@ static Fragment WriteChunkHeader(char* buffer, size_t buffer_size,
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-ConnectionStream::ConnectionStream(Fragment header_common_fragment,
+ConnectionStream::ConnectionStream(Fragment host_header_fragment,
+                                   Fragment header_common_fragment,
                                    StreamRecorderMetrics& metrics,
                                    SpanStream& span_stream)
-    : header_common_fragment_{header_common_fragment},
+    : host_header_fragment_{host_header_fragment},
+      header_common_fragment_{header_common_fragment},
       metrics_{metrics},
       span_stream_{span_stream} {}
 
@@ -75,9 +82,15 @@ void ConnectionStream::InitializeStream() {
 
   auto header_chunk_size =
       header_common_fragment_.second + metrics_fragment.second;
+
   header_stream_ = {
+      HttpRequestCommonFragment,
+      host_header_fragment_,
+      EndOfLineFragment,
       WriteChunkHeader(chunk_header_buffer_.data(), chunk_header_buffer_.size(),
                        header_chunk_size),
-      header_common_fragment_, metrics_fragment, EndOfLineFragment};
+      header_common_fragment_,
+      metrics_fragment,
+      EndOfLineFragment};
 }
 }  // namespace lightstep

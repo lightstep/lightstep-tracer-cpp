@@ -18,7 +18,9 @@ TEST_CASE("FragmentArrayInputStream") {
     REQUIRE(input_stream2.empty());
   }
 
-  SECTION("FragmentArrayInputStream can be reassigned to a new sequence of fragments.") {
+  SECTION(
+      "FragmentArrayInputStream can be reassigned to a new sequence of "
+      "fragments.") {
     input_stream.Seek(0, 1);
     input_stream = {MakeFragment("qrz")};
     REQUIRE(ToString(input_stream) == "qrz");
