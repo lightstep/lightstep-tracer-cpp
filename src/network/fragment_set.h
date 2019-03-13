@@ -7,6 +7,8 @@
 #include "common/function_ref.h"
 
 namespace lightstep {
+using Fragment = std::pair<void*, int>;
+
 /**
  * Interface for iterating over sequences of fragments.
  */
@@ -27,6 +29,11 @@ class FragmentSet {
    * @return the number of fragments in the set.
    */
   virtual int num_fragments() const noexcept = 0;
+
+  /**
+   * @return true if the set contains no fragments.
+   */
+  bool empty() const noexcept { return num_fragments() == 0; }
 
   /**
    * Iterate over each fragment in the set.

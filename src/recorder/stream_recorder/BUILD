@@ -24,6 +24,36 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "span_stream_lib",
+    private_hdrs = [
+        "span_stream.h",
+    ],
+    srcs = [
+        "span_stream.cpp",
+    ],
+    deps = [
+        "//src/common:chunk_circular_buffer_lib",
+        "//src/network:fragment_set_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "connection_stream_lib",
+    private_hdrs = [
+        "connection_stream.h",
+    ],
+    srcs = [
+        "connection_stream.cpp",
+    ],
+    deps = [
+        "//src/common:function_ref_lib",
+        "//src/network:fragment_set_lib",
+        ":span_stream_lib",
+        ":stream_recorder_metrics_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "stream_recorder_lib",
     private_hdrs = [
         "stream_recorder.h",

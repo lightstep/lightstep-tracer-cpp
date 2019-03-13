@@ -15,8 +15,7 @@ namespace lightstep {
 template <size_t N>
 class FragmentInputStream final : public FragmentSet {
  public:
-  explicit FragmentInputStream(
-      std::initializer_list<std::pair<void*, int>> fragments) {
+  explicit FragmentInputStream(std::initializer_list<Fragment> fragments) {
     assert(fragments.size() == N);
     std::copy(fragments.begin(), fragments.end(), fragments_.begin());
   }
@@ -73,7 +72,7 @@ class FragmentInputStream final : public FragmentSet {
   }
 
  private:
-  std::array<std::pair<void*, int>, N> fragments_;
+  std::array<Fragment, N> fragments_;
   int fragment_index_{0};
   int position_{0};
 };

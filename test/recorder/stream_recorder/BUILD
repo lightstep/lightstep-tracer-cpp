@@ -78,3 +78,23 @@ lightstep_catch_test(
         "//src/recorder/stream_recorder:embedded_metrics_message_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "span_stream_test",
+    srcs = [
+        "span_stream_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:span_stream_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "connection_stream_test",
+    srcs = [
+        "connection_stream_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:connection_stream_lib",
+    ],
+)
