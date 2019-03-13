@@ -15,7 +15,7 @@ namespace lightstep {
 template <size_t N>
 class FragmentInputStream final : public FragmentSet {
  public:
-  FragmentInputStream() noexcept : fragment_index_{static_cast<int>(N)} {}
+  FragmentInputStream() noexcept {}
 
   explicit FragmentInputStream(
       std::initializer_list<Fragment> fragments) noexcept {
@@ -81,7 +81,7 @@ class FragmentInputStream final : public FragmentSet {
 
  private:
   std::array<Fragment, N> fragments_;
-  int fragment_index_{0};
+  int fragment_index_{static_cast<int>(N)};
   int position_{0};
 
   void AssignFragments(std::initializer_list<Fragment> fragments) noexcept {
@@ -90,6 +90,7 @@ class FragmentInputStream final : public FragmentSet {
     for (auto iter = fragments.end(); iter != fragments.begin();) {
       fragments_[--fragment_index_] = *--iter;
     }
+    position_ = 0;
   }
 };
 }  // namespace lightstep
