@@ -4,8 +4,8 @@
 using namespace lightstep;
 
 TEST_CASE("FragmentSet") {
-  auto fragment_set1 = MakeFragmentInputStream("abc", "123");
-  auto fragment_set2 = MakeFragmentInputStream("alpha", "beta", "gamma");
+  auto fragment_set1 = MakeFixedFragmentInputStream("abc", "123");
+  auto fragment_set2 = MakeFixedFragmentInputStream("alpha", "beta", "gamma");
   std::initializer_list<const FragmentSet*> fragment_sets = {&fragment_set1,
                                                              &fragment_set2};
   REQUIRE(ComputeFragmentPosition(fragment_sets, 0) ==

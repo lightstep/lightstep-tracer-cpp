@@ -13,16 +13,16 @@ namespace lightstep {
  * A non-owning stream of fragments.
  */
 template <size_t N>
-class FragmentInputStream final : public FragmentSet {
+class FixedFragmentInputStream final : public FragmentSet {
  public:
-  FragmentInputStream() noexcept {}
+  FixedFragmentInputStream() noexcept {}
 
-  explicit FragmentInputStream(
+  explicit FixedFragmentInputStream(
       std::initializer_list<Fragment> fragments) noexcept {
     AssignFragments(fragments);
   }
 
-  FragmentInputStream& operator=(
+  FixedFragmentInputStream& operator=(
       std::initializer_list<Fragment> fragments) noexcept {
     AssignFragments(fragments);
     return *this;

@@ -6,7 +6,7 @@
 
 #include "common/function_ref.h"
 #include "common/utility.h"
-#include "network/fragment_input_stream.h"
+#include "network/fixed_fragment_input_stream.h"
 #include "network/fragment_set.h"
 #include "recorder/stream_recorder/embedded_metrics_message.h"
 #include "recorder/stream_recorder/span_stream.h"
@@ -40,8 +40,8 @@ class ConnectionStream {
                              // that add a null terminator.
   EmbeddedMetricsMessage embedded_metrics_message_;
 
-  FragmentInputStream<4> header_stream_;
-  FragmentInputStream<1> terminal_stream_;
+  FixedFragmentInputStream<4> header_stream_;
+  FixedFragmentInputStream<1> terminal_stream_;
 
   bool shutting_down_;
 

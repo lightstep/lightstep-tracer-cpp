@@ -1,4 +1,4 @@
-#include "network/fragment_input_stream.h"
+#include "network/fixed_fragment_input_stream.h"
 
 #include <cstring>
 #include <string>
@@ -7,18 +7,19 @@
 #include "test/network/utility.h"
 using namespace lightstep;
 
-TEST_CASE("FragmentInputStream") {
-  auto input_stream = MakeFragmentInputStream("abc", "123");
+TEST_CASE("FixedFragmentInputStream") {
+  auto input_stream = MakeFixedFragmentInputStream("abc", "123");
   REQUIRE(input_stream.num_fragments() == 2);
   REQUIRE(ToString(input_stream) == "abc123");
 
-  SECTION("FragmentInputStream default constructs to an empty stream.") {
-    FragmentInputStream<10> input_stream2;
+  SECTION("FixedFragmentInputStream default constructs to an empty stream.") {
+    FixedFragmentInputStream<10> input_stream2;
     REQUIRE(input_stream2.empty());
   }
 
-  SECTION("FragmentInputStream can hold fewer fragments than its capacity.") {
-    FragmentInputStream<10> input_stream2;
+  SECTION(
+      "FixedFragmentInputStream can hold fewer fragments than its capacity.") {
+    FixedFragmentInputStream<10> input_stream2;
     input_stream2 = {Fragment{static_cast<void*>(const_cast<char*>("abc")), 3},
                      Fragment{static_cast<void*>(const_cast<char*>("123")), 3}};
     REQUIRE(input_stream2.num_fragments() == 2);

@@ -16,8 +16,8 @@ TEST_CASE("VectorWrite") {
   EchoServerHandle echo_server{
       static_cast<uint16_t>(PortAssignments::VectorWriteTestHttp), TcpPort};
 
-  auto fragments1 = MakeFragmentInputStream("abc", "123");
-  auto fragments2 = MakeFragmentInputStream("xyz", "");
+  auto fragments1 = MakeFixedFragmentInputStream("abc", "123");
+  auto fragments2 = MakeFixedFragmentInputStream("xyz", "");
   Socket socket;
   socket.SetReuseAddress();
   IpAddress server_address{"127.0.0.1", TcpPort};
@@ -43,14 +43,15 @@ TEST_CASE("VectorWrite") {
     int i = 0;
     int max_iterations = 1000;
     for (; i < max_iterations; ++i) {
-      FragmentInputStream<4> fragments{{static_cast<void*>(big_array.data()),
-                                        static_cast<int>(big_array.size())},
-                                       {static_cast<void*>(big_array.data()),
-                                        static_cast<int>(big_array.size())},
-                                       {static_cast<void*>(big_array.data()),
-                                        static_cast<int>(big_array.size())},
-                                       {static_cast<void*>(big_array.data()),
-                                        static_cast<int>(big_array.size())}};
+      FixedFragmentInputStream<4> fragments{
+          {static_cast<void*>(big_array.data()),
+           static_cast<int>(big_array.size())},
+          {static_cast<void*>(big_array.data()),
+           static_cast<int>(big_array.size())},
+          {static_cast<void*>(big_array.data()),
+           static_cast<int>(big_array.size())},
+          {static_cast<void*>(big_array.data()),
+           static_cast<int>(big_array.size())}};
       auto result = Write(socket.file_descriptor(), {&fragments});
       if (result == std::make_tuple(0, 0, 0)) {
         break;

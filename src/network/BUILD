@@ -65,9 +65,9 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "fragment_input_stream_lib",
+    name = "fixed_fragment_input_stream_lib",
     private_hdrs = [
-        "fragment_input_stream.h",
+        "fixed_fragment_input_stream.h",
     ],
     deps = [
         ":fragment_set_lib",

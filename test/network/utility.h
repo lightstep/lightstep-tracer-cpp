@@ -1,6 +1,6 @@
 #pragma once
 
-#include "network/fragment_input_stream.h"
+#include "network/fixed_fragment_input_stream.h"
 
 #include <string>
 #include <utility>
@@ -19,9 +19,10 @@ std::pair<void*, int> MakeFragment(const char* s);
  * @return a fragment input stream with all the c-strings as fragments.
  */
 template <class... Fragments>
-FragmentInputStream<sizeof...(Fragments)> MakeFragmentInputStream(
+FixedFragmentInputStream<sizeof...(Fragments)> MakeFixedFragmentInputStream(
     Fragments... fragments) {
-  return FragmentInputStream<sizeof...(Fragments)>{MakeFragment(fragments)...};
+  return FixedFragmentInputStream<sizeof...(Fragments)>{
+      MakeFragment(fragments)...};
 }
 
 /**
