@@ -34,7 +34,7 @@ void SatelliteConnection::Start() noexcept { Connect(); }
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::Connect() noexcept try {
   auto endpoint = streamer_.endpoint_manager().RequestEndpoint();
-  socket_ = lightstep::Connect(endpoint);
+  socket_ = lightstep::Connect(endpoint.first);
   ScheduleReconnect();
 
   read_event_ =
