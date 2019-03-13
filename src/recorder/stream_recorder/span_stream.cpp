@@ -19,4 +19,14 @@ bool SpanStream::ForEachFragment(
     FunctionRef<FragmentInputStream::Callback> /*callback*/) const noexcept {
   return true;
 }
+
+//--------------------------------------------------------------------------------------------------
+// Clear
+//--------------------------------------------------------------------------------------------------
+void SpanStream::Clear() noexcept {}
+
+//--------------------------------------------------------------------------------------------------
+// Seek
+//--------------------------------------------------------------------------------------------------
+void SpanStream::Seek(int /*fragment_index*/, int /*position*/) noexcept {}
 }  // namespace lightstep

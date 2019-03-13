@@ -14,6 +14,10 @@ class SpanStream final : public FragmentInputStream {
   bool ForEachFragment(FunctionRef<FragmentInputStream::Callback> callback)
       const noexcept override;
 
+  void Clear() noexcept override;
+
+  virtual void Seek(int fragment_index, int position) noexcept override;
+
  private:
   ChunkCircularBuffer& span_buffer_;
 };

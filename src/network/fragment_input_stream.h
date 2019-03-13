@@ -43,6 +43,20 @@ class FragmentInputStream {
    */
   virtual bool ForEachFragment(FunctionRef<Callback> callback) const
       noexcept = 0;
+
+  /**
+   * Repositions the stream to the end of all the fragments.
+   */
+  virtual void Clear() noexcept = 0;
+
+  /**
+   * Adjust the position of the fragment stream.
+   * @param fragment_index the new fragment index to reposition to relative to
+   * the current fragment index.
+   * @param position the position within fragment_index to reposition to
+   * relative to the current position.
+   */
+  virtual void Seek(int fragment_index, int position) noexcept = 0;
 };
 
 /**
@@ -54,4 +68,7 @@ class FragmentInputStream {
 std::tuple<int, int, int> ComputeFragmentPosition(
     std::initializer_list<const FragmentInputStream*> fragment_input_streams,
     int n) noexcept;
+
+bool Consume(std::initializer_list<FragmentInputStream*> fragment_input_streams,
+             int n) noexcept;
 }  // namespace lightstep

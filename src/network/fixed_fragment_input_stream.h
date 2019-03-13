@@ -28,30 +28,6 @@ class FixedFragmentInputStream final : public FragmentInputStream {
     return *this;
   }
 
-  /**
-   * Adjust the position of the fragment stream.
-   * @param fragment_index the new fragment index to reposition to relative to
-   * the current fragment index.
-   * @param position the position within fragment_index to reposition to
-   * relative to the current position.
-   */
-  void Seek(int fragment_index, int position) noexcept {
-    assert(fragment_index < static_cast<int>(N));
-    if (fragment_index_ == fragment_index) {
-      position_ += position;
-    } else {
-      position_ = position;
-    }
-    fragment_index_ += fragment_index;
-    assert(fragment_index_ < static_cast<int>(N));
-    assert(position_ < fragments_[fragment_index].second);
-  }
-
-  /**
-   * Repositions the stream to the end of all the fragments.
-   */
-  void Clear() { fragment_index_ = static_cast<int>(N); }
-
   // FragmentInputStream
   int num_fragments() const noexcept override {
     return static_cast<int>(N) - fragment_index_;
@@ -77,6 +53,20 @@ class FixedFragmentInputStream final : public FragmentInputStream {
       }
     }
     return true;
+  }
+
+  void Clear() noexcept override { fragment_index_ = static_cast<int>(N); }
+
+  void Seek(int fragment_index, int position) noexcept override {
+    assert(fragment_index < static_cast<int>(N));
+    if (fragment_index_ == fragment_index) {
+      position_ += position;
+    } else {
+      position_ = position;
+    }
+    fragment_index_ += fragment_index;
+    assert(fragment_index_ < static_cast<int>(N));
+    assert(position_ < fragments_[fragment_index].second);
   }
 
  private:
