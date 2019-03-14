@@ -11,7 +11,6 @@ namespace lightstep {
  * @param fragment_input_streams the list of fragments to send.
  * @return a tuple identifying the position of the last byte send.
  */
-std::tuple<int, int, int> Write(
-    int socket,
-    std::initializer_list<const FragmentInputStream*> fragment_input_streams);
+bool Write(int socket,
+           std::initializer_list<FragmentInputStream*> fragment_input_streams);
 }  // namespace lightstep

@@ -19,6 +19,10 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 SatelliteConnection::SatelliteConnection(SatelliteStreamer& streamer)
     : streamer_{streamer},
+      host_header_{streamer.tracer_options()},
+      connection_stream_{host_header_.fragment(),
+                         streamer.header_common_fragment(), streamer.metrics(),
+                         streamer.span_stream()},
       reconnect_timer_{streamer_.event_base(), -1, 0,
                        MakeTimerCallback<SatelliteConnection,
                                          &SatelliteConnection::Reconnect>(),
@@ -35,6 +39,7 @@ void SatelliteConnection::Start() noexcept { Connect(); }
 void SatelliteConnection::Connect() noexcept try {
   auto endpoint = streamer_.endpoint_manager().RequestEndpoint();
   socket_ = lightstep::Connect(endpoint.first);
+  host_header_.set_host(endpoint.second);
   ScheduleReconnect();
 
   read_event_ =

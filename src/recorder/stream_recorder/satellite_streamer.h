@@ -7,6 +7,7 @@
 #include "common/noncopyable.h"
 #include "recorder/stream_recorder/satellite_connection.h"
 #include "recorder/stream_recorder/satellite_endpoint_manager.h"
+#include "recorder/stream_recorder/span_stream.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
 
 namespace lightstep {
@@ -29,6 +30,13 @@ class SatelliteStreamer : private Noncopyable {
   EventBase& event_base() const noexcept { return event_base_; }
 
   /**
+   * @return the associated LightStepTracerOptions
+   */
+  const LightStepTracerOptions& tracer_options() const noexcept {
+    return tracer_options_;
+  }
+
+  /**
    * @return the associated StreamRecorderOptions.
    */
   const StreamRecorderOptions& recorder_options() const noexcept {
@@ -36,6 +44,8 @@ class SatelliteStreamer : private Noncopyable {
   }
 
   StreamRecorderMetrics& metrics() const noexcept { return metrics_; }
+
+  SpanStream& span_stream() noexcept { return span_stream_; }
 
   std::pair<void*, int> header_common_fragment() const noexcept {
     return {
@@ -70,11 +80,13 @@ class SatelliteStreamer : private Noncopyable {
  private:
   Logger& logger_;
   EventBase& event_base_;
+  const LightStepTracerOptions& tracer_options_;
   const StreamRecorderOptions& recorder_options_;
   std::string header_common_fragment_;
   SatelliteEndpointManager endpoint_manager_;
   StreamRecorderMetrics& metrics_;
   ChunkCircularBuffer& span_buffer_;
+  SpanStream span_stream_;
   std::vector<std::unique_ptr<SatelliteConnection>> connections_;
   std::vector<SatelliteConnection*> writable_connections_;
 

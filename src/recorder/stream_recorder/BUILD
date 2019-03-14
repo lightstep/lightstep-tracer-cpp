@@ -133,6 +133,9 @@ lightstep_cc_library(
         ":stream_recorder_metrics_lib",
         ":embedded_metrics_message_lib",
         ":utility_lib",
+        ":host_header_lib",
+        ":span_stream_lib",
+        ":connection_stream_lib",
     ],
 )
 

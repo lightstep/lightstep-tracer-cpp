@@ -17,13 +17,15 @@ SatelliteStreamer::SatelliteStreamer(
     StreamRecorderMetrics& metrics, ChunkCircularBuffer& span_buffer)
     : logger_{logger},
       event_base_{event_base},
+      tracer_options_{tracer_options},
       recorder_options_{recorder_options},
       header_common_fragment_{
           WriteStreamHeaderCommonFragment(tracer_options, GenerateId())},
       endpoint_manager_{logger, event_base, tracer_options, recorder_options,
                         [this] { this->OnEndpointManagerReady(); }},
       metrics_{metrics},
-      span_buffer_{span_buffer} {
+      span_buffer_{span_buffer},
+      span_stream_{span_buffer} {
   connections_.reserve(recorder_options.num_satellite_connections);
   writable_connections_.reserve(recorder_options.num_satellite_connections);
   for (int i = 0; i < recorder_options.num_satellite_connections; ++i) {

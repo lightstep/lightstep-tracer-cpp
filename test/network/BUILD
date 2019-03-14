@@ -82,6 +82,7 @@ lightstep_catch_test(
     deps = [
         "//src/network:socket_lib",
         "//src/network:vector_write_lib",
+        "//src/network:fragment_array_input_stream_lib",
         "//test/echo_server:echo_server_lib",
         "//test:ports_lib",
         "//test/network:utility_lib",

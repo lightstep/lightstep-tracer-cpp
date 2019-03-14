@@ -3,7 +3,8 @@
 #include "common/noncopyable.h"
 #include "network/event.h"
 #include "network/socket.h"
-#include "recorder/stream_recorder/embedded_metrics_message.h"
+#include "recorder/stream_recorder/connection_stream.h"
+#include "recorder/stream_recorder/host_header.h"
 
 namespace lightstep {
 class SatelliteStreamer;
@@ -19,7 +20,8 @@ class SatelliteConnection : private Noncopyable {
 
  private:
   SatelliteStreamer& streamer_;
-  EmbeddedMetricsMessage metrics_message_;
+  HostHeader host_header_;
+  ConnectionStream connection_stream_;
   Socket socket_{-1};
   Event read_event_;
   Event write_event_;
