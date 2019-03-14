@@ -17,21 +17,42 @@ TEST_CASE("StreamRecorder") {
   tracer_options.satellite_endpoints = {
       {"localhost",
        static_cast<uint16_t>(PortAssignments::StreamRecorderTest)}};
+
   StreamRecorderOptions recorder_options;
+  recorder_options.min_satellite_reconnect_period =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          std::chrono::milliseconds{100});
+  recorder_options.max_satellite_reconnect_period =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          std::chrono::milliseconds{150});
+
   recorder_options.flushing_period =
       std::chrono::duration_cast<std::chrono::microseconds>(
           std::chrono::milliseconds{100});
+  recorder_options.num_satellite_connections = 1;
   auto stream_recorder = new StreamRecorder{*logger, std::move(tracer_options),
                                             std::move(recorder_options)};
   std::unique_ptr<Recorder> recorder{stream_recorder};
   PropagationOptions propagation_options;
   auto tracer = std::make_shared<LightStepTracerImpl>(
       logger, propagation_options, std::move(recorder));
-  auto span = tracer->StartSpan("abc");
-  span->Finish();
-  REQUIRE(!stream_recorder->empty());
-  auto is_recorder_empty = [&stream_recorder] {
-    return stream_recorder->empty();
-  };
-  REQUIRE(IsEventuallyTrue(is_recorder_empty));
+
+  SECTION("Spans are consumed from the buffer.") {
+    auto span = tracer->StartSpan("abc");
+    span->Finish();
+    REQUIRE(!stream_recorder->empty());
+    auto is_recorder_empty = [&stream_recorder] {
+      return stream_recorder->empty();
+    };
+    REQUIRE(IsEventuallyTrue(is_recorder_empty));
+  }
+
+  SECTION("Reports are sent to the satellite.") {
+    std::cout << "Checking for reports..." << std::endl;
+    std::vector<collector::ReportRequest> reports;
+    REQUIRE(IsEventuallyTrue([&] {
+      reports = mock_satellite.reports();
+      return !reports.empty();
+    }));
+  }
 }

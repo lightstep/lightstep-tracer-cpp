@@ -18,7 +18,8 @@ static const Fragment EndOfLineFragment = MakeFragment("\r\n");
 // HttpRequestCommonFragment
 //--------------------------------------------------------------------------------------------------
 static const Fragment HttpRequestCommonFragment = MakeFragment(
-    "POST /reports HTTP/1.1\r\n"
+    "POST /report HTTP/1.1\r\n"
+    "Connection:close\r\n"
     "Transfer-Encoding:chunked\r\n");
 
 //--------------------------------------------------------------------------------------------------
@@ -53,8 +54,6 @@ ConnectionStream::ConnectionStream(Fragment host_header_fragment,
 void ConnectionStream::Reset() {
   if (!header_stream_.empty()) {
     // We weren't able to upload the metrics so add the counters back
-    std::cout << "adding back dropped spans "
-              << embedded_metrics_message_.num_dropped_spans() << std::endl;
     metrics_.num_dropped_spans += embedded_metrics_message_.num_dropped_spans();
   }
   InitializeStream();

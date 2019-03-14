@@ -35,6 +35,6 @@ void HostHeader::set_host(const char* host) noexcept {
 //--------------------------------------------------------------------------------------------------
 std::pair<void*, int> HostHeader::fragment() const noexcept {
   return {static_cast<void*>(const_cast<char*>(header_.data())),
-          static_cast<int>(header_.size())};
+          static_cast<int>(header_.size()) - 1};
 }
 }  // namespace lightstep
