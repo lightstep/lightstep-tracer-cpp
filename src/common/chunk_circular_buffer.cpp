@@ -15,8 +15,7 @@ ChunkCircularBuffer::ChunkCircularBuffer(size_t max_bytes)
 //--------------------------------------------------------------------------------------------------
 // Add
 //--------------------------------------------------------------------------------------------------
-bool ChunkCircularBuffer::Add(FunctionRef<Serializer> serializer,
-                              size_t size) noexcept {
+bool ChunkCircularBuffer::Add(Serializer serializer, size_t size) noexcept {
   assert(size > 0);
   static const auto line_terminator = "\r\n";
   std::array<char, Num64BitHexDigits + 1> chunk_buffer;  // Note: We add space
