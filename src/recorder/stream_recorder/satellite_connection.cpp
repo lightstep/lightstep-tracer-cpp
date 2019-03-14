@@ -8,6 +8,7 @@
 
 #include "common/random.h"
 #include "network/timer_event.h"
+#include "network/vector_write.h"
 #include "recorder/stream_recorder/satellite_streamer.h"
 
 #include <event2/event.h>
@@ -64,11 +65,12 @@ void SatelliteConnection::Connect() noexcept try {
 // FreeSocket
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::FreeSocket() {
-  streamer_.OnConnectionNonwritable(this);
   socket_ = Socket{-1};
   read_event_ = Event{};
   write_event_ = Event{};
   reconnect_timer_.Remove();
+  writable_ = false;
+  conneciton_stream_.Reset();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -122,8 +124,11 @@ void SatelliteConnection::OnReadable(int file_descriptor,
   }
 
   if (rcode == 0) {
-    streamer_.logger().Warn("Socket closed by satellite");
-    return OnSocketError();
+    if (!connection_stream.completed()) {
+      streamer_.logger().Warn("Socket closed by satellite");
+      return OnSocketError();
+    }
+    return Reconnect();
   }
   assert(rcode == -1);
   if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -146,7 +151,15 @@ void SatelliteConnection::OnWritable(int /*file_descriptor*/,
     return OnSocketError();
   }
   assert((what & EV_WRITE) != 0);
-  streamer_.OnConnectionWritable(this);
+  auto flushed_everything = connection_stream_.Flush(
+      [&](std::initializer_list<FragmentInputStream*> fragment_streams) {
+        return Write(socket_.file_descriptor(), fragment_streams);
+      });
+  if (flushed_everything) {
+    writable_ = true;
+    return;
+  }
+  return write_event_.Add(streamer_.recorder_options().satellite_write_timeout);
 } catch (const std::exception& e) {
   streamer_.logger().Error("OnWritable failed: ", e.what());
   return HandleFailure();

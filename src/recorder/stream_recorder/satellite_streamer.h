@@ -65,18 +65,6 @@ class SatelliteStreamer : private Noncopyable {
    */
   void Flush() noexcept;
 
-  /**
-   * Callback to indicate that a satellite connection is ready for writing.
-   * @param SatelliteConnection the writable satellite connection.
-   */
-  void OnConnectionWritable(SatelliteConnection* connection) noexcept;
-
-  /**
-   * Callback to indicate that a satellite connection is no longer writable.
-   * @param SatelliteConnection the non-writable satellite connection.
-   */
-  void OnConnectionNonwritable(SatelliteConnection* connection) noexcept;
-
  private:
   Logger& logger_;
   EventBase& event_base_;
@@ -88,7 +76,6 @@ class SatelliteStreamer : private Noncopyable {
   ChunkCircularBuffer& span_buffer_;
   SpanStream span_stream_;
   std::vector<std::unique_ptr<SatelliteConnection>> connections_;
-  std::vector<SatelliteConnection*> writable_connections_;
 
   void OnEndpointManagerReady() noexcept;
 };

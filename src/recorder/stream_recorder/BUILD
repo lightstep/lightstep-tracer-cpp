@@ -130,6 +130,7 @@ lightstep_cc_library(
         "//src/network:socket_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",
+        "//src/network:vector_write_lib",
         ":stream_recorder_metrics_lib",
         ":embedded_metrics_message_lib",
         ":utility_lib",

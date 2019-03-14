@@ -23,6 +23,7 @@ class SatelliteConnection : private Noncopyable {
   HostHeader host_header_;
   ConnectionStream connection_stream_;
   Socket socket_{-1};
+  bool writable_{false};
   Event read_event_;
   Event write_event_;
   Event reconnect_timer_;
