@@ -52,4 +52,36 @@ TEST_CASE("ConnectionStream") {
     }
     REQUIRE(contents == contents2);
   }
+
+  SECTION(
+      "The ConnectionStream is only completed with the terminal fragment is "
+      "written.") {
+    REQUIRE(!connection_stream.completed());
+    connection_stream.Flush(
+        [](std::initializer_list<FragmentInputStream*> fragment_streams) {
+          auto n = ToString(fragment_streams).size();
+          return Consume(fragment_streams, static_cast<int>(n));
+        });
+    REQUIRE(!connection_stream.completed());
+    connection_stream.Shutdown();
+    REQUIRE(!connection_stream.completed());
+    connection_stream.Flush(
+        [](std::initializer_list<FragmentInputStream*> fragment_streams) {
+          auto n = ToString(fragment_streams).size();
+          return Consume(fragment_streams, static_cast<int>(n) - 1);
+        });
+    REQUIRE(!connection_stream.completed());
+    connection_stream.Flush(
+        [](std::initializer_list<FragmentInputStream*> fragment_streams) {
+          return Consume(fragment_streams, 1);
+        });
+    REQUIRE(connection_stream.completed());
+  }
+
+  SECTION("The ConnectionStream consumes metrics.") {
+    metrics.num_dropped_spans += 3;
+    REQUIRE(metrics.num_dropped_spans == 3);
+    connection_stream.Reset();
+    REQUIRE(metrics.num_dropped_spans == 0);
+  }
 }

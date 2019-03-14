@@ -53,6 +53,8 @@ ConnectionStream::ConnectionStream(Fragment host_header_fragment,
 void ConnectionStream::Reset() {
   if (!header_stream_.empty()) {
     // We weren't able to upload the metrics so add the counters back
+    std::cout << "adding back dropped spans "
+              << embedded_metrics_message_.num_dropped_spans() << std::endl;
     metrics_.num_dropped_spans += embedded_metrics_message_.num_dropped_spans();
   }
   InitializeStream();
