@@ -32,8 +32,8 @@ int FragmentArrayInputStream::num_fragments() const noexcept {
 //--------------------------------------------------------------------------------------------------
 // ForEachFragment
 //--------------------------------------------------------------------------------------------------
-bool FragmentArrayInputStream::ForEachFragment(
-    FunctionRef<Callback> callback) const noexcept {
+bool FragmentArrayInputStream::ForEachFragment(Callback callback) const
+    noexcept {
   if (fragment_index_ >= static_cast<int>(fragments_.size())) {
     return true;
   }

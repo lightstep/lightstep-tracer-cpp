@@ -15,8 +15,7 @@ int SpanStream::num_fragments() const noexcept { return 0; }
 //--------------------------------------------------------------------------------------------------
 // ForEachFragment
 //--------------------------------------------------------------------------------------------------
-bool SpanStream::ForEachFragment(
-    FunctionRef<FragmentInputStream::Callback> /*callback*/) const noexcept {
+bool SpanStream::ForEachFragment(Callback /*callback*/) const noexcept {
   return true;
 }
 

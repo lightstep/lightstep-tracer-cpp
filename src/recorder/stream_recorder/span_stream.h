@@ -11,8 +11,7 @@ class SpanStream final : public FragmentInputStream {
   // FragmentInputStream
   int num_fragments() const noexcept override;
 
-  bool ForEachFragment(FunctionRef<FragmentInputStream::Callback> callback)
-      const noexcept override;
+  bool ForEachFragment(Callback callback) const noexcept override;
 
   void Clear() noexcept override;
 

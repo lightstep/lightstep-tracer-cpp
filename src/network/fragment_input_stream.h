@@ -14,7 +14,7 @@ using Fragment = std::pair<void*, int>;
  */
 class FragmentInputStream {
  public:
-  using Callback = bool(void* data, int size);
+  using Callback = FunctionRef<bool(void* data, int size)>;
 
   FragmentInputStream() noexcept = default;
   FragmentInputStream(const FragmentInputStream&) noexcept = default;
@@ -41,8 +41,7 @@ class FragmentInputStream {
    * return false to break out of the iteration early.
    * @return false if the iteration was interrupted early.
    */
-  virtual bool ForEachFragment(FunctionRef<Callback> callback) const
-      noexcept = 0;
+  virtual bool ForEachFragment(Callback callback) const noexcept = 0;
 
   /**
    * Repositions the stream to the end of all the fragments.
