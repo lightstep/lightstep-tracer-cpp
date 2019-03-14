@@ -18,9 +18,8 @@ class ConnectionStream {
   static const size_t MaxChunkHeaderSize = Num64BitHexDigits + 2;
 
  public:
-  using Writer = FunctionRef<std::tuple<int, int, int>(
-      std::initializer_list<const FragmentInputStream*>
-          fragment_input_streams)>;
+  using Writer = FunctionRef<bool(
+      std::initializer_list<FragmentInputStream*> fragment_input_streams)>;
 
   ConnectionStream(Fragment host_header_fragment,
                    Fragment header_common_fragment,

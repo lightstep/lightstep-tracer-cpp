@@ -13,11 +13,10 @@ class FragmentArrayInputStream final : public FragmentInputStream {
  public:
   FragmentArrayInputStream() noexcept = default;
 
-  explicit FragmentArrayInputStream(
-      std::initializer_list<Fragment> fragments) noexcept;
+  explicit FragmentArrayInputStream(std::initializer_list<Fragment> fragments);
 
   FragmentArrayInputStream& operator=(
-      std::initializer_list<Fragment> fragments) noexcept;
+      std::initializer_list<Fragment> fragments);
 
   // FragmentInputStream
   int num_fragments() const noexcept override;

@@ -1,20 +1,21 @@
 #include "network/fragment_array_input_stream.h"
 
 #include <cassert>
+#include <iostream>
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
 FragmentArrayInputStream::FragmentArrayInputStream(
-    std::initializer_list<Fragment> fragments) noexcept
+    std::initializer_list<Fragment> fragments)
     : fragments_{fragments} {}
 
 //--------------------------------------------------------------------------------------------------
 // operator=
 //--------------------------------------------------------------------------------------------------
 FragmentArrayInputStream& FragmentArrayInputStream::operator=(
-    std::initializer_list<Fragment> fragments) noexcept {
+    std::initializer_list<Fragment> fragments) {
   fragments_ = fragments;
   fragment_index_ = 0;
   position_ = 0;
@@ -66,14 +67,15 @@ void FragmentArrayInputStream::Clear() noexcept {
 // Seek
 //--------------------------------------------------------------------------------------------------
 void FragmentArrayInputStream::Seek(int fragment_index, int position) noexcept {
-  assert(fragment_index < static_cast<int>(fragments_.size()));
-  if (fragment_index_ == fragment_index) {
+  assert(fragment_index_ + fragment_index <
+         static_cast<int>(fragments_.size()));
+  if (fragment_index == 0) {
     position_ += position;
   } else {
+    fragment_index_ += fragment_index;
     position_ = position;
   }
-  fragment_index_ += fragment_index;
   assert(fragment_index_ < static_cast<int>(fragments_.size()));
-  assert(position_ < fragments_[fragment_index].second);
+  assert(position_ < fragments_[fragment_index_].second);
 }
 }  // namespace lightstep

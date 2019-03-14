@@ -1,6 +1,7 @@
 #pragma once
 
 #include "network/fixed_fragment_input_stream.h"
+#include "network/fragment_input_stream.h"
 
 #include <string>
 #include <utility>

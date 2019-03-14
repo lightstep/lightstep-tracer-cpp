@@ -43,7 +43,9 @@ ConnectionStream::ConnectionStream(Fragment host_header_fragment,
     : host_header_fragment_{host_header_fragment},
       header_common_fragment_{header_common_fragment},
       metrics_{metrics},
-      span_stream_{span_stream} {}
+      span_stream_{span_stream} {
+  InitializeStream();
+}
 
 //--------------------------------------------------------------------------------------------------
 // Reset
@@ -65,8 +67,10 @@ void ConnectionStream::Shutdown() noexcept { shutting_down_ = true; }
 // Flush
 //--------------------------------------------------------------------------------------------------
 bool ConnectionStream::Flush(Writer writer) {
-  (void)writer;
-  return true;
+  if (shutting_down_) {
+    return writer({&header_stream_, &terminal_stream_});
+  }
+  return writer({&header_stream_, &span_stream_});
 }
 
 //--------------------------------------------------------------------------------------------------

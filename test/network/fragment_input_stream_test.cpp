@@ -1,32 +1,15 @@
-#include "network/fragment_input_stream.h"
+#include <random>
+
 #include "3rd_party/catch2/catch.hpp"
+#include "network/fragment_array_input_stream.h"
 #include "test/network/utility.h"
 using namespace lightstep;
 
 TEST_CASE("FragmentInputStream") {
-  auto fragment_input_stream1 = MakeFixedFragmentInputStream("abc", "123");
-  auto fragment_input_stream2 =
-      MakeFixedFragmentInputStream("alpha", "beta", "gamma");
-  std::initializer_list<const FragmentInputStream*> fragment_input_streams = {
-      &fragment_input_stream1, &fragment_input_stream2};
-  REQUIRE(ComputeFragmentPosition(fragment_input_streams, 0) ==
-          std::make_tuple(0, 0, 0));
-  REQUIRE(ComputeFragmentPosition(fragment_input_streams, 1) ==
-          std::make_tuple(0, 0, 1));
-  REQUIRE(ComputeFragmentPosition(fragment_input_streams, 3) ==
-          std::make_tuple(0, 1, 0));
-  REQUIRE(ComputeFragmentPosition(fragment_input_streams, 4) ==
-          std::make_tuple(0, 1, 1));
-  REQUIRE(ComputeFragmentPosition(fragment_input_streams, 11) ==
-          std::make_tuple(1, 1, 0));
-  REQUIRE(ComputeFragmentPosition(fragment_input_streams, 20) ==
-          std::make_tuple(2, 0, 0));
-}
-
-TEST_CASE("FragmentInputStream2") {
-  auto fragment_input_stream1 = MakeFixedFragmentInputStream("abc", "123");
-  auto fragment_input_stream2 =
-      MakeFixedFragmentInputStream("alpha", "beta", "gamma");
+  FragmentArrayInputStream fragment_input_stream1{MakeFragment("abc"),
+                                                  MakeFragment("123")};
+  FragmentArrayInputStream fragment_input_stream2{
+      MakeFragment("alpha"), MakeFragment("beta"), MakeFragment("gamma")};
   std::initializer_list<FragmentInputStream*> fragment_input_streams = {
       &fragment_input_stream1, &fragment_input_stream2};
 
@@ -81,5 +64,40 @@ TEST_CASE("FragmentInputStream2") {
     REQUIRE(Consume(fragment_input_streams, 20));
     REQUIRE((ToString(fragment_input_stream1) +
              ToString(fragment_input_stream2)) == "");
+  }
+
+  SECTION("We can consume the data one byte at a time.") {
+    std::string s;
+    while (1) {
+      s += (ToString(fragment_input_stream1) +
+            ToString(fragment_input_stream2))[0];
+      auto result = Consume(fragment_input_streams, 1);
+      if (result) {
+        break;
+      }
+    }
+    REQUIRE(s == "abc123alphabetagamma");
+  }
+
+  SECTION("We can consume data of random lengths.") {
+    std::mt19937 random_number_generator{std::random_device{}()};
+    for (int i = 0; i < 100; ++i) {
+      fragment_input_stream1 = {MakeFragment("abc"), MakeFragment("123")};
+      fragment_input_stream2 = {MakeFragment("alpha"), MakeFragment("beta"),
+                                MakeFragment("gamma")};
+      std::string s;
+      while (1) {
+        auto contents =
+            ToString(fragment_input_stream1) + ToString(fragment_input_stream2);
+        std::uniform_int_distribution<size_t> distribution{0, contents.size()};
+        auto n = distribution(random_number_generator);
+        s += contents.substr(0, n);
+        auto result = Consume(fragment_input_streams, static_cast<int>(n));
+        if (result) {
+          break;
+        }
+      }
+      REQUIRE(s == "abc123alphabetagamma");
+    }
   }
 }

@@ -11,6 +11,7 @@ namespace lightstep {
 EmbeddedMetricsMessage::EmbeddedMetricsMessage()
     : dropped_spans_count_{*message_.add_counts()} {
   dropped_spans_count_.set_name("spans.dropped");
+  dropped_spans_count_.set_int_value(0);
 }
 
 //--------------------------------------------------------------------------------------------------

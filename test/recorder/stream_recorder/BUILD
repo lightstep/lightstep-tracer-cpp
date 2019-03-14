@@ -96,6 +96,8 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/recorder/stream_recorder:connection_stream_lib",
+        "//src/recorder/stream_recorder:utility_lib",
+        "//test/network:utility_lib",
     ],
 )
 
