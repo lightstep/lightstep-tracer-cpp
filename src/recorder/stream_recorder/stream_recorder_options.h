@@ -74,5 +74,13 @@ struct StreamRecorderOptions {
   std::chrono::microseconds max_satellite_reconnect_period =
       std::chrono::duration_cast<std::chrono::microseconds>(
           std::chrono::seconds{60});
+
+  // When we try to close a satellite stream, first attempt to close it
+  // gracefully by writing any pending data. If that can't be done within this
+  // time window, then we'll close the socket so that we have an incomplete
+  // stream.
+  std::chrono::microseconds satellite_graceful_stream_shutdown_timeout =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          std::chrono::seconds{5});
 };
 }  // namespace lightstep

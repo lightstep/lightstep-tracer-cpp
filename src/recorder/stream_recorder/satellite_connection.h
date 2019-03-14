@@ -18,6 +18,8 @@ class SatelliteConnection : private Noncopyable {
    */
   void Start() noexcept;
 
+  bool Flush() noexcept;
+
  private:
   SatelliteStreamer& streamer_;
   HostHeader host_header_;
@@ -27,6 +29,7 @@ class SatelliteConnection : private Noncopyable {
   Event read_event_;
   Event write_event_;
   Event reconnect_timer_;
+  Event graceful_shutdown_timeout_;
 
   void Connect() noexcept;
 
@@ -36,7 +39,11 @@ class SatelliteConnection : private Noncopyable {
 
   void ScheduleReconnect();
 
+  void InitiateReconnect() noexcept;
+
   void Reconnect() noexcept;
+
+  void GracefulShutdownTimeout() noexcept;
 
   void OnReadable(int file_descriptor, short what) noexcept;
 

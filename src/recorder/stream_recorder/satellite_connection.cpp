@@ -24,15 +24,42 @@ SatelliteConnection::SatelliteConnection(SatelliteStreamer& streamer)
       connection_stream_{host_header_.fragment(),
                          streamer.header_common_fragment(), streamer.metrics(),
                          streamer.span_stream()},
-      reconnect_timer_{streamer_.event_base(), -1, 0,
-                       MakeTimerCallback<SatelliteConnection,
-                                         &SatelliteConnection::Reconnect>(),
-                       static_cast<void*>(this)} {}
+      reconnect_timer_{
+          streamer_.event_base(), -1, 0,
+          MakeTimerCallback<SatelliteConnection,
+                            &SatelliteConnection::InitiateReconnect>(),
+          static_cast<void*>(this)},
+      graceful_shutdown_timeout_{
+          streamer.event_base(), -1, 0,
+          MakeTimerCallback<SatelliteConnection,
+                            &SatelliteConnection::GracefulShutdownTimeout>(),
+          static_cast<void*>(this)} {}
 
 //--------------------------------------------------------------------------------------------------
 // Start
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::Start() noexcept { Connect(); }
+
+//--------------------------------------------------------------------------------------------------
+// Flush
+//--------------------------------------------------------------------------------------------------
+bool SatelliteConnection::Flush() noexcept try {
+  auto flushed_everything = connection_stream_.Flush(
+      [this](std::initializer_list<FragmentInputStream*> fragment_streams) {
+        return Write(socket_.file_descriptor(), fragment_streams);
+      });
+  if (flushed_everything) {
+    writable_ = true;
+  } else {
+    writable_ = false;
+    write_event_.Add(streamer_.recorder_options().satellite_write_timeout);
+  }
+  return flushed_everything;
+} catch (const std::exception& e) {
+  streamer_.logger().Error("Flush failed: ", e.what());
+  HandleFailure();
+  return false;
+}
 
 //--------------------------------------------------------------------------------------------------
 // Connect
@@ -69,8 +96,9 @@ void SatelliteConnection::FreeSocket() {
   read_event_ = Event{};
   write_event_ = Event{};
   reconnect_timer_.Remove();
+  graceful_shutdown_timeout_.Remove();
   writable_ = false;
-  conneciton_stream_.Reset();
+  connection_stream_.Reset();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -97,6 +125,21 @@ void SatelliteConnection::ScheduleReconnect() {
 }
 
 //--------------------------------------------------------------------------------------------------
+// InitiateReconnect
+//--------------------------------------------------------------------------------------------------
+void SatelliteConnection::InitiateReconnect() noexcept try {
+  connection_stream_.Shutdown();
+  if (writable_) {
+    Flush();
+  }
+  graceful_shutdown_timeout_.Add(
+      streamer_.recorder_options().satellite_graceful_stream_shutdown_timeout);
+} catch (const std::exception& e) {
+  streamer_.logger().Error("InitiateReconnect failed: ", e.what());
+  return HandleFailure();
+}
+
+//--------------------------------------------------------------------------------------------------
 // Reconnect
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::Reconnect() noexcept try {
@@ -104,6 +147,15 @@ void SatelliteConnection::Reconnect() noexcept try {
   Connect();
 } catch (const std::exception& e) {
   streamer_.logger().Error("Reconnect failed: ", e.what());
+}
+
+//--------------------------------------------------------------------------------------------------
+// GracefulShutdownTimeout
+//--------------------------------------------------------------------------------------------------
+void SatelliteConnection::GracefulShutdownTimeout() noexcept {
+  streamer_.logger().Error(
+      "Failed to shutdown satellite connection gracefully");
+  Reconnect();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -124,8 +176,8 @@ void SatelliteConnection::OnReadable(int file_descriptor,
   }
 
   if (rcode == 0) {
-    if (!connection_stream.completed()) {
-      streamer_.logger().Warn("Socket closed by satellite");
+    if (!connection_stream_.completed()) {
+      streamer_.logger().Warn("Socket closed prematurely by satellite");
       return OnSocketError();
     }
     return Reconnect();
@@ -151,15 +203,7 @@ void SatelliteConnection::OnWritable(int /*file_descriptor*/,
     return OnSocketError();
   }
   assert((what & EV_WRITE) != 0);
-  auto flushed_everything = connection_stream_.Flush(
-      [&](std::initializer_list<FragmentInputStream*> fragment_streams) {
-        return Write(socket_.file_descriptor(), fragment_streams);
-      });
-  if (flushed_everything) {
-    writable_ = true;
-    return;
-  }
-  return write_event_.Add(streamer_.recorder_options().satellite_write_timeout);
+  Flush();
 } catch (const std::exception& e) {
   streamer_.logger().Error("OnWritable failed: ", e.what());
   return HandleFailure();
