@@ -16,7 +16,7 @@ lightstep_cc_library(
         "utility.cpp",
     ],
     deps = [
-        "//src/network:fixed_fragment_input_stream_lib",
+        "//src/network:fragment_input_stream_lib",
     ],
 )
 
@@ -37,17 +37,6 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/network:event_lib",
-    ],
-)
-
-lightstep_catch_test(
-    name = "fixed_fragment_input_stream_test",
-    srcs = [
-        "fixed_fragment_input_stream_test.cpp",
-    ],
-    deps = [
-        "//src/network:fixed_fragment_input_stream_lib",
-        ":utility_lib",
     ],
 )
 

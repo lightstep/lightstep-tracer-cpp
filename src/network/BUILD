@@ -78,16 +78,6 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "fixed_fragment_input_stream_lib",
-    private_hdrs = [
-        "fixed_fragment_input_stream.h",
-    ],
-    deps = [
-        ":fragment_input_stream_lib",
-    ],
-)
-
-lightstep_cc_library(
     name = "vector_write_lib",
     private_hdrs = [
         "vector_write.h",

@@ -66,16 +66,6 @@ class FragmentInputStream {
  */
 Fragment MakeFragment(const char* s) noexcept;
 
-/**
- * Determine which fragment an index lies in.
- * @param fragment_input_streams a list of fragment sets.
- * @param n an index into the fragment sets.
- * @return a tuple identifying the fragment set, fragment, and position of n.
- */
-std::tuple<int, int, int> ComputeFragmentPosition(
-    std::initializer_list<const FragmentInputStream*> fragment_input_streams,
-    int n) noexcept;
-
 bool Consume(std::initializer_list<FragmentInputStream*> fragment_input_streams,
              int n) noexcept;
 }  // namespace lightstep
