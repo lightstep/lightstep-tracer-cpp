@@ -62,13 +62,14 @@ TEST_CASE("FragmentInputStream") {
 
   SECTION("We can consume all the data.") {
     REQUIRE(Consume(fragment_input_streams, 20));
-    REQUIRE((ToString(fragment_input_stream1) +
-             ToString(fragment_input_stream2)) == "");
+    REQUIRE(
+        (ToString(fragment_input_stream1) + ToString(fragment_input_stream2))
+            .empty());
   }
 
   SECTION("We can consume the data one byte at a time.") {
     std::string s;
-    while (1) {
+    while (true) {
       s += (ToString(fragment_input_stream1) +
             ToString(fragment_input_stream2))[0];
       auto result = Consume(fragment_input_streams, 1);
@@ -86,7 +87,7 @@ TEST_CASE("FragmentInputStream") {
       fragment_input_stream2 = {MakeFragment("alpha"), MakeFragment("beta"),
                                 MakeFragment("gamma")};
       std::string s;
-      while (1) {
+      while (true) {
         auto contents =
             ToString(fragment_input_stream1) + ToString(fragment_input_stream2);
         std::uniform_int_distribution<size_t> distribution{0, contents.size()};

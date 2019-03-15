@@ -15,7 +15,7 @@ class SpanStream final : public FragmentInputStream {
 
   void Clear() noexcept override;
 
-  virtual void Seek(int fragment_index, int position) noexcept override;
+  void Seek(int fragment_index, int position) noexcept override;
 
  private:
   ChunkCircularBuffer& span_buffer_;

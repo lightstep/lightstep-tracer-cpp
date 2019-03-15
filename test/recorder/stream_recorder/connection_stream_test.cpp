@@ -25,7 +25,7 @@ collector::ReportRequest ParseStreamHeader(const std::string& s) {
   auto chunk_start = s.find("\r\n", body_start);
   REQUIRE(chunk_start != std::string::npos);
   auto chunk_size =
-      std::stoi(s.substr(body_start, body_start - chunk_start), 0, 16);
+      std::stoi(s.substr(body_start, body_start - chunk_start), nullptr, 16);
   chunk_start += 2;
   REQUIRE(result.ParseFromString(s.substr(chunk_start, chunk_size)));
   return result;
@@ -57,7 +57,7 @@ TEST_CASE("ConnectionStream") {
       "The ConnectionStream writes the same header if we flush in smaller "
       "pieces.") {
     std::string contents2;
-    while (1) {
+    while (true) {
       auto result = connection_stream.Flush(
           [&contents2](
               std::initializer_list<FragmentInputStream*> fragment_streams) {
