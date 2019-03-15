@@ -44,7 +44,10 @@ brew install pkg-config
 
 ## Getting started
 
-To initialize the LightStep library in particular, either retain a reference to the LightStep `opentracing::Tracer` implementation and/or set the global `Tracer` like so:
+To initialize the LightStep tracer, configure the options and
+construct the object as shown below.  The `Tracer` returned by
+`lightstep::MakeLightStepTracer` may be passed manually through the
+application, or it can be set as the `opentracing::Global()` tracer. 
 
 ```cpp
 #include <opentracing/tracer.h>
