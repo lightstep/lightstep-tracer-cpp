@@ -193,10 +193,15 @@ if (WITH_LIBEVENT)
                              src/recorder/stream_recorder/satellite_endpoint_manager.cpp
                              src/recorder/stream_recorder/satellite_connection.cpp
                              src/recorder/stream_recorder/satellite_streamer.cpp
+                             src/recorder/stream_recorder/span_stream.cpp
+                             src/recorder/stream_recorder/connection_stream.cpp
+                             src/recorder/stream_recorder/host_header.cpp
+                             src/recorder/stream_recorder/embedded_metrics_message.cpp
                              src/recorder/stream_recorder/utility.cpp
                              src/network/event.cpp
                              src/network/event_base.cpp
                              src/network/fragment_input_stream.cpp
+                             src/network/fragment_array_input_stream.cpp
                              src/network/timer_event.cpp
                              src/network/ip_address.cpp
                              src/network/socket.cpp
