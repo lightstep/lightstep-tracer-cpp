@@ -50,18 +50,27 @@ To initialize the LightStep library in particular, either retain a reference to 
 #include <opentracing/tracer.h>
 #include <lightstep/tracer.h>
 
-int main() {
+void initGlobalTracer() {
   lightstep::LightStepTracerOptions options;
-  options.component_name = "C++ app";
-  options.access_token = "<LightStep access token>";
+  options.component_name = "c++ quickstart app";
+  options.access_token = "hello";
+
   auto tracer = lightstep::MakeLightStepTracer(std::move(options));
 
   opentracing::Tracer::InitGlobal(tracer);
+}
 
-  auto span = tracer->StartSpan("demo");
+int main() {
+  initGlobalTracer();
+
+  auto span = opentracing::Tracer::Global()->StartSpan("demo");
+
+  span->SetTag("key", "value");
+  span->Log({{"logkey", "logval"},
+             {"number", 1}});
   span->Finish();
 
-  tracer->Flush();
+  opentracing::Tracer::Global()->Close();
   
   return 0;
 }
