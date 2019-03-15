@@ -51,7 +51,7 @@ void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
       span_buffer_.Add(serialization_callback, span.ByteSizeLong());
   if (!was_added) {
     logger_.Debug("Dropping span ", span.span_context().span_id());
-    metrics_.num_dropped_spans++;
+    ++metrics_.num_dropped_spans;
     tracer_options_.metrics_observer->OnSpansDropped(1);
   }
 }
