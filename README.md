@@ -5,7 +5,9 @@ The LightStep distributed tracing library for C++.
 
 ## Installation
 
-The library supports being built in several configurations to support a variety of uses.  The default build configuration includes gRPC support for sending data to LightStep, or alternately the library may be configured without gRPC to use a user-defined transport library. The library can be built with support dynamic loading, for applications that support more than one OpenTracing-compatible tracer.
+The library supports being built in several configurations to support a variety of uses.  The default build configuration includes gRPC support for sending data to LightStep, or alternately the library may be configured without gRPC to use a user-defined transport library.
+
+The library also supports dynamic loading, for applications that support more than one OpenTracing-compatible tracer.  To use the dynamic library, we recommend installing the binary plugin included with each release (e.g., [the 0.8.1 plugin](https://github.com/lightstep/lightstep-tracer-cpp/releases/download/v0.8.1/linux-amd64-liblightstep_tracer_plugin.so.gz)).
 
 ### Requirements
 
@@ -31,13 +33,12 @@ $ sudo make install
 
 ### OS X specific steps
 
-Several packages are required to complete this build, including `Python` and `pkg-config`.  To install all the dependencies on OS X using `brew`:
+Several packages are required to complete this build.  To install all the dependencies on OS X using `brew`:
 
 ```
 brew install cmake
 brew install protobuf
 brew install grpc
-brew install python
 brew install pkg-config
 ```
 
