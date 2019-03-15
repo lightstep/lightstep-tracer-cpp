@@ -164,6 +164,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/common/bipart_memory_stream.cpp
                    src/common/circular_buffer.cpp
                    src/common/chunk_circular_buffer.cpp
+                   src/common/protobuf.cpp
                    src/common/in_memory_stream.cpp
                    src/common/logger.cpp
                    src/common/random.cpp

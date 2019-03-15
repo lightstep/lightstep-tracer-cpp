@@ -97,7 +97,8 @@ TEST_CASE("ConnectionStream") {
   }
 
   SECTION(
-      "The ConnectionStream consumes metrics and sends in the stream header.") {
+      "The ConnectionStream consumes metrics and sends them in the stream "
+      "header.") {
     metrics.num_dropped_spans += 3;
     connection_stream.Reset();
     REQUIRE(metrics.num_dropped_spans == 0);
