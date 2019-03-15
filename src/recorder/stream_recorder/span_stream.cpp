@@ -16,6 +16,7 @@ int SpanStream::num_fragments() const noexcept { return 0; }
 // ForEachFragment
 //--------------------------------------------------------------------------------------------------
 bool SpanStream::ForEachFragment(Callback /*callback*/) const noexcept {
+  (void)span_buffer_;
   return true;
 }
 
