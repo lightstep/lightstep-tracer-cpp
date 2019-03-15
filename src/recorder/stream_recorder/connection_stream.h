@@ -13,6 +13,9 @@
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
 
 namespace lightstep {
+/**
+ * Manages the data to send over a streaming satellite connection.
+ */
 class ConnectionStream {
   // Account for the size encoded in hex plus the following \r\n sequence.
   static const size_t MaxChunkHeaderSize = Num64BitHexDigits + 2;
@@ -25,12 +28,26 @@ class ConnectionStream {
                    Fragment header_common_fragment,
                    StreamRecorderMetrics& metrics, SpanStream& span_stream);
 
+  /**
+   * Reset so as to begin a new streaming session.
+   */
   void Reset();
 
+  /**
+   * Set the current streaming session to end.
+   */
   void Shutdown() noexcept;
 
+  /**
+   * Flushes data from the stream.
+   * @param writer the writer to flush data to.
+   * @return true if all the data in the stream was flushed; false, otherwise.
+   */
   bool Flush(Writer writer);
 
+  /**
+   * @return true if the streaming session is complete.
+   */
   bool completed() const noexcept { return terminal_stream_.empty(); }
 
  private:

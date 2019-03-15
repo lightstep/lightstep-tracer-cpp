@@ -18,6 +18,12 @@ std::pair<std::vector<const char*>, std::vector<std::pair<int, uint16_t>>>
 SeparateEndpoints(
     const std::vector<std::pair<std::string, uint16_t>>& endpoints);
 
+/**
+ * Serializes the common parts of a ReportRequest.
+ * @param tracer_options the options used to construct the tracer.
+ * @param reporter_id a unique ID for the reporter.
+ * @return a string with the common parts of the ReportRequest serialization.
+ */
 std::string WriteStreamHeaderCommonFragment(
     const LightStepTracerOptions& tracer_options, uint64_t reporter_id);
 }  // namespace lightstep

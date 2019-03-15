@@ -65,6 +65,12 @@ class FragmentInputStream {
  */
 Fragment MakeFragment(const char* s) noexcept;
 
+/**
+ * Consumes n bytes from the provided inpute streams.
+ * @param fragment_input_stream the fragment streams to consume bytes from.
+ * @param n the number of bytes to consume.
+ * @return true if all bytes in the streams were consumed; false, othewise.
+ */
 bool Consume(std::initializer_list<FragmentInputStream*> fragment_input_streams,
              int n) noexcept;
 }  // namespace lightstep

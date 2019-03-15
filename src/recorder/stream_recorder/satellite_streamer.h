@@ -43,10 +43,20 @@ class SatelliteStreamer : private Noncopyable {
     return recorder_options_;
   }
 
+  /**
+   * @return the metrics associated with StreamRecorder.
+   */
   StreamRecorderMetrics& metrics() const noexcept { return metrics_; }
 
+  /**
+   * @return the SpanStream formed from the StreamRecorder's message buffer.
+   */
   SpanStream& span_stream() noexcept { return span_stream_; }
 
+  /**
+   * @return the fragment with the common serialization data sent in
+   * ReportRequests.
+   */
   std::pair<void*, int> header_common_fragment() const noexcept {
     return {
         static_cast<void*>(const_cast<char*>(header_common_fragment_.data())),

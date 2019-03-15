@@ -18,6 +18,11 @@ class SatelliteConnection : private Noncopyable {
    */
   void Start() noexcept;
 
+  /**
+   * Flushes through the streaming satellite connection.
+   * @return true if all data in th span buffer was flushed through the
+   * connection.
+   */
   bool Flush() noexcept;
 
  private:

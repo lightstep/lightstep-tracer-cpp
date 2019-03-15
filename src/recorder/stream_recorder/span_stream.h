@@ -4,6 +4,10 @@
 #include "network/fragment_input_stream.h"
 
 namespace lightstep {
+/**
+ * Manages the stream of data comming from the circular buffer of completed
+ * spans.
+ */
 class SpanStream final : public FragmentInputStream {
  public:
   explicit SpanStream(ChunkCircularBuffer& span_buffer) noexcept;
