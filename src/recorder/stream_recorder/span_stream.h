@@ -12,6 +12,8 @@ class SpanStream final : public FragmentInputStream {
  public:
   explicit SpanStream(ChunkCircularBuffer& span_buffer) noexcept;
 
+  void Allot() noexcept;
+
   // FragmentInputStream
   int num_fragments() const noexcept override;
 
@@ -23,5 +25,7 @@ class SpanStream final : public FragmentInputStream {
 
  private:
   ChunkCircularBuffer& span_buffer_;
+  CircularBufferConstPlacement allotment_;
+  const char* stream_position_{nullptr};
 };
 }  // namespace lightstep
