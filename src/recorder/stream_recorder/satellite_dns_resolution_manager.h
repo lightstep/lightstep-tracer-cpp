@@ -37,6 +37,11 @@ class SatelliteDnsResolutionManager final : public DnsResolutionCallback,
     return ip_addresses_;
   }
 
+  /**
+   * @return the name associated with this resolution
+   */
+  const char* name() const noexcept { return name_; }
+
   // DnsResolutionCallback
   void OnDnsResolution(
       const DnsResolution& dns_resolution,

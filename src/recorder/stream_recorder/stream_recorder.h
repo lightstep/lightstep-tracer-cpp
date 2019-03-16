@@ -11,6 +11,7 @@
 #include "network/timer_event.h"
 #include "recorder/stream_recorder.h"
 #include "recorder/stream_recorder/satellite_streamer.h"
+#include "recorder/stream_recorder/stream_recorder_metrics.h"
 #include "recorder/stream_recorder/stream_recorder_options.h"
 
 namespace lightstep {
@@ -37,6 +38,7 @@ class StreamRecorder final : public Recorder, private Noncopyable {
   Logger& logger_;
   LightStepTracerOptions tracer_options_;
   StreamRecorderOptions recorder_options_;
+  StreamRecorderMetrics metrics_;
   ChunkCircularBuffer span_buffer_;
   size_t early_flush_marker_;
 

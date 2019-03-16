@@ -28,15 +28,17 @@ TEST_CASE("SatelliteEndpointManager") {
       "Round robin is used when assigning endpoints if multiple IPs are "
       "available for a port.") {
     tracer_options.satellite_endpoints = {{"satellites.service", 1234}};
+    auto name = tracer_options.satellite_endpoints[0].first.c_str();
     SatelliteEndpointManager endpoint_manager{logger, event_base,
                                               tracer_options, recorder_options,
                                               on_ready_callback};
     endpoint_manager.Start();
     event_base.Dispatch();
+
     REQUIRE(endpoint_manager.RequestEndpoint() ==
-            IpAddress{"192.168.0.1", 1234});
+            std::make_pair(IpAddress{"192.168.0.1", 1234}, name));
     REQUIRE(endpoint_manager.RequestEndpoint() ==
-            IpAddress{"192.168.0.2", 1234});
+            std::make_pair(IpAddress{"192.168.0.2", 1234}, name));
   }
 
   SECTION(
@@ -49,9 +51,9 @@ TEST_CASE("SatelliteEndpointManager") {
                                               on_ready_callback};
     endpoint_manager.Start();
     event_base.Dispatch();
-    REQUIRE(endpoint_manager.RequestEndpoint() ==
+    REQUIRE(endpoint_manager.RequestEndpoint().first ==
             IpAddress{"192.168.0.1", 1234});
-    REQUIRE(endpoint_manager.RequestEndpoint() ==
+    REQUIRE(endpoint_manager.RequestEndpoint().first ==
             IpAddress{"192.168.0.2", 2345});
   }
 }

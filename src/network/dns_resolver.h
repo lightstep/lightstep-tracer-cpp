@@ -4,6 +4,7 @@
 #include <functional>
 #include <vector>
 
+#include "common/function_ref.h"
 #include "common/logger.h"
 #include "network/event_base.h"
 #include "network/ip_address.h"
@@ -41,7 +42,7 @@ class DnsResolution {
    * @return true if f returns true for each ip address; false, otherwise.
    */
   virtual bool ForeachIpAddress(
-      const std::function<bool(const IpAddress& ip_address)>& /*f*/) const {
+      const FunctionRef<bool(const IpAddress& ip_address)>& /*f*/) const {
     return true;
   }
 };

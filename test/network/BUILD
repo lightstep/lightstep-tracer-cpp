@@ -46,21 +46,22 @@ lightstep_catch_test(
         "fragment_input_stream_test.cpp",
     ],
     deps = [
-        "//src/network:fragment_input_stream_lib",
+        "//src/network:fragment_array_input_stream_lib",
         ":utility_lib",
     ],
 )
 
 lightstep_catch_test(
-    name = "fragment_set_test",
+    name = "fragment_array_input_stream_test",
     srcs = [
-        "fragment_set_test.cpp",
+        "fragment_array_input_stream_test.cpp",
     ],
     deps = [
-        "//src/network:fragment_set_lib",
+        "//src/network:fragment_array_input_stream_lib",
         ":utility_lib",
     ],
 )
+
 
 lightstep_catch_test(
     name = "vector_write_test",
@@ -70,6 +71,7 @@ lightstep_catch_test(
     deps = [
         "//src/network:socket_lib",
         "//src/network:vector_write_lib",
+        "//src/network:fragment_array_input_stream_lib",
         "//test/echo_server:echo_server_lib",
         "//test:ports_lib",
         "//test/network:utility_lib",

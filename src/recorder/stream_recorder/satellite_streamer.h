@@ -7,6 +7,8 @@
 #include "common/noncopyable.h"
 #include "recorder/stream_recorder/satellite_connection.h"
 #include "recorder/stream_recorder/satellite_endpoint_manager.h"
+#include "recorder/stream_recorder/span_stream.h"
+#include "recorder/stream_recorder/stream_recorder_metrics.h"
 
 namespace lightstep {
 class SatelliteStreamer : private Noncopyable {
@@ -14,6 +16,7 @@ class SatelliteStreamer : private Noncopyable {
   SatelliteStreamer(Logger& logger, EventBase& event_base,
                     const LightStepTracerOptions& tracer_options,
                     const StreamRecorderOptions& recorder_options,
+                    StreamRecorderMetrics& metrics,
                     ChunkCircularBuffer& span_buffer);
 
   /**
@@ -27,10 +30,37 @@ class SatelliteStreamer : private Noncopyable {
   EventBase& event_base() const noexcept { return event_base_; }
 
   /**
+   * @return the associated LightStepTracerOptions
+   */
+  const LightStepTracerOptions& tracer_options() const noexcept {
+    return tracer_options_;
+  }
+
+  /**
    * @return the associated StreamRecorderOptions.
    */
   const StreamRecorderOptions& recorder_options() const noexcept {
     return recorder_options_;
+  }
+
+  /**
+   * @return the metrics associated with StreamRecorder.
+   */
+  StreamRecorderMetrics& metrics() const noexcept { return metrics_; }
+
+  /**
+   * @return the SpanStream formed from the StreamRecorder's message buffer.
+   */
+  SpanStream& span_stream() noexcept { return span_stream_; }
+
+  /**
+   * @return the fragment with the common serialization data sent in
+   * ReportRequests.
+   */
+  std::pair<void*, int> header_common_fragment() const noexcept {
+    return {
+        static_cast<void*>(const_cast<char*>(header_common_fragment_.data())),
+        static_cast<int>(header_common_fragment_.size())};
   }
 
   /**
@@ -45,26 +75,17 @@ class SatelliteStreamer : private Noncopyable {
    */
   void Flush() noexcept;
 
-  /**
-   * Callback to indicate that a satellite connection is ready for writing.
-   * @param SatelliteConnection the writable satellite connection.
-   */
-  void OnConnectionWritable(SatelliteConnection* connection) noexcept;
-
-  /**
-   * Callback to indicate that a satellite connection is no longer writable.
-   * @param SatelliteConnection the non-writable satellite connection.
-   */
-  void OnConnectionNonwritable(SatelliteConnection* connection) noexcept;
-
  private:
   Logger& logger_;
   EventBase& event_base_;
+  const LightStepTracerOptions& tracer_options_;
   const StreamRecorderOptions& recorder_options_;
+  std::string header_common_fragment_;
   SatelliteEndpointManager endpoint_manager_;
+  StreamRecorderMetrics& metrics_;
   ChunkCircularBuffer& span_buffer_;
+  SpanStream span_stream_;
   std::vector<std::unique_ptr<SatelliteConnection>> connections_;
-  std::vector<SatelliteConnection*> writable_connections_;
 
   void OnEndpointManagerReady() noexcept;
 };

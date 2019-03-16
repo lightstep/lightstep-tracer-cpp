@@ -1,25 +1,52 @@
 #pragma once
 
-#include <algorithm>
-#include <array>
-#include <cassert>
+#include <cstddef>
 #include <initializer_list>
 #include <utility>
 
-#include "network/fragment_set.h"
+#include "common/function_ref.h"
 
 namespace lightstep {
+using Fragment = std::pair<void*, int>;
+
 /**
- * A non-owning stream of fragments.
+ * Interface for iterating over sequences of fragments.
  */
-template <size_t N>
-class FragmentInputStream final : public FragmentSet {
+class FragmentInputStream {
  public:
-  explicit FragmentInputStream(
-      std::initializer_list<std::pair<void*, int>> fragments) {
-    assert(fragments.size() == N);
-    std::copy(fragments.begin(), fragments.end(), fragments_.begin());
-  }
+  using Callback = FunctionRef<bool(void* data, int size)>;
+
+  FragmentInputStream() noexcept = default;
+  FragmentInputStream(const FragmentInputStream&) noexcept = default;
+  FragmentInputStream(FragmentInputStream&&) noexcept = default;
+
+  virtual ~FragmentInputStream() noexcept = default;
+
+  FragmentInputStream& operator=(const FragmentInputStream&) noexcept = default;
+  FragmentInputStream& operator=(FragmentInputStream&&) noexcept = default;
+
+  /**
+   * @return the number of fragments in the set.
+   */
+  virtual int num_fragments() const noexcept = 0;
+
+  /**
+   * @return true if the set contains no fragments.
+   */
+  bool empty() const noexcept { return num_fragments() == 0; }
+
+  /**
+   * Iterate over each fragment in the set.
+   * @param callback a callback to call for each fragment. The callback can
+   * return false to break out of the iteration early.
+   * @return false if the iteration was interrupted early.
+   */
+  virtual bool ForEachFragment(Callback callback) const noexcept = 0;
+
+  /**
+   * Repositions the stream to the end of all the fragments.
+   */
+  virtual void Clear() noexcept = 0;
 
   /**
    * Adjust the position of the fragment stream.
@@ -28,53 +55,22 @@ class FragmentInputStream final : public FragmentSet {
    * @param position the position within fragment_index to reposition to
    * relative to the current position.
    */
-  void Seek(int fragment_index, int position) noexcept {
-    assert(fragment_index < static_cast<int>(N));
-    if (fragment_index_ == fragment_index) {
-      position_ += position;
-    } else {
-      position_ = position;
-    }
-    fragment_index_ += fragment_index;
-    assert(fragment_index_ < static_cast<int>(N));
-    assert(position_ < fragments_[fragment_index].second);
-  }
-
-  /**
-   * Repositions the stream to the end of all the fragments.
-   */
-  void Clear() { fragment_index_ = static_cast<int>(N); }
-
-  // FragmentSet
-  int num_fragments() const noexcept override {
-    return static_cast<int>(N) - fragment_index_;
-  }
-
-  bool ForEachFragment(FunctionRef<Callback> callback) const noexcept override {
-    if (fragment_index_ >= static_cast<int>(N)) {
-      return true;
-    }
-
-    auto current_fragment = fragments_[fragment_index_];
-    auto result =
-        callback(static_cast<void*>(static_cast<char*>(current_fragment.first) +
-                                    position_),
-                 current_fragment.second - position_);
-    if (!result) {
-      return false;
-    }
-
-    for (int i = fragment_index_ + 1; i < static_cast<int>(N); ++i) {
-      if (!callback(fragments_[i].first, fragments_[i].second)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
- private:
-  std::array<std::pair<void*, int>, N> fragments_;
-  int fragment_index_{0};
-  int position_{0};
+  virtual void Seek(int fragment_index, int position) noexcept = 0;
 };
+
+/**
+ * Converts a c-string to a fragment.
+ * @param s supplies the string to convert.
+ * @return a fragment for s.
+ */
+Fragment MakeFragment(const char* s) noexcept;
+
+/**
+ * Consumes n bytes from the provided inpute streams.
+ * @param fragment_input_stream the fragment streams to consume bytes from.
+ * @param n the number of bytes to consume.
+ * @return true if all bytes in the streams were consumed; false, othewise.
+ */
+bool Consume(std::initializer_list<FragmentInputStream*> fragment_input_streams,
+             int n) noexcept;
 }  // namespace lightstep

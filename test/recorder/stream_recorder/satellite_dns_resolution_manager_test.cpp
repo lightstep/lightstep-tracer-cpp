@@ -56,11 +56,12 @@ TEST_CASE("SatelliteDnsResolutionManager") {
     event_base.Dispatch();
     REQUIRE(resolution_manager.ip_addresses() ==
             std::vector<IpAddress>{IpAddress{"192.168.0.2"}});
-    event_base.OnTimeout(1.5 * DnsRefreshPeriod,
-                         [](int /*socket*/, short /*what*/, void* context) {
-                           static_cast<EventBase*>(context)->LoopBreak();
-                         },
-                         static_cast<void*>(&event_base));
+    event_base.OnTimeout(
+        1.5 * DnsRefreshPeriod,
+        [](int /*socket*/, short /*what*/, void* context) {
+          static_cast<EventBase*>(context)->LoopBreak();
+        },
+        static_cast<void*>(&event_base));
     event_base.Dispatch();
     REQUIRE(resolution_manager.ip_addresses() ==
             std::vector<IpAddress>{IpAddress{"192.168.0.3"}});

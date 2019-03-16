@@ -50,7 +50,8 @@ void SatelliteEndpointManager::Start() noexcept {
 //--------------------------------------------------------------------------------------------------
 // RequestEndpoint
 //--------------------------------------------------------------------------------------------------
-IpAddress SatelliteEndpointManager::RequestEndpoint() noexcept {
+std::pair<IpAddress, const char*>
+SatelliteEndpointManager::RequestEndpoint() noexcept {
   auto endpoint_index_start = endpoint_index_;
   while (true) {
     // RequestEndpoint shouldn't be called until at least one host name is
@@ -72,7 +73,7 @@ IpAddress SatelliteEndpointManager::RequestEndpoint() noexcept {
     auto result =
         ip_addresses[host_manager.address_index++ % ip_addresses.size()];
     result.set_port(port);
-    return result;
+    return std::make_pair(result, host_manager.ipv4_resolutions->name());
   }
 }
 

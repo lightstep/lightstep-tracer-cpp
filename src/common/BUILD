@@ -110,6 +110,19 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "protobuf_lib",
+    private_hdrs = [
+        "protobuf.h",
+    ],
+    srcs = [
+        "protobuf.cpp",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+lightstep_cc_library(
     name = "utility_lib",
     private_hdrs = [
         "utility.h",

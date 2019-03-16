@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <utility>
 
 #include "common/noncopyable.h"
 #include "lightstep/tracer.h"
@@ -34,7 +35,7 @@ class SatelliteEndpointManager : private Noncopyable {
    * Assigns satellite endpoints using round robin.
    * @return a satellite endpoint.
    */
-  IpAddress RequestEndpoint() noexcept;
+  std::pair<IpAddress, const char*> RequestEndpoint() noexcept;
 
  private:
   std::function<void()> on_ready_callback_;

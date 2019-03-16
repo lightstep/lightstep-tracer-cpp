@@ -29,6 +29,7 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/recorder/stream_recorder:utility_lib",
+        "//lightstep-tracer-common:collector_proto_cc",
     ],
 )
 
@@ -65,5 +66,47 @@ lightstep_catch_test(
         "//src/network/ares_dns_resolver:ares_dns_resolver_lib",
         "//test/mock_dns_server:mock_dns_server_lib",
         "//test:ports_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "embedded_metrics_message_test",
+    srcs = [
+        "embedded_metrics_message_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:embedded_metrics_message_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "span_stream_test",
+    srcs = [
+        "span_stream_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:span_stream_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "connection_stream_test",
+    srcs = [
+        "connection_stream_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:connection_stream_lib",
+        "//src/recorder/stream_recorder:utility_lib",
+        "//test/network:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "host_header_test",
+    srcs = [
+        "host_header_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:host_header_lib",
     ],
 )

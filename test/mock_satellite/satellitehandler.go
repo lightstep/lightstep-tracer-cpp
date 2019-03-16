@@ -79,6 +79,7 @@ func (handler *SatelliteHandler) serveFixedHTTP(responseWriter http.ResponseWrit
 }
 
 func (handler *SatelliteHandler) serveStreamingHTTP(responseWriter http.ResponseWriter, request *http.Request) {
+	log.Println("serving streaming http")
 	response := &collectorpb.ReportResponse{
 		ReceiveTimestamp: getCurrentTime(),
 	}
@@ -89,10 +90,20 @@ func (handler *SatelliteHandler) serveStreamingHTTP(responseWriter http.Response
 	}
 	handler.reportChannel <- reportHeader
 	for {
-		span, err := ReadSpan(reader)
+		_, err := reader.ReadByte()
 		if err == io.EOF {
 			break
 		}
+		if err != nil {
+			log.Fatalf("ReadByte failed: %s\n", err.Error())
+			break
+		}
+		err = reader.UnreadByte()
+		if err != nil {
+			log.Fatalf("UnreadByte failed: %s\n", err.Error())
+			break
+		}
+		span, err := ReadSpan(reader)
 		if err != nil {
 			log.Fatalf("ReadSpan failed: %s\n", err.Error())
 		}

@@ -71,6 +71,7 @@ lightstep_cc_library(
         "mock_satellite_handle.cpp",
     ],
     deps = [
+        "//src/common:protobuf_lib",
         "//test:child_process_handle_lib",
         "//test:utility_lib",
         "//test:http_connection_lib",

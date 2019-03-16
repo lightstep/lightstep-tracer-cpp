@@ -52,12 +52,12 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "fragment_set_lib",
+    name = "fragment_input_stream_lib",
     private_hdrs = [
-        "fragment_set.h",
+        "fragment_input_stream.h",
     ],
     srcs = [
-        "fragment_set.cpp",
+        "fragment_input_stream.cpp",
     ],
     deps = [
         "//src/common:function_ref_lib",
@@ -65,12 +65,15 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "fragment_input_stream_lib",
+    name = "fragment_array_input_stream_lib",
     private_hdrs = [
-        "fragment_input_stream.h",
+        "fragment_array_input_stream.h",
+    ],
+    srcs = [
+        "fragment_array_input_stream.cpp",
     ],
     deps = [
-        ":fragment_set_lib",
+        ":fragment_input_stream_lib",
     ],
 )
 
@@ -83,7 +86,7 @@ lightstep_cc_library(
         "vector_write.cpp",
     ],
     deps = [
-        ":fragment_set_lib",
+        ":fragment_input_stream_lib",
     ],
 )
 
@@ -94,6 +97,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:logger_lib",
+        "//src/common:function_ref_lib",
         ":event_lib",
         ":ip_address_lib",
     ],
