@@ -56,6 +56,19 @@ void CircularBuffer::Consume(size_t num_bytes) noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
+// ComputePosition
+//--------------------------------------------------------------------------------------------------
+size_t CircularBuffer::ComputePosition(const char* ptr) const noexcept {
+  auto index = static_cast<size_t>(ptr - this->data());
+  size_t tail = tail_;
+  tail = tail % capacity_;
+  if (index >= tail) {
+    return index - tail;
+  }
+  return capacity_ - tail + index;
+}
+
+//--------------------------------------------------------------------------------------------------
 // size
 //--------------------------------------------------------------------------------------------------
 size_t CircularBuffer::size() const noexcept {

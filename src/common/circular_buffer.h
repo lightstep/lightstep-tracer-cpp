@@ -87,6 +87,8 @@ class CircularBuffer {
    */
   void Consume(size_t num_bytes) noexcept;
 
+  size_t ComputePosition(const char* ptr) const noexcept;
+
   /**
    * @return the maximum number of bytes that can be stored in the buffer.
    */

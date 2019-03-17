@@ -46,6 +46,9 @@ class ChunkCircularBuffer {
    */
   void Consume(size_t num_bytes) noexcept;
 
+  CircularBufferConstPlacement FindChunk(const char* start,
+                                         const char* ptr) const noexcept;
+
   /**
    * @return A placement referencing all data that has been allotted.
    */
