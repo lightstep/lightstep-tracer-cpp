@@ -33,7 +33,8 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:chunk_circular_buffer_lib",
-        "//src/network:fragment_input_stream_lib",
+        "//src/network:fragment_array_input_stream_lib",
+        ":utility_lib",
     ],
 )
 
@@ -153,6 +154,8 @@ lightstep_cc_library(
         "//lightstep-tracer-common:collector_proto_cc",
         "//src/common:protobuf_lib",
         "//src/common:utility_lib",
+        "//src/common:circular_buffer_lib",
+        "//src/network:fragment_array_input_stream_lib",
     ],
 )
 

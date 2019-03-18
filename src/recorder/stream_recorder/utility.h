@@ -5,7 +5,9 @@
 #include <utility>
 #include <vector>
 
+#include "common/circular_buffer.h"
 #include "lightstep/tracer.h"
+#include "network/fragment_array_input_stream.h"
 
 namespace lightstep {
 /**
@@ -26,4 +28,10 @@ SeparateEndpoints(
  */
 std::string WriteStreamHeaderCommonFragment(
     const LightStepTracerOptions& tracer_options, uint64_t reporter_id);
+
+bool Contains(const char* data, size_t size, const char* ptr) noexcept;
+
+void SetSpanFragment(FragmentArrayInputStream& stream,
+                     const CircularBufferConstPlacement& placement,
+                     const char* position);
 }  // namespace lightstep

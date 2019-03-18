@@ -1,26 +1,12 @@
 #include "recorder/stream_recorder/span_stream.h"
 
+#include <algorithm>
 #include <cassert>
 #include <iterator>
 
-namespace lightstep {
-//--------------------------------------------------------------------------------------------------
-// Contains
-//--------------------------------------------------------------------------------------------------
-static bool Contains(const char* data, size_t size, const char* ptr) {
-  if (data == nullptr) {
-    return false;
-  }
-  if (ptr == nullptr) {
-    return false;
-  }
-  auto delta = std::distance(data, ptr);
-  if (delta < 0) {
-    return false;
-  }
-  return static_cast<size_t>(delta) < size;
-}
+#include "recorder/stream_recorder/utility.h"
 
+namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
@@ -47,6 +33,15 @@ int SpanStream::num_fragments() const noexcept {
   }
   return static_cast<int>(
       Contains(allotment_.data2, allotment_.size2, stream_position_));
+}
+
+//--------------------------------------------------------------------------------------------------
+// RemoveRemnant
+//--------------------------------------------------------------------------------------------------
+void SpanStream::RemoveRemnant(const char* remnant) noexcept {
+  auto last = std::remove(remnants_.begin(), remnants_.end(), remnant);
+  assert(last != remnants_.end());
+  remnants_.erase(last, remnants_.end());
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -80,10 +75,42 @@ bool SpanStream::ForEachFragment(Callback callback) const noexcept {
 //--------------------------------------------------------------------------------------------------
 // Clear
 //--------------------------------------------------------------------------------------------------
-void SpanStream::Clear() noexcept {}
+void SpanStream::Clear() noexcept { SetPositionAfter(allotment_); }
 
 //--------------------------------------------------------------------------------------------------
 // Seek
 //--------------------------------------------------------------------------------------------------
-void SpanStream::Seek(int /*fragment_index*/, int /*position*/) noexcept {}
+void SpanStream::Seek(int fragment_index, int position) noexcept {
+  const char* last;
+  if (fragment_index == 0) {
+    last = stream_position_ + position;
+  } else {
+    assert(fragment_index == 1);
+    assert(Contains(allotment_.data2, allotment_.size2, stream_position_));
+    last = allotment_.data2 + position;
+    assert(Contains(allotment_.data2, allotment_.size2, last));
+  }
+  auto chunk = span_buffer_.FindChunk(stream_position_, last);
+
+  last_span_remnant_.Clear();
+
+  // If last is at the start of the next chunk, we don't end up with any partial
+  // span that we need to track.
+  if (chunk.data1 == last) {
+    stream_position_ = last;
+    return;
+  }
+
+  remnants_.emplace_back(chunk.data1);
+  SetSpanFragment(last_span_remnant_, chunk, last);
+  SetPositionAfter(chunk);
+}
+
+//--------------------------------------------------------------------------------------------------
+// SetPositionAfter
+//--------------------------------------------------------------------------------------------------
+void SpanStream::SetPositionAfter(
+    const CircularBufferConstPlacement& placement) noexcept {
+  (void)placement;
+}
 }  // namespace lightstep

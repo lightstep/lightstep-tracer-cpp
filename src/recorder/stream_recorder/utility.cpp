@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iterator>
 #include <sstream>
 
 #include "common/protobuf.h"
@@ -73,5 +74,45 @@ std::string WriteStreamHeaderCommonFragment(
   }
 
   return oss.str();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Contains
+//--------------------------------------------------------------------------------------------------
+bool Contains(const char* data, size_t size, const char* ptr) noexcept {
+  if (data == nullptr) {
+    return false;
+  }
+  if (ptr == nullptr) {
+    return false;
+  }
+  auto delta = std::distance(data, ptr);
+  if (delta < 0) {
+    return false;
+  }
+  return static_cast<size_t>(delta) < size;
+}
+
+//--------------------------------------------------------------------------------------------------
+// SetSpanFragment
+//--------------------------------------------------------------------------------------------------
+void SetSpanFragment(FragmentArrayInputStream& stream,
+                     const CircularBufferConstPlacement& placement,
+                     const char* position) {
+  if (Contains(placement.data1, placement.size1, position)) {
+    stream.Add(Fragment{static_cast<void*>(const_cast<char*>(position)),
+                        static_cast<int>(std::distance(
+                            position, placement.data1 + placement.size1))});
+    if (placement.size2 > 0) {
+      stream.Add(
+          Fragment{static_cast<void*>(const_cast<char*>(placement.data2)),
+                   static_cast<int>(placement.size2)});
+    }
+    return;
+  }
+  assert(Contains(placement.data2, placement.size2, position));
+  stream.Add(Fragment{static_cast<void*>(const_cast<char*>(position)),
+                      static_cast<int>(std::distance(
+                          position, placement.data2 + placement.size2))});
 }
 }  // namespace lightstep
