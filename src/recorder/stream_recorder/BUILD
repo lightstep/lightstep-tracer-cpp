@@ -35,6 +35,22 @@ lightstep_cc_library(
         "//src/common:chunk_circular_buffer_lib",
         "//src/network:fragment_array_input_stream_lib",
         ":utility_lib",
+        ":fragment_span_input_stream_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "fragment_span_input_stream_lib",
+    private_hdrs = [
+        "fragment_span_input_stream.h",
+    ],
+    srcs = [
+        "fragment_span_input_stream.cpp",
+    ],
+    deps = [
+        "//src/common:circular_buffer_lib",
+        "//src/network:fragment_array_input_stream_lib",
+        ":utility_lib",
     ],
 )
 
@@ -54,6 +70,7 @@ lightstep_cc_library(
         ":embedded_metrics_message_lib",
         ":span_stream_lib",
         ":stream_recorder_metrics_lib",
+        ":fragment_span_input_stream_lib",
     ],
 )
 

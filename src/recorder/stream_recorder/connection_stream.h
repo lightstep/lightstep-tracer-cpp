@@ -11,6 +11,7 @@
 #include "recorder/stream_recorder/embedded_metrics_message.h"
 #include "recorder/stream_recorder/span_stream.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
+#include "recorder/stream_recorder/fragment_span_input_stream.h"
 
 namespace lightstep {
 /**
@@ -63,6 +64,8 @@ class ConnectionStream {
 
   FragmentArrayInputStream header_stream_;
   FragmentArrayInputStream terminal_stream_;
+
+  FragmentSpanInputStream span_remnant_;
 
   bool shutting_down_;
 

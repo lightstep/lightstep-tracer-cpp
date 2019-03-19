@@ -10,7 +10,7 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-SpanStream::SpanStream(ChunkCircularBuffer& span_buffer) noexcept
+SpanStream::SpanStream(ChunkCircularBuffer& span_buffer)
     : span_buffer_{span_buffer} {}
 
 //--------------------------------------------------------------------------------------------------
@@ -42,6 +42,14 @@ void SpanStream::RemoveRemnant(const char* remnant) noexcept {
   auto last = std::remove(remnants_.begin(), remnants_.end(), remnant);
   assert(last != remnants_.end());
   remnants_.erase(last, remnants_.end());
+}
+
+//--------------------------------------------------------------------------------------------------
+// PopSpanRemnant
+//--------------------------------------------------------------------------------------------------
+void SpanStream::PopSpanRemnant(FragmentSpanInputStream& remnant) noexcept {
+  std::swap(remnant, span_remnant_);
+  span_remnant_.Clear();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -92,7 +100,7 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
   }
   auto chunk = span_buffer_.FindChunk(stream_position_, last);
 
-  last_span_remnant_.Clear();
+  span_remnant_.Clear();
 
   // If last is at the start of the next chunk, we don't end up with any partial
   // span that we need to track.
@@ -102,7 +110,7 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
   }
 
   remnants_.emplace_back(chunk.data1);
-  SetSpanFragment(last_span_remnant_, chunk, last);
+  span_remnant_.Set(chunk, last);
   SetPositionAfter(chunk);
 }
 
@@ -111,6 +119,19 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
 //--------------------------------------------------------------------------------------------------
 void SpanStream::SetPositionAfter(
     const CircularBufferConstPlacement& placement) noexcept {
-  (void)placement;
+  const char* last;
+  if (placement.size2 > 0) {
+    last = placement.data2 + placement.size2;
+  } else {
+    last = placement.data1 + placement.size1;
+  }
+
+  // Handle the case when last would wrap the end of the circular buffer.
+  //
+  // Note that max_size is one less than the actual amount of memory allocated
+  // for the circular buffer.
+  if (last == span_buffer_.data() + span_buffer_.max_size() + 1) {
+    last = span_buffer_.data();
+  }
 }
 }  // namespace lightstep

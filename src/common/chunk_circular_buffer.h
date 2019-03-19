@@ -71,6 +71,8 @@ class ChunkCircularBuffer {
    */
   size_t max_size() const noexcept { return buffer_.max_size(); }
 
+  const char* data() const noexcept { return buffer_.data(); }
+
   /**
    * @return the number of bytes that have been allotted.
    */
