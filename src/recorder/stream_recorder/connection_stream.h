@@ -9,9 +9,9 @@
 #include "network/fragment_array_input_stream.h"
 #include "network/fragment_input_stream.h"
 #include "recorder/stream_recorder/embedded_metrics_message.h"
+#include "recorder/stream_recorder/fragment_span_input_stream.h"
 #include "recorder/stream_recorder/span_stream.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
-#include "recorder/stream_recorder/fragment_span_input_stream.h"
 
 namespace lightstep {
 /**

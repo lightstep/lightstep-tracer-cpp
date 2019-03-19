@@ -13,7 +13,7 @@ namespace lightstep {
  */
 class SpanStream final : public FragmentInputStream {
  public:
-  explicit SpanStream(ChunkCircularBuffer& span_buffer);
+  SpanStream(ChunkCircularBuffer& span_buffer, int max_connections);
 
   void Allot() noexcept;
 

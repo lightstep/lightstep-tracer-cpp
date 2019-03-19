@@ -34,7 +34,7 @@ collector::ReportRequest ParseStreamHeader(const std::string& s) {
 TEST_CASE("ConnectionStream") {
   LightStepTracerOptions tracer_options;
   ChunkCircularBuffer span_buffer{1000};
-  SpanStream span_stream{span_buffer};
+  SpanStream span_stream{span_buffer, 1};
   std::string header_common_fragment =
       WriteStreamHeaderCommonFragment(tracer_options, 123);
   StreamRecorderMetrics metrics;

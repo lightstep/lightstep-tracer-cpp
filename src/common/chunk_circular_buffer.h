@@ -56,6 +56,10 @@ class ChunkCircularBuffer {
     return buffer_.Peek(0, num_bytes_allotted_);
   }
 
+  size_t ComputePosition(const char* ptr) const noexcept {
+    return buffer_.ComputePosition(ptr);
+  }
+
   /**
    * @return true if the buffer is empty.
    */

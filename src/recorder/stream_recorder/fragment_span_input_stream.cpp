@@ -8,9 +8,7 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-FragmentSpanInputStream::FragmentSpanInputStream() {
-  stream_.Reserve(2);
-}
+FragmentSpanInputStream::FragmentSpanInputStream() { stream_.Reserve(2); }
 
 //--------------------------------------------------------------------------------------------------
 // Set
@@ -42,4 +40,4 @@ void FragmentSpanInputStream::Clear() noexcept {
   chunk_start_ = nullptr;
   return stream_.Clear();
 }
-} // namespace lightstep
+}  // namespace lightstep

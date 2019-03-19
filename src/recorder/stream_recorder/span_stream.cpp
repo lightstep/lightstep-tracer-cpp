@@ -10,8 +10,10 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-SpanStream::SpanStream(ChunkCircularBuffer& span_buffer)
-    : span_buffer_{span_buffer} {}
+SpanStream::SpanStream(ChunkCircularBuffer& span_buffer, int max_connections)
+    : span_buffer_{span_buffer} {
+  remnants_.reserve(static_cast<size_t>(max_connections));
+}
 
 //--------------------------------------------------------------------------------------------------
 // Allot
@@ -56,7 +58,11 @@ void SpanStream::PopSpanRemnant(FragmentSpanInputStream& remnant) noexcept {
 // Consume
 //--------------------------------------------------------------------------------------------------
 void SpanStream::Consume() noexcept {
-      
+  auto num_bytes = span_buffer_.ComputePosition(stream_position_);
+  for (auto remnant : remnants_) {
+    num_bytes = std::min(span_buffer_.ComputePosition(remnant), num_bytes);
+  }
+  span_buffer_.Consume(num_bytes);
 }
 
 //--------------------------------------------------------------------------------------------------
