@@ -21,6 +21,8 @@ class SpanStream final : public FragmentInputStream {
 
   void PopSpanRemnant(FragmentSpanInputStream& remnant) noexcept;
 
+  void Consume() noexcept;
+
   // FragmentInputStream
   int num_fragments() const noexcept override;
 

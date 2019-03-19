@@ -30,8 +30,4 @@ std::string WriteStreamHeaderCommonFragment(
     const LightStepTracerOptions& tracer_options, uint64_t reporter_id);
 
 bool Contains(const char* data, size_t size, const char* ptr) noexcept;
-
-void SetSpanFragment(FragmentArrayInputStream& stream,
-                     const CircularBufferConstPlacement& placement,
-                     const char* position);
 }  // namespace lightstep
