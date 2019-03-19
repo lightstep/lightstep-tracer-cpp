@@ -7,19 +7,6 @@ load(
 
 lightstep_package()
 
-lightstep_cc_library(
-    name = "utility_lib",
-    private_hdrs = [
-        "utility.h",
-    ],
-    srcs = [
-        "utility.cpp",
-    ],
-    deps = [
-        "//src/network:fragment_input_stream_lib",
-    ],
-)
-
 lightstep_catch_test(
     name = "event_test",
     srcs = [
@@ -47,7 +34,7 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/network:fragment_array_input_stream_lib",
-        ":utility_lib",
+        "//test:utility_lib",
     ],
 )
 
@@ -58,7 +45,7 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/network:fragment_array_input_stream_lib",
-        ":utility_lib",
+        "//test:utility_lib",
     ],
 )
 
@@ -74,7 +61,7 @@ lightstep_catch_test(
         "//src/network:fragment_array_input_stream_lib",
         "//test/echo_server:echo_server_lib",
         "//test:ports_lib",
-        "//test/network:utility_lib",
+        "//test:utility_lib",
     ],
 )
 

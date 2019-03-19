@@ -1,6 +1,7 @@
 #include "common/chunk_circular_buffer.h"
 #include "common/bipart_memory_stream.h"
 #include "common/utility.h"
+#include "test/utility.h"
 
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <opentracing/string_view.h>
@@ -21,14 +22,6 @@ static std::string ToString(const CircularBufferConstPlacement& placement) {
   s.append(placement.data1, placement.size1);
   s.append(placement.data2, placement.size2);
   return s;
-}
-
-static bool AddString(ChunkCircularBuffer& buffer, opentracing::string_view s) {
-  return buffer.Add(
-      [s](google::protobuf::io::CodedOutputStream& stream) {
-        stream.WriteRaw(s.data(), s.size());
-      },
-      s.size());
 }
 
 static thread_local std::mt19937 RandomNumberGenerator{std::random_device{}()};

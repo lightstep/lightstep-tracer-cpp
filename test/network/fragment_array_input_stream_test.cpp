@@ -4,7 +4,7 @@
 #include <string>
 
 #include "3rd_party/catch2/catch.hpp"
-#include "test/network/utility.h"
+#include "test/utility.h"
 using namespace lightstep;
 
 TEST_CASE("FragmentArrayInputStream") {

@@ -46,6 +46,7 @@ lightstep_catch_test(
         "//src/common:chunk_circular_buffer_lib",
         "//src/common:bipart_memory_stream_lib",
         "//src/common:utility_lib",
+        "//test:utility_lib",
     ],
 )
 
