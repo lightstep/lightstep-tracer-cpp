@@ -111,3 +111,13 @@ lightstep_catch_test(
         "//lightstep-tracer-common:collector_proto_cc",
     ],
 )
+
+lightstep_catch_test(
+    name = "random_sequencer_test",
+    srcs = [
+        "random_sequencer_test.cpp",
+    ],
+    deps = [
+      "//src/common:random_sequencer_lib",
+    ],
+)

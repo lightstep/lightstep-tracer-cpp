@@ -146,3 +146,17 @@ lightstep_cc_library(
         "condition_variable_wrapper.h",
     ]
 )
+
+lightstep_cc_library(
+    name = "random_sequencer_lib",
+    private_hdrs = [
+        "random_sequencer.h",
+    ],
+    srcs = [
+        "random_sequencer.cpp",
+    ],
+    deps = [
+        ":function_ref_lib",
+        ":random_lib",
+    ],
+)
