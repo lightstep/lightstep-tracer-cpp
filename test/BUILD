@@ -26,6 +26,26 @@ lightstep_cc_library(
     ],
 )
 
+lightstep_cc_library(
+    name = "number_simulation_lib",
+    private_hdrs = [
+        "number_simulation.h",
+    ],
+    srcs = [
+        "number_simulation.cpp",
+    ],
+    deps = [
+        "//src/common:chunk_circular_buffer_lib",
+        "//src/common:bipart_memory_stream_lib",
+        "//src/common:utility_lib",
+        ":utility_lib",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
 
 lightstep_cc_library(
     name = "testing_condition_variable_wrapper_lib",
