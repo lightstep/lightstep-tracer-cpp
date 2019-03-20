@@ -17,13 +17,6 @@
 #include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
 
-static std::string ToString(const CircularBufferConstPlacement& placement) {
-  std::string s;
-  s.append(placement.data1, placement.size1);
-  s.append(placement.data2, placement.size2);
-  return s;
-}
-
 static thread_local std::mt19937 RandomNumberGenerator{std::random_device{}()};
 
 static std::tuple<uint32_t, opentracing::string_view> GenerateRandomNumber(

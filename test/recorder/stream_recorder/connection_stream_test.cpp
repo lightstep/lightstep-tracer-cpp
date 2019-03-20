@@ -17,7 +17,7 @@ static std::string ToString(
   return result;
 }
 
-collector::ReportRequest ParseStreamHeader(const std::string& s) {
+static collector::ReportRequest ParseStreamHeader(std::string& s) {
   collector::ReportRequest result;
   auto body_start = s.find("\r\n\r\n");
   REQUIRE(body_start != std::string::npos);
@@ -28,6 +28,7 @@ collector::ReportRequest ParseStreamHeader(const std::string& s) {
       std::stoi(s.substr(body_start, body_start - chunk_start), nullptr, 16);
   chunk_start += 2;
   REQUIRE(result.ParseFromString(s.substr(chunk_start, chunk_size)));
+  s = s.substr(chunk_start + chunk_size + 2);
   return result;
 }
 
@@ -138,5 +139,74 @@ TEST_CASE("ConnectionStream") {
     REQUIRE(counts.size() == 1);
     REQUIRE(counts[0].int_value() == 3);
     REQUIRE(metrics.num_dropped_spans == 0);
+  }
+
+  SECTION(
+      "After writing the header, ConnectionStream writes the contents of the "
+      "span buffer.") {
+    AddString(span_buffer, "abc");
+    connection_stream.Flush(
+        [&contents](
+            std::initializer_list<FragmentInputStream*> fragment_streams) {
+          contents = ToString(fragment_streams);
+          return Consume(fragment_streams, static_cast<int>(contents.size()));
+        });
+    ParseStreamHeader(contents);
+    REQUIRE(contents == "3\r\nabc\r\n");
+  }
+
+  SECTION("If a remnant it left, it gets picked up on the next flush.") {
+    connection_stream.Flush(
+        [&contents](
+            std::initializer_list<FragmentInputStream*> fragment_streams) {
+          contents = ToString(fragment_streams);
+          return Consume(fragment_streams, static_cast<int>(contents.size()));
+        });
+    AddString(span_buffer, "abc");
+    connection_stream.Flush(
+        [&contents](
+            std::initializer_list<FragmentInputStream*> fragment_streams) {
+          contents = ToString(fragment_streams);
+          return Consume(fragment_streams, 4);
+        });
+    AddString(span_buffer, "123");
+    connection_stream.Flush(
+        [&contents](
+            std::initializer_list<FragmentInputStream*> fragment_streams) {
+          contents = ToString(fragment_streams);
+          return Consume(fragment_streams, 4);
+        });
+    REQUIRE(contents == "bc\r\n3\r\n123\r\n");
+  }
+
+  SECTION(
+      "If ConnectionStream is reset when there's a remnant left, it clears it "
+      "and records a dropped span.") {
+    connection_stream.Flush(
+        [&contents](
+            std::initializer_list<FragmentInputStream*> fragment_streams) {
+          contents = ToString(fragment_streams);
+          return Consume(fragment_streams, static_cast<int>(contents.size()));
+        });
+    AddString(span_buffer, "abc");
+    connection_stream.Flush(
+        [&contents](
+            std::initializer_list<FragmentInputStream*> fragment_streams) {
+          contents = ToString(fragment_streams);
+          return Consume(fragment_streams, 4);
+        });
+    connection_stream.Reset();
+    AddString(span_buffer, "123");
+    connection_stream.Flush(
+        [&contents](
+            std::initializer_list<FragmentInputStream*> fragment_streams) {
+          contents = ToString(fragment_streams);
+          return Consume(fragment_streams, static_cast<int>(contents.size()));
+        });
+    REQUIRE(span_buffer.empty());
+    auto report_request = ParseStreamHeader(contents);
+    auto& counts = report_request.internal_metrics().counts();
+    REQUIRE(counts.size() == 1);
+    REQUIRE(counts[0].int_value() == 1);
   }
 }
