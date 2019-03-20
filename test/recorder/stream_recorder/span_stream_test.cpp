@@ -29,7 +29,7 @@ TEST_CASE("SpanStream") {
     span_stream.Consume();
     REQUIRE(buffer.empty());
 
-    AddString(buffer, std::string{10, 'X'});
+    AddString(buffer, std::string(10, 'X'));
     span_stream.Allot();
     Consume({&span_stream}, 15);
     span_stream.Consume();
