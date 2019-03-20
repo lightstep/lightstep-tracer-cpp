@@ -25,7 +25,8 @@ SatelliteStreamer::SatelliteStreamer(
                         [this] { this->OnEndpointManagerReady(); }},
       metrics_{metrics},
       span_buffer_{span_buffer},
-      span_stream_{span_buffer, recorder_options_.num_satellite_connections} {
+      span_stream_{span_buffer, recorder_options_.num_satellite_connections},
+      connection_sequencer_{recorder_options_.num_satellite_connections} {
   connections_.reserve(recorder_options.num_satellite_connections);
   for (int i = 0; i < recorder_options.num_satellite_connections; ++i) {
     connections_.emplace_back(new SatelliteConnection{*this});
@@ -37,14 +38,16 @@ SatelliteStreamer::SatelliteStreamer(
 // Flush
 //--------------------------------------------------------------------------------------------------
 void SatelliteStreamer::Flush() noexcept {
-  // Stub that will be replaced by code that sends spans to satellites.
-  while (true) {
-    span_buffer_.Allot();
-    span_buffer_.Consume(span_buffer_.num_bytes_allotted());
-    if (span_buffer_.empty()) {
-      break;
-    }
+  if (span_buffer_.empty()) {
+    return;
   }
+  connection_sequencer_.ForEachIndex([this](int index) {
+    auto& connection = connections_[index];
+    if (!connection->ready()) {
+      return true;
+    }
+    return !connection->Flush();
+  });
 }
 
 //--------------------------------------------------------------------------------------------------

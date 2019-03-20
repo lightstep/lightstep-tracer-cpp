@@ -5,6 +5,7 @@
 
 #include "common/chunk_circular_buffer.h"
 #include "common/noncopyable.h"
+#include "common/random_sequencer.h"
 #include "recorder/stream_recorder/satellite_connection.h"
 #include "recorder/stream_recorder/satellite_endpoint_manager.h"
 #include "recorder/stream_recorder/span_stream.h"
@@ -86,6 +87,7 @@ class SatelliteStreamer : private Noncopyable {
   ChunkCircularBuffer& span_buffer_;
   SpanStream span_stream_;
   std::vector<std::unique_ptr<SatelliteConnection>> connections_;
+  RandomSequencer connection_sequencer_;
 
   void OnEndpointManagerReady() noexcept;
 };

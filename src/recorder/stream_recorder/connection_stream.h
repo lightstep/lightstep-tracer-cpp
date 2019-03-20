@@ -39,6 +39,8 @@ class ConnectionStream {
    */
   void Shutdown() noexcept;
 
+  bool shutting_down() const noexcept { return shutting_down_; }
+
   /**
    * Flushes data from the stream.
    * @param writer the writer to flush data to.

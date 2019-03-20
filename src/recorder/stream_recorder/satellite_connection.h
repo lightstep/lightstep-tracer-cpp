@@ -25,6 +25,8 @@ class SatelliteConnection : private Noncopyable {
    */
   bool Flush() noexcept;
 
+  bool ready() const noexcept;
+
  private:
   SatelliteStreamer& streamer_;
   HostHeader host_header_;

@@ -85,6 +85,7 @@ lightstep_cc_library(
     deps = [
         "//src/common:logger_lib",
         "//src/common:noncopyable_lib",
+        "//src/common:protobuf_lib",
         "//src/common:chunk_circular_buffer_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",
@@ -145,6 +146,7 @@ lightstep_cc_library(
         "//src/common:chunk_circular_buffer_lib",
         "//src/common:noncopyable_lib",
         "//src/common:random_lib",
+        "//src/common:random_sequencer_lib",
         "//src/network:socket_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",

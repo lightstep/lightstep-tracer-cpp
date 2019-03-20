@@ -2,6 +2,8 @@
 
 #include <exception>
 
+#include "common/protobuf.h"
+
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
@@ -44,11 +46,14 @@ StreamRecorder::~StreamRecorder() noexcept {
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
   auto serialization_callback =
-      [&span](google::protobuf::io::CodedOutputStream& stream) {
-        span.SerializeWithCachedSizes(&stream);
+      [&span, this](google::protobuf::io::CodedOutputStream& stream) {
+        WriteEmbeddedMessage(stream,
+                             collector::ReportRequest::kSpansFieldNumber, span);
       };
   auto was_added =
-      span_buffer_.Add(serialization_callback, span.ByteSizeLong());
+      span_buffer_.Add(serialization_callback,
+                       ComputeEmbeddedMessageSerializationSize(
+                           collector::ReportRequest::kSpansFieldNumber, span));
   if (!was_added) {
     logger_.Debug("Dropping span ", span.span_context().span_id());
     ++metrics_.num_dropped_spans;
