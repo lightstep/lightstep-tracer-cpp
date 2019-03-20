@@ -46,7 +46,7 @@ StreamRecorder::~StreamRecorder() noexcept {
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
   auto serialization_callback =
-      [&span, this](google::protobuf::io::CodedOutputStream& stream) {
+      [&span](google::protobuf::io::CodedOutputStream& stream) {
         WriteEmbeddedMessage(stream,
                              collector::ReportRequest::kSpansFieldNumber, span);
       };
