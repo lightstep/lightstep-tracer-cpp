@@ -96,6 +96,13 @@ std::string ToString(const FragmentInputStream& fragment_input_stream) {
   return result;
 }
 
+std::string ToString(const CircularBufferConstPlacement& placement) {
+  std::string result;
+  result.append(placement.data1, placement.size1);
+  result.append(placement.data2, placement.size2);
+  return result;
+}
+
 //--------------------------------------------------------------------------------------------------
 // AddString
 //--------------------------------------------------------------------------------------------------

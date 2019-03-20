@@ -59,5 +59,7 @@ inline bool IsEventuallyTrue(
  */
 std::string ToString(const FragmentInputStream& fragment_input_stream);
 
+std::string ToString(const CircularBufferConstPlacement& placement);
+
 bool AddString(ChunkCircularBuffer& buffer, opentracing::string_view s);
 }  // namespace lightstep

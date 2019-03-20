@@ -96,7 +96,10 @@ bool SpanStream::ForEachFragment(Callback callback) const noexcept {
 //--------------------------------------------------------------------------------------------------
 // Clear
 //--------------------------------------------------------------------------------------------------
-void SpanStream::Clear() noexcept { SetPositionAfter(allotment_); }
+void SpanStream::Clear() noexcept {
+  SetPositionAfter(allotment_);
+  span_remnant_.Clear();
+}
 
 //--------------------------------------------------------------------------------------------------
 // Seek
@@ -132,19 +135,19 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
 //--------------------------------------------------------------------------------------------------
 void SpanStream::SetPositionAfter(
     const CircularBufferConstPlacement& placement) noexcept {
-  const char* last;
   if (placement.size2 > 0) {
-    last = placement.data2 + placement.size2;
+    stream_position_ = placement.data2 + placement.size2;
   } else {
-    last = placement.data1 + placement.size1;
+    stream_position_ = placement.data1 + placement.size1;
   }
 
-  // Handle the case when last would wrap the end of the circular buffer.
+  // Handle the case when stream_position_ would wrap the end of the circular
+  // buffer.
   //
   // Note that max_size is one less than the actual amount of memory allocated
   // for the circular buffer.
-  if (last == span_buffer_.data() + span_buffer_.max_size() + 1) {
-    last = span_buffer_.data();
+  if (stream_position_ == span_buffer_.data() + span_buffer_.max_size() + 1) {
+    stream_position_ = span_buffer_.data();
   }
 }
 }  // namespace lightstep

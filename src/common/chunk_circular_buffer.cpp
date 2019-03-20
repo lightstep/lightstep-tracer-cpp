@@ -96,7 +96,7 @@ CircularBufferConstPlacement ChunkCircularBuffer::FindChunk(
     auto was_successful = ReadChunkHeader(stream, chunk_size);
     assert(was_successful);
     auto total_size = stream.ByteCount() + chunk_size + 2;
-    if (index <= position + total_size) {
+    if (index < position + total_size) {
       return buffer_.Peek(position, total_size);
     }
     position += total_size;
