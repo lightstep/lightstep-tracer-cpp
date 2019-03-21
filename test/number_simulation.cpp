@@ -20,6 +20,30 @@ static thread_local std::mt19937 RandomNumberGenerator{std::random_device{}()};
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
+// GenerateRandomBinaryNumber
+//--------------------------------------------------------------------------------------------------
+static std::tuple<uint32_t, opentracing::string_view>
+GenerateRandomBinaryNumber(size_t max_digits) {
+  assert(max_digits <= 32);
+  static thread_local std::array<char, 32> number_buffer;
+  std::uniform_int_distribution<int> num_digits_distribution{
+      1, static_cast<int>(max_digits)};
+  std::bernoulli_distribution digit_distribution{0.5};
+  auto num_digits = num_digits_distribution(RandomNumberGenerator);
+  uint32_t value = 0;
+  for (int i = 0; i < num_digits; ++i) {
+    value *= 2;
+    if (digit_distribution(RandomNumberGenerator)) {
+      number_buffer[i] = '1';
+      value += 1;
+    } else {
+      number_buffer[i] = '0';
+    }
+  }
+  return {value, {number_buffer.data(), static_cast<size_t>(num_digits)}};
+}
+
+//--------------------------------------------------------------------------------------------------
 // GenerateRandomBinaryNumbers
 //--------------------------------------------------------------------------------------------------
 static void GenerateRandomBinaryNumbers(ChunkCircularBuffer& buffer,
@@ -60,6 +84,31 @@ static void ReadStreamHeader(
 }
 
 //--------------------------------------------------------------------------------------------------
+// ReadBinaryNumber
+//--------------------------------------------------------------------------------------------------
+static uint32_t ReadBinaryNumber(
+    google::protobuf::io::ZeroCopyInputStream& stream, size_t num_digits) {
+  const char* data;
+  int size;
+  uint32_t result = 0;
+  size_t digit_index = 0;
+  while (stream.Next(reinterpret_cast<const void**>(&data), &size)) {
+    for (int i = 0; i < size; ++i) {
+      if (digit_index++ == num_digits) {
+        stream.BackUp(size - i);
+        return result;
+      }
+      result = 2 * result + static_cast<uint32_t>(data[i] == '1');
+    }
+  }
+  if (digit_index != num_digits) {
+    std::cerr << "unexpected number of digits\n";
+    std::terminate();
+  }
+  return result;
+}
+
+//--------------------------------------------------------------------------------------------------
 // ReadBinaryNumberChunk
 //--------------------------------------------------------------------------------------------------
 static bool ReadBinaryNumberChunk(
@@ -95,55 +144,6 @@ static bool HasPendingData(ConnectionStream& connection_stream) {
         }
         return true;
       });
-  return result;
-}
-
-//--------------------------------------------------------------------------------------------------
-// GenerateRandomBinaryNumber
-//--------------------------------------------------------------------------------------------------
-std::tuple<uint32_t, opentracing::string_view> GenerateRandomBinaryNumber(
-    size_t max_digits) {
-  assert(max_digits <= 32);
-  static thread_local std::array<char, 32> number_buffer;
-  std::uniform_int_distribution<int> num_digits_distribution{
-      1, static_cast<int>(max_digits)};
-  std::bernoulli_distribution digit_distribution{0.5};
-  auto num_digits = num_digits_distribution(RandomNumberGenerator);
-  uint32_t value = 0;
-  for (int i = 0; i < num_digits; ++i) {
-    value *= 2;
-    if (digit_distribution(RandomNumberGenerator)) {
-      number_buffer[i] = '1';
-      value += 1;
-    } else {
-      number_buffer[i] = '0';
-    }
-  }
-  return {value, {number_buffer.data(), static_cast<size_t>(num_digits)}};
-}
-
-//--------------------------------------------------------------------------------------------------
-// ReadBinaryNumber
-//--------------------------------------------------------------------------------------------------
-uint32_t ReadBinaryNumber(google::protobuf::io::ZeroCopyInputStream& stream,
-                          size_t num_digits) {
-  const char* data;
-  int size;
-  uint32_t result = 0;
-  size_t digit_index = 0;
-  while (stream.Next(reinterpret_cast<const void**>(&data), &size)) {
-    for (int i = 0; i < size; ++i) {
-      if (digit_index++ == num_digits) {
-        stream.BackUp(size - i);
-        return result;
-      }
-      result = 2 * result + static_cast<uint32_t>(data[i] == '1');
-    }
-  }
-  if (digit_index != num_digits) {
-    std::cerr << "unexpected number of digits\n";
-    std::terminate();
-  }
   return result;
 }
 

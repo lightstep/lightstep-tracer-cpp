@@ -13,12 +13,6 @@
 #include <opentracing/string_view.h>
 
 namespace lightstep {
-std::tuple<uint32_t, opentracing::string_view> GenerateRandomBinaryNumber(
-    size_t max_digits);
-
-uint32_t ReadBinaryNumber(google::protobuf::io::ZeroCopyInputStream& stream,
-                          size_t num_digits);
-
 void RunBinaryNumberProducer(ChunkCircularBuffer& buffer,
                              std::vector<uint32_t>& numbers, size_t num_threads,
                              size_t n);
