@@ -1,6 +1,5 @@
 #include "test/utility.h"
 
-#include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/util/message_differencer.h>
 #include <algorithm>
 #include <chrono>
