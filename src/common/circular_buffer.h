@@ -87,6 +87,11 @@ class CircularBuffer {
    */
   void Consume(size_t num_bytes) noexcept;
 
+  /**
+   * Determine how far a pointer is from the tail of the circular buffer.
+   * @param ptr the pointer to compute the position of.
+   * @return the number of bytes ptr is from the tail of the circular buffer.
+   */
   size_t ComputePosition(const char* ptr) const noexcept;
 
   /**

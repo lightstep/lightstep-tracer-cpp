@@ -90,4 +90,12 @@ TEST_CASE(
     REQUIRE(buffer.num_bytes_allotted() == 6);
     REQUIRE(ToString(buffer.allotment()) == "1\r\nc\r\n");
   }
+
+  SECTION("FindChunk locates the chunk that contains a given pointer.") {
+    REQUIRE(AddString(buffer, "ab"));
+    REQUIRE(AddString(buffer, "c"));
+    buffer.Allot();
+    REQUIRE(ToString(buffer.FindChunk(buffer.data(), buffer.data() + 9)) ==
+            "1\r\nc\r\n");
+  }
 }

@@ -72,4 +72,15 @@ TEST_CASE("CircularBuffer") {
     REQUIRE(placement.size2 == 1);
     REQUIRE(placement.data1 == placement.data2 + 3);
   }
+
+  SECTION(
+      "ComputePosition determines how far a pointer is from the tail of the "
+      "circular buffer.") {
+    auto reservation1 = circular_buffer.Reserve(2);
+    REQUIRE(reservation1.data1 != nullptr);
+    REQUIRE(reservation1.size1 == 2);
+    reservation1.data1[0] = 'a';
+    reservation1.data1[1] = 'a';
+    REQUIRE(circular_buffer.ComputePosition(reservation1.data1 + 1) == 1);
+  }
 }

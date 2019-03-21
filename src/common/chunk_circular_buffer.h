@@ -46,6 +46,14 @@ class ChunkCircularBuffer {
    */
   void Consume(size_t num_bytes) noexcept;
 
+  /**
+   * Locates the chunk in the circular buffer that contains a given pointer.
+   * @param start a chunk boundary position to start searching from.
+   * @param ptr the pointer to search for.
+   * @return the chunk in the circular buffer that contains ptr.
+   *
+   * Note: both start and ptr must be within the allotment.
+   */
   CircularBufferConstPlacement FindChunk(const char* start,
                                          const char* ptr) const noexcept;
 
@@ -56,6 +64,11 @@ class ChunkCircularBuffer {
     return buffer_.Peek(0, num_bytes_allotted_);
   }
 
+  /**
+   * Determine how far a pointer is from the tail of the circular buffer.
+   * @param ptr the pointer to compute the position of.
+   * @return the number of bytes ptr is from the tail of the circular buffer.
+   */
   size_t ComputePosition(const char* ptr) const noexcept {
     return buffer_.ComputePosition(ptr);
   }
@@ -75,6 +88,9 @@ class ChunkCircularBuffer {
    */
   size_t max_size() const noexcept { return buffer_.max_size(); }
 
+  /**
+   * @return a pointer to the buffer's memory.
+   */
   const char* data() const noexcept { return buffer_.data(); }
 
   /**
