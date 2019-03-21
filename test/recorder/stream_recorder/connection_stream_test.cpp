@@ -248,6 +248,7 @@ TEST_CASE(
     producer.join();
     exit = true;
     consumer.join();
+    REQUIRE(buffer.empty());
     std::sort(producer_numbers.begin(), producer_numbers.end());
     std::sort(consumer_numbers.begin(), consumer_numbers.end());
     REQUIRE(producer_numbers == consumer_numbers);
