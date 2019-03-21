@@ -25,6 +25,9 @@ class SatelliteConnection : private Noncopyable {
    */
   bool Flush() noexcept;
 
+  /**
+   * @return true if the satellite connection is available for streaming spans.
+   */
   bool ready() const noexcept;
 
  private:
