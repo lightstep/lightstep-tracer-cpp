@@ -221,7 +221,7 @@ TEST_CASE(
   StreamRecorderMetrics metrics;
   auto host_header_fragment = MakeFragment("Host:abc\r\n");
   const size_t num_producer_threads = 4;
-  const size_t num_connections = 1;
+  const size_t num_connections = 10;
   const size_t n = 25000;
   for (size_t max_size : {10, 50, 100, 1000}) {
     ChunkCircularBuffer buffer{max_size};
@@ -241,9 +241,10 @@ TEST_CASE(
         std::thread{RunBinaryNumberProducer, std::ref(buffer),
                     std::ref(producer_numbers), num_producer_threads, n};
     std::atomic<bool> exit{false};
-    auto consumer = std::thread{RunBinaryNumberConnectionConsumer,
-                                std::ref(buffer), std::ref(connection_streams),
-                                std::ref(exit), std::ref(consumer_numbers)};
+    auto consumer =
+        std::thread{RunBinaryNumberConnectionConsumer, std::ref(span_stream),
+                    std::ref(connection_streams), std::ref(exit),
+                    std::ref(consumer_numbers)};
     producer.join();
     exit = true;
     consumer.join();

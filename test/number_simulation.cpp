@@ -81,6 +81,24 @@ static bool ReadBinaryNumberChunk(
 }
 
 //--------------------------------------------------------------------------------------------------
+// HasPendingData
+//--------------------------------------------------------------------------------------------------
+static bool HasPendingData(ConnectionStream& connection_stream) {
+  bool result = false;
+  connection_stream.Flush(
+      [&result](std::initializer_list<FragmentInputStream*> streams) {
+        for (auto stream : streams) {
+          if (stream->num_fragments() > 0) {
+            result = true;
+            return false;
+          }
+        }
+        return true;
+      });
+  return result;
+}
+
+//--------------------------------------------------------------------------------------------------
 // GenerateRandomBinaryNumber
 //--------------------------------------------------------------------------------------------------
 std::tuple<uint32_t, opentracing::string_view> GenerateRandomBinaryNumber(
@@ -174,9 +192,8 @@ void RunBinaryNumberConsumer(ChunkCircularBuffer& buffer,
 // RunBinaryNumberConnectionConsumer
 //--------------------------------------------------------------------------------------------------
 void RunBinaryNumberConnectionConsumer(
-    ChunkCircularBuffer& buffer,
-    std::vector<ConnectionStream>& connection_streams, std::atomic<bool>& exit,
-    std::vector<uint32_t>& numbers) {
+    SpanStream& span_stream, std::vector<ConnectionStream>& connection_streams,
+    std::atomic<bool>& exit, std::vector<uint32_t>& numbers) {
   std::vector<std::unique_ptr<ZeroCopyConnectionInputStream>> zero_copy_streams;
   zero_copy_streams.reserve(connection_streams.size());
   for (auto& connection_stream : connection_streams) {
@@ -188,12 +205,13 @@ void RunBinaryNumberConnectionConsumer(
 
   std::uniform_int_distribution<int> distribution{
       0, static_cast<int>(connection_streams.size()) - 1};
-  std::cout << "Running consumer" << std::endl;
-  while (!exit || !buffer.empty()) {
-    auto& stream = *zero_copy_streams[distribution(RandomNumberGenerator)];
-    if (buffer.empty()) {
+  while (!exit || !span_stream.empty()) {
+    auto connection_index = distribution(RandomNumberGenerator);
+    auto& connection_stream = connection_streams[connection_index];
+    if (!HasPendingData(connection_stream)) {
       continue;
     }
+    auto& stream = *zero_copy_streams[connection_index];
     uint32_t x;
     if (!ReadBinaryNumberChunk(stream, x)) {
       std::cerr << "ReadBinaryNumberChunk failed\n";

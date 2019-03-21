@@ -24,7 +24,6 @@ class ZeroCopyConnectionInputStream
   std::string buffer_;
   google::protobuf::int64 byte_count_{0};
   int position_{0};
-  int count_{0};
 
   void SetBuffer();
 };
