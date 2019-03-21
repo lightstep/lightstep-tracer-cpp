@@ -3,12 +3,19 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <memory>
 #include <random>
 #include <thread>
+#include <algorithm>
+#include <iostream>
+#include <exception>
 
 #include "common/bipart_memory_stream.h"
 #include "common/utility.h"
 #include "test/utility.h"
+#include "test/zero_copy_connection_input_stream.h"
+
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 
 static thread_local std::mt19937 RandomNumberGenerator{std::random_device{}()};
 
@@ -29,6 +36,44 @@ static void GenerateRandomBinaryNumbers(ChunkCircularBuffer& buffer,
       numbers.push_back(x);
     }
   }
+}
+
+//--------------------------------------------------------------------------------------------------
+// ReadStreamHeader
+//--------------------------------------------------------------------------------------------------
+static void ReadStreamHeader(google::protobuf::io::ZeroCopyInputStream& stream) {
+  size_t chunk_size;
+  if (!ReadChunkHeader(stream, chunk_size)) {
+    std::cerr << "ReadChunkHeader failed\n";
+    std::terminate();
+  }
+  google::protobuf::io::LimitingInputStream limit_stream{&stream, static_cast<int>(chunk_size)};
+  collector::ReportRequest report;
+  if (!report.ParseFromZeroCopyStream(&limit_stream)) {
+    std::cerr << "Failed to parse stream header\n";
+    std::terminate();
+  }
+  stream.Skip(2);
+}
+
+//--------------------------------------------------------------------------------------------------
+// ReadBinaryNumberChunk
+//--------------------------------------------------------------------------------------------------
+static bool ReadBinaryNumberChunk(google::protobuf::io::ZeroCopyInputStream& stream, uint32_t& x) {
+  size_t num_digits;
+  if (!ReadChunkHeader(stream, num_digits)) {
+    return false;
+  }
+
+  if (num_digits == 0) {
+    // We reached the terminal chunk
+    stream.Skip(2);
+    return false;
+  }
+
+  x = ReadBinaryNumber(stream, num_digits);
+  stream.Skip(2);
+  return true;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -113,14 +158,52 @@ void RunBinaryNumberConsumer(ChunkCircularBuffer& buffer,
     auto allotment = buffer.allotment();
     BipartMemoryInputStream stream{allotment.data1, allotment.size1,
                                    allotment.data2, allotment.size2};
-    size_t num_digits;
-    while (ReadChunkHeader(stream, num_digits)) {
-      assert(num_digits != 0);
-      auto x = ReadBinaryNumber(stream, num_digits);
+    uint32_t x;
+    while (ReadBinaryNumberChunk(stream, x)) {
       numbers.push_back(x);
-      assert(stream.Skip(2));
     }
     buffer.Consume(buffer.num_bytes_allotted());
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+// RunBinaryNumberConnectionConsumer
+//--------------------------------------------------------------------------------------------------
+void RunBinaryNumberConnectionConsumer(
+    ChunkCircularBuffer& buffer,
+    std::vector<ConnectionStream>& connection_streams, std::atomic<bool>& exit,
+    std::vector<uint32_t>& numbers) {
+  std::vector<std::unique_ptr<ZeroCopyConnectionInputStream>> zero_copy_streams;
+  zero_copy_streams.reserve(connection_streams.size());
+  for (auto& connection_stream : connection_streams) {
+    zero_copy_streams.emplace_back(
+        new ZeroCopyConnectionInputStream{connection_stream});
+    zero_copy_streams.back()->Skip(connection_stream.first_chunk_position());
+    ReadStreamHeader(*zero_copy_streams.back());
+  }
+
+  std::uniform_int_distribution<int> distribution{
+      0, static_cast<int>(connection_streams.size()) - 1};
+  while (!exit || !buffer.empty()) {
+    auto& stream = *zero_copy_streams[distribution(RandomNumberGenerator)];
+    if (buffer.empty()) {
+      continue;
+    }
+    uint32_t x;
+    if (!ReadBinaryNumberChunk(stream, x)) {
+      std::cerr << "ReadBinaryNumberChunk failed\n";
+      std::terminate();
+    }
+    numbers.push_back(x);
+  }
+  for (auto& connection_stream : connection_streams) {
+    connection_stream.Shutdown();
+  }
+  for (auto& stream : zero_copy_streams) {
+    uint32_t x;
+    while (ReadBinaryNumberChunk(*stream, x)) {
+      numbers.push_back(x);
+    }
   }
 }
 }  // namespace lightstep

@@ -53,6 +53,8 @@ class ConnectionStream {
    */
   bool completed() const noexcept { return terminal_stream_.empty(); }
 
+  int first_chunk_position() const noexcept;
+
  private:
   Fragment host_header_fragment_;
   Fragment header_common_fragment_;

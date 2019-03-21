@@ -1,10 +1,12 @@
 #include "recorder/stream_recorder/connection_stream.h"
 
 #include <string>
+#include <thread>
 
 #include "3rd_party/catch2/catch.hpp"
 #include "recorder/stream_recorder/span_stream.h"
 #include "recorder/stream_recorder/utility.h"
+#include "test/number_simulation.h"
 #include "test/utility.h"
 using namespace lightstep;
 
@@ -209,4 +211,45 @@ TEST_CASE("ConnectionStream") {
     REQUIRE(counts.size() == 1);
     REQUIRE(counts[0].int_value() == 1);
   }
+}
+
+TEST_CASE("Verify through simulation that ConnectionStream behaves correctly.") {
+#if 0
+  LightStepTracerOptions tracer_options;
+  std::string header_common_fragment =
+      WriteStreamHeaderCommonFragment(tracer_options, 123);
+  StreamRecorderMetrics metrics;
+  auto host_header_fragment = MakeFragment("Host:abc\r\n");
+  const size_t num_producer_threads = 4;
+  const size_t num_connections = 10;
+  const size_t n = 25000;
+  for (size_t max_size : {10, 50, 100, 1000}) {
+    ChunkCircularBuffer buffer{max_size};
+    SpanStream span_stream{buffer, num_connections};
+    std::vector<ConnectionStream> connection_streams;
+    connection_streams.reserve(num_connections);
+    for (int i = 0; i < static_cast<int>(num_connections); ++i) {
+      connection_streams.emplace_back(
+          host_header_fragment,
+          Fragment{static_cast<void*>(&header_common_fragment[0]),
+                   static_cast<int>(header_common_fragment.size())},
+          metrics, span_stream);
+    }
+    std::vector<uint32_t> producer_numbers;
+    std::vector<uint32_t> consumer_numbers;
+    auto producer =
+        std::thread{RunBinaryNumberProducer, std::ref(buffer),
+                    std::ref(producer_numbers), num_producer_threads, n};
+    std::atomic<bool> exit{false};
+    auto consumer = std::thread{RunBinaryNumberConnectionConsumer,
+                                std::ref(buffer), std::ref(connection_streams),
+                                std::ref(exit), std::ref(consumer_numbers)};
+    producer.join();
+    exit = true;
+    consumer.join();
+    std::sort(producer_numbers.begin(), producer_numbers.end());
+    std::sort(consumer_numbers.begin(), consumer_numbers.end());
+    REQUIRE(producer_numbers == consumer_numbers);
+  }
+#endif
 }

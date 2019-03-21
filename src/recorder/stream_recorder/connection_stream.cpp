@@ -113,4 +113,12 @@ void ConnectionStream::InitializeStream() {
       metrics_fragment,
       EndOfLineFragment};
 }
+
+//--------------------------------------------------------------------------------------------------
+// first_chunk_position
+//--------------------------------------------------------------------------------------------------
+int ConnectionStream::first_chunk_position() const noexcept {
+  return HttpRequestCommonFragment.second + host_header_fragment_.second +
+         EndOfLineFragment.second;
+}
 }  // namespace lightstep

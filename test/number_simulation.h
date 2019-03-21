@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "common/chunk_circular_buffer.h"
+#include "recorder/stream_recorder/connection_stream.h"
 
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <opentracing/string_view.h>
@@ -25,4 +26,10 @@ void RunBinaryNumberProducer(ChunkCircularBuffer& buffer,
 void RunBinaryNumberConsumer(ChunkCircularBuffer& buffer,
                              std::atomic<bool>& exit,
                              std::vector<uint32_t>& numbers);
+
+void RunBinaryNumberConnectionConsumer(
+    ChunkCircularBuffer& buffer,
+    std::vector<ConnectionStream>& connection_streams,
+    std::atomic<bool>& exit,
+    std::vector<uint32_t>& numbers);
 }  // namespace lightstep
