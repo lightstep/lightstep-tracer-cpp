@@ -39,6 +39,9 @@ class ConnectionStream {
    */
   void Shutdown() noexcept;
 
+  /**
+   * @return true if the stream is in the process of shutting down.
+   */
   bool shutting_down() const noexcept { return shutting_down_; }
 
   /**
@@ -53,6 +56,9 @@ class ConnectionStream {
    */
   bool completed() const noexcept { return terminal_stream_.empty(); }
 
+  /**
+   * @return the number of bytes in the stream until the first chunk.
+   */
   int first_chunk_position() const noexcept;
 
  private:
