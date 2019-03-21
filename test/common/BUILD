@@ -113,11 +113,11 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
-    name = "random_sequencer_test",
+    name = "random_traverser_test",
     srcs = [
-        "random_sequencer_test.cpp",
+        "random_traverser_test.cpp",
     ],
     deps = [
-      "//src/common:random_sequencer_lib",
+      "//src/common:random_traverser_lib",
     ],
 )

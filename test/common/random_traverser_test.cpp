@@ -1,4 +1,4 @@
-#include "common/random_sequencer.h"
+#include "common/random_traverser.h"
 
 #include <algorithm>
 #include <vector>
@@ -6,14 +6,14 @@
 #include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
 
-TEST_CASE("RandomSequencer") {
+TEST_CASE("RandomTraverser") {
   std::vector<int> v(5, 0);
-  RandomSequencer sequencer{static_cast<int>(v.size())};
+  RandomTraverser traverser{static_cast<int>(v.size())};
 
   SECTION(
-      "RandomSequencer allows iteration over sequential indexes in random "
+      "RandomTraverser allows iteration over sequential indexes in random "
       "order.") {
-    auto completed = sequencer.ForEachIndex([&v](int i) {
+    auto completed = traverser.ForEachIndex([&v](int i) {
       ++v[i];
       return true;
     });
@@ -22,7 +22,7 @@ TEST_CASE("RandomSequencer") {
   }
 
   SECTION("Iteration can be exited early by returning false.") {
-    auto completed = sequencer.ForEachIndex([&v](int i) {
+    auto completed = traverser.ForEachIndex([&v](int i) {
       ++v[i];
       return false;
     });
@@ -32,8 +32,8 @@ TEST_CASE("RandomSequencer") {
   }
 
   SECTION("The callback is never called if the sequence is empty.") {
-    sequencer = RandomSequencer{0};
-    auto completed = sequencer.ForEachIndex([](int /*i*/) {
+    traverser = RandomTraverser{0};
+    auto completed = traverser.ForEachIndex([](int /*i*/) {
       REQUIRE(false);
       return true;
     });

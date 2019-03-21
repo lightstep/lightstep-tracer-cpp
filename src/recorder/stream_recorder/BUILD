@@ -146,7 +146,7 @@ lightstep_cc_library(
         "//src/common:chunk_circular_buffer_lib",
         "//src/common:noncopyable_lib",
         "//src/common:random_lib",
-        "//src/common:random_sequencer_lib",
+        "//src/common:random_traverser_lib",
         "//src/network:socket_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",

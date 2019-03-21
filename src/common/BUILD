@@ -148,12 +148,12 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "random_sequencer_lib",
+    name = "random_traverser_lib",
     private_hdrs = [
-        "random_sequencer.h",
+        "random_traverser.h",
     ],
     srcs = [
-        "random_sequencer.cpp",
+        "random_traverser.cpp",
     ],
     deps = [
         ":function_ref_lib",

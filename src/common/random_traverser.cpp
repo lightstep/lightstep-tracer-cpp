@@ -1,4 +1,4 @@
-#include "common/random_sequencer.h"
+#include "common/random_traverser.h"
 
 #include <algorithm>
 #include <numeric>
@@ -9,14 +9,14 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-RandomSequencer::RandomSequencer(int n) : indexes_(n) {
+RandomTraverser::RandomTraverser(int n) : indexes_(n) {
   std::iota(indexes_.begin(), indexes_.end(), 0);
 }
 
 //--------------------------------------------------------------------------------------------------
 // ForEachIndex
 //--------------------------------------------------------------------------------------------------
-bool RandomSequencer::ForEachIndex(Callback callback) {
+bool RandomTraverser::ForEachIndex(Callback callback) {
   if (indexes_.empty()) {
     return true;
   }

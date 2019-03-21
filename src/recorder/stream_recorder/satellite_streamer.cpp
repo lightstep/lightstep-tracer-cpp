@@ -26,7 +26,7 @@ SatelliteStreamer::SatelliteStreamer(
       metrics_{metrics},
       span_buffer_{span_buffer},
       span_stream_{span_buffer, recorder_options_.num_satellite_connections},
-      connection_sequencer_{recorder_options_.num_satellite_connections} {
+      connection_traverser_{recorder_options_.num_satellite_connections} {
   connections_.reserve(recorder_options.num_satellite_connections);
   for (int i = 0; i < recorder_options.num_satellite_connections; ++i) {
     connections_.emplace_back(new SatelliteConnection{*this});
@@ -41,7 +41,7 @@ void SatelliteStreamer::Flush() noexcept {
   if (span_buffer_.empty()) {
     return;
   }
-  connection_sequencer_.ForEachIndex([this](int index) {
+  connection_traverser_.ForEachIndex([this](int index) {
     auto& connection = connections_[index];
     if (!connection->ready()) {
       return true;
