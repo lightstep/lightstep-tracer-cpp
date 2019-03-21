@@ -72,9 +72,8 @@ bool SpanStream::ForEachFragment(Callback callback) const noexcept {
   if (Contains(allotment_.data1, allotment_.size1, stream_position_)) {
     auto result =
         callback(static_cast<void*>(const_cast<char*>(stream_position_)),
-                 static_cast<int>(allotment_.size1) -
-                     static_cast<int>(
-                         std::distance(allotment_.data1, stream_position_)));
+                 static_cast<int>(std::distance(
+                     stream_position_, allotment_.data1 + allotment_.size1)));
     if (!result) {
       return false;
     }
@@ -85,10 +84,10 @@ bool SpanStream::ForEachFragment(Callback callback) const noexcept {
     return true;
   }
   if (Contains(allotment_.data2, allotment_.size2, stream_position_)) {
-    return callback(static_cast<void*>(const_cast<char*>(stream_position_)),
-                    static_cast<int>(allotment_.size2) -
-                        static_cast<int>(
-                            std::distance(allotment_.data2, stream_position_)));
+    return callback(
+        static_cast<void*>(const_cast<char*>(stream_position_)),
+        static_cast<int>(std::distance(stream_position_,
+                                       allotment_.data2 + allotment_.size2)));
   }
   return true;
 }
@@ -110,7 +109,7 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
     last = stream_position_ + position;
   } else {
     assert(fragment_index == 1);
-    assert(Contains(allotment_.data2, allotment_.size2, stream_position_));
+    assert(Contains(allotment_.data1, allotment_.size1, stream_position_));
     last = allotment_.data2 + position;
     assert(Contains(allotment_.data2, allotment_.size2, last));
   }

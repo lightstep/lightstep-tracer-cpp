@@ -3,12 +3,11 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <exception>
+#include <iostream>
 #include <memory>
 #include <random>
 #include <thread>
-#include <algorithm>
-#include <iostream>
-#include <exception>
 
 #include "common/bipart_memory_stream.h"
 #include "common/utility.h"
@@ -41,17 +40,21 @@ static void GenerateRandomBinaryNumbers(ChunkCircularBuffer& buffer,
 //--------------------------------------------------------------------------------------------------
 // ReadStreamHeader
 //--------------------------------------------------------------------------------------------------
-static void ReadStreamHeader(google::protobuf::io::ZeroCopyInputStream& stream) {
+static void ReadStreamHeader(
+    google::protobuf::io::ZeroCopyInputStream& stream) {
   size_t chunk_size;
   if (!ReadChunkHeader(stream, chunk_size)) {
     std::cerr << "ReadChunkHeader failed\n";
     std::terminate();
   }
-  google::protobuf::io::LimitingInputStream limit_stream{&stream, static_cast<int>(chunk_size)};
-  collector::ReportRequest report;
-  if (!report.ParseFromZeroCopyStream(&limit_stream)) {
-    std::cerr << "Failed to parse stream header\n";
-    std::terminate();
+  {
+    google::protobuf::io::LimitingInputStream limit_stream{
+        &stream, static_cast<int>(chunk_size)};
+    collector::ReportRequest report;
+    if (!report.ParseFromZeroCopyStream(&limit_stream)) {
+      std::cerr << "Failed to parse stream header\n";
+      std::terminate();
+    }
   }
   stream.Skip(2);
 }
@@ -59,7 +62,8 @@ static void ReadStreamHeader(google::protobuf::io::ZeroCopyInputStream& stream) 
 //--------------------------------------------------------------------------------------------------
 // ReadBinaryNumberChunk
 //--------------------------------------------------------------------------------------------------
-static bool ReadBinaryNumberChunk(google::protobuf::io::ZeroCopyInputStream& stream, uint32_t& x) {
+static bool ReadBinaryNumberChunk(
+    google::protobuf::io::ZeroCopyInputStream& stream, uint32_t& x) {
   size_t num_digits;
   if (!ReadChunkHeader(stream, num_digits)) {
     return false;
@@ -184,6 +188,7 @@ void RunBinaryNumberConnectionConsumer(
 
   std::uniform_int_distribution<int> distribution{
       0, static_cast<int>(connection_streams.size()) - 1};
+  std::cout << "Running consumer" << std::endl;
   while (!exit || !buffer.empty()) {
     auto& stream = *zero_copy_streams[distribution(RandomNumberGenerator)];
     if (buffer.empty()) {

@@ -213,15 +213,15 @@ TEST_CASE("ConnectionStream") {
   }
 }
 
-TEST_CASE("Verify through simulation that ConnectionStream behaves correctly.") {
-#if 0
+TEST_CASE(
+    "Verify through simulation that ConnectionStream behaves correctly.") {
   LightStepTracerOptions tracer_options;
   std::string header_common_fragment =
       WriteStreamHeaderCommonFragment(tracer_options, 123);
   StreamRecorderMetrics metrics;
   auto host_header_fragment = MakeFragment("Host:abc\r\n");
   const size_t num_producer_threads = 4;
-  const size_t num_connections = 10;
+  const size_t num_connections = 1;
   const size_t n = 25000;
   for (size_t max_size : {10, 50, 100, 1000}) {
     ChunkCircularBuffer buffer{max_size};
@@ -251,5 +251,4 @@ TEST_CASE("Verify through simulation that ConnectionStream behaves correctly.") 
     std::sort(consumer_numbers.begin(), consumer_numbers.end());
     REQUIRE(producer_numbers == consumer_numbers);
   }
-#endif
 }

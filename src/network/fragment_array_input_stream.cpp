@@ -60,7 +60,9 @@ bool FragmentArrayInputStream::ForEachFragment(Callback callback) const
 // Clear
 //--------------------------------------------------------------------------------------------------
 void FragmentArrayInputStream::Clear() noexcept {
-  fragment_index_ = static_cast<int>(fragments_.size());
+  fragment_index_ = 0;
+  position_ = 0;
+  fragments_.clear();
 }
 
 //--------------------------------------------------------------------------------------------------

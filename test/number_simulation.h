@@ -29,7 +29,6 @@ void RunBinaryNumberConsumer(ChunkCircularBuffer& buffer,
 
 void RunBinaryNumberConnectionConsumer(
     ChunkCircularBuffer& buffer,
-    std::vector<ConnectionStream>& connection_streams,
-    std::atomic<bool>& exit,
+    std::vector<ConnectionStream>& connection_streams, std::atomic<bool>& exit,
     std::vector<uint32_t>& numbers);
 }  // namespace lightstep
