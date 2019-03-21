@@ -5,6 +5,9 @@
 #include <random>
 
 namespace lightstep {
+/**
+ * @return a seeded thread-local random number generator.
+ */
 std::mt19937_64& GetRandomNumberGenerator();
 
 /**
