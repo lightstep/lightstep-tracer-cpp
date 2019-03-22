@@ -18,6 +18,11 @@ TEST_CASE("FragmentArrayInputStream") {
     REQUIRE(input_stream2.empty());
   }
 
+  SECTION("We can add fragments to a FragmentArrayInputStream.") {
+    input_stream.Add(MakeFragment("456"));
+    REQUIRE(ToString(input_stream) == "abc123456");
+  }
+
   SECTION(
       "FragmentArrayInputStream can be reassigned to a new sequence of "
       "fragments.") {
