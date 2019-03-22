@@ -5,6 +5,12 @@
 #include <google/protobuf/io/zero_copy_stream.h>
 
 namespace lightstep {
+/**
+ * Wraps a ConnectionStream to expose a ZeroCopyInputStream interface.
+ *
+ * Reads bytes from the ConnectionStream in random amounts so as to simulate
+ * different scenarios for testing.
+ */
 class ZeroCopyConnectionInputStream
     : public google::protobuf::io::ZeroCopyInputStream {
  public:
