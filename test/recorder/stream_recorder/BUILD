@@ -23,6 +23,17 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "fragment_span_input_stream_test",
+    srcs = [
+        "fragment_span_input_stream_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:fragment_span_input_stream_lib",
+        "//test:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "utility_test",
     srcs = [
         "utility_test.cpp",

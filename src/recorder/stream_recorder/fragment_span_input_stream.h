@@ -4,12 +4,23 @@
 #include "network/fragment_array_input_stream.h"
 
 namespace lightstep {
+/**
+ * Wraps a FragmentArrayInputStream for a span chunk.
+ */
 class FragmentSpanInputStream final : public FragmentInputStream {
  public:
   FragmentSpanInputStream();
 
+  /**
+   * Sets the span for the fragments.
+   * @param chunk the placement for the span in the circular buffer.
+   * @param position a pointer one past the last byte of the span sent.
+   */
   void Set(const CircularBufferConstPlacement& chunk, const char* position);
 
+  /**
+   * @return the address of the span's chunk in the circular buffer.
+   */
   const char* chunk_start() const noexcept { return chunk_start_; }
 
   // FragmentInputStream
