@@ -58,7 +58,7 @@ void ConnectionStream::Reset() {
   }
   if (!span_remnant_.empty()) {
     ++metrics_.num_dropped_spans;
-    span_stream_.RemoveRemnant(span_remnant_.chunk_start());
+    span_stream_.RemoveSpanRemnant(span_remnant_.chunk_start());
     span_remnant_.Clear();
   }
   InitializeStream();
@@ -81,7 +81,7 @@ bool ConnectionStream::Flush(Writer writer) {
   auto result = writer({&header_stream_, &span_remnant_, &span_stream_});
   if (span_remnant_.empty()) {
     if (chunk_start != nullptr) {
-      span_stream_.RemoveRemnant(chunk_start);
+      span_stream_.RemoveSpanRemnant(chunk_start);
     }
     span_stream_.PopSpanRemnant(span_remnant_);
   }
@@ -129,7 +129,7 @@ bool ConnectionStream::FlushShutdown(Writer writer) {
   auto chunk_start = span_remnant_.chunk_start();
   auto result = writer({&header_stream_, &span_remnant_, &terminal_stream_});
   if (span_remnant_.empty() && chunk_start != nullptr) {
-    span_stream_.RemoveRemnant(chunk_start);
+    span_stream_.RemoveSpanRemnant(chunk_start);
     span_stream_.Consume();
   }
   return result;

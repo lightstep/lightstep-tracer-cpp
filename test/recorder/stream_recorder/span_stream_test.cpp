@@ -81,7 +81,7 @@ TEST_CASE("SpanStream") {
     span_stream.Consume();
 
     REQUIRE(ToString(buffer.allotment()) == "3\r\nabc\r\n3\r\n123\r\n");
-    span_stream.RemoveRemnant(span_remnant1.chunk_start());
+    span_stream.RemoveSpanRemnant(span_remnant1.chunk_start());
     span_stream.Consume();
     REQUIRE(ToString(buffer.allotment()).empty());
   }

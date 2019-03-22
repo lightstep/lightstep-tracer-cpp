@@ -12,7 +12,7 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 SpanStream::SpanStream(ChunkCircularBuffer& span_buffer, int max_connections)
     : span_buffer_{span_buffer} {
-  remnants_.reserve(static_cast<size_t>(max_connections));
+  span_remnants_.reserve(static_cast<size_t>(max_connections));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -38,12 +38,13 @@ int SpanStream::num_fragments() const noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
-// RemoveRemnant
+// RemoveSpanRemnant
 //--------------------------------------------------------------------------------------------------
-void SpanStream::RemoveRemnant(const char* remnant) noexcept {
-  auto last = std::remove(remnants_.begin(), remnants_.end(), remnant);
-  assert(last != remnants_.end());
-  remnants_.erase(last, remnants_.end());
+void SpanStream::RemoveSpanRemnant(const char* remnant) noexcept {
+  auto last =
+      std::remove(span_remnants_.begin(), span_remnants_.end(), remnant);
+  assert(last != span_remnants_.end());
+  span_remnants_.erase(last, span_remnants_.end());
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -59,7 +60,7 @@ void SpanStream::PopSpanRemnant(FragmentSpanInputStream& remnant) noexcept {
 //--------------------------------------------------------------------------------------------------
 void SpanStream::Consume() noexcept {
   auto num_bytes = span_buffer_.ComputePosition(stream_position_);
-  for (auto remnant : remnants_) {
+  for (auto remnant : span_remnants_) {
     num_bytes = std::min(span_buffer_.ComputePosition(remnant), num_bytes);
   }
   span_buffer_.Consume(num_bytes);
@@ -124,7 +125,7 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
     return;
   }
 
-  remnants_.emplace_back(chunk.data1);
+  span_remnants_.emplace_back(chunk.data1);
   span_remnant_.Set(chunk, last);
   SetPositionAfter(chunk);
 }
