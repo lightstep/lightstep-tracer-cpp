@@ -59,7 +59,18 @@ inline bool IsEventuallyTrue(
  */
 std::string ToString(const FragmentInputStream& fragment_input_stream);
 
+/**
+ * Converts a CircularBufferConstPlacement to a string.
+ * @param placement the placement to convert.
+ * @return a string with the contents of placement.
+ */
 std::string ToString(const CircularBufferConstPlacement& placement);
 
+/**
+ * Adds a string to a ChunkCircularBuffer.
+ * @param buffer the buffer to add the string to.
+ * @param s the string to add.
+ * @return true if the string was succesfully added.
+ */
 bool AddString(ChunkCircularBuffer& buffer, opentracing::string_view s);
 }  // namespace lightstep
