@@ -17,10 +17,50 @@ lightstep_cc_library(
     deps = [
         "//lightstep-tracer-common:collector_proto_cc",
         "//src/common:utility_lib",
+        "//src/common:chunk_circular_buffer_lib",
         "//src/network:socket_lib",
+        "//src/network:fragment_input_stream_lib",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_cc_library(
+    name = "zero_copy_connection_input_stream_lib",
+    private_hdrs = [
+        "zero_copy_connection_input_stream.h",
+    ],
+    srcs = [
+        "zero_copy_connection_input_stream.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:connection_stream_lib",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+
+lightstep_cc_library(
+    name = "number_simulation_lib",
+    private_hdrs = [
+        "number_simulation.h",
+    ],
+    srcs = [
+        "number_simulation.cpp",
+    ],
+    deps = [
+        "//src/common:chunk_circular_buffer_lib",
+        "//src/common:bipart_memory_stream_lib",
+        "//src/common:utility_lib",
+        ":utility_lib",
+        ":zero_copy_connection_input_stream_lib",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+        "@com_google_protobuf//:protobuf",
     ],
 )
 

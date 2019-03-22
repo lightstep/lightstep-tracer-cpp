@@ -4,7 +4,7 @@
 #include <string>
 
 #include "3rd_party/catch2/catch.hpp"
-#include "test/network/utility.h"
+#include "test/utility.h"
 using namespace lightstep;
 
 TEST_CASE("FragmentArrayInputStream") {
@@ -16,6 +16,11 @@ TEST_CASE("FragmentArrayInputStream") {
   SECTION("FragmentArrayInputStream default constructs to an empty stream.") {
     FragmentArrayInputStream input_stream2;
     REQUIRE(input_stream2.empty());
+  }
+
+  SECTION("We can add fragments to a FragmentArrayInputStream.") {
+    input_stream.Add(MakeFragment("456"));
+    REQUIRE(ToString(input_stream) == "abc123456");
   }
 
   SECTION(

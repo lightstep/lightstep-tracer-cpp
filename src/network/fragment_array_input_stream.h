@@ -18,6 +18,18 @@ class FragmentArrayInputStream final : public FragmentInputStream {
   FragmentArrayInputStream& operator=(
       std::initializer_list<Fragment> fragments);
 
+  /**
+   * Reserve memory for fragments.
+   * @param size the number of fragments to reserve memory for.
+   */
+  void Reserve(size_t size) { fragments_.reserve(size); }
+
+  /**
+   * Add a fragment to the stream.
+   * @param fragment the fragment to add.
+   */
+  void Add(Fragment fragment) { fragments_.emplace_back(fragment); }
+
   // FragmentInputStream
   int num_fragments() const noexcept override;
 

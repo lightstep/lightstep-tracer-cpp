@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iterator>
 #include <sstream>
 
 #include "common/protobuf.h"
@@ -73,5 +74,22 @@ std::string WriteStreamHeaderCommonFragment(
   }
 
   return oss.str();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Contains
+//--------------------------------------------------------------------------------------------------
+bool Contains(const char* data, size_t size, const char* ptr) noexcept {
+  if (data == nullptr) {
+    return false;
+  }
+  if (ptr == nullptr) {
+    return false;
+  }
+  auto delta = std::distance(data, ptr);
+  if (delta < 0) {
+    return false;
+  }
+  return static_cast<size_t>(delta) < size;
 }
 }  // namespace lightstep

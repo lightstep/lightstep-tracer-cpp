@@ -37,14 +37,18 @@ TEST_CASE("StreamRecorder") {
   auto tracer = std::make_shared<LightStepTracerImpl>(
       logger, propagation_options, std::move(recorder));
 
-  SECTION("Spans are consumed from the buffer.") {
+  SECTION("Spans are consumed from the buffer and sent to the satellite.") {
     auto span = tracer->StartSpan("abc");
     span->Finish();
     REQUIRE(!stream_recorder->empty());
-    auto is_recorder_empty = [&stream_recorder] {
-      return stream_recorder->empty();
-    };
-    REQUIRE(IsEventuallyTrue(is_recorder_empty));
+    REQUIRE(IsEventuallyTrue(
+        [&stream_recorder] { return stream_recorder->empty(); }));
+    std::vector<collector::Span> spans;
+    REQUIRE(IsEventuallyTrue([&] {
+      spans = mock_satellite.spans();
+      return !spans.empty();
+    }));
+    REQUIRE(spans.size() == 1);
   }
 
   SECTION("Reports are sent to the satellite.") {

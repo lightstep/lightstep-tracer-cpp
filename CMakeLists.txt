@@ -168,6 +168,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/common/in_memory_stream.cpp
                    src/common/logger.cpp
                    src/common/random.cpp
+                   src/common/random_traverser.cpp
                    src/recorder/report_builder.cpp
                    src/recorder/auto_recorder.cpp
                    src/recorder/manual_recorder.cpp
@@ -196,6 +197,7 @@ if (WITH_LIBEVENT)
                              src/recorder/stream_recorder/satellite_streamer.cpp
                              src/recorder/stream_recorder/span_stream.cpp
                              src/recorder/stream_recorder/connection_stream.cpp
+                             src/recorder/stream_recorder/fragment_span_input_stream.cpp
                              src/recorder/stream_recorder/host_header.cpp
                              src/recorder/stream_recorder/embedded_metrics_message.cpp
                              src/recorder/stream_recorder/utility.cpp

@@ -1,7 +1,6 @@
 #include "common/random.h"
 
 #include <cassert>
-#include <random>
 
 #include "lightstep/randutils.h"
 
@@ -36,7 +35,7 @@ thread_local lightstep::randutils::mt19937_64_rng
 //--------------------------------------------------------------------------------------------------
 // GetRandomNumberGenerator
 //--------------------------------------------------------------------------------------------------
-static std::mt19937_64& GetRandomNumberGenerator() {
+std::mt19937_64& GetRandomNumberGenerator() {
   static TlsRandomNumberGenerator random_number_generator;
   return TlsRandomNumberGenerator::engine();
 }

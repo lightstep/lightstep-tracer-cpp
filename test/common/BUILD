@@ -44,8 +44,9 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/common:chunk_circular_buffer_lib",
-        "//src/common:bipart_memory_stream_lib",
         "//src/common:utility_lib",
+        "//test:utility_lib",
+        "//test:number_simulation_lib",
     ],
 )
 
@@ -108,5 +109,15 @@ lightstep_catch_test(
     deps = [
         "//src/common:protobuf_lib",
         "//lightstep-tracer-common:collector_proto_cc",
+    ],
+)
+
+lightstep_catch_test(
+    name = "random_traverser_test",
+    srcs = [
+        "random_traverser_test.cpp",
+    ],
+    deps = [
+      "//src/common:random_traverser_lib",
     ],
 )

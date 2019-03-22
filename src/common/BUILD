@@ -146,3 +146,17 @@ lightstep_cc_library(
         "condition_variable_wrapper.h",
     ]
 )
+
+lightstep_cc_library(
+    name = "random_traverser_lib",
+    private_hdrs = [
+        "random_traverser.h",
+    ],
+    srcs = [
+        "random_traverser.cpp",
+    ],
+    deps = [
+        ":function_ref_lib",
+        ":random_lib",
+    ],
+)

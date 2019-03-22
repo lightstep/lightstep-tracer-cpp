@@ -6,7 +6,6 @@
 #include "network/fragment_array_input_stream.h"
 #include "network/socket.h"
 #include "test/echo_server/echo_server_handle.h"
-#include "test/network/utility.h"
 #include "test/ports.h"
 #include "test/utility.h"
 using namespace lightstep;

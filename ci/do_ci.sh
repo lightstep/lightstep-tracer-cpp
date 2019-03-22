@@ -44,7 +44,7 @@ elif [[ "$1" == "clang_tidy" ]]; then
         //src/... //test/... //benchmark/... //include/...
   ./ci/gen_compilation_database.sh
   ./ci/fix_compilation_database.py
-  ./ci/run_clang_tidy.sh &> /clang-tidy-result.txt
+  ./ci/run_clang_tidy.sh |& tee /clang-tidy-result.txt
   grep ": error:" /clang-tidy-result.txt | cat > /clang-tidy-errors.txt
   num_errors=`wc -l /clang-tidy-errors.txt | awk '{print $1}'`
   if [[ $num_errors -ne 0 ]]; then

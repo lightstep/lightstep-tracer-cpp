@@ -3,6 +3,9 @@
 #include <chrono>
 #include <thread>
 
+#include "common/chunk_circular_buffer.h"
+#include "network/fragment_input_stream.h"
+
 #include <opentracing/tracer.h>
 #include "lightstep-tracer-common/collector.pb.h"
 
@@ -48,4 +51,26 @@ inline bool IsEventuallyTrue(
     }
   }
 }
+
+/**
+ * Builds a string concatenating all the pieces of a fragment set.
+ * @param fragment_input_stream supplies the fragments to concatenate.
+ * @return a string concatenating all the fragments.
+ */
+std::string ToString(const FragmentInputStream& fragment_input_stream);
+
+/**
+ * Converts a CircularBufferConstPlacement to a string.
+ * @param placement the placement to convert.
+ * @return a string with the contents of placement.
+ */
+std::string ToString(const CircularBufferConstPlacement& placement);
+
+/**
+ * Adds a string to a ChunkCircularBuffer.
+ * @param buffer the buffer to add the string to.
+ * @param s the string to add.
+ * @return true if the string was succesfully added.
+ */
+bool AddString(ChunkCircularBuffer& buffer, opentracing::string_view s);
 }  // namespace lightstep

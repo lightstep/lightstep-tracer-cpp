@@ -77,4 +77,29 @@ void ChunkCircularBuffer::Consume(size_t num_bytes) noexcept {
   num_bytes_allotted_ -= num_bytes;
   buffer_.Consume(num_bytes);
 }
+
+//--------------------------------------------------------------------------------------------------
+// FindChunk
+//--------------------------------------------------------------------------------------------------
+CircularBufferConstPlacement ChunkCircularBuffer::FindChunk(
+    const char* start, const char* ptr) const noexcept {
+  auto position = buffer_.ComputePosition(start);
+  auto index = buffer_.ComputePosition(ptr);
+  assert(position <= num_bytes_allotted_);
+  assert(index <= num_bytes_allotted_);
+  assert(position <= index);
+  while (true) {
+    auto placement = buffer_.PeekFromPosition(position);
+    BipartMemoryInputStream stream{placement.data1, placement.size1,
+                                   placement.data2, placement.size2};
+    size_t chunk_size;
+    auto was_successful = ReadChunkHeader(stream, chunk_size);
+    assert(was_successful);
+    auto total_size = stream.ByteCount() + chunk_size + 2;
+    if (index < position + total_size) {
+      return buffer_.Peek(position, total_size);
+    }
+    position += total_size;
+  }
+}
 }  // namespace lightstep

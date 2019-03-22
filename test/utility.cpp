@@ -82,4 +82,34 @@ bool CanConnect(uint16_t port) noexcept try {
 } catch (...) {
   return false;
 }
+
+//--------------------------------------------------------------------------------------------------
+// ToString
+//--------------------------------------------------------------------------------------------------
+std::string ToString(const FragmentInputStream& fragment_input_stream) {
+  std::string result;
+  fragment_input_stream.ForEachFragment([&result](void* data, int size) {
+    result.append(static_cast<char*>(data), static_cast<size_t>(size));
+    return true;
+  });
+  return result;
+}
+
+std::string ToString(const CircularBufferConstPlacement& placement) {
+  std::string result;
+  result.append(placement.data1, placement.size1);
+  result.append(placement.data2, placement.size2);
+  return result;
+}
+
+//--------------------------------------------------------------------------------------------------
+// AddString
+//--------------------------------------------------------------------------------------------------
+bool AddString(ChunkCircularBuffer& buffer, opentracing::string_view s) {
+  return buffer.Add(
+      [s](google::protobuf::io::CodedOutputStream& stream) {
+        stream.WriteRaw(s.data(), s.size());
+      },
+      s.size());
+}
 }  // namespace lightstep

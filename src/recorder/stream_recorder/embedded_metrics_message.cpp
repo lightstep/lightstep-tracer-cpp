@@ -33,15 +33,16 @@ int EmbeddedMetricsMessage::num_dropped_spans() const noexcept {
 // MakeFragment
 //--------------------------------------------------------------------------------------------------
 std::pair<void*, int> EmbeddedMetricsMessage::MakeFragment() {
+  auto message_size = message_.ByteSizeLong();
   buffer_.resize(ComputeEmbeddedMessageSerializationSize(
-      collector::ReportRequest::kInternalMetricsFieldNumber, message_));
+      collector::ReportRequest::kInternalMetricsFieldNumber, message_size));
   {
     google::protobuf::io::ArrayOutputStream zero_copy_stream{
         static_cast<void*>(buffer_.data()), static_cast<int>(buffer_.size())};
     google::protobuf::io::CodedOutputStream coded_stream{&zero_copy_stream};
     WriteEmbeddedMessage(coded_stream,
                          collector::ReportRequest::kInternalMetricsFieldNumber,
-                         message_);
+                         message_size, message_);
   }
   return {static_cast<void*>(buffer_.data()), static_cast<int>(buffer_.size())};
 }

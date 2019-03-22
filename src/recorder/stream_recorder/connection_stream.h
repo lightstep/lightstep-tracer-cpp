@@ -9,6 +9,7 @@
 #include "network/fragment_array_input_stream.h"
 #include "network/fragment_input_stream.h"
 #include "recorder/stream_recorder/embedded_metrics_message.h"
+#include "recorder/stream_recorder/fragment_span_input_stream.h"
 #include "recorder/stream_recorder/span_stream.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
 
@@ -39,6 +40,11 @@ class ConnectionStream {
   void Shutdown() noexcept;
 
   /**
+   * @return true if the stream is in the process of shutting down.
+   */
+  bool shutting_down() const noexcept { return shutting_down_; }
+
+  /**
    * Flushes data from the stream.
    * @param writer the writer to flush data to.
    * @return true if all the data in the stream was flushed; false, otherwise.
@@ -49,6 +55,11 @@ class ConnectionStream {
    * @return true if the streaming session is complete.
    */
   bool completed() const noexcept { return terminal_stream_.empty(); }
+
+  /**
+   * @return the number of bytes in the stream until the first chunk.
+   */
+  int first_chunk_position() const noexcept;
 
  private:
   Fragment host_header_fragment_;
@@ -64,8 +75,12 @@ class ConnectionStream {
   FragmentArrayInputStream header_stream_;
   FragmentArrayInputStream terminal_stream_;
 
+  FragmentSpanInputStream span_remnant_;
+
   bool shutting_down_;
 
   void InitializeStream();
+
+  bool FlushShutdown(Writer writer);
 };
 }  // namespace lightstep

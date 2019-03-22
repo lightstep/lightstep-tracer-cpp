@@ -1,7 +1,10 @@
 #pragma once
 
+#include <vector>
+
 #include "common/chunk_circular_buffer.h"
-#include "network/fragment_input_stream.h"
+#include "network/fragment_array_input_stream.h"
+#include "recorder/stream_recorder/fragment_span_input_stream.h"
 
 namespace lightstep {
 /**
@@ -10,7 +13,30 @@ namespace lightstep {
  */
 class SpanStream final : public FragmentInputStream {
  public:
-  explicit SpanStream(ChunkCircularBuffer& span_buffer) noexcept;
+  SpanStream(ChunkCircularBuffer& span_buffer, int max_connections);
+
+  /**
+   * Allots spans from the ChunkCircularBuffer to stream to satellites.
+   */
+  void Allot() noexcept;
+
+  /**
+   * Removes the marker of the remnant of a span so that its bytes can be
+   * consumed.
+   * @param remnant the span remnant to remove.
+   */
+  void RemoveSpanRemnant(const char* remnant) noexcept;
+
+  /**
+   * Pops the span remnant left by the write.
+   * @param remnant where to output the last remnant.
+   */
+  void PopSpanRemnant(FragmentSpanInputStream& remnant) noexcept;
+
+  /**
+   * Consumes bytes no longer needed from the associated ChunkCircularBuffer.
+   */
+  void Consume() noexcept;
 
   // FragmentInputStream
   int num_fragments() const noexcept override;
@@ -23,5 +49,11 @@ class SpanStream final : public FragmentInputStream {
 
  private:
   ChunkCircularBuffer& span_buffer_;
+  CircularBufferConstPlacement allotment_;
+  const char* stream_position_{nullptr};
+  FragmentSpanInputStream span_remnant_;
+  std::vector<const char*> span_remnants_;
+
+  void SetPositionAfter(const CircularBufferConstPlacement& placement) noexcept;
 };
 }  // namespace lightstep
