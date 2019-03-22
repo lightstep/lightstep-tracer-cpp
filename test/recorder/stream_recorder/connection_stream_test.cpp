@@ -157,7 +157,7 @@ TEST_CASE("ConnectionStream") {
     REQUIRE(contents == "3\r\nabc\r\n");
   }
 
-  SECTION("If a remnant it left, it gets picked up on the next flush.") {
+  SECTION("If a remnant is left, it gets picked up on the next flush.") {
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -179,6 +179,33 @@ TEST_CASE("ConnectionStream") {
           return Consume(fragment_streams, 4);
         });
     REQUIRE(contents == "bc\r\n3\r\n123\r\n");
+  }
+
+  SECTION(
+      "If a remnant is left when the stream is shutdown, it still gets "
+      "written.") {
+    connection_stream.Flush(
+        [&contents](
+            std::initializer_list<FragmentInputStream*> fragment_streams) {
+          contents = ToString(fragment_streams);
+          return Consume(fragment_streams, static_cast<int>(contents.size()));
+        });
+    AddString(span_buffer, "abc");
+    connection_stream.Flush(
+        [&contents](
+            std::initializer_list<FragmentInputStream*> fragment_streams) {
+          contents = ToString(fragment_streams);
+          return Consume(fragment_streams, 4);
+        });
+    connection_stream.Shutdown();
+    AddString(span_buffer, "123");
+    connection_stream.Flush(
+        [&contents](
+            std::initializer_list<FragmentInputStream*> fragment_streams) {
+          contents = ToString(fragment_streams);
+          return Consume(fragment_streams, 4);
+        });
+    REQUIRE(contents == "bc\r\n0\r\n\r\n");
   }
 
   SECTION(
@@ -248,9 +275,14 @@ TEST_CASE(
     producer.join();
     exit = true;
     consumer.join();
+    REQUIRE(span_stream.empty());
+    for (auto& connection_stream : connection_streams) {
+      REQUIRE(connection_stream.completed());
+    }
     REQUIRE(buffer.empty());
     std::sort(producer_numbers.begin(), producer_numbers.end());
     std::sort(consumer_numbers.begin(), consumer_numbers.end());
+    REQUIRE(producer_numbers.size() == consumer_numbers.size());
     REQUIRE(producer_numbers == consumer_numbers);
   }
 }

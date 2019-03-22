@@ -203,9 +203,16 @@ void RunBinaryNumberConnectionConsumer(
     ReadStreamHeader(*zero_copy_streams.back());
   }
 
+  std::cout << "reading numbers" << std::endl;
   std::uniform_int_distribution<int> distribution{
       0, static_cast<int>(connection_streams.size()) - 1};
-  while (!exit || !span_stream.empty()) {
+  while (true) {
+    if (exit) {
+      span_stream.Allot();
+      if (span_stream.empty()) {
+        break;
+      }
+    }
     auto connection_index = distribution(RandomNumberGenerator);
     auto& connection_stream = connection_streams[connection_index];
     if (!HasPendingData(connection_stream)) {
@@ -219,6 +226,7 @@ void RunBinaryNumberConnectionConsumer(
     }
     numbers.push_back(x);
   }
+  std::cout << "shutting down" << std::endl;
   for (auto& connection_stream : connection_streams) {
     connection_stream.Shutdown();
   }

@@ -74,10 +74,10 @@ void ConnectionStream::Shutdown() noexcept { shutting_down_ = true; }
 //--------------------------------------------------------------------------------------------------
 bool ConnectionStream::Flush(Writer writer) {
   if (shutting_down_) {
-    return writer({&header_stream_, &span_remnant_, &terminal_stream_});
+    return FlushShutdown(writer);
   }
-  span_stream_.Allot();
   auto chunk_start = span_remnant_.chunk_start();
+  span_stream_.Allot();
   auto result = writer({&header_stream_, &span_remnant_, &span_stream_});
   if (span_remnant_.empty()) {
     if (chunk_start != nullptr) {
@@ -120,5 +120,18 @@ void ConnectionStream::InitializeStream() {
 int ConnectionStream::first_chunk_position() const noexcept {
   return HttpRequestCommonFragment.second + host_header_fragment_.second +
          EndOfLineFragment.second;
+}
+
+//--------------------------------------------------------------------------------------------------
+// FlushShutdown
+//--------------------------------------------------------------------------------------------------
+bool ConnectionStream::FlushShutdown(Writer writer) {
+  auto chunk_start = span_remnant_.chunk_start();
+  auto result = writer({&header_stream_, &span_remnant_, &terminal_stream_});
+  if (span_remnant_.empty() && chunk_start != nullptr) {
+    span_stream_.RemoveRemnant(chunk_start);
+    span_stream_.Consume();
+  }
+  return result;
 }
 }  // namespace lightstep

@@ -56,11 +56,14 @@ bool ZeroCopyConnectionInputStream::Next(const void** data, int* size) {
   if (position_ == static_cast<int>(buffer_.size())) {
     SetBuffer();
   }
+  if (stream_.completed() && buffer_.empty()) {
+    return false;
+  }
   *data = static_cast<const void*>(buffer_.data() + position_);
   *size = static_cast<int>(buffer_.size()) - position_;
   position_ = static_cast<int>(buffer_.size());
   byte_count_ += *size;
-  return !stream_.completed();
+  return true;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -77,7 +80,7 @@ void ZeroCopyConnectionInputStream::BackUp(int count) {
 //--------------------------------------------------------------------------------------------------
 bool ZeroCopyConnectionInputStream::Skip(int count) {
   while (true) {
-    if (stream_.completed()) {
+    if (stream_.completed() && buffer_.empty()) {
       return false;
     }
     if (count == 0) {

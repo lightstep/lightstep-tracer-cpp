@@ -80,5 +80,7 @@ class ConnectionStream {
   bool shutting_down_;
 
   void InitializeStream();
+
+  bool FlushShutdown(Writer writer);
 };
 }  // namespace lightstep
