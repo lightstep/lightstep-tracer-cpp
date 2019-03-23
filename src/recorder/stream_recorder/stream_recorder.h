@@ -2,6 +2,9 @@
 
 #include <atomic>
 #include <thread>
+#include <mutex>
+#include <cstdint>
+#include <condition_variable>
 
 #include "common/chunk_circular_buffer.h"
 #include "common/logger.h"
@@ -50,6 +53,10 @@ class StreamRecorder final : public Recorder, private Noncopyable {
 
   std::thread thread_;
   std::atomic<bool> exit_{false};
+
+  std::mutex flush_mutex_;
+  int64_t notification_threshold_{0};
+  int last_tail_{0};
 
   void Run() noexcept;
 
