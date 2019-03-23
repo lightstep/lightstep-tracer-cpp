@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 
 namespace lightstep {
@@ -122,8 +123,8 @@ class CircularBuffer {
  private:
   std::unique_ptr<char[]> data_;
   size_t capacity_;
-  std::atomic<size_t> head_{0};
-  std::atomic<size_t> tail_{0};
+  std::atomic<uint64_t> head_{0};
+  std::atomic<uint64_t> tail_{0};
 
   CircularBufferPlacement getPlacement(size_t index, size_t num_bytes) noexcept;
 
