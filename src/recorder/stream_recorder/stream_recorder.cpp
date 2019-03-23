@@ -85,7 +85,7 @@ void StreamRecorder::Poll() noexcept {
       std::terminate();
     }
   }
-  if (span_buffer_.size() > early_flush_marker_) {
+  if (span_buffer_.buffer().size() > early_flush_marker_) {
     Flush();
   }
 }

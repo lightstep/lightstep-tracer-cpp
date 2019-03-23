@@ -1,10 +1,10 @@
 #pragma once
 
 #include <atomic>
-#include <thread>
-#include <mutex>
-#include <cstdint>
 #include <condition_variable>
+#include <cstdint>
+#include <mutex>
+#include <thread>
 
 #include "common/chunk_circular_buffer.h"
 #include "common/logger.h"
@@ -32,7 +32,7 @@ class StreamRecorder final : public Recorder, private Noncopyable {
   /**
    * @return true if no spans are buffered in the recorder.
    */
-  bool empty() const noexcept { return span_buffer_.empty(); }
+  bool empty() const noexcept { return span_buffer_.buffer().empty(); }
 
   // Recorder
   void RecordSpan(const collector::Span& span) noexcept override;

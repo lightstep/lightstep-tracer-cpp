@@ -59,9 +59,10 @@ void SpanStream::PopSpanRemnant(FragmentSpanInputStream& remnant) noexcept {
 // Consume
 //--------------------------------------------------------------------------------------------------
 void SpanStream::Consume() noexcept {
-  auto num_bytes = span_buffer_.ComputePosition(stream_position_);
+  auto num_bytes = span_buffer_.buffer().ComputePosition(stream_position_);
   for (auto remnant : span_remnants_) {
-    num_bytes = std::min(span_buffer_.ComputePosition(remnant), num_bytes);
+    num_bytes =
+        std::min(span_buffer_.buffer().ComputePosition(remnant), num_bytes);
   }
   span_buffer_.Consume(num_bytes);
 }
@@ -146,8 +147,9 @@ void SpanStream::SetPositionAfter(
   //
   // Note that max_size is one less than the actual amount of memory allocated
   // for the circular buffer.
-  if (stream_position_ == span_buffer_.data() + span_buffer_.max_size() + 1) {
-    stream_position_ = span_buffer_.data();
+  if (stream_position_ ==
+      span_buffer_.buffer().data() + span_buffer_.buffer().max_size() + 1) {
+    stream_position_ = span_buffer_.buffer().data();
   }
 }
 }  // namespace lightstep

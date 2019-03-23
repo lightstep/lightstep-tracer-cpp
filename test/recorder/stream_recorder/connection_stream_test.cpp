@@ -232,7 +232,7 @@ TEST_CASE("ConnectionStream") {
           contents = ToString(fragment_streams);
           return Consume(fragment_streams, static_cast<int>(contents.size()));
         });
-    REQUIRE(span_buffer.empty());
+    REQUIRE(span_buffer.buffer().empty());
     auto report_request = ParseStreamHeader(contents);
     auto& counts = report_request.internal_metrics().counts();
     REQUIRE(counts.size() == 1);
@@ -279,7 +279,7 @@ TEST_CASE(
     for (auto& connection_stream : connection_streams) {
       REQUIRE(connection_stream.completed());
     }
-    REQUIRE(buffer.empty());
+    REQUIRE(buffer.buffer().empty());
     std::sort(producer_numbers.begin(), producer_numbers.end());
     std::sort(consumer_numbers.begin(), consumer_numbers.end());
     REQUIRE(producer_numbers.size() == consumer_numbers.size());
