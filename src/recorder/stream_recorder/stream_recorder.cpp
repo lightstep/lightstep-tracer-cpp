@@ -77,7 +77,7 @@ bool StreamRecorder::FlushWithTimeout(
   if (num_bytes_consumed_ >= num_bytes_produced) {
     return true;
   }
-  ++flush_counter_;
+  ++pending_flush_counter_;
   flush_condition_variable_.wait_for(lock, timeout, [this, num_bytes_produced] {
     return exit_ || num_bytes_consumed_ >= num_bytes_produced;
   });
@@ -112,8 +112,9 @@ void StreamRecorder::Poll() noexcept {
 
   // Force an early flush if FlushWithTimeout was explicitly called or the
   // buffer is filling up.
-  auto flush_count = flush_counter_.exchange(0);
-  if (flush_count > 0 || span_buffer_.buffer().size() > early_flush_marker_) {
+  auto pending_flush_count = pending_flush_counter_.exchange(0);
+  if (pending_flush_count > 0 ||
+      span_buffer_.buffer().size() > early_flush_marker_) {
     Flush();
   }
 

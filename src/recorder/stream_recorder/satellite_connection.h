@@ -13,6 +13,8 @@ class SatelliteConnection : private Noncopyable {
  public:
   explicit SatelliteConnection(SatelliteStreamer& streamer);
 
+  ~SatelliteConnection() noexcept;
+
   /**
    * Start establishing a connection to a satellite.
    */

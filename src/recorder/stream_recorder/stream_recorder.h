@@ -59,7 +59,7 @@ class StreamRecorder final : public Recorder, private Noncopyable {
 
   std::mutex flush_mutex_;
   std::condition_variable flush_condition_variable_;
-  std::atomic<int> flush_counter_{0};
+  std::atomic<int> pending_flush_counter_{0};
   uint64_t num_bytes_consumed_{0};
 
   void Run() noexcept;

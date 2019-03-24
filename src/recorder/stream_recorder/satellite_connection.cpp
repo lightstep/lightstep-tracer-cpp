@@ -36,6 +36,18 @@ SatelliteConnection::SatelliteConnection(SatelliteStreamer& streamer)
           static_cast<void*>(this)} {}
 
 //--------------------------------------------------------------------------------------------------
+// destructor
+//--------------------------------------------------------------------------------------------------
+SatelliteConnection::~SatelliteConnection() noexcept {
+  // If there's a streaming session open, attempt to cleaning close it if we can
+  // do so without blocking.
+  if (writable_) {
+    connection_stream_.Shutdown();
+    Flush();
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
 // Start
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::Start() noexcept { Connect(); }

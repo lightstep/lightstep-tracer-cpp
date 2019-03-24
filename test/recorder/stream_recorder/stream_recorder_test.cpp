@@ -52,11 +52,24 @@ TEST_CASE("StreamRecorder") {
   }
 
   SECTION("Reports are sent to the satellite.") {
-    std::cout << "Checking for reports..." << std::endl;
     std::vector<collector::ReportRequest> reports;
     REQUIRE(IsEventuallyTrue([&] {
       reports = mock_satellite.reports();
       return !reports.empty();
     }));
+  }
+
+  SECTION("Closing a tracer forces any pending spans to be flushed.") {
+    auto span = tracer->StartSpan("abc");
+    span->Finish();
+    REQUIRE(!stream_recorder->empty());
+    tracer->Close();
+    REQUIRE(stream_recorder->empty());
+    std::vector<collector::Span> spans;
+    REQUIRE(IsEventuallyTrue([&] {
+      spans = mock_satellite.spans();
+      return !spans.empty();
+    }));
+    REQUIRE(spans.size() == 1);
   }
 }
