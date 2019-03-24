@@ -39,7 +39,7 @@ SatelliteConnection::SatelliteConnection(SatelliteStreamer& streamer)
 // destructor
 //--------------------------------------------------------------------------------------------------
 SatelliteConnection::~SatelliteConnection() noexcept {
-  // If there's a streaming session open, attempt to cleaning close it if we can
+  // If there's a streaming session open, attempt to cleanly close it if we can
   // do so without blocking.
   if (writable_) {
     connection_stream_.Shutdown();
