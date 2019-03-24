@@ -37,7 +37,11 @@ StreamRecorder::StreamRecorder(Logger& logger,
 // destructor
 //--------------------------------------------------------------------------------------------------
 StreamRecorder::~StreamRecorder() noexcept {
-  exit_ = true;
+  {
+    std::lock_guard<std::mutex> lock_guard{flush_mutex_};
+    exit_ = true;
+  }
+  flush_condition_variable_.notify_all();
   thread_.join();
 }
 
@@ -64,6 +68,26 @@ void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
+// FlushWithTimeout
+//--------------------------------------------------------------------------------------------------
+bool StreamRecorder::FlushWithTimeout(
+    std::chrono::system_clock::duration timeout) noexcept try {
+  auto num_bytes_produced = span_buffer_.buffer().num_bytes_produced();
+  std::unique_lock<std::mutex> lock{flush_mutex_};
+  if (num_bytes_consumed_ >= num_bytes_produced) {
+    return true;
+  }
+  ++flush_counter_;
+  flush_condition_variable_.wait_for(lock, timeout, [this, num_bytes_produced] {
+    return exit_ || num_bytes_consumed_ >= num_bytes_produced;
+  });
+  return num_bytes_consumed_ >= num_bytes_produced;
+} catch (const std::exception& e) {
+  logger_.Error("StreamRecorder::FlushWithTimeout failed: ", e.what());
+  return false;
+}
+
+//--------------------------------------------------------------------------------------------------
 // Run
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::Run() noexcept try {
@@ -85,8 +109,21 @@ void StreamRecorder::Poll() noexcept {
       std::terminate();
     }
   }
-  if (span_buffer_.buffer().size() > early_flush_marker_) {
+
+  // Force an early flush if FlushWithTimeout was explicitly called or the
+  // buffer is filling up.
+  auto flush_count = flush_counter_.exchange(0);
+  if (flush_count > 0 || span_buffer_.buffer().size() > early_flush_marker_) {
     Flush();
+  }
+
+  auto num_bytes_consumed = span_buffer_.buffer().num_bytes_consumed();
+  if (num_bytes_consumed > num_bytes_consumed_) {
+    {
+      std::lock_guard<std::mutex> lock_guard{flush_mutex_};
+      num_bytes_consumed_ = num_bytes_consumed;
+    }
+    flush_condition_variable_.notify_all();
   }
 }
 

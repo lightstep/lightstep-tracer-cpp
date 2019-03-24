@@ -120,6 +120,16 @@ class CircularBuffer {
    */
   const char* data() const noexcept { return data_.get(); }
 
+  /**
+   * @return the number of bytes consumed from the circular buffer.
+   */
+  uint64_t num_bytes_consumed() const noexcept { return head_; }
+
+  /**
+   * @return the number of bytes added to the circular buffer.
+   */
+  uint64_t num_bytes_produced() const noexcept { return tail_; }
+
  private:
   std::unique_ptr<char[]> data_;
   size_t capacity_;

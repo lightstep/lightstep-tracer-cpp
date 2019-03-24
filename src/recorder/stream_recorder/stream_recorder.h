@@ -37,6 +37,9 @@ class StreamRecorder final : public Recorder, private Noncopyable {
   // Recorder
   void RecordSpan(const collector::Span& span) noexcept override;
 
+  bool FlushWithTimeout(
+      std::chrono::system_clock::duration timeout) noexcept override;
+
  private:
   Logger& logger_;
   LightStepTracerOptions tracer_options_;
@@ -55,8 +58,9 @@ class StreamRecorder final : public Recorder, private Noncopyable {
   std::atomic<bool> exit_{false};
 
   std::mutex flush_mutex_;
-  int64_t notification_threshold_{0};
-  int last_tail_{0};
+  std::condition_variable flush_condition_variable_;
+  std::atomic<int> flush_counter_{0};
+  uint64_t num_bytes_consumed_{0};
 
   void Run() noexcept;
 
