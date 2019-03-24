@@ -77,7 +77,7 @@ TEST_CASE("StreamRecorder") {
   }
 
   SECTION("Flush returns with false if the timeout is reached.") {
-    mock_satellite.release();
+    mock_satellite.reset(nullptr);
     auto span = tracer->StartSpan("abc");
     span->Finish();
     REQUIRE(!stream_recorder->empty());
