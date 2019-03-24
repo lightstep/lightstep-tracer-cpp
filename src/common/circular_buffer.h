@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 
 namespace lightstep {
@@ -119,11 +120,21 @@ class CircularBuffer {
    */
   const char* data() const noexcept { return data_.get(); }
 
+  /**
+   * @return the number of bytes consumed from the circular buffer.
+   */
+  uint64_t num_bytes_consumed() const noexcept { return tail_; }
+
+  /**
+   * @return the number of bytes added to the circular buffer.
+   */
+  uint64_t num_bytes_produced() const noexcept { return head_; }
+
  private:
   std::unique_ptr<char[]> data_;
   size_t capacity_;
-  std::atomic<size_t> head_{0};
-  std::atomic<size_t> tail_{0};
+  std::atomic<uint64_t> head_{0};
+  std::atomic<uint64_t> tail_{0};
 
   CircularBufferPlacement getPlacement(size_t index, size_t num_bytes) noexcept;
 

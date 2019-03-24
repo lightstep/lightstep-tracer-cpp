@@ -14,16 +14,17 @@ CircularBuffer::CircularBuffer(size_t max_size)
 // Reserve
 //------------------------------------------------------------------------------
 CircularBufferPlacement CircularBuffer::Reserve(size_t num_bytes) noexcept {
-  size_t new_head;
-  size_t head = head_;
+  uint64_t new_head;
+  uint64_t head = head_;
   while (true) {
-    size_t tail = tail_;
+    uint64_t tail = tail_;
 
     // Because we update head_ before tail_, it's possible that tail > head; if
     // that's the case, then the compare_exchange_weak check below will fail and
     // we'll reloop, but we use std::min here to ensure that we don't get some
     // nonsensical result for the free_space because of overflow.
-    auto free_space = max_size() - (head - std::min(head, tail));
+    auto free_space =
+        max_size() - static_cast<size_t>((head - std::min(head, tail)));
     if (free_space < num_bytes) {
       return {nullptr, 0, nullptr, 0};
     }
@@ -59,8 +60,8 @@ void CircularBuffer::Consume(size_t num_bytes) noexcept {
 // ComputePosition
 //--------------------------------------------------------------------------------------------------
 size_t CircularBuffer::ComputePosition(const char* ptr) const noexcept {
-  auto index = static_cast<size_t>(ptr - this->data());
-  size_t tail = tail_;
+  auto index = static_cast<uint64_t>(ptr - this->data());
+  uint64_t tail = tail_;
   tail = tail % capacity_;
   if (index >= tail) {
     return index - tail;
@@ -72,8 +73,8 @@ size_t CircularBuffer::ComputePosition(const char* ptr) const noexcept {
 // size
 //--------------------------------------------------------------------------------------------------
 size_t CircularBuffer::size() const noexcept {
-  size_t tail = tail_;
-  size_t head = head_;
+  uint64_t tail = tail_;
+  uint64_t head = head_;
   assert(tail <= head);
   return head - tail;
 }

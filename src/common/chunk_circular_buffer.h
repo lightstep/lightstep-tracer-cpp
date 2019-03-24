@@ -65,33 +65,9 @@ class ChunkCircularBuffer {
   }
 
   /**
-   * Determine how far a pointer is from the tail of the circular buffer.
-   * @param ptr the pointer to compute the position of.
-   * @return the number of bytes ptr is from the tail of the circular buffer.
+   * @return the CircularBuffer where chunks are stored.
    */
-  size_t ComputePosition(const char* ptr) const noexcept {
-    return buffer_.ComputePosition(ptr);
-  }
-
-  /**
-   * @return true if the buffer is empty.
-   */
-  bool empty() const noexcept { return buffer_.empty(); }
-
-  /**
-   * @return the number of bytes stored in the buffer.
-   */
-  size_t size() const noexcept { return buffer_.size(); }
-
-  /**
-   * @return the maximum number of bytes that can be stored in the buffer.
-   */
-  size_t max_size() const noexcept { return buffer_.max_size(); }
-
-  /**
-   * @return a pointer to the buffer's memory.
-   */
-  const char* data() const noexcept { return buffer_.data(); }
+  const CircularBuffer& buffer() const noexcept { return buffer_; }
 
   /**
    * @return the number of bytes that have been allotted.

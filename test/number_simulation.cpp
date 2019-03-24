@@ -49,8 +49,8 @@ GenerateRandomBinaryNumber(size_t max_digits) {
 static void GenerateRandomBinaryNumbers(ChunkCircularBuffer& buffer,
                                         std::vector<uint32_t>& numbers,
                                         size_t n) {
-  assert(buffer.max_size() > 5);
-  size_t max_digits = std::min<size_t>(buffer.max_size() - 5, 32);
+  assert(buffer.buffer().max_size() > 5);
+  size_t max_digits = std::min<size_t>(buffer.buffer().max_size() - 5, 32);
   while (n-- != 0) {
     uint32_t x;
     opentracing::string_view s;
@@ -175,7 +175,7 @@ void RunBinaryNumberProducer(ChunkCircularBuffer& buffer,
 void RunBinaryNumberConsumer(ChunkCircularBuffer& buffer,
                              std::atomic<bool>& exit,
                              std::vector<uint32_t>& numbers) {
-  while (!exit || !buffer.empty()) {
+  while (!exit || !buffer.buffer().empty()) {
     buffer.Allot();
     auto allotment = buffer.allotment();
     BipartMemoryInputStream stream{allotment.data1, allotment.size1,

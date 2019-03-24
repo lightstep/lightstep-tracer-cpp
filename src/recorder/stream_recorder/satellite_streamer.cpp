@@ -38,7 +38,7 @@ SatelliteStreamer::SatelliteStreamer(
 // Flush
 //--------------------------------------------------------------------------------------------------
 void SatelliteStreamer::Flush() noexcept {
-  if (span_buffer_.empty()) {
+  if (span_buffer_.buffer().empty()) {
     return;
   }
   connection_traverser_.ForEachIndex([this](int index) {

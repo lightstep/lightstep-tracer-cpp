@@ -95,7 +95,8 @@ TEST_CASE(
     REQUIRE(AddString(buffer, "ab"));
     REQUIRE(AddString(buffer, "c"));
     buffer.Allot();
-    REQUIRE(ToString(buffer.FindChunk(buffer.data(), buffer.data() + 9)) ==
+    REQUIRE(ToString(buffer.FindChunk(buffer.buffer().data(),
+                                      buffer.buffer().data() + 9)) ==
             "1\r\nc\r\n");
   }
 }
