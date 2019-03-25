@@ -32,6 +32,9 @@ Event::~Event() noexcept { FreeEvent(); }
 // operator=
 //--------------------------------------------------------------------------------------------------
 Event& Event::operator=(Event&& other) noexcept {
+  if (&other == this) {
+    return *this;
+  }
   FreeEvent();
   event_ = other.event_;
   other.event_ = nullptr;

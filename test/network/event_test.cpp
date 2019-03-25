@@ -32,4 +32,9 @@ TEST_CASE("Event") {
     REQUIRE(event2.libevent_handle() == handle);
     REQUIRE(event.libevent_handle() == nullptr);
   }
+
+  SECTION("Event cabe be self-assigned.") {
+    event = std::move(event);
+    REQUIRE(event.libevent_handle() != nullptr);
+  }
 }

@@ -24,6 +24,11 @@ TEST_CASE("EventBase") {
     REQUIRE(event_base2.libevent_handle() == libevent_handle);
   }
 
+  SECTION("EventBase can be self-assigned.") {
+    event_base = std::move(event_base);
+    REQUIRE(event_base.libevent_handle() != nullptr);
+  }
+
   SECTION("OnTimeout can be used to schedule a 1-off event.") {
     bool was_called = false;
     auto callback = [](int /*socket*/, short /*what*/, void* context) {

@@ -21,6 +21,12 @@ TEST_CASE("Socket") {
     REQUIRE(s1.file_descriptor() == -1);
   }
 
+  SECTION("Socket can be self-assigned.") {
+    Socket s1;
+    s1 = std::move(s1);
+    REQUIRE(s1.file_descriptor() != -1);
+  }
+
   SECTION("We can change options on a socket.") {
     Socket s1;
     s1.SetNonblocking();
