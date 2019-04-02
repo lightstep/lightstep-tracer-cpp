@@ -1,7 +1,7 @@
 #include "network/event.h"
 
-#include <cassert>
 #include <event2/event.h>
+#include <cassert>
 #include <stdexcept>
 
 #include "common/utility.h"

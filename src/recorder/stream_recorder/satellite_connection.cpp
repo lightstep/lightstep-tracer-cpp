@@ -118,6 +118,7 @@ void SatelliteConnection::FreeSocket() {
   graceful_shutdown_timeout_.Remove();
   writable_ = false;
   connection_stream_.Reset();
+  status_line_parser_.Reset();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -192,9 +193,21 @@ void SatelliteConnection::OnReadable(int file_descriptor,
     if (rcode <= 0) {
       break;
     }
+    status_line_parser_.Parse(
+        opentracing::string_view{buffer.data(), static_cast<size_t>(rcode)});
   }
 
   if (rcode == 0) {
+    if (!status_line_parser_.completed()) {
+      streamer_.logger().Error("No status line from satellite response");
+      return OnSocketError();
+    }
+    if (status_line_parser_.status_code() != 200) {
+      streamer_.logger().Error("Error from satellite ",
+                               status_line_parser_.status_code(), ":",
+                               status_line_parser_.reason());
+      return OnSocketError();
+    }
     if (!connection_stream_.completed()) {
       streamer_.logger().Warn("Socket closed prematurely by satellite");
       return OnSocketError();
