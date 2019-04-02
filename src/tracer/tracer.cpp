@@ -206,6 +206,10 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
       return MakeSingleThreadedTracer(logger, std::move(options));
     }
     if (options.use_stream_recorder) {
+      if (!options.collector_plaintext) {
+        logger->Error("Encrypted streaming not supported yet");
+        return nullptr;
+      }
       return MakeStreamTracer(logger, std::move(options));
     }
     return MakeThreadedTracer(logger, std::move(options));
