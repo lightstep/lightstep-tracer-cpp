@@ -5,24 +5,23 @@
 #include <string>
 #include <unordered_map>
 
-using opentracing::expected;
-using opentracing::string_view;
-using opentracing::TextMapReader;
-using opentracing::TextMapWriter;
-
-class TextMapCarrier : public TextMapReader, public TextMapWriter {
+class TextMapCarrier : public opentracing::TextMapReader,
+                       public opentracing::TextMapWriter {
  public:
   TextMapCarrier(std::unordered_map<std::string, std::string>& text_map)
       : text_map_(text_map) {}
 
-  expected<void> Set(string_view key, string_view value) const override {
+  opentracing::expected<void> Set(
+      opentracing::string_view key,
+      opentracing::string_view value) const override {
     text_map_[key] = value;
     return {};
   }
 
-  expected<void> ForeachKey(
-      std::function<expected<void>(string_view key, string_view value)> f)
-      const override {
+  opentracing::expected<void> ForeachKey(
+      std::function<opentracing::expected<void>(opentracing::string_view key,
+                                                opentracing::string_view value)>
+          f) const override {
     for (const auto& key_value : text_map_) {
       auto result = f(key_value.first, key_value.second);
       if (!result) {
