@@ -1,6 +1,7 @@
 #include "network/event.h"
 
 #include <event2/event.h>
+#include <cassert>
 #include <stdexcept>
 
 #include "common/utility.h"
@@ -32,6 +33,7 @@ Event::~Event() noexcept { FreeEvent(); }
 // operator=
 //--------------------------------------------------------------------------------------------------
 Event& Event::operator=(Event&& other) noexcept {
+  assert(this != &other);
   FreeEvent();
   event_ = other.event_;
   other.event_ = nullptr;

@@ -37,6 +37,7 @@ EventBase::~EventBase() {
 // operator=
 //------------------------------------------------------------------------------
 EventBase& EventBase::operator=(EventBase&& other) noexcept {
+  assert(this != &other);
   if (event_base_ != nullptr) {
     event_base_free(event_base_);
   }

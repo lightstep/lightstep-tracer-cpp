@@ -157,6 +157,7 @@ lightstep_cc_library(
         ":host_header_lib",
         ":span_stream_lib",
         ":connection_stream_lib",
+        ":status_line_parser_lib",
     ],
 )
 
@@ -202,5 +203,20 @@ lightstep_cc_library(
     ],
     deps = [
         "//include/lightstep:tracer_interface",
+    ],
+)
+
+lightstep_cc_library(
+    name = "status_line_parser_lib",
+    private_hdrs = [
+        "status_line_parser.h",
+    ],
+    srcs = [
+        "status_line_parser.cpp",
+    ],
+    deps = [
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
     ],
 )

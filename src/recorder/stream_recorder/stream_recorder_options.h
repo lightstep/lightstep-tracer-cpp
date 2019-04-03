@@ -70,10 +70,10 @@ struct StreamRecorderOptions {
   // within the specified window from when the connection was last established.
   std::chrono::microseconds min_satellite_reconnect_period =
       std::chrono::duration_cast<std::chrono::microseconds>(
-          std::chrono::seconds{45});
+          std::chrono::seconds{5});
   std::chrono::microseconds max_satellite_reconnect_period =
       std::chrono::duration_cast<std::chrono::microseconds>(
-          std::chrono::seconds{60});
+          std::chrono::seconds{7});
 
   // When we try to close a satellite stream, first attempt to close it
   // gracefully by writing any pending data. If that can't be done within this

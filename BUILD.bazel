@@ -60,9 +60,9 @@ lightstep_cc_library(
     "//src/tracer:binary_carrier_lib",
     "//src/tracer:dynamic_load_lib",
     "//src/tracer:no_default_ssl_roots_pem_lib",
-    "//src/network/ares_dns_resolver:ares_dns_resolver_lib",
     "//src/recorder:transporter_lib",
     "//src/recorder/grpc_transporter:grpc_transporter_lib",
     "//src/recorder/stream_recorder:stream_recorder_lib",
+    "//src/network/ares_dns_resolver:ares_dns_resolver_lib",
   ],
 )

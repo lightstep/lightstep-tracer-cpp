@@ -5,6 +5,7 @@
 #include "network/socket.h"
 #include "recorder/stream_recorder/connection_stream.h"
 #include "recorder/stream_recorder/host_header.h"
+#include "recorder/stream_recorder/status_line_parser.h"
 
 namespace lightstep {
 class SatelliteStreamer;
@@ -36,6 +37,7 @@ class SatelliteConnection : private Noncopyable {
   SatelliteStreamer& streamer_;
   HostHeader host_header_;
   ConnectionStream connection_stream_;
+  StatusLineParser status_line_parser_;
   Socket socket_{-1};
   bool writable_{false};
   Event read_event_;

@@ -123,3 +123,13 @@ lightstep_catch_test(
         "//src/recorder/stream_recorder:host_header_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "status_line_parser_test",
+    srcs = [
+        "status_line_parser_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:status_line_parser_lib",
+    ],
+)

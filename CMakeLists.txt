@@ -200,6 +200,7 @@ if (WITH_LIBEVENT)
                              src/recorder/stream_recorder/fragment_span_input_stream.cpp
                              src/recorder/stream_recorder/host_header.cpp
                              src/recorder/stream_recorder/embedded_metrics_message.cpp
+                             src/recorder/stream_recorder/status_line_parser.cpp
                              src/recorder/stream_recorder/utility.cpp
                              src/network/event.cpp
                              src/network/event_base.cpp
