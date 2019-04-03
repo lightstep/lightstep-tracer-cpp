@@ -28,7 +28,7 @@ func main() {
 	defer reportProcessor.Close()
 	defer close(reportChannel)
 
-	http.Handle("/api/v2", satelliteHandler)
+	http.Handle("/api/v2/reports", satelliteHandler)
 	http.Handle("/report-mock-streaming", satelliteHandler)
 
 	http.HandleFunc("/spans", func(responseWriter http.ResponseWriter, request *http.Request) {

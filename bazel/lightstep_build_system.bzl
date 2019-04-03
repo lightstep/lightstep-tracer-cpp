@@ -81,6 +81,30 @@ def lightstep_cc_library(name,
       strip_include_prefix = strip_include_prefix,
   )
 
+def lightstep_cc_binary(
+        name,
+        args = [],
+        srcs = [],
+        data = [],
+        testonly = 0,
+        visibility = None,
+        external_deps = [],
+        deps = [],
+        linkopts = []):
+    native.cc_binary(
+        name = name,
+        args = args,
+        srcs = srcs,
+        data = data,
+        copts = lightstep_include_copts() + lightstep_copts(),
+        linkopts = linkopts,
+        testonly = testonly,
+        linkstatic = 1,
+        visibility = visibility,
+        stamp = 1,
+        deps = external_deps + deps,
+    )
+
 def lightstep_cc_test(
         name,
         args = [],

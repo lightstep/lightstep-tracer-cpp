@@ -62,9 +62,13 @@ bool SatelliteConnection::Flush() noexcept try {
       });
   if (flushed_everything) {
     writable_ = true;
+    streamer_.logger().Info("Flushed everything to file_descriptor=",
+                            socket_.file_descriptor());
   } else {
     writable_ = false;
     write_event_.Add(streamer_.recorder_options().satellite_write_timeout);
+    streamer_.logger().Info("Flushed partially to file_descriptor=",
+                            socket_.file_descriptor());
   }
   return flushed_everything;
 } catch (const std::exception& e) {
@@ -85,6 +89,7 @@ bool SatelliteConnection::ready() const noexcept {
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::Connect() noexcept try {
   auto endpoint = streamer_.endpoint_manager().RequestEndpoint();
+  streamer_.logger().Info("Connecting to satellite on ip ", endpoint.first);
   socket_ = lightstep::Connect(endpoint.first);
   host_header_.set_host(endpoint.second);
   ScheduleReconnect();
@@ -183,6 +188,8 @@ void SatelliteConnection::GracefulShutdownTimeout() noexcept {
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::OnReadable(int file_descriptor,
                                      short /*what*/) noexcept try {
+  streamer_.logger().Info("Satellite file_descriptor=", file_descriptor,
+                          " is readable");
   std::array<char, 512> buffer;
   ssize_t rcode;
 
@@ -228,8 +235,10 @@ void SatelliteConnection::OnReadable(int file_descriptor,
 //--------------------------------------------------------------------------------------------------
 // OnWritable
 //--------------------------------------------------------------------------------------------------
-void SatelliteConnection::OnWritable(int /*file_descriptor*/,
+void SatelliteConnection::OnWritable(int file_descriptor,
                                      short what) noexcept try {
+  streamer_.logger().Info("Satellite file_descriptor=", file_descriptor,
+                          " is writable");
   if ((what & EV_TIMEOUT) != 0) {
     streamer_.logger().Error("Satellite connection timed out");
     return OnSocketError();

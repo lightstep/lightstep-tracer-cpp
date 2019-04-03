@@ -18,7 +18,7 @@ static const Fragment EndOfLineFragment = MakeFragment("\r\n");
 // HttpRequestCommonFragment
 //--------------------------------------------------------------------------------------------------
 static const Fragment HttpRequestCommonFragment = MakeFragment(
-    "POST /api/v2 HTTP/1.1\r\n"
+    "POST /api/v2/reports HTTP/1.1\r\n"
     "Connection:close\r\n"
     "Content-Type:application/octet-stream\r\n"
     "Transfer-Encoding:chunked\r\n");
