@@ -1,6 +1,7 @@
 #include "recorder/stream_recorder/status_line_parser.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <stdexcept>
 
 namespace lightstep {
@@ -40,7 +41,8 @@ void StatusLineParser::ParseFields() try {
   if (status_code_last == line_.end()) {
     throw std::runtime_error{"Invalid http status line \"" + line_ + "\""};
   }
-  status_code_ = std::atoi(&*status_code_first);
+  status_code_ =
+      static_cast<int>(std::strtol(&*status_code_first, nullptr, 10));
   auto reason_first = std::next(status_code_last);
   reason_ = opentracing::string_view{
       &*reason_first,

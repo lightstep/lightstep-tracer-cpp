@@ -25,7 +25,9 @@ class TextMapCarrier : public TextMapReader, public TextMapWriter {
       const override {
     for (const auto& key_value : text_map_) {
       auto result = f(key_value.first, key_value.second);
-      if (!result) return result;
+      if (!result) {
+        return result;
+      }
     }
     return {};
   }
