@@ -40,7 +40,6 @@ class SatelliteEndpointManager : private Noncopyable {
  private:
   std::function<void()> on_ready_callback_;
   std::vector<SatelliteHostManager> host_managers_;
-  std::unique_ptr<DnsResolver> dns_resolver_;
   std::vector<std::pair<int, uint16_t>> endpoints_;
   uint32_t endpoint_index_{0};
   int num_resolutions_ready_{0};

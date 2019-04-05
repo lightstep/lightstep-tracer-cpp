@@ -8,12 +8,13 @@ namespace lightstep {
 // constructor
 //--------------------------------------------------------------------------------------------------
 SatelliteDnsResolutionManager::SatelliteDnsResolutionManager(
-    Logger& logger, EventBase& event_base, DnsResolver& dns_resolver,
+    Logger& logger, EventBase& event_base,
     const StreamRecorderOptions& recorder_options, int family, const char* name,
     std::function<void()> on_ready_callback)
     : logger_{logger},
       event_base_{event_base},
-      dns_resolver_{dns_resolver},
+      dns_resolver_{MakeDnsResolver(logger, event_base,
+                                    recorder_options.dns_resolver_options)},
       recorder_options_{recorder_options},
       family_{family},
       name_{name},
@@ -23,7 +24,8 @@ SatelliteDnsResolutionManager::SatelliteDnsResolutionManager(
 // Start
 //--------------------------------------------------------------------------------------------------
 void SatelliteDnsResolutionManager::Start() noexcept {
-  dns_resolver_.Resolve(name_, family_, *this);
+  logger_.Info("Resolving ", name_, " for ", family_ == AF_INET ? "ipv4" : "ipv6");
+  dns_resolver_->Resolve(name_, family_, *this);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -39,6 +41,7 @@ void SatelliteDnsResolutionManager::OnDnsResolution(
   std::vector<IpAddress> ip_addresses;
   ip_addresses.reserve(ip_addresses_.size());
   dns_resolution.ForeachIpAddress([&](const IpAddress& ip_address) {
+    logger_.Info("Resolved ", name_, " to ", ip_address);
     ip_addresses.push_back(ip_address);
     return true;
   });
@@ -61,7 +64,7 @@ void SatelliteDnsResolutionManager::OnDnsResolution(
 // OnRefresh
 //--------------------------------------------------------------------------------------------------
 void SatelliteDnsResolutionManager::OnRefresh() noexcept {
-  dns_resolver_.Resolve(name_, family_, *this);
+  dns_resolver_->Resolve(name_, family_, *this);
 }
 
 //--------------------------------------------------------------------------------------------------

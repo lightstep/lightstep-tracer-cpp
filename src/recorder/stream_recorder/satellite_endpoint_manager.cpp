@@ -13,9 +13,7 @@ SatelliteEndpointManager::SatelliteEndpointManager(
     const LightStepTracerOptions& tracer_options,
     const StreamRecorderOptions& recorder_options,
     std::function<void()> on_ready_callback)
-    : on_ready_callback_{std::move(on_ready_callback)},
-      dns_resolver_{MakeDnsResolver(logger, event_base,
-                                    recorder_options.dns_resolver_options)} {
+    : on_ready_callback_{std::move(on_ready_callback)} {
   if (tracer_options.satellite_endpoints.empty()) {
     throw std::runtime_error{"no satellite endpoints provided"};
   }
@@ -28,10 +26,10 @@ SatelliteEndpointManager::SatelliteEndpointManager(
   for (auto& name : hosts) {
     SatelliteHostManager host_manager;
     host_manager.ipv4_resolutions.reset(new SatelliteDnsResolutionManager{
-        logger, event_base, *dns_resolver_, recorder_options, AF_INET, name,
+        logger, event_base, recorder_options, AF_INET, name,
         on_resolution_ready});
     host_manager.ipv6_resolutions.reset(new SatelliteDnsResolutionManager{
-        logger, event_base, *dns_resolver_, recorder_options, AF_INET6, name,
+        logger, event_base, recorder_options, AF_INET6, name,
         on_resolution_ready});
     host_managers_.emplace_back(std::move(host_manager));
   }
