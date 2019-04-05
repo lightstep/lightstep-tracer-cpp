@@ -11,7 +11,6 @@
 #include "network/ip_address.h"
 #include "network/timer_event.h"
 #include "recorder/stream_recorder/stream_recorder_options.h"
-#include "recorder/stream_recorder/satellite_dns_resolution_manager.h"
 
 namespace lightstep {
 /**
