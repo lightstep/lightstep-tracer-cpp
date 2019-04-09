@@ -20,7 +20,6 @@ class SatelliteDnsResolutionManager final : public DnsResolutionCallback,
                                             private Noncopyable {
  public:
   SatelliteDnsResolutionManager(Logger& logger, EventBase& event_base,
-                                DnsResolver& dns_resolver,
                                 const StreamRecorderOptions& recorder_options,
                                 int family, const char* name,
                                 std::function<void()> on_ready_callback);
@@ -50,7 +49,7 @@ class SatelliteDnsResolutionManager final : public DnsResolutionCallback,
  private:
   Logger& logger_;
   EventBase& event_base_;
-  DnsResolver& dns_resolver_;
+  std::unique_ptr<DnsResolver> dns_resolver_;
   const StreamRecorderOptions& recorder_options_;
   int family_;
   const char* name_;

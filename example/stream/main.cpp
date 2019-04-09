@@ -7,6 +7,7 @@
 #include <thread>
 
 static void MakeSpan(opentracing::Tracer& tracer, int span_index) {
+  std::cout << "Make Span: " << span_index << "\n";
   auto span = tracer.StartSpan("span_" + std::to_string(span_index));
   assert(span != nullptr);
   for (int tag_index = 0; tag_index < 25; ++tag_index) {
@@ -34,7 +35,7 @@ int main() {
   for (int i = 0; i < 1000; ++i) {
     MakeSpan(*tracer, i);
   }
-  std::cout << "Closing tracer" << std::endl;
+  std::cout << "Closing tracer\n";
   tracer->Close();
   return 0;
 }
