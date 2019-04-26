@@ -44,6 +44,8 @@ class LightStepTracerImpl final
 
   bool Flush() noexcept override;
 
+  bool FlushWithTimeout(std::chrono::system_clock::duration timeout) noexcept override;
+
   void Close() noexcept override;
 
  private:

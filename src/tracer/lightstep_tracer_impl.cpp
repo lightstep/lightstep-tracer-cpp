@@ -120,7 +120,15 @@ LightStepTracerImpl::Extract(
 // Flush
 //------------------------------------------------------------------------------
 bool LightStepTracerImpl::Flush() noexcept {
-  return recorder_->FlushWithTimeout(std::chrono::hours(24));
+  return recorder_->FlushWithTimeout(std::chrono::seconds(10));
+}
+
+//--------------------------------------------------------------------------------------------------
+// FlushWithTimeout
+//--------------------------------------------------------------------------------------------------
+bool LightStepTracerImpl::FlushWithTimeout(
+    std::chrono::system_clock::duration timeout) noexcept {
+  return recorder_->FlushWithTimeout(timeout);
 }
 
 //------------------------------------------------------------------------------

@@ -24,7 +24,8 @@ SatelliteDnsResolutionManager::SatelliteDnsResolutionManager(
 // Start
 //--------------------------------------------------------------------------------------------------
 void SatelliteDnsResolutionManager::Start() noexcept {
-  logger_.Info("Resolving ", name_, " for ", family_ == AF_INET ? "ipv4" : "ipv6");
+  logger_.Info("Resolving ", name_, " for ",
+               family_ == AF_INET ? "ipv4" : "ipv6");
   dns_resolver_->Resolve(name_, family_, *this);
 }
 
