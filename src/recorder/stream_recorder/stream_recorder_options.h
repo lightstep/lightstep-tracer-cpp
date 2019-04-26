@@ -64,7 +64,7 @@ struct StreamRecorderOptions {
   // after a failure.
   std::chrono::microseconds satellite_failure_retry_period =
       std::chrono::duration_cast<std::chrono::microseconds>(
-          std::chrono::seconds{5});
+          std::chrono::seconds{1});
 
   // Satellite connections will be reestablished at a random point of time
   // within the specified window from when the connection was last established.

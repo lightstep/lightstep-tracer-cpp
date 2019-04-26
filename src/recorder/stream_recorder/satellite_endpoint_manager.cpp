@@ -25,12 +25,12 @@ SatelliteEndpointManager::SatelliteEndpointManager(
   auto on_resolution_ready = [this] { this->OnResolutionReady(); };
   for (auto& name : hosts) {
     SatelliteHostManager host_manager;
-    host_manager.ipv4_resolutions.reset(new SatelliteDnsResolutionManager{
-        logger, event_base, recorder_options, AF_INET, name,
-        on_resolution_ready});
-    host_manager.ipv6_resolutions.reset(new SatelliteDnsResolutionManager{
-        logger, event_base, recorder_options, AF_INET6, name,
-        on_resolution_ready});
+    host_manager.ipv4_resolutions.reset(
+        new SatelliteDnsResolutionManager{logger, event_base, recorder_options,
+                                          AF_INET, name, on_resolution_ready});
+    host_manager.ipv6_resolutions.reset(
+        new SatelliteDnsResolutionManager{logger, event_base, recorder_options,
+                                          AF_INET6, name, on_resolution_ready});
     host_managers_.emplace_back(std::move(host_manager));
   }
 }

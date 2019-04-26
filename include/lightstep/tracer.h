@@ -58,13 +58,16 @@ struct LightStepTracerOptions {
 
   // The host and port of collector. Ignored if a custom transporter is used.
   //
-  // Deprecated: Use satellite_endpoints
+  // Note: Use `satellite_endpoints` when using the streaming recorder with
+  // `use_stream_recorder` == true.
   std::string collector_host = "collector-grpc.lightstep.com";
   uint32_t collector_port = 443;
 
   // A list of satellite endpoints to upload spans to.
+  //
+  // Note: Only used when `use_stream_recorder` is true.
   std::vector<std::pair<std::string, uint16_t>> satellite_endpoints = {
-      {"collector-grpc.lightstep.com", static_cast<uint16_t>(443)}};
+      {"collector.lightstep.com", static_cast<uint16_t>(80)}};
 
   // Whether or not to use plaintext when communicating with the satellite.
   bool collector_plaintext = false;
@@ -104,7 +107,7 @@ struct LightStepTracerOptions {
   // concurrently, then the user is responsible for synchronization.
   bool use_thread = true;
 
-  // Exprimental: Enable streaming recorder for faster uploading of spans.
+  // Enable streaming recorder for faster uploading of spans.
   bool use_stream_recorder = false;
 
   // `reporting_period` is the maximum duration of time between sending spans

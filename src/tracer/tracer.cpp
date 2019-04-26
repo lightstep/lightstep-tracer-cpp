@@ -210,6 +210,14 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
         logger->Error("Encrypted streaming not supported yet");
         return nullptr;
       }
+      if (!options.use_thread) {
+        logger->Error("Stream recorder only supports threaded mode");
+        return nullptr;
+      }
+      if (options.transporter != nullptr) {
+        logger->Error("Stream recorder doesn't support custom transports");
+        return nullptr;
+      }
       return MakeStreamTracer(logger, std::move(options));
     }
     return MakeThreadedTracer(logger, std::move(options));
