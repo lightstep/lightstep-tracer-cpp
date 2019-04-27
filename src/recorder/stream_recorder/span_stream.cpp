@@ -117,10 +117,10 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
     assert(Contains(allotment_.data2, allotment_.size2, last));
   }
   CircularBufferConstPlacement chunk;
-  int num_preceding_chunks;
-  std::tie(chunk, num_preceding_chunks) =
+  int num_spans_sent;
+  std::tie(chunk, num_spans_sent) =
       span_buffer_.FindChunk(stream_position_, last);
-  (void)num_preceding_chunks;
+  metrics_.OnSpansSent(num_spans_sent);
 
   span_remnant_.Clear();
 

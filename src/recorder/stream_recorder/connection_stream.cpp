@@ -81,6 +81,7 @@ bool ConnectionStream::Flush(Writer writer) {
   auto result = writer({&header_stream_, &span_remnant_, &span_stream_});
   if (span_remnant_.empty()) {
     if (chunk_start != nullptr) {
+      span_stream_.metrics().OnSpansSent(1);
       span_stream_.RemoveSpanRemnant(chunk_start);
     }
     span_stream_.PopSpanRemnant(span_remnant_);
