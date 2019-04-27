@@ -115,7 +115,11 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
     last = allotment_.data2 + position;
     assert(Contains(allotment_.data2, allotment_.size2, last));
   }
-  auto chunk = span_buffer_.FindChunk(stream_position_, last);
+  CircularBufferConstPlacement chunk;
+  int num_preceding_chunks;
+  std::tie(chunk, num_preceding_chunks) =
+      span_buffer_.FindChunk(stream_position_, last);
+  (void)num_preceding_chunks;
 
   span_remnant_.Clear();
 

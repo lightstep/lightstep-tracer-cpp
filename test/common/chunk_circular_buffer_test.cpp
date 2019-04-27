@@ -95,8 +95,11 @@ TEST_CASE(
     REQUIRE(AddString(buffer, "ab"));
     REQUIRE(AddString(buffer, "c"));
     buffer.Allot();
-    REQUIRE(ToString(buffer.FindChunk(buffer.buffer().data(),
-                                      buffer.buffer().data() + 9)) ==
-            "1\r\nc\r\n");
+    CircularBufferConstPlacement chunk;
+    int num_preceding_chunks;
+    std::tie(chunk, num_preceding_chunks) =
+        buffer.FindChunk(buffer.buffer().data(), buffer.buffer().data() + 9);
+    REQUIRE(ToString(chunk) == "1\r\nc\r\n");
+    REQUIRE(num_preceding_chunks == 1);
   }
 }

@@ -37,7 +37,7 @@ TEST_CASE("SatelliteDnsResolutionManager") {
 
   SECTION("Hosts get resolved to ip addresses.") {
     SatelliteDnsResolutionManager resolution_manager{
-        logger,  event_base,            recorder_options,
+        logger,  event_base,     recorder_options,
         AF_INET, "test.service", on_ready_callback};
     resolution_manager.Start();
     event_base.Dispatch();
@@ -47,7 +47,7 @@ TEST_CASE("SatelliteDnsResolutionManager") {
 
   SECTION("Dns resolutions are periodically refreshed.") {
     SatelliteDnsResolutionManager resolution_manager{
-        logger,  event_base,            recorder_options,
+        logger,  event_base,     recorder_options,
         AF_INET, "flip.service", on_ready_callback};
     resolution_manager.Start();
     event_base.Dispatch();
@@ -66,7 +66,7 @@ TEST_CASE("SatelliteDnsResolutionManager") {
 
   SECTION("Dns resolutions are retried when if there's an error.") {
     SatelliteDnsResolutionManager resolution_manager{
-        logger,  event_base,             recorder_options,
+        logger,  event_base,      recorder_options,
         AF_INET, "flaky.service", on_ready_callback};
     resolution_manager.Start();
     event_base.Dispatch();

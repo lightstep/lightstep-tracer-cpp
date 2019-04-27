@@ -81,13 +81,14 @@ void ChunkCircularBuffer::Consume(size_t num_bytes) noexcept {
 //--------------------------------------------------------------------------------------------------
 // FindChunk
 //--------------------------------------------------------------------------------------------------
-CircularBufferConstPlacement ChunkCircularBuffer::FindChunk(
+std::tuple<CircularBufferConstPlacement, int> ChunkCircularBuffer::FindChunk(
     const char* start, const char* ptr) const noexcept {
   auto position = buffer_.ComputePosition(start);
   auto index = buffer_.ComputePosition(ptr);
   assert(position <= num_bytes_allotted_);
   assert(index <= num_bytes_allotted_);
   assert(position <= index);
+  int chunk_count = 0;
   while (true) {
     auto placement = buffer_.PeekFromPosition(position);
     BipartMemoryInputStream stream{placement.data1, placement.size1,
@@ -97,8 +98,9 @@ CircularBufferConstPlacement ChunkCircularBuffer::FindChunk(
     assert(was_successful);
     auto total_size = stream.ByteCount() + chunk_size + 2;
     if (index < position + total_size) {
-      return buffer_.Peek(position, total_size);
+      return std::make_tuple(buffer_.Peek(position, total_size), chunk_count);
     }
+    ++chunk_count;
     position += total_size;
   }
 }
