@@ -10,8 +10,9 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-SpanStream::SpanStream(ChunkCircularBuffer& span_buffer, int max_connections)
-    : span_buffer_{span_buffer} {
+SpanStream::SpanStream(ChunkCircularBuffer& span_buffer,
+                       StreamRecorderMetrics& metrics, int max_connections)
+    : span_buffer_{span_buffer}, metrics_{metrics} {
   span_remnants_.reserve(static_cast<size_t>(max_connections));
 }
 

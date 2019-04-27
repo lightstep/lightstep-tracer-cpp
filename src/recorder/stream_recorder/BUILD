@@ -42,6 +42,7 @@ lightstep_cc_library(
         "//src/network:fragment_array_input_stream_lib",
         ":utility_lib",
         ":fragment_span_input_stream_lib",
+        ":stream_recorder_metrics_lib",
     ],
 )
 

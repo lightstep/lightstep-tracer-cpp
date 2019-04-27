@@ -37,17 +37,17 @@ static collector::ReportRequest ParseStreamHeader(std::string& s) {
 TEST_CASE("ConnectionStream") {
   LightStepTracerOptions tracer_options;
   ChunkCircularBuffer span_buffer{1000};
-  SpanStream span_stream{span_buffer, 1};
-  std::string header_common_fragment =
-      WriteStreamHeaderCommonFragment(tracer_options, 123);
   MetricsObserver metrics_observer;
   StreamRecorderMetrics metrics{metrics_observer};
+  SpanStream span_stream{span_buffer, metrics, 1};
+  std::string header_common_fragment =
+      WriteStreamHeaderCommonFragment(tracer_options, 123);
   auto host_header_fragment = MakeFragment("Host:abc\r\n");
   ConnectionStream connection_stream{
       host_header_fragment,
       Fragment{static_cast<void*>(&header_common_fragment[0]),
                static_cast<int>(header_common_fragment.size())},
-      metrics, span_stream};
+      span_stream};
   std::string contents;
   REQUIRE(connection_stream.Flush(
       [&contents](
@@ -254,7 +254,7 @@ TEST_CASE(
   const size_t n = 25000;
   for (size_t max_size : {10, 50, 100, 1000}) {
     ChunkCircularBuffer buffer{max_size};
-    SpanStream span_stream{buffer, num_connections};
+    SpanStream span_stream{buffer, metrics, num_connections};
     std::vector<ConnectionStream> connection_streams;
     connection_streams.reserve(num_connections);
     for (int i = 0; i < static_cast<int>(num_connections); ++i) {
@@ -262,7 +262,7 @@ TEST_CASE(
           host_header_fragment,
           Fragment{static_cast<void*>(&header_common_fragment[0]),
                    static_cast<int>(header_common_fragment.size())},
-          metrics, span_stream);
+          span_stream);
     }
     std::vector<uint32_t> producer_numbers;
     std::vector<uint32_t> consumer_numbers;

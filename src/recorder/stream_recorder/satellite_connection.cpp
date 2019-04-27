@@ -22,7 +22,7 @@ SatelliteConnection::SatelliteConnection(SatelliteStreamer& streamer)
     : streamer_{streamer},
       host_header_{streamer.tracer_options()},
       connection_stream_{host_header_.fragment(),
-                         streamer.header_common_fragment(), streamer.metrics(),
+                         streamer.header_common_fragment(),
                          streamer.span_stream()},
       reconnect_timer_{
           streamer_.event_base(), -1, 0,

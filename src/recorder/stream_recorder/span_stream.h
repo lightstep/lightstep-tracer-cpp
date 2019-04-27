@@ -5,6 +5,7 @@
 #include "common/chunk_circular_buffer.h"
 #include "network/fragment_array_input_stream.h"
 #include "recorder/stream_recorder/fragment_span_input_stream.h"
+#include "recorder/stream_recorder/stream_recorder_metrics.h"
 
 namespace lightstep {
 /**
@@ -13,7 +14,8 @@ namespace lightstep {
  */
 class SpanStream final : public FragmentInputStream {
  public:
-  SpanStream(ChunkCircularBuffer& span_buffer, int max_connections);
+  SpanStream(ChunkCircularBuffer& span_buffer, StreamRecorderMetrics& metrics,
+             int max_connections);
 
   /**
    * Allots spans from the ChunkCircularBuffer to stream to satellites.
@@ -38,6 +40,8 @@ class SpanStream final : public FragmentInputStream {
    */
   void Consume() noexcept;
 
+  StreamRecorderMetrics& metrics() const noexcept { return metrics_; }
+
   // FragmentInputStream
   int num_fragments() const noexcept override;
 
@@ -49,6 +53,7 @@ class SpanStream final : public FragmentInputStream {
 
  private:
   ChunkCircularBuffer& span_buffer_;
+  StreamRecorderMetrics& metrics_;
   CircularBufferConstPlacement allotment_;
   const char* stream_position_{nullptr};
   FragmentSpanInputStream span_remnant_;

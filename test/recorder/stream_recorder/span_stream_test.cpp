@@ -9,7 +9,9 @@ TEST_CASE("SpanStream") {
   const int max_connections = 10;
   const int max_buffer_bytes = 20;
   ChunkCircularBuffer buffer{max_buffer_bytes};
-  SpanStream span_stream{buffer, 10};
+  MetricsObserver metrics_observer;
+  StreamRecorderMetrics metrics{metrics_observer};
+  SpanStream span_stream{buffer, metrics, 10};
 
   SECTION("When the attached buffer is empty, SpanStream has no fragments.") {
     REQUIRE(span_stream.empty());

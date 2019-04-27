@@ -40,11 +40,9 @@ static Fragment WriteChunkHeader(char* buffer, size_t buffer_size,
 //--------------------------------------------------------------------------------------------------
 ConnectionStream::ConnectionStream(Fragment host_header_fragment,
                                    Fragment header_common_fragment,
-                                   StreamRecorderMetrics& metrics,
                                    SpanStream& span_stream)
     : host_header_fragment_{std::move(host_header_fragment)},
       header_common_fragment_{std::move(header_common_fragment)},
-      metrics_{metrics},
       span_stream_{span_stream} {
   InitializeStream();
 }
@@ -55,11 +53,11 @@ ConnectionStream::ConnectionStream(Fragment host_header_fragment,
 void ConnectionStream::Reset() {
   if (!header_stream_.empty()) {
     // We weren't able to upload the metrics so add the counters back
-    metrics_.UnconsumeDroppedSpans(
+    span_stream_.metrics().UnconsumeDroppedSpans(
         embedded_metrics_message_.num_dropped_spans());
   }
   if (!span_remnant_.empty()) {
-    metrics_.OnSpansDropped(1);
+    span_stream_.metrics().OnSpansDropped(1);
     span_stream_.RemoveSpanRemnant(span_remnant_.chunk_start());
     span_remnant_.Clear();
   }
@@ -99,7 +97,7 @@ void ConnectionStream::InitializeStream() {
   terminal_stream_ = {TerminalFragment};
 
   embedded_metrics_message_.set_num_dropped_spans(
-      metrics_.ConsumeDroppedSpans());
+      span_stream_.metrics().ConsumeDroppedSpans());
   auto metrics_fragment = embedded_metrics_message_.MakeFragment();
 
   auto header_chunk_size =
