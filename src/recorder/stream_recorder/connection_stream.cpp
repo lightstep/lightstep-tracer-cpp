@@ -55,10 +55,11 @@ ConnectionStream::ConnectionStream(Fragment host_header_fragment,
 void ConnectionStream::Reset() {
   if (!header_stream_.empty()) {
     // We weren't able to upload the metrics so add the counters back
-    metrics_.num_dropped_spans += embedded_metrics_message_.num_dropped_spans();
+    metrics_.UnconsumeDroppedSpans(
+        embedded_metrics_message_.num_dropped_spans());
   }
   if (!span_remnant_.empty()) {
-    ++metrics_.num_dropped_spans;
+    metrics_.OnSpansDropped(1);
     span_stream_.RemoveSpanRemnant(span_remnant_.chunk_start());
     span_remnant_.Clear();
   }
@@ -98,7 +99,7 @@ void ConnectionStream::InitializeStream() {
   terminal_stream_ = {TerminalFragment};
 
   embedded_metrics_message_.set_num_dropped_spans(
-      metrics_.num_dropped_spans.exchange(0));
+      metrics_.ConsumeDroppedSpans());
   auto metrics_fragment = embedded_metrics_message_.MakeFragment();
 
   auto header_chunk_size =

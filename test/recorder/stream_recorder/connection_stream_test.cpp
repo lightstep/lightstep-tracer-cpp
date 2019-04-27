@@ -40,7 +40,8 @@ TEST_CASE("ConnectionStream") {
   SpanStream span_stream{span_buffer, 1};
   std::string header_common_fragment =
       WriteStreamHeaderCommonFragment(tracer_options, 123);
-  StreamRecorderMetrics metrics;
+  MetricsObserver metrics_observer;
+  StreamRecorderMetrics metrics{metrics_observer};
   auto host_header_fragment = MakeFragment("Host:abc\r\n");
   ConnectionStream connection_stream{
       host_header_fragment,
@@ -102,9 +103,9 @@ TEST_CASE("ConnectionStream") {
   SECTION(
       "The ConnectionStream consumes metrics and sends them in the stream "
       "header.") {
-    metrics.num_dropped_spans += 3;
+    metrics.OnSpansDropped(3);
     connection_stream.Reset();
-    REQUIRE(metrics.num_dropped_spans == 0);
+    REQUIRE(metrics.num_dropped_spans() == 0);
     REQUIRE(connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -120,9 +121,9 @@ TEST_CASE("ConnectionStream") {
   SECTION(
       "ConnectionStream adds metrics back if it fails to send the stream "
       "header.") {
-    metrics.num_dropped_spans += 3;
+    metrics.OnSpansDropped(3);
     connection_stream.Reset();
-    REQUIRE(metrics.num_dropped_spans == 0);
+    REQUIRE(metrics.num_dropped_spans() == 0);
     connection_stream.Flush(
         [](std::initializer_list<FragmentInputStream*> fragment_streams) {
           auto contents = ToString(fragment_streams);
@@ -140,7 +141,7 @@ TEST_CASE("ConnectionStream") {
     auto& counts = report_request.internal_metrics().counts();
     REQUIRE(counts.size() == 1);
     REQUIRE(counts[0].int_value() == 3);
-    REQUIRE(metrics.num_dropped_spans == 0);
+    REQUIRE(metrics.num_dropped_spans() == 0);
   }
 
   SECTION(
@@ -245,7 +246,8 @@ TEST_CASE(
   LightStepTracerOptions tracer_options;
   std::string header_common_fragment =
       WriteStreamHeaderCommonFragment(tracer_options, 123);
-  StreamRecorderMetrics metrics;
+  MetricsObserver metrics_observer;
+  StreamRecorderMetrics metrics{metrics_observer};
   auto host_header_fragment = MakeFragment("Host:abc\r\n");
   const size_t num_producer_threads = 4;
   const size_t num_connections = 10;
