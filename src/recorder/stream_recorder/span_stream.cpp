@@ -123,7 +123,7 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
   std::tie(chunk, num_spans_sent) =
       span_buffer_.FindChunk(stream_position_, last);
   metrics_.OnSpansSent(num_spans_sent);
-  num_spans_pending_ -= num_spans_sent + 1;
+  num_spans_pending_ -= num_spans_sent;
 
   span_remnant_.Clear();
 
@@ -134,6 +134,7 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
     return;
   }
 
+  num_spans_pending_ -= 1;
   span_remnants_.emplace_back(chunk.data1);
   span_remnant_.Set(chunk, last);
   SetPositionAfter(chunk);
