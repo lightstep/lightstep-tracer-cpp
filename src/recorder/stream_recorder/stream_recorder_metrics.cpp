@@ -12,10 +12,7 @@ StreamRecorderMetrics::StreamRecorderMetrics(
 // OnSpansDropped
 //--------------------------------------------------------------------------------------------------
 void StreamRecorderMetrics::OnSpansDropped(int num_spans) noexcept {
-  try {
-    metrics_observer_.OnSpansDropped(num_spans);
-  } catch (...) {
-  }
+  metrics_observer_.OnSpansDropped(num_spans);
   num_dropped_spans_ += num_spans;
 }
 
@@ -23,21 +20,13 @@ void StreamRecorderMetrics::OnSpansDropped(int num_spans) noexcept {
 // OnSpansSent
 //--------------------------------------------------------------------------------------------------
 void StreamRecorderMetrics::OnSpansSent(int num_spans) noexcept {
-  try {
-    metrics_observer_.OnSpansSent(num_spans);
-  } catch (...) {
-  }
+  metrics_observer_.OnSpansSent(num_spans);
 }
 
 //--------------------------------------------------------------------------------------------------
 // OnFlush
 //--------------------------------------------------------------------------------------------------
-void StreamRecorderMetrics::OnFlush() noexcept {
-  try {
-    metrics_observer_.OnFlush();
-  } catch (...) {
-  }
-}
+void StreamRecorderMetrics::OnFlush() noexcept { metrics_observer_.OnFlush(); }
 
 //--------------------------------------------------------------------------------------------------
 // ConsumeDroppedSpans

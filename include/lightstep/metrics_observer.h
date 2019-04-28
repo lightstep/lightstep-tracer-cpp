@@ -16,12 +16,12 @@ class MetricsObserver {
   MetricsObserver& operator=(MetricsObserver&&) noexcept = default;
 
   // OnSpansSent records spans transported.
-  virtual void OnSpansSent(int /*num_spans*/) {}
+  virtual void OnSpansSent(int /*num_spans*/) noexcept {}
 
   // OnSpansDropped records spans dropped.
-  virtual void OnSpansDropped(int /*num_spans*/) {}
+  virtual void OnSpansDropped(int /*num_spans*/) noexcept {}
 
   // OnFlush records flush events by the recorder.
-  virtual void OnFlush() {}
+  virtual void OnFlush() noexcept {}
 };
 }  // namespace lightstep
