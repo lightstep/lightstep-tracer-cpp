@@ -145,6 +145,7 @@ void StreamRecorder::Poll() noexcept {
 void StreamRecorder::Flush() noexcept try {
   streamer_.Flush();
   flush_timer_.Reset();
+  metrics_.OnFlush();
 } catch (const std::exception& e) {
   logger_.Error("StreamRecorder::Flush failed: ", e.what());
 }

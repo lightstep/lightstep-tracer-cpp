@@ -30,6 +30,16 @@ void StreamRecorderMetrics::OnSpansSent(int num_spans) noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
+// OnFlush
+//--------------------------------------------------------------------------------------------------
+void StreamRecorderMetrics::OnFlush() noexcept {
+  try {
+    metrics_observer_.OnFlush();
+  } catch (...) {
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
 // ConsumeDroppedSpans
 //--------------------------------------------------------------------------------------------------
 int StreamRecorderMetrics::ConsumeDroppedSpans() noexcept {

@@ -16,6 +16,8 @@ class StreamRecorderMetrics {
 
   void OnSpansSent(int num_spans) noexcept;
 
+  void OnFlush() noexcept;
+
   int ConsumeDroppedSpans() noexcept;
 
   void UnconsumeDroppedSpans(int num_spans) noexcept;
