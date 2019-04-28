@@ -19,6 +19,7 @@ lightstep_catch_test(
         "//test/mock_satellite:mock_satellite_lib",
         "//test:ports_lib",
         "//test:utility_lib",
+        "//test:counting_metrics_observer_lib",
     ],
 )
 

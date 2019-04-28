@@ -35,10 +35,11 @@ class ChunkCircularBuffer {
   /**
    * Marks memory starting from the circular buffer's tail where serialization
    * has finished. Once the memory is alloted is safe to read.
+   * @return the number of chunks allotted
    *
    * Note: Cannot be called concurrently with Consume.
    */
-  void Allot() noexcept;
+  int Allot() noexcept;
 
   /**
    * Frees serialized space in the circular buffer starting from the tail.

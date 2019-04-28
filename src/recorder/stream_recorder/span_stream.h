@@ -55,6 +55,7 @@ class SpanStream final : public FragmentInputStream {
   ChunkCircularBuffer& span_buffer_;
   StreamRecorderMetrics& metrics_;
   CircularBufferConstPlacement allotment_;
+  int num_spans_pending_{0};
   const char* stream_position_{nullptr};
   FragmentSpanInputStream span_remnant_;
   std::vector<const char*> span_remnants_;

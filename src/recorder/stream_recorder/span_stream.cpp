@@ -20,7 +20,7 @@ SpanStream::SpanStream(ChunkCircularBuffer& span_buffer,
 // Allot
 //--------------------------------------------------------------------------------------------------
 void SpanStream::Allot() noexcept {
-  span_buffer_.Allot();
+  num_spans_pending_ += span_buffer_.Allot();
   allotment_ = span_buffer_.allotment();
   if (stream_position_ == nullptr) {
     stream_position_ = allotment_.data1;
@@ -99,6 +99,8 @@ bool SpanStream::ForEachFragment(Callback callback) const noexcept {
 // Clear
 //--------------------------------------------------------------------------------------------------
 void SpanStream::Clear() noexcept {
+  metrics_.OnSpansSent(num_spans_pending_);
+  num_spans_pending_ = 0;
   SetPositionAfter(allotment_);
   span_remnant_.Clear();
 }
@@ -121,6 +123,7 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
   std::tie(chunk, num_spans_sent) =
       span_buffer_.FindChunk(stream_position_, last);
   metrics_.OnSpansSent(num_spans_sent);
+  num_spans_pending_ -= num_spans_sent + 1;
 
   span_remnant_.Clear();
 

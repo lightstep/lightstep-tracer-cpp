@@ -49,15 +49,16 @@ bool ChunkCircularBuffer::Add(Serializer serializer, size_t size) noexcept {
 //--------------------------------------------------------------------------------------------------
 // Allot
 //--------------------------------------------------------------------------------------------------
-void ChunkCircularBuffer::Allot() noexcept {
+int ChunkCircularBuffer::Allot() noexcept {
+  int num_chunks_allotted = 0;
   while (true) {
     auto placement = buffer_.PeekFromPosition(num_bytes_allotted_);
     if (placement.size1 == 0) {
-      return;
+      return num_chunks_allotted;
     }
     if (!ready_flags_.Reset(
             static_cast<int>(placement.data1 - buffer_.data()))) {
-      return;
+      return num_chunks_allotted;
     }
     BipartMemoryInputStream stream{placement.data1, placement.size1,
                                    placement.data2, placement.size2};
@@ -66,6 +67,7 @@ void ChunkCircularBuffer::Allot() noexcept {
     assert(was_successful);
     num_bytes_allotted_ += stream.ByteCount() + chunk_size + 2;
     assert(stream.Skip(static_cast<int>(chunk_size + 2)));
+    ++num_chunks_allotted;
   }
 }
 

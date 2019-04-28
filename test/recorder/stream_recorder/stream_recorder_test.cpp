@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "test/counting_metrics_observer.h"
 #include "test/mock_satellite/mock_satellite_handle.h"
 #include "test/ports.h"
 #include "test/utility.h"
@@ -20,6 +21,8 @@ TEST_CASE("StreamRecorder") {
   tracer_options.satellite_endpoints = {
       {"localhost",
        static_cast<uint16_t>(PortAssignments::StreamRecorderTest)}};
+  auto metrics_observer = new CountingMetricsObserver{};
+  tracer_options.metrics_observer.reset(metrics_observer);
 
   StreamRecorderOptions recorder_options;
   recorder_options.min_satellite_reconnect_period =
@@ -52,6 +55,7 @@ TEST_CASE("StreamRecorder") {
       return !spans.empty();
     }));
     REQUIRE(spans.size() == 1);
+    REQUIRE(metrics_observer->num_spans_sent == 1);
   }
 
   SECTION("Reports are sent to the satellite.") {
@@ -74,6 +78,7 @@ TEST_CASE("StreamRecorder") {
       return !spans.empty();
     }));
     REQUIRE(spans.size() == 1);
+    REQUIRE(metrics_observer->num_spans_sent == 1);
   }
 
   SECTION("Flush returns with false if the timeout is reached.") {
