@@ -184,3 +184,34 @@ TEST_CASE("tracer") {
     CHECK(recorder->top().logs().size() == 1);
   }
 }
+
+TEST_CASE("Configuration validation") {
+  LightStepTracerOptions options;
+
+  // Don't make connections to the outside network; there's nothing listening at
+  // these addresses but that's ok since we don't need to send spans with this
+  // test.
+  options.collector_host = "localhost";
+  options.collector_port = 1234;
+  options.satellite_endpoints = {{"localhost", 1234}};
+
+  SECTION(
+      "Constructing the streaming tracer errors if plaintext isn't "
+      "specified.") {
+    options.collector_plaintext = false;
+    options.use_stream_recorder = true;
+    REQUIRE(MakeLightStepTracer(std::move(options)) == nullptr);
+  }
+
+  SECTION("The streaming recorder only supports a threaded mode.") {
+    options.use_stream_recorder = true;
+    options.use_thread = false;
+    REQUIRE(MakeLightStepTracer(std::move(options)) == nullptr);
+  }
+
+  SECTION("The streaming recorder doesn't support custom transporters.") {
+    options.use_stream_recorder = true;
+    options.transporter.reset(new Transporter{});
+    REQUIRE(MakeLightStepTracer(std::move(options)) == nullptr);
+  }
+}
