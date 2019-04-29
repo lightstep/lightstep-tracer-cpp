@@ -13,7 +13,7 @@ static MetricsObserver& GetMetricsObserver(
   if (tracer_options.metrics_observer == nullptr) {
     tracer_options.metrics_observer.reset(new MetricsObserver{});
   }
-  return *tracer_options.metrics_observer.get();
+  return *tracer_options.metrics_observer;
 }
 
 //--------------------------------------------------------------------------------------------------
