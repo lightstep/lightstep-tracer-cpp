@@ -150,9 +150,21 @@ class LightStepTracer : public opentracing::Tracer {
       noexcept;
 
   virtual bool Flush() noexcept = 0;
+
+  virtual bool FlushWithTimeout(
+      std::chrono::system_clock::duration timeout) noexcept = 0;
+
+  template <class Rep, class Period>
+  bool FlushWithTimeout(std::chrono::duration<Rep, Period> timeout) noexcept {
+    return this->FlushWithTimeout(
+        std::chrono::duration_cast<std::chrono::system_clock::duration>(
+            timeout));
+  }
 };
 
 // Returns a std::shared_ptr to a LightStepTracer or nullptr on failure.
 std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     LightStepTracerOptions&& options) noexcept;
+
+std::shared_ptr<LightStepTracer> MakeLightStepTracer(const char* config);
 }  // namespace lightstep
