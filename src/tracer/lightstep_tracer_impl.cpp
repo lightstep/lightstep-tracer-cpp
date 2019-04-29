@@ -3,6 +3,7 @@
 #include "tracer/lightstep_span.h"
 
 namespace lightstep {
+const auto DefaultFlushTimeout = std::chrono::seconds{10};
 
 //------------------------------------------------------------------------------
 // InjectImpl
@@ -120,7 +121,7 @@ LightStepTracerImpl::Extract(
 // Flush
 //------------------------------------------------------------------------------
 bool LightStepTracerImpl::Flush() noexcept {
-  return recorder_->FlushWithTimeout(std::chrono::seconds(10));
+  return recorder_->FlushWithTimeout(DefaultFlushTimeout);
 }
 
 //--------------------------------------------------------------------------------------------------
