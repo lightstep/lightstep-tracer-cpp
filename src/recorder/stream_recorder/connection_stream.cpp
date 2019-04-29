@@ -130,6 +130,7 @@ bool ConnectionStream::FlushShutdown(Writer writer) {
   auto chunk_start = span_remnant_.chunk_start();
   auto result = writer({&header_stream_, &span_remnant_, &terminal_stream_});
   if (span_remnant_.empty() && chunk_start != nullptr) {
+    span_stream_.metrics().OnSpansSent(1);
     span_stream_.RemoveSpanRemnant(chunk_start);
     span_stream_.Consume();
   }
