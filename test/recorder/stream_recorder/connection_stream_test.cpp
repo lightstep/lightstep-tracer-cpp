@@ -37,16 +37,17 @@ static collector::ReportRequest ParseStreamHeader(std::string& s) {
 TEST_CASE("ConnectionStream") {
   LightStepTracerOptions tracer_options;
   ChunkCircularBuffer span_buffer{1000};
-  SpanStream span_stream{span_buffer, 1};
+  MetricsObserver metrics_observer;
+  StreamRecorderMetrics metrics{metrics_observer};
+  SpanStream span_stream{span_buffer, metrics, 1};
   std::string header_common_fragment =
       WriteStreamHeaderCommonFragment(tracer_options, 123);
-  StreamRecorderMetrics metrics;
   auto host_header_fragment = MakeFragment("Host:abc\r\n");
   ConnectionStream connection_stream{
       host_header_fragment,
       Fragment{static_cast<void*>(&header_common_fragment[0]),
                static_cast<int>(header_common_fragment.size())},
-      metrics, span_stream};
+      span_stream};
   std::string contents;
   REQUIRE(connection_stream.Flush(
       [&contents](
@@ -102,9 +103,9 @@ TEST_CASE("ConnectionStream") {
   SECTION(
       "The ConnectionStream consumes metrics and sends them in the stream "
       "header.") {
-    metrics.num_dropped_spans += 3;
+    metrics.OnSpansDropped(3);
     connection_stream.Reset();
-    REQUIRE(metrics.num_dropped_spans == 0);
+    REQUIRE(metrics.num_dropped_spans() == 0);
     REQUIRE(connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -120,9 +121,9 @@ TEST_CASE("ConnectionStream") {
   SECTION(
       "ConnectionStream adds metrics back if it fails to send the stream "
       "header.") {
-    metrics.num_dropped_spans += 3;
+    metrics.OnSpansDropped(3);
     connection_stream.Reset();
-    REQUIRE(metrics.num_dropped_spans == 0);
+    REQUIRE(metrics.num_dropped_spans() == 0);
     connection_stream.Flush(
         [](std::initializer_list<FragmentInputStream*> fragment_streams) {
           auto contents = ToString(fragment_streams);
@@ -140,7 +141,7 @@ TEST_CASE("ConnectionStream") {
     auto& counts = report_request.internal_metrics().counts();
     REQUIRE(counts.size() == 1);
     REQUIRE(counts[0].int_value() == 3);
-    REQUIRE(metrics.num_dropped_spans == 0);
+    REQUIRE(metrics.num_dropped_spans() == 0);
   }
 
   SECTION(
@@ -245,14 +246,15 @@ TEST_CASE(
   LightStepTracerOptions tracer_options;
   std::string header_common_fragment =
       WriteStreamHeaderCommonFragment(tracer_options, 123);
-  StreamRecorderMetrics metrics;
+  MetricsObserver metrics_observer;
+  StreamRecorderMetrics metrics{metrics_observer};
   auto host_header_fragment = MakeFragment("Host:abc\r\n");
   const size_t num_producer_threads = 4;
   const size_t num_connections = 10;
   const size_t n = 25000;
   for (size_t max_size : {10, 50, 100, 1000}) {
     ChunkCircularBuffer buffer{max_size};
-    SpanStream span_stream{buffer, num_connections};
+    SpanStream span_stream{buffer, metrics, num_connections};
     std::vector<ConnectionStream> connection_streams;
     connection_streams.reserve(num_connections);
     for (int i = 0; i < static_cast<int>(num_connections); ++i) {
@@ -260,7 +262,7 @@ TEST_CASE(
           host_header_fragment,
           Fragment{static_cast<void*>(&header_common_fragment[0]),
                    static_cast<int>(header_common_fragment.size())},
-          metrics, span_stream);
+          span_stream);
     }
     std::vector<uint32_t> producer_numbers;
     std::vector<uint32_t> consumer_numbers;

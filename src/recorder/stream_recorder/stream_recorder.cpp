@@ -6,6 +6,17 @@
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
+// GetMetricsObserver
+//--------------------------------------------------------------------------------------------------
+static MetricsObserver& GetMetricsObserver(
+    LightStepTracerOptions& tracer_options) {
+  if (tracer_options.metrics_observer == nullptr) {
+    tracer_options.metrics_observer.reset(new MetricsObserver{});
+  }
+  return *tracer_options.metrics_observer.get();
+}
+
+//--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
 StreamRecorder::StreamRecorder(Logger& logger,
@@ -14,6 +25,7 @@ StreamRecorder::StreamRecorder(Logger& logger,
     : logger_{logger},
       tracer_options_{std::move(tracer_options)},
       recorder_options_{std::move(recorder_options)},
+      metrics_{GetMetricsObserver(tracer_options_)},
       span_buffer_{recorder_options_.max_span_buffer_bytes},
       early_flush_marker_{
           static_cast<size_t>(recorder_options_.max_span_buffer_bytes *
@@ -62,8 +74,7 @@ void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
           collector::ReportRequest::kSpansFieldNumber, span_size));
   if (!was_added) {
     logger_.Debug("Dropping span ", span.span_context().span_id());
-    ++metrics_.num_dropped_spans;
-    tracer_options_.metrics_observer->OnSpansDropped(1);
+    metrics_.OnSpansDropped(1);
   }
 }
 
@@ -134,6 +145,7 @@ void StreamRecorder::Poll() noexcept {
 void StreamRecorder::Flush() noexcept try {
   streamer_.Flush();
   flush_timer_.Reset();
+  metrics_.OnFlush();
 } catch (const std::exception& e) {
   logger_.Error("StreamRecorder::Flush failed: ", e.what());
 }

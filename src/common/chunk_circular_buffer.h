@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tuple>
+
 #include "common/atomic_bit_set.h"
 #include "common/circular_buffer.h"
 #include "common/function_ref.h"
@@ -33,10 +35,11 @@ class ChunkCircularBuffer {
   /**
    * Marks memory starting from the circular buffer's tail where serialization
    * has finished. Once the memory is alloted is safe to read.
+   * @return the number of chunks allotted
    *
    * Note: Cannot be called concurrently with Consume.
    */
-  void Allot() noexcept;
+  int Allot() noexcept;
 
   /**
    * Frees serialized space in the circular buffer starting from the tail.
@@ -50,12 +53,14 @@ class ChunkCircularBuffer {
    * Locates the chunk in the circular buffer that contains a given pointer.
    * @param start a chunk boundary position to start searching from.
    * @param ptr the pointer to search for.
-   * @return the chunk in the circular buffer that contains ptr.
+   * @return the chunk in the circular buffer that contains ptr and the number
+   * of preceding chunks.
    *
    * Note: both start and ptr must be within the allotment.
    */
-  CircularBufferConstPlacement FindChunk(const char* start,
-                                         const char* ptr) const noexcept;
+  std::tuple<CircularBufferConstPlacement, int> FindChunk(const char* start,
+                                                          const char* ptr) const
+      noexcept;
 
   /**
    * @return A placement referencing all data that has been allotted.

@@ -47,7 +47,7 @@ TEST_CASE(
   REQUIRE(buffer.allotment().size1 == 0);
 
   SECTION("Allot does nothing if the buffer is empty.") {
-    buffer.Allot();
+    REQUIRE(buffer.Allot() == 0);
     REQUIRE(buffer.num_bytes_allotted() == 0);
     REQUIRE(buffer.allotment().size1 == 0);
   }
@@ -56,7 +56,7 @@ TEST_CASE(
       "Messages added to the buffer are surrounded by http/1.1 chunk "
       "framing.") {
     REQUIRE(AddString(buffer, "abc"));
-    buffer.Allot();
+    REQUIRE(buffer.Allot() == 1);
     REQUIRE(ToString(buffer.allotment()) == "3\r\nabc\r\n");
   }
 
@@ -68,16 +68,16 @@ TEST_CASE(
   SECTION("Successive messages get serialized one after the other together.") {
     REQUIRE(AddString(buffer, "ab"));
     REQUIRE(AddString(buffer, "c"));
-    buffer.Allot();
+    REQUIRE(buffer.Allot() == 2);
     REQUIRE(buffer.num_bytes_allotted() == 13);
     REQUIRE(ToString(buffer.allotment()) == "2\r\nab\r\n1\r\nc\r\n");
   }
 
   SECTION("Allot picks up where the last allotment left.") {
     REQUIRE(AddString(buffer, "ab"));
-    buffer.Allot();
+    REQUIRE(buffer.Allot() == 1);
     REQUIRE(AddString(buffer, "c"));
-    buffer.Allot();
+    REQUIRE(buffer.Allot() == 1);
     REQUIRE(buffer.num_bytes_allotted() == 13);
     REQUIRE(ToString(buffer.allotment()) == "2\r\nab\r\n1\r\nc\r\n");
   }
@@ -85,7 +85,7 @@ TEST_CASE(
   SECTION("Once space has been allotted, it can be consumed.") {
     REQUIRE(AddString(buffer, "ab"));
     REQUIRE(AddString(buffer, "c"));
-    buffer.Allot();
+    REQUIRE(buffer.Allot() == 2);
     buffer.Consume(7);
     REQUIRE(buffer.num_bytes_allotted() == 6);
     REQUIRE(ToString(buffer.allotment()) == "1\r\nc\r\n");
@@ -94,9 +94,12 @@ TEST_CASE(
   SECTION("FindChunk locates the chunk that contains a given pointer.") {
     REQUIRE(AddString(buffer, "ab"));
     REQUIRE(AddString(buffer, "c"));
-    buffer.Allot();
-    REQUIRE(ToString(buffer.FindChunk(buffer.buffer().data(),
-                                      buffer.buffer().data() + 9)) ==
-            "1\r\nc\r\n");
+    REQUIRE(buffer.Allot() == 2);
+    CircularBufferConstPlacement chunk;
+    int num_preceding_chunks;
+    std::tie(chunk, num_preceding_chunks) =
+        buffer.FindChunk(buffer.buffer().data(), buffer.buffer().data() + 9);
+    REQUIRE(ToString(chunk) == "1\r\nc\r\n");
+    REQUIRE(num_preceding_chunks == 1);
   }
 }

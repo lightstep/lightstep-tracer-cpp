@@ -45,11 +45,6 @@ class SatelliteStreamer : private Noncopyable {
   }
 
   /**
-   * @return the metrics associated with StreamRecorder.
-   */
-  StreamRecorderMetrics& metrics() const noexcept { return metrics_; }
-
-  /**
    * @return the SpanStream formed from the StreamRecorder's message buffer.
    */
   SpanStream& span_stream() noexcept { return span_stream_; }
@@ -83,7 +78,6 @@ class SatelliteStreamer : private Noncopyable {
   const StreamRecorderOptions& recorder_options_;
   std::string header_common_fragment_;
   SatelliteEndpointManager endpoint_manager_;
-  StreamRecorderMetrics& metrics_;
   ChunkCircularBuffer& span_buffer_;
   SpanStream span_stream_;
   std::vector<std::unique_ptr<SatelliteConnection>> connections_;

@@ -40,11 +40,9 @@ static Fragment WriteChunkHeader(char* buffer, size_t buffer_size,
 //--------------------------------------------------------------------------------------------------
 ConnectionStream::ConnectionStream(Fragment host_header_fragment,
                                    Fragment header_common_fragment,
-                                   StreamRecorderMetrics& metrics,
                                    SpanStream& span_stream)
     : host_header_fragment_{std::move(host_header_fragment)},
       header_common_fragment_{std::move(header_common_fragment)},
-      metrics_{metrics},
       span_stream_{span_stream} {
   InitializeStream();
 }
@@ -55,10 +53,11 @@ ConnectionStream::ConnectionStream(Fragment host_header_fragment,
 void ConnectionStream::Reset() {
   if (!header_stream_.empty()) {
     // We weren't able to upload the metrics so add the counters back
-    metrics_.num_dropped_spans += embedded_metrics_message_.num_dropped_spans();
+    span_stream_.metrics().UnconsumeDroppedSpans(
+        embedded_metrics_message_.num_dropped_spans());
   }
   if (!span_remnant_.empty()) {
-    ++metrics_.num_dropped_spans;
+    span_stream_.metrics().OnSpansDropped(1);
     span_stream_.RemoveSpanRemnant(span_remnant_.chunk_start());
     span_remnant_.Clear();
   }
@@ -82,6 +81,7 @@ bool ConnectionStream::Flush(Writer writer) {
   auto result = writer({&header_stream_, &span_remnant_, &span_stream_});
   if (span_remnant_.empty()) {
     if (chunk_start != nullptr) {
+      span_stream_.metrics().OnSpansSent(1);
       span_stream_.RemoveSpanRemnant(chunk_start);
     }
     span_stream_.PopSpanRemnant(span_remnant_);
@@ -98,7 +98,7 @@ void ConnectionStream::InitializeStream() {
   terminal_stream_ = {TerminalFragment};
 
   embedded_metrics_message_.set_num_dropped_spans(
-      metrics_.num_dropped_spans.exchange(0));
+      span_stream_.metrics().ConsumeDroppedSpans());
   auto metrics_fragment = embedded_metrics_message_.MakeFragment();
 
   auto header_chunk_size =
@@ -130,6 +130,7 @@ bool ConnectionStream::FlushShutdown(Writer writer) {
   auto chunk_start = span_remnant_.chunk_start();
   auto result = writer({&header_stream_, &span_remnant_, &terminal_stream_});
   if (span_remnant_.empty() && chunk_start != nullptr) {
+    span_stream_.metrics().OnSpansSent(1);
     span_stream_.RemoveSpanRemnant(chunk_start);
     span_stream_.Consume();
   }

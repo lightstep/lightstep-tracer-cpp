@@ -23,9 +23,9 @@ SatelliteStreamer::SatelliteStreamer(
           WriteStreamHeaderCommonFragment(tracer_options, GenerateId())},
       endpoint_manager_{logger, event_base, tracer_options, recorder_options,
                         [this] { this->OnEndpointManagerReady(); }},
-      metrics_{metrics},
       span_buffer_{span_buffer},
-      span_stream_{span_buffer, recorder_options_.num_satellite_connections},
+      span_stream_{span_buffer, metrics,
+                   recorder_options_.num_satellite_connections},
       connection_traverser_{recorder_options_.num_satellite_connections} {
   connections_.reserve(recorder_options.num_satellite_connections);
   for (int i = 0; i < recorder_options.num_satellite_connections; ++i) {

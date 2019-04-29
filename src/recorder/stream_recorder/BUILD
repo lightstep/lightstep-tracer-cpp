@@ -21,6 +21,12 @@ lightstep_cc_library(
     private_hdrs = [
         "stream_recorder_metrics.h",
     ],
+    srcs = [
+      "stream_recorder_metrics.cpp",
+    ],
+    deps = [
+        "//include/lightstep:metrics_observer_interface",
+    ],
 )
 
 lightstep_cc_library(
@@ -36,6 +42,7 @@ lightstep_cc_library(
         "//src/network:fragment_array_input_stream_lib",
         ":utility_lib",
         ":fragment_span_input_stream_lib",
+        ":stream_recorder_metrics_lib",
     ],
 )
 

@@ -10,8 +10,9 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-SpanStream::SpanStream(ChunkCircularBuffer& span_buffer, int max_connections)
-    : span_buffer_{span_buffer} {
+SpanStream::SpanStream(ChunkCircularBuffer& span_buffer,
+                       StreamRecorderMetrics& metrics, int max_connections)
+    : span_buffer_{span_buffer}, metrics_{metrics} {
   span_remnants_.reserve(static_cast<size_t>(max_connections));
 }
 
@@ -19,7 +20,7 @@ SpanStream::SpanStream(ChunkCircularBuffer& span_buffer, int max_connections)
 // Allot
 //--------------------------------------------------------------------------------------------------
 void SpanStream::Allot() noexcept {
-  span_buffer_.Allot();
+  num_spans_pending_ += span_buffer_.Allot();
   allotment_ = span_buffer_.allotment();
   if (stream_position_ == nullptr) {
     stream_position_ = allotment_.data1;
@@ -98,6 +99,8 @@ bool SpanStream::ForEachFragment(Callback callback) const noexcept {
 // Clear
 //--------------------------------------------------------------------------------------------------
 void SpanStream::Clear() noexcept {
+  metrics_.OnSpansSent(num_spans_pending_);
+  num_spans_pending_ = 0;
   SetPositionAfter(allotment_);
   span_remnant_.Clear();
 }
@@ -115,7 +118,12 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
     last = allotment_.data2 + position;
     assert(Contains(allotment_.data2, allotment_.size2, last));
   }
-  auto chunk = span_buffer_.FindChunk(stream_position_, last);
+  CircularBufferConstPlacement chunk;
+  int num_spans_sent;
+  std::tie(chunk, num_spans_sent) =
+      span_buffer_.FindChunk(stream_position_, last);
+  metrics_.OnSpansSent(num_spans_sent);
+  num_spans_pending_ -= num_spans_sent;
 
   span_remnant_.Clear();
 
@@ -126,6 +134,7 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
     return;
   }
 
+  num_spans_pending_ -= 1;
   span_remnants_.emplace_back(chunk.data1);
   span_remnant_.Set(chunk, last);
   SetPositionAfter(chunk);

@@ -26,8 +26,7 @@ class ConnectionStream {
       std::initializer_list<FragmentInputStream*> fragment_input_streams)>;
 
   ConnectionStream(Fragment host_header_fragment,
-                   Fragment header_common_fragment,
-                   StreamRecorderMetrics& metrics, SpanStream& span_stream);
+                   Fragment header_common_fragment, SpanStream& span_stream);
 
   /**
    * Reset so as to begin a new streaming session.
@@ -64,7 +63,6 @@ class ConnectionStream {
  private:
   Fragment host_header_fragment_;
   Fragment header_common_fragment_;
-  StreamRecorderMetrics& metrics_;
   SpanStream& span_stream_;
   std::array<char, MaxChunkHeaderSize + 1>
       chunk_header_buffer_;  // Note: Use 1 greater than the actual size so that
