@@ -24,6 +24,12 @@ class MockSatelliteHandle {
    */
   std::vector<collector::ReportRequest> reports();
 
+  /**
+   * Forces the mock satellite to return an HTTP error code for the next report
+   * request.
+   */
+  void SetRequestError();
+
  private:
   ChildProcessHandle handle_;
   HttpConnection connection_;

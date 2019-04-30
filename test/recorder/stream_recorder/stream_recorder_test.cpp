@@ -5,6 +5,7 @@
 #include "test/counting_metrics_observer.h"
 #include "test/mock_satellite/mock_satellite_handle.h"
 #include "test/ports.h"
+#include "test/string_logger_sink.h"
 #include "test/utility.h"
 #include "tracer/lightstep_tracer_impl.h"
 
@@ -16,7 +17,11 @@ TEST_CASE("StreamRecorder") {
       static_cast<uint16_t>(PortAssignments::StreamRecorderTest)}};
 
   // Testing stub. More will be added when StreamRecorder is filled out.
-  auto logger = std::make_shared<Logger>();
+  auto logger_sink = std::make_shared<StringLoggerSink>();
+  auto logger = std::make_shared<Logger>(
+      [logger_sink](LogLevel log_level, opentracing::string_view message) {
+        (*logger_sink)(log_level, message);
+      });
   LightStepTracerOptions tracer_options;
   tracer_options.satellite_endpoints = {
       {"localhost",
@@ -90,5 +95,21 @@ TEST_CASE("StreamRecorder") {
         std::chrono::duration_cast<std::chrono::system_clock::duration>(
             std::chrono::milliseconds{10})));
     REQUIRE(!stream_recorder->empty());
+  }
+
+  SECTION("Connections to satellites are reguarly reestablished.") {
+    REQUIRE(IsEventuallyTrue([&] {
+      tracer->StartSpan("abc");
+      return mock_satellite->reports().size() > 1;
+    }));
+  }
+
+  SECTION("Error responses from the satellite are logged.") {
+    mock_satellite->SetRequestError();
+    REQUIRE(IsEventuallyTrue([&] {
+      tracer->StartSpan("abc");
+      return logger_sink->contents().find("Error from satellite 404") !=
+             std::string::npos;
+    }));
   }
 }
