@@ -8,11 +8,15 @@ apt-get install --no-install-recommends --no-install-suggests -y \
                 pkg-config \
                 git \
                 ca-certificates \
+                curl \
                 automake \
                 autogen \
                 autoconf \
                 libtool \
                 gnupg2 \
                 ssh \
+                lcov \
+                vim \
+                gdb \
+                wget \
                 python python-setuptools python-pip
-pip install gcovr

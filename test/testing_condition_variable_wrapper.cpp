@@ -3,6 +3,7 @@
 #include <chrono>
 #include <exception>
 #include <iostream>
+#include <stdexcept>
 #include <thread>
 
 namespace lightstep {
@@ -77,7 +78,7 @@ bool TestingConditionVariableWrapper::WaitUntil(
   if (predicate()) {
     return true;
   }
-  while (1) {
+  while (true) {
     lock.unlock();
     AddEvent(&event);
     while (!event.DecrementTicker()) {
@@ -111,7 +112,7 @@ void TestingConditionVariableWrapper::NotifyAll() {
 //------------------------------------------------------------------------------
 void TestingConditionVariableWrapper::WaitTillNextEvent() {
   auto start_timestamp = std::chrono::system_clock::now();
-  while (1) {
+  while (true) {
     {
       std::lock_guard<std::mutex> lock_guard{mutex_};
       if (!events_.empty()) {
@@ -120,8 +121,7 @@ void TestingConditionVariableWrapper::WaitTillNextEvent() {
     }
     std::this_thread::yield();
     if (std::chrono::system_clock::now() - start_timestamp > Timeout) {
-      std::cerr << "WaitTilNextEvent timed out\n";
-      std::terminate();
+      throw std::runtime_error{"WaitTilNext event timed out"};
     }
   }
 }
@@ -131,7 +131,7 @@ void TestingConditionVariableWrapper::WaitTillNextEvent() {
 //------------------------------------------------------------------------------
 void TestingConditionVariableWrapper::Step() {
   auto start_timestamp = std::chrono::system_clock::now();
-  while (1) {
+  while (true) {
     {
       std::lock_guard<std::mutex> lock_guard{mutex_};
       auto iter = std::min_element(events_.begin(), events_.end(),
@@ -148,8 +148,7 @@ void TestingConditionVariableWrapper::Step() {
     }
     std::this_thread::yield();
     if (std::chrono::system_clock::now() - start_timestamp > Timeout) {
-      std::cerr << "Step timed out\n";
-      std::terminate();
+      throw std::runtime_error{"Step timed out"};
     }
   }
 }

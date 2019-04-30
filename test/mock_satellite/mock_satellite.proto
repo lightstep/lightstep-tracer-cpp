@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package lightstep.mock_satellite;
+
+option go_package = "mocksatellitepb";
+
+import "lightstep-tracer-common/collector.proto";
+
+message Spans {
+  repeated lightstep.collector.Span spans = 1;
+}
+
+message Reports {
+  repeated lightstep.collector.ReportRequest reports = 1;
+}
