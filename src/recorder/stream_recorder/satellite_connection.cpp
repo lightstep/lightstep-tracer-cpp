@@ -193,7 +193,7 @@ void SatelliteConnection::OnReadable(int file_descriptor,
   std::array<char, 512> buffer;
   ssize_t rcode;
 
-  // Ignore the contents of any response
+  // Read satellite response
   while (true) {
     rcode = ::read(file_descriptor, static_cast<void*>(buffer.data()),
                    buffer.size());
@@ -211,7 +211,7 @@ void SatelliteConnection::OnReadable(int file_descriptor,
     }
     if (status_line_parser_.status_code() != 200) {
       streamer_.logger().Error("Error from satellite ",
-                               status_line_parser_.status_code(), ":",
+                               status_line_parser_.status_code(), ": ",
                                status_line_parser_.reason());
       return OnSocketError();
     }

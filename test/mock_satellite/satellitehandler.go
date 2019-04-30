@@ -21,22 +21,15 @@ func getCurrentTime() *tspb.Timestamp {
 }
 
 type SatelliteHandler struct {
-	reportChannel chan *collectorpb.ReportRequest
+	reportChannel     chan *collectorpb.ReportRequest
+	SendErrorResponse bool
 }
 
 func NewSatelliteHandler(reportChannel chan *collectorpb.ReportRequest) *SatelliteHandler {
 	return &SatelliteHandler{
-		reportChannel: reportChannel,
+		reportChannel:     reportChannel,
+		SendErrorResponse: false,
 	}
-}
-
-func sendResponse(responseWriter http.ResponseWriter, response *collectorpb.ReportResponse) {
-	response.TransmitTimestamp = getCurrentTime()
-	serializedResponse, err := proto.Marshal(response)
-	if err != nil {
-		log.Fatalf("Failed to marshal ReportResponse: %s\n", err.Error())
-	}
-	responseWriter.Write(serializedResponse)
 }
 
 func isStreamedRequest(request *http.Request) bool {
@@ -47,6 +40,20 @@ func isStreamedRequest(request *http.Request) bool {
 		return false
 	}
 	return request.TransferEncoding[0] == "chunked"
+}
+
+func (handler *SatelliteHandler) sendResponse(responseWriter http.ResponseWriter, response *collectorpb.ReportResponse) {
+	if handler.SendErrorResponse {
+		http.Error(responseWriter, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		handler.SendErrorResponse = false
+		return
+	}
+	response.TransmitTimestamp = getCurrentTime()
+	serializedResponse, err := proto.Marshal(response)
+	if err != nil {
+		log.Fatalf("Failed to marshal ReportResponse: %s\n", err.Error())
+	}
+	responseWriter.Write(serializedResponse)
 }
 
 func (handler *SatelliteHandler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
@@ -74,7 +81,7 @@ func (handler *SatelliteHandler) serveFixedHTTP(responseWriter http.ResponseWrit
 	if err != nil {
 		log.Fatalf("Failed to unmarshal ReportRequest: %s\n", err.Error())
 	}
-	sendResponse(responseWriter, response)
+	handler.sendResponse(responseWriter, response)
 	handler.reportChannel <- report
 }
 
@@ -115,5 +122,5 @@ func (handler *SatelliteHandler) serveStreamingHTTP(responseWriter http.Response
 		report.Spans[0] = span
 		handler.reportChannel <- report
 	}
-	sendResponse(responseWriter, response)
+	handler.sendResponse(responseWriter, response)
 }

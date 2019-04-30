@@ -46,4 +46,11 @@ std::vector<collector::ReportRequest> MockSatelliteHandle::reports() {
   }
   return result;
 }
+
+//--------------------------------------------------------------------------------------------------
+// SetRequestError
+//--------------------------------------------------------------------------------------------------
+void MockSatelliteHandle::SetRequestError() {
+  connection_.Get("/error-on-next-report");
+}
 }  // namespace lightstep

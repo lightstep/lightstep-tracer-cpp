@@ -136,3 +136,16 @@ lightstep_cc_library(
         "//src/network:event_lib",
     ],
 )
+
+lightstep_cc_library(
+    name = "string_logger_sink_lib",
+    private_hdrs = [
+        "string_logger_sink.h",
+    ],
+    srcs = [
+        "string_logger_sink.cpp",
+    ],
+    deps = [
+        "//include/lightstep:tracer_interface",
+    ],
+)
