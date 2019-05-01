@@ -9,7 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-  "sync/atomic"
+	"sync/atomic"
 	"time"
 )
 

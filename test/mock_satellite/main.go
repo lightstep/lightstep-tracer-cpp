@@ -7,8 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
-  "sync/atomic"
 	"strconv"
+	"sync/atomic"
 )
 
 const (
@@ -23,13 +23,22 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to parse port: %s\n", err.Error())
 	}
+
+	server := http.Server{Addr: fmt.Sprintf(":%d", port)}
+
 	reportChannel := make(chan *collectorpb.ReportRequest, maxBufferedReports)
 	satelliteHandler := NewSatelliteHandler(reportChannel)
 	reportProcessor := NewReportProcessor(reportChannel)
 	defer reportProcessor.Close()
 	defer close(reportChannel)
 
-	http.Handle("/api/v2/reports", satelliteHandler)
+	prematureClose := int32(0)
+	http.HandleFunc("/api/v2/reports", func(responseWriter http.ResponseWriter, request *http.Request) {
+		if atomic.SwapInt32(&prematureClose, 0) == 1 {
+			server.Close()
+		}
+		satelliteHandler.ServeHTTP(responseWriter, request)
+	})
 	http.Handle("/report-mock-streaming", satelliteHandler)
 
 	http.HandleFunc("/spans", func(responseWriter http.ResponseWriter, request *http.Request) {
@@ -57,8 +66,8 @@ func main() {
 	})
 
 	http.HandleFunc("/premature-close-next-report", func(responseWriter http.ResponseWriter, request *http.Request) {
-		// satelliteHandler.PrematureClose = true
+		atomic.StoreInt32(&prematureClose, 1)
 	})
 
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), nil))
+	log.Fatal(server.ListenAndServe())
 }

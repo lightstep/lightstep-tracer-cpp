@@ -128,15 +128,12 @@ TEST_CASE("StreamRecorder") {
   }
 
   SECTION("The recorder reconnects if there's a premature close.") {
-#if 0
-    std::cout << "nuf" << std::endl;
     mock_satellite->SetRequestPrematureClose();
-    std::cout << "arf" << std::endl;
     REQUIRE(IsEventuallyTrue([&] {
       tracer->StartSpan("abc");
+      std::cout << logger_sink->contents() << std::endl;
       return logger_sink->contents().find(
-                 "Socket closed prematurely by satellite") != std::string::npos;
+                 "No status line from satellite response") != std::string::npos;
     }));
-#endif
   }
 }
