@@ -65,6 +65,10 @@ func main() {
 		atomic.StoreInt32(&satelliteHandler.Timeout, 1)
 	})
 
+	http.HandleFunc("/throttle-reports", func(responseWriter http.ResponseWriter, request *http.Request) {
+		atomic.StoreInt32(&satelliteHandler.Throttle, 1)
+	})
+
 	http.HandleFunc("/premature-close-next-report", func(responseWriter http.ResponseWriter, request *http.Request) {
 		atomic.StoreInt32(&prematureClose, 1)
 	})

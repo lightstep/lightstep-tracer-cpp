@@ -67,4 +67,11 @@ void MockSatelliteHandle::SetRequestTimeout() {
 void MockSatelliteHandle::SetRequestPrematureClose() {
   connection_.Get("/premature-close-next-report");
 }
+
+//--------------------------------------------------------------------------------------------------
+// SetThrottleReports
+//--------------------------------------------------------------------------------------------------
+void MockSatelliteHandle::SetThrottleReports() {
+  connection_.Get("/throttle-reports");
+}
 }  // namespace lightstep

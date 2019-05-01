@@ -25,6 +25,7 @@ type SatelliteHandler struct {
 	reportChannel     chan *collectorpb.ReportRequest
 	SendErrorResponse int32
 	Timeout           int32
+	Throttle          int32
 }
 
 func NewSatelliteHandler(reportChannel chan *collectorpb.ReportRequest) *SatelliteHandler {
@@ -32,6 +33,7 @@ func NewSatelliteHandler(reportChannel chan *collectorpb.ReportRequest) *Satelli
 		reportChannel:     reportChannel,
 		SendErrorResponse: 0,
 		Timeout:           0,
+		Throttle:          0,
 	}
 }
 
@@ -102,6 +104,9 @@ func (handler *SatelliteHandler) serveStreamingHTTP(responseWriter http.Response
 	}
 	handler.reportChannel <- reportHeader
 	for {
+		if atomic.LoadInt32(&handler.Throttle) == 1 {
+			time.Sleep(5 * time.Millisecond)
+		}
 		_, err := reader.ReadByte()
 		if err == io.EOF {
 			break

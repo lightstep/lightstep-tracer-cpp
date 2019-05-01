@@ -1,6 +1,8 @@
 #include "recorder/stream_recorder/stream_recorder.h"
 
+#include <atomic>
 #include <memory>
+#include <thread>
 
 #include "test/counting_metrics_observer.h"
 #include "test/mock_satellite/mock_satellite_handle.h"
@@ -12,6 +14,15 @@
 #include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
 
+static void GenerateSpans(std::atomic<bool>& stop,
+                          opentracing::Tracer& tracer) {
+  std::string payload(50000, 'X');
+  while (!stop) {
+    auto span = tracer.StartSpan("abc");
+    span->SetTag("payload", payload.c_str());
+  }
+}
+
 TEST_CASE("StreamRecorder") {
   std::unique_ptr<MockSatelliteHandle> mock_satellite{new MockSatelliteHandle{
       static_cast<uint16_t>(PortAssignments::StreamRecorderTest)}};
@@ -22,6 +33,7 @@ TEST_CASE("StreamRecorder") {
       [logger_sink](LogLevel log_level, opentracing::string_view message) {
         (*logger_sink)(log_level, message);
       });
+  logger->set_level(LogLevel::debug);
   LightStepTracerOptions tracer_options;
   tracer_options.satellite_endpoints = {
       {"localhost",
@@ -134,5 +146,28 @@ TEST_CASE("StreamRecorder") {
       return logger_sink->contents().find(
                  "No status line from satellite response") != std::string::npos;
     }));
+  }
+
+  SECTION("Spans drop when the recorder's buffer fills.") {
+    std::atomic<bool> stop{false};
+    std::thread generator{GenerateSpans, std::ref(stop), std::ref(*tracer)};
+    REQUIRE(IsEventuallyTrue([&] {
+      return logger_sink->contents().find("Dropping span") != std::string::npos;
+    }));
+    stop = true;
+    generator.join();
+  }
+
+  SECTION(
+      "Flushes are incomplete when the satellite's connection is saturated.") {
+    mock_satellite->SetThrottleReports();
+    std::atomic<bool> stop{false};
+    std::thread generator{GenerateSpans, std::ref(stop), std::ref(*tracer)};
+    REQUIRE(IsEventuallyTrue([&] {
+      return logger_sink->contents().find("Flushed partially") !=
+             std::string::npos;
+    }));
+    stop = true;
+    generator.join();
   }
 }

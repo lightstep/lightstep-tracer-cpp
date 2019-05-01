@@ -40,6 +40,11 @@ class MockSatelliteHandle {
    */
   void SetRequestPrematureClose();
 
+  /**
+   * Instructs the satellite to read requests out more slowly
+   */
+  void SetThrottleReports();
+
  private:
   ChildProcessHandle handle_;
   HttpConnection connection_;
