@@ -109,8 +109,14 @@ TEST_CASE("StreamRecorder") {
     REQUIRE(!stream_recorder->empty());
     REQUIRE(!stream_recorder->FlushWithTimeout(
         std::chrono::duration_cast<std::chrono::system_clock::duration>(
-            std::chrono::milliseconds{10})));
+            std::chrono::nanoseconds{1})));
     REQUIRE(!stream_recorder->empty());
+  }
+
+  SECTION("Flush returns immediately if nothing is buffered.") {
+    REQUIRE(stream_recorder->FlushWithTimeout(
+        std::chrono::duration_cast<std::chrono::system_clock::duration>(
+            std::chrono::milliseconds{10})));
   }
 
   SECTION("Connections to satellites are reguarly reestablished.") {
