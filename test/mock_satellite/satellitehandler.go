@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+  "sync/atomic"
 	"time"
 )
 
@@ -22,15 +23,15 @@ func getCurrentTime() *tspb.Timestamp {
 
 type SatelliteHandler struct {
 	reportChannel     chan *collectorpb.ReportRequest
-	SendErrorResponse bool
-	Timeout           bool
+	SendErrorResponse int32
+	Timeout           int32
 }
 
 func NewSatelliteHandler(reportChannel chan *collectorpb.ReportRequest) *SatelliteHandler {
 	return &SatelliteHandler{
 		reportChannel:     reportChannel,
-		SendErrorResponse: false,
-		Timeout:           false,
+		SendErrorResponse: 0,
+		Timeout:           0,
 	}
 }
 
@@ -45,13 +46,11 @@ func isStreamedRequest(request *http.Request) bool {
 }
 
 func (handler *SatelliteHandler) sendResponse(responseWriter http.ResponseWriter, response *collectorpb.ReportResponse) {
-	if handler.SendErrorResponse {
+	if atomic.SwapInt32(&handler.SendErrorResponse, 0) == 1 {
 		http.Error(responseWriter, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		handler.SendErrorResponse = false
 		return
 	}
-	if handler.Timeout {
-		handler.Timeout = false
+	if atomic.SwapInt32(&handler.Timeout, 0) == 1 {
 		time.Sleep(time.Hour)
 	}
 	response.TransmitTimestamp = getCurrentTime()

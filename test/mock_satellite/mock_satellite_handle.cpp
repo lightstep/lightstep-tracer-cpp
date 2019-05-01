@@ -60,4 +60,11 @@ void MockSatelliteHandle::SetRequestError() {
 void MockSatelliteHandle::SetRequestTimeout() {
   connection_.Get("/timeout-on-next-report");
 }
+
+//--------------------------------------------------------------------------------------------------
+// SetRequestPrematureClose
+//--------------------------------------------------------------------------------------------------
+void MockSatelliteHandle::SetRequestPrematureClose() {
+  connection_.Get("/premature-close-next-report");
+}
 }  // namespace lightstep

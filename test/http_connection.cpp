@@ -118,6 +118,9 @@ void HttpConnection::OnCompleteRequest(evhttp_request* request,
   auto self = static_cast<HttpConnection*>(context);
   self->error_ = request == nullptr || request->response_code != 200;
   self->result_.clear();
+  if (request == nullptr) {
+    return;
+  }
   auto buffer = evhttp_request_get_input_buffer(request);
   if (buffer == nullptr) {
     return;

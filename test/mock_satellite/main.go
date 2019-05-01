@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+  "sync/atomic"
 	"strconv"
 )
 
@@ -48,11 +49,15 @@ func main() {
 	})
 
 	http.HandleFunc("/error-on-next-report", func(responseWriter http.ResponseWriter, request *http.Request) {
-		satelliteHandler.SendErrorResponse = true
+		atomic.StoreInt32(&satelliteHandler.SendErrorResponse, 1)
 	})
 
 	http.HandleFunc("/timeout-on-next-report", func(responseWriter http.ResponseWriter, request *http.Request) {
-		satelliteHandler.Timeout = true
+		atomic.StoreInt32(&satelliteHandler.Timeout, 1)
+	})
+
+	http.HandleFunc("/premature-close-next-report", func(responseWriter http.ResponseWriter, request *http.Request) {
+		// satelliteHandler.PrematureClose = true
 	})
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), nil))
