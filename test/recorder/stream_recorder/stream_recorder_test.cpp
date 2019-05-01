@@ -131,7 +131,6 @@ TEST_CASE("StreamRecorder") {
     mock_satellite->SetRequestPrematureClose();
     REQUIRE(IsEventuallyTrue([&] {
       tracer->StartSpan("abc");
-      std::cout << logger_sink->contents() << std::endl;
       return logger_sink->contents().find(
                  "No status line from satellite response") != std::string::npos;
     }));
