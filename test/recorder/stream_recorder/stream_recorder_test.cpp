@@ -41,6 +41,10 @@ TEST_CASE("StreamRecorder") {
       std::chrono::duration_cast<std::chrono::microseconds>(
           std::chrono::milliseconds{100});
   recorder_options.num_satellite_connections = 1;
+  recorder_options.satellite_graceful_stream_shutdown_timeout =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          std::chrono::milliseconds{100});
+
   auto stream_recorder = new StreamRecorder{*logger, std::move(tracer_options),
                                             std::move(recorder_options)};
   std::unique_ptr<Recorder> recorder{stream_recorder};
@@ -109,6 +113,16 @@ TEST_CASE("StreamRecorder") {
     REQUIRE(IsEventuallyTrue([&] {
       tracer->StartSpan("abc");
       return logger_sink->contents().find("Error from satellite 404") !=
+             std::string::npos;
+    }));
+  }
+
+  SECTION("The recorder forces a reconnect if the satellite times out.") {
+    mock_satellite->SetRequestTimeout();
+    REQUIRE(IsEventuallyTrue([&] {
+      tracer->StartSpan("abc");
+      return logger_sink->contents().find(
+                 "Failed to shutdown satellite connection gracefully") !=
              std::string::npos;
     }));
   }

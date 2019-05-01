@@ -30,6 +30,11 @@ class MockSatelliteHandle {
    */
   void SetRequestError();
 
+  /**
+   * Forces the mock satellite to timeout for the next report request.
+   */
+  void SetRequestTimeout();
+
  private:
   ChildProcessHandle handle_;
   HttpConnection connection_;

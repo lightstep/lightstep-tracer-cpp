@@ -23,12 +23,14 @@ func getCurrentTime() *tspb.Timestamp {
 type SatelliteHandler struct {
 	reportChannel     chan *collectorpb.ReportRequest
 	SendErrorResponse bool
+	Timeout           bool
 }
 
 func NewSatelliteHandler(reportChannel chan *collectorpb.ReportRequest) *SatelliteHandler {
 	return &SatelliteHandler{
 		reportChannel:     reportChannel,
 		SendErrorResponse: false,
+		Timeout:           false,
 	}
 }
 
@@ -47,6 +49,10 @@ func (handler *SatelliteHandler) sendResponse(responseWriter http.ResponseWriter
 		http.Error(responseWriter, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		handler.SendErrorResponse = false
 		return
+	}
+	if handler.Timeout {
+		handler.Timeout = false
+		time.Sleep(time.Hour)
 	}
 	response.TransmitTimestamp = getCurrentTime()
 	serializedResponse, err := proto.Marshal(response)

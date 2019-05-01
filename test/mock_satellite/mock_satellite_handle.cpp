@@ -53,4 +53,11 @@ std::vector<collector::ReportRequest> MockSatelliteHandle::reports() {
 void MockSatelliteHandle::SetRequestError() {
   connection_.Get("/error-on-next-report");
 }
+
+//--------------------------------------------------------------------------------------------------
+// SetRequestTimeout
+//--------------------------------------------------------------------------------------------------
+void MockSatelliteHandle::SetRequestTimeout() {
+  connection_.Get("/timeout-on-next-report");
+}
 }  // namespace lightstep

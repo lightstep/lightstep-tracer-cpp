@@ -51,5 +51,9 @@ func main() {
 		satelliteHandler.SendErrorResponse = true
 	})
 
+	http.HandleFunc("/timeout-on-next-report", func(responseWriter http.ResponseWriter, request *http.Request) {
+		satelliteHandler.Timeout = true
+	})
+
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), nil))
 }
