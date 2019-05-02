@@ -88,6 +88,7 @@
  *       http://www.pcg-random.org/posts/ease-of-use-without-loss-of-power.html
  */
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -460,7 +461,9 @@ class auto_seeded : public SeedSeq {
         // Some people think you shouldn't use the random device much because
         // on some platforms it could be expensive to call or "use up" vital
         // system-wide entropy, so we just call it once.
-        static uint32_t random_int = std::random_device{}();
+        //
+        // rnburn: use atomic here to silence tsan
+        static std::atomic<uint32_t> random_int{std::random_device{}()};
 
         // The heap can vary from run to run as well.
         void* malloc_addr = malloc(sizeof(int));
