@@ -30,6 +30,21 @@ class MockSatelliteHandle {
    */
   void SetRequestError();
 
+  /**
+   * Forces the mock satellite to timeout for the next report request.
+   */
+  void SetRequestTimeout();
+
+  /**
+   * Forces the mock satellite to prematurely close the next report request.
+   */
+  void SetRequestPrematureClose();
+
+  /**
+   * Instructs the satellite to read requests out more slowly
+   */
+  void SetThrottleReports();
+
  private:
   ChildProcessHandle handle_;
   HttpConnection connection_;

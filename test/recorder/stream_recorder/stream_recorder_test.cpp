@@ -1,6 +1,8 @@
 #include "recorder/stream_recorder/stream_recorder.h"
 
+#include <atomic>
 #include <memory>
+#include <thread>
 
 #include "test/counting_metrics_observer.h"
 #include "test/mock_satellite/mock_satellite_handle.h"
@@ -12,6 +14,15 @@
 #include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
 
+static void GenerateSpans(std::atomic<bool>& stop,
+                          opentracing::Tracer& tracer) {
+  std::string payload(50000, 'X');
+  while (!stop) {
+    auto span = tracer.StartSpan("abc");
+    span->SetTag("payload", payload.c_str());
+  }
+}
+
 TEST_CASE("StreamRecorder") {
   std::unique_ptr<MockSatelliteHandle> mock_satellite{new MockSatelliteHandle{
       static_cast<uint16_t>(PortAssignments::StreamRecorderTest)}};
@@ -22,6 +33,7 @@ TEST_CASE("StreamRecorder") {
       [logger_sink](LogLevel log_level, opentracing::string_view message) {
         (*logger_sink)(log_level, message);
       });
+  logger->set_level(LogLevel::debug);
   LightStepTracerOptions tracer_options;
   tracer_options.satellite_endpoints = {
       {"localhost",
@@ -41,6 +53,10 @@ TEST_CASE("StreamRecorder") {
       std::chrono::duration_cast<std::chrono::microseconds>(
           std::chrono::milliseconds{100});
   recorder_options.num_satellite_connections = 1;
+  recorder_options.satellite_graceful_stream_shutdown_timeout =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          std::chrono::milliseconds{100});
+
   auto stream_recorder = new StreamRecorder{*logger, std::move(tracer_options),
                                             std::move(recorder_options)};
   std::unique_ptr<Recorder> recorder{stream_recorder};
@@ -93,8 +109,14 @@ TEST_CASE("StreamRecorder") {
     REQUIRE(!stream_recorder->empty());
     REQUIRE(!stream_recorder->FlushWithTimeout(
         std::chrono::duration_cast<std::chrono::system_clock::duration>(
-            std::chrono::milliseconds{10})));
+            std::chrono::nanoseconds{1})));
     REQUIRE(!stream_recorder->empty());
+  }
+
+  SECTION("Flush returns immediately if nothing is buffered.") {
+    REQUIRE(stream_recorder->FlushWithTimeout(
+        std::chrono::duration_cast<std::chrono::system_clock::duration>(
+            std::chrono::milliseconds{10})));
   }
 
   SECTION("Connections to satellites are reguarly reestablished.") {
@@ -111,5 +133,47 @@ TEST_CASE("StreamRecorder") {
       return logger_sink->contents().find("Error from satellite 404") !=
              std::string::npos;
     }));
+  }
+
+  SECTION("The recorder forces a reconnect if the satellite times out.") {
+    mock_satellite->SetRequestTimeout();
+    REQUIRE(IsEventuallyTrue([&] {
+      tracer->StartSpan("abc");
+      return logger_sink->contents().find(
+                 "Failed to shutdown satellite connection gracefully") !=
+             std::string::npos;
+    }));
+  }
+
+  SECTION("The recorder reconnects if there's a premature close.") {
+    mock_satellite->SetRequestPrematureClose();
+    REQUIRE(IsEventuallyTrue([&] {
+      tracer->StartSpan("abc");
+      return logger_sink->contents().find(
+                 "No status line from satellite response") != std::string::npos;
+    }));
+  }
+
+  SECTION("Spans drop when the recorder's buffer fills.") {
+    std::atomic<bool> stop{false};
+    std::thread generator{GenerateSpans, std::ref(stop), std::ref(*tracer)};
+    REQUIRE(IsEventuallyTrue([&] {
+      return logger_sink->contents().find("Dropping span") != std::string::npos;
+    }));
+    stop = true;
+    generator.join();
+  }
+
+  SECTION(
+      "Flushes are incomplete when the satellite's connection is saturated.") {
+    mock_satellite->SetThrottleReports();
+    std::atomic<bool> stop{false};
+    std::thread generator{GenerateSpans, std::ref(stop), std::ref(*tracer)};
+    REQUIRE(IsEventuallyTrue([&] {
+      return logger_sink->contents().find("Flushed partially") !=
+             std::string::npos;
+    }));
+    stop = true;
+    generator.join();
   }
 }
