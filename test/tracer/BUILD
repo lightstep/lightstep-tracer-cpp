@@ -25,7 +25,7 @@ lightstep_catch_test(
         "tracer_test.cpp",
     ],
     deps = [
-        "//:manual_tracer_lib",
+        "//:tracer_lib",
         "//test/recorder:in_memory_recorder_lib",
         "//test:utility_lib",
     ],

@@ -193,7 +193,18 @@ TEST_CASE("Configuration validation") {
   // test.
   options.collector_host = "localhost";
   options.collector_port = 1234;
+  options.access_token = "abc";
   options.satellite_endpoints = {{"localhost", 1234}};
+
+  SECTION("We can construct a valid rpc tracer.") {
+    REQUIRE(MakeLightStepTracer(std::move(options)) != nullptr);
+  }
+
+  SECTION("We can construct a valid streaming tracer.") {
+    options.collector_plaintext = true;
+    options.use_stream_recorder = true;
+    REQUIRE(MakeLightStepTracer(std::move(options)) != nullptr);
+  }
 
   SECTION(
       "Constructing the streaming tracer errors if plaintext isn't "
