@@ -143,7 +143,12 @@ void StreamRecorder::Poll() noexcept {
 // Flush
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::Flush() noexcept try {
-  streamer_.Flush();
+  if (recorder_options_.throw_away_spans) {
+    span_buffer_.Allot();
+    span_buffer_.Consume(span_buffer_.num_bytes_allotted());
+  } else {
+    streamer_.Flush();
+  }
   flush_timer_.Reset();
   metrics_.OnFlush();
 } catch (const std::exception& e) {

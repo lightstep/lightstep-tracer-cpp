@@ -158,6 +158,7 @@ def lightstep_google_benchmark(
   native.cc_binary(
       name = name,
       srcs = srcs,
+      copts = lightstep_include_copts() + lightstep_copts(),
       data = data,
       deps = deps + ["@com_google_benchmark//:benchmark"],
       testonly = 1
@@ -178,5 +179,5 @@ def lightstep_google_benchmark(
       ],
       tools = [":" + name] + data,
       testonly = 1,
-      cmd = "$(location :%s) --benchmark_color=false &> $@" % name,
+      cmd = "$(location :%s) --benchmark_color=false --benchmark_min_time=.01 &> $@" % name,
 )

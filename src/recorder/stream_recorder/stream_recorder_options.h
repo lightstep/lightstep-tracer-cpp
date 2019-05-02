@@ -13,6 +13,12 @@ namespace lightstep {
  * behavior for testing.
  */
 struct StreamRecorderOptions {
+  // Instructs the stream recorder consume spans out of the buffer without
+  // sending them.
+  //
+  // It's meant to be used as a mode for benchmarking only.
+  bool throw_away_spans = false;
+
   // The maximum number of bytes that will be buffered.
   size_t max_span_buffer_bytes = 1048576;
 

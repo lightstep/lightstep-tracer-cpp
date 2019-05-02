@@ -10,7 +10,7 @@ lightstep_google_benchmark(
         "span_operations_benchmark.cpp",
     ],
     deps = [
-        "//:manual_tracer_lib",
+        "//:tracer_lib",
     ],
 )
 
