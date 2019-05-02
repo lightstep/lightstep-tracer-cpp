@@ -158,6 +158,7 @@ def lightstep_google_benchmark(
   native.cc_binary(
       name = name,
       srcs = srcs,
+      copts = lightstep_include_copts() + lightstep_copts(),
       data = data,
       deps = deps + ["@com_google_benchmark//:benchmark"],
       testonly = 1

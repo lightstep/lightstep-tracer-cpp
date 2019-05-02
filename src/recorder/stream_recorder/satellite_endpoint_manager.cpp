@@ -51,6 +51,7 @@ void SatelliteEndpointManager::Start() noexcept {
 std::pair<IpAddress, const char*>
 SatelliteEndpointManager::RequestEndpoint() noexcept {
   auto endpoint_index_start = endpoint_index_;
+  (void)endpoint_index_start;
   while (true) {
     // RequestEndpoint shouldn't be called until at least one host name is
     // resolved.
