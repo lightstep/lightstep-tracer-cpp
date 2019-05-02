@@ -156,7 +156,7 @@ BENCHMARK_CAPTURE(BM_SpanCreation, stream, "stream");
 //------------------------------------------------------------------------------
 static void BM_SpanCreationThreaded(benchmark::State& state,
                                     const char* tracer_type) {
-  const int num_spans_for_span_creation_threaded_benchmark = 500;
+  const int num_spans_for_span_creation_threaded_benchmark = 2000;
   auto tracer = MakeTracer(tracer_type);
   assert(tracer != nullptr);
   auto num_threads = state.range(0);
