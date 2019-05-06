@@ -17,8 +17,10 @@ static void MakeSpan(opentracing::Tracer& tracer, int span_index) {
 
 int main() {
   lightstep::LightStepTracerOptions options;
+  // See https://docs.lightstep.com/docs/developer-mode for instructions on
+  // setting up a LightStep developer satellite on localhost:8360.
   options.collector_plaintext = true;
-  options.satellite_endpoints = {{"collector.lightstep.com", 80}};
+  options.satellite_endpoints = {{"localhost", 8360}};
   options.use_stream_recorder = true;
   options.verbose = true;
   options.component_name = "Stream";

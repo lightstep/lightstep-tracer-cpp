@@ -5,9 +5,14 @@ The LightStep distributed tracing library for C++.
 
 ## Installation
 
-The library supports being built in several configurations to support a variety of uses.  The default build configuration includes gRPC support for sending data to LightStep, or alternately the library may be configured without gRPC to use a user-defined transport library.
+The library supports being built in several configurations to support
+a variety of uses.  There are three transport options available:
 
-The library also supports dynamic loading, for applications that support more than one OpenTracing-compatible tracer.  To use the dynamic library, we recommend installing the binary plugin included with each release (e.g., [the 0.8.1 plugin](https://github.com/lightstep/lightstep-tracer-cpp/releases/download/v0.8.1/linux-amd64-liblightstep_tracer_plugin.so.gz)).
+1. Streaming HTTP transport (*NEW in 0.9.x*): This option uses multiple outbound HTTP 1.1 connections to send spans to LightStep.  This transport option is optimized for concurrency and throughput, compared with the gRPC transport option. TLS is not currently supported in this configuration.
+1. gRPC transport (*DEFAULT*): This option uses the gRPC library for transport. This transport option is not optimized for concurrency and throughput, compared with the the Streaming HTTP transport option.
+1. User-defined transport: This option allows the user to supply custom logic for transporting span objects to LightStep. Users must implement one of the LightStep-supported transports themselves with this option.
+
+The library also supports dynamic loading, for applications that support more than one OpenTracing-compatible tracer.  To use the dynamic library, we recommend installing the binary plugin included with each release (e.g., [the 0.9.0 plugin](https://github.com/lightstep/lightstep-tracer-cpp/releases/download/v0.9.0/linux-amd64-liblightstep_tracer_plugin.so.gz)).
 
 ### Requirements
 
@@ -15,13 +20,20 @@ To build and install the LightStep distributed tracing library, you will need to
 
 1. cmake
 1. protobuf
-1. grpc
-
-This library also depends on the current release of the [OpenTracing C++](https://github.com/opentracing/opentracing-cpp) API.
+1. grpc (for gRPC transport)
+1. c-ares (for Streaming HTTP transport)
+1. libevent (for Streaming HTTP transport)
+1. [OpenTracing C++](https://github.com/opentracing/opentracing-cpp) library.
 
 ### Building
 
-Get and install the current [1.5.x release of OpenTracing](https://github.com/opentracing/opentracing-cpp/archive/v1.5.1.tar.gz).  (The same sequence of commands printed below may be used to install OpenTracing library.)  After installing the OpenTracing APIs, run these commands to configure and build the package.
+Get and install the current [1.5.x release of OpenTracing](https://github.com/opentracing/opentracing-cpp/archive/v1.5.1.tar.gz) as described in that repository's README.  After installing the OpenTracing APIs, generate the Makefile with the desired build options.
+
+1. For gRPC, use `-DWITH_GRPC=ON`
+1. For Streaming HTTP, use `-DWITH_LIBEVENT=ON -DWITH_CARES=ON -DWITH_GRPC=OFF`
+1. For Dynamic loading support, add `-DWITH_DYNAMIC_LOAD=ON`
+
+Run these commands to configure and build the package.
 
 ```
 $ mkdir .build
@@ -38,7 +50,9 @@ Several packages are required to complete this build.  To install all the depend
 ```
 brew install cmake
 brew install protobuf
-brew install grpc
+brew install grpc         # for gRPC
+brew install c-ares       # for Streaming HTTP
+brew install libevent     # for Streaming HTTP
 brew install pkg-config
 ```
 
@@ -53,10 +67,23 @@ application, or it can be set as the `opentracing::Global()` tracer.
 #include <opentracing/tracer.h>
 #include <lightstep/tracer.h>
 
+const bool use_streaming_tracer = true;
+
 void initGlobalTracer() {
   lightstep::LightStepTracerOptions options;
   options.component_name = "c++ quickstart app";
   options.access_token = "hello";
+
+  // Configure the tracer to send to the local developer satellite:
+  options.collector_plaintext = true;
+  if (use_streaming_tracer) {
+    options.satellite_endpoints = {{"localhost", 8360}};
+    options.use_stream_recorder = true;
+  } else {
+    options.collector_host = "localhost";
+    options.collector_port = 8360;
+    options.use_stream_recorder = false;
+  }
 
   auto tracer = lightstep::MakeLightStepTracer(std::move(options));
 
