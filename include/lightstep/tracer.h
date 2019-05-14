@@ -123,7 +123,7 @@ struct LightStepTracerOptions {
   // `transporter` customizes how spans are sent when flushed. If null, then a
   // default transporter is used.
   //
-  // If `use_thread` is true, `transporter` should be derived from
+  // If `use_thread` is false, `transporter` should be derived from
   // AsyncTransporter; otherwise, it must be derived from SyncTransporter.
   std::unique_ptr<Transporter> transporter;
 
