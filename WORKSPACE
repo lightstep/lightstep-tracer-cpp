@@ -10,6 +10,12 @@ git_repository(
 )
 
 git_repository(
+    name = "com_google_protobuf",
+    remote = "https://github.com/protocolbuffers/protobuf.git",
+    commit = "8e5ea65953f3c47e01bca360ecf3abdf2c8b1c33",
+)
+
+git_repository(
     name = "com_github_googleapis_googleapis",
     remote = "https://github.com/googleapis/googleapis",
     commit = "41d72d444fbe445f4da89e13be02078734fb7875",
@@ -44,7 +50,7 @@ git_repository(
 git_repository(
     name = "com_github_grpc_grpc",
     remote = "https://github.com/grpc/grpc",
-    commit = "e97c9457e2f4e6733873ea2975d3b90432fdfdc1",
+    commit = "d418c42f1ef2f433df54aaee42c75f8d58742927",
 )
 
 load("@build_stack_rules_proto//cpp:deps.bzl", "cpp_grpc_compile")
@@ -54,6 +60,58 @@ cpp_grpc_compile()
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 
 grpc_deps()
+
+#######################################
+# Python bridge
+#######################################
+all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
+
+git_repository(
+    name = "bazel_skylib",
+    remote = "https://github.com/bazelbuild/bazel-skylib.git",
+    commit = "3721d32c14d3639ff94320c780a60a6e658fb033",
+)
+
+git_repository(
+    name = "rules_foreign_cc",
+    remote = "https://github.com/bazelbuild/rules_foreign_cc",
+    commit = "bf99a0bf0080bcd50431aa7124ef23e5afd58325",
+)
+
+load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
+
+rules_foreign_cc_dependencies([
+])
+
+http_archive(
+    name = "com_github_openssl_openssl",
+    build_file_content = all_content,
+    strip_prefix = "openssl-OpenSSL_1_1_1",
+    urls = [
+        "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1.tar.gz",
+    ],
+)
+
+http_archive(
+    name = "com_github_python_cpython",
+    build_file_content = all_content,
+    strip_prefix = "cpython-3.7.3",
+    urls = [
+        "https://github.com/python/cpython/archive/v3.7.3.tar.gz",
+    ],
+)
+
+git_repository(
+    name = "io_bazel_rules_python",
+    remote = "https://github.com/bazelbuild/rules_python.git",
+    commit = "965d4b4a63e6462204ae671d7c3f02b25da37941",
+)
+
+git_repository(
+    name = "com_github_lightstep_python_bridge_tracer",
+    remote = "https://github.com/rnburn/python-bridge-tracer.git",
+    commit = "f33d265383093c82d844d4b6699877b22c0735e6",
+) 
 
 #######################################
 # Testing dependencies
