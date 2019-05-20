@@ -40,7 +40,7 @@ static PyObject* MakeTracer(PyObject* /*self*/, PyObject* /*args*/, PyObject* ke
     return nullptr;
   }
   python_bridge_tracer::PythonStringWrapper json_config =
-      PyObject_CallObject(dumps_function, keywords);
+      PyObject_CallFunctionObjArgs(dumps_function, keywords, nullptr);
   if (json_config.error()) {
     return nullptr;
   }
@@ -60,7 +60,7 @@ static PyObject* MakeTracer(PyObject* /*self*/, PyObject* /*args*/, PyObject* ke
 // ModuleMethods
 //--------------------------------------------------------------------------------------------------
 static PyMethodDef ModuleMethods[] = {
-    {"Tracer", reinterpret_cast<PyCFunction>(lightstep::MakeTracer), METH_KEYWORDS,
+    {"Tracer", reinterpret_cast<PyCFunction>(lightstep::MakeTracer), METH_VARARGS | METH_KEYWORDS,
      PyDoc_STR("Construct the LightStep tracer")},
     {nullptr, nullptr}};
 

@@ -8,12 +8,15 @@ load(
 
 lightstep_package()
 
-# py_test(
-#     name = "tracer_test",
-#     srcs = [
-#         "tracer_test.py",
-#     ],
-#     deps = [
-#         requirement("opentracing"),
-#     ],
-# )
+py_test(
+    name = "tracer_test",
+    srcs = [
+        "tracer_test.py",
+    ],
+    deps = [
+        requirement("opentracing"),
+    ],
+    data = [
+        "//bridge/python:lightstep.so",
+    ],
+)
