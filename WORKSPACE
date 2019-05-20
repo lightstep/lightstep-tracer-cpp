@@ -154,3 +154,17 @@ go_repository(
     tag = "v1.3.0",
 )
 
+# Only needed for PIP support:
+load("@io_bazel_rules_python//python:pip.bzl", "pip_repositories")
+
+pip_repositories()
+
+load("@io_bazel_rules_python//python:pip.bzl", "pip_import")
+
+pip_import(
+    name = "python_pip_deps",
+    requirements = "//bridge/python:requirements.txt",
+)
+
+load("@python_pip_deps//:requirements.bzl", "pip_install")
+pip_install()

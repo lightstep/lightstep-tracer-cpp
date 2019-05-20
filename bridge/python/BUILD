@@ -22,6 +22,7 @@ lightstep_cc_binary(
     ],
     deps = [
       "//:tracer_lib",
+      "//src/tracer:lightstep_tracer_factory_lib",
     ],
     external_deps = [
       "@com_github_lightstep_python_bridge_tracer//src/lib:bridge_tracer_lib",
