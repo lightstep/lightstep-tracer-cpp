@@ -6,7 +6,7 @@ set -e
 [ -z "${BUILD_DIR}" ] && export BUILD_DIR=/build
 mkdir -p "${BUILD_DIR}"
 
-BAZEL_OPTIONS="--jobs 1"
+BAZEL_OPTIONS=""
 BAZEL_TEST_OPTIONS="$BAZEL_OPTIONS --test_output=errors"
 
 function copy_benchmark_results() {
@@ -15,6 +15,14 @@ function copy_benchmark_results() {
   find . -name '*_result.txt' -exec bash -c \
     'echo "$@" && mkdir -p "${BENCHMARK_DST_DIR}"/$(dirname "$@") && \
      cp "$@" "${BENCHMARK_DST_DIR}"/"$@"' _ {} \;
+}
+
+function setup_clang_toolchain() {
+  export PATH=/usr/lib/llvm-6.0/bin:$PATH
+  export CC=clang
+  export CXX=clang++
+  export ASAN_SYMBOLIZER_PATH=/usr/lib/llvm-6.0/bin/llvm-symbolizer
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/llvm-6.0/lib/clang/6.0.1/lib/linux/
 }
 
 if [[ "$1" == "cmake.minimal" ]]; then
@@ -38,8 +46,8 @@ elif [[ "$1" == "cmake.full" ]]; then
   make test
   exit 0
 elif [[ "$1" == "clang_tidy" ]]; then
-  export CC=/usr/bin/clang-6.0
-  CC=/usr/bin/clang-6.0 bazel build \
+  setup_clang_toolchain
+  bazel build \
         $BAZEL_OPTIONS \
         //src/... //test/... //benchmark/... //include/...
   ./ci/gen_compilation_database.sh
@@ -51,29 +59,26 @@ elif [[ "$1" == "clang_tidy" ]]; then
     exit 1
   fi
   exit 0
+elif [[ "$1" == "bazel.test" ]]; then
+  bazel test -c dbg //...
+  exit 0
 elif [[ "$1" == "bazel.asan" ]]; then
-  bazel build -c dbg \
-        $BAZEL_OPTIONS \
-        --copt=-fsanitize=address \
-        --linkopt=-fsanitize=address \
-        //...
+  setup_clang_toolchain
   bazel test -c dbg \
         $BAZEL_TEST_OPTIONS \
-        --copt=-fsanitize=address \
-        --linkopt=-fsanitize=address \
-        //...
+        --config=asan \
+        -- //... \
+           -//test/bridge/... \
+           -//test/tracer:dynamic_load_test
   exit 0
 elif [[ "$1" == "bazel.tsan" ]]; then
-  bazel build -c dbg \
-        $BAZEL_OPTIONS \
-        --copt=-fsanitize=thread \
-        --linkopt=-fsanitize=thread \
-        //...
+  setup_clang_toolchain
   bazel test -c dbg \
         $BAZEL_TEST_OPTIONS \
-        --copt=-fsanitize=thread \
-        --linkopt=-fsanitize=thread \
-        //...
+        --config=tsan \
+        -- //... \
+           -//test/bridge/... \
+           -//test/tracer:dynamic_load_test
   exit 0
 elif [[ "$1" == "bazel.benchmark" ]]; then
   export BENCHMARK_SRC_DIR=bazel-genfiles/benchmark

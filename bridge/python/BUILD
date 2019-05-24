@@ -13,27 +13,16 @@ lightstep_cc_binary(
         "src/module.cpp",
     ],
     copts = [
-        "-DPYTHON_BRIDGE_TRACER_MODULE=\"lightstep\"",
         "-Wno-missing-field-initializers",
-    ],
-    # Work around to https://github.com/bazelbuild/rules_foreign_cc/issues/244#issuecomment-493227536
-    linkopts = [
-        "-Wl,--allow-multiple-definition",
     ],
     deps = [
       "//:tracer_lib",
       "//src/tracer:lightstep_tracer_factory_lib",
     ],
     external_deps = [
-      "@com_github_lightstep_python_bridge_tracer//src/lib:bridge_tracer_lib",
-      "@com_github_lightstep_python_bridge_tracer//3rd_party:cpython_header_only",
+      "@com_github_lightstep_python_bridge_tracer//:bridge_tracer_lib",
     ],
     visibility = [
         "//visibility:public",
     ],
 )
-
-# py_runtime(
-#     name = "python-3.6.0",
-#     interpreter_path = "/usr/bin/python3",
-# )

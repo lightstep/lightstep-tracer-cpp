@@ -1,3 +1,5 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test")
+
 def lightstep_package():
     native.package(default_visibility = ["//visibility:public"])
 
@@ -47,6 +49,8 @@ def lightstep_copts(is_3rd_party=False):
       "-std=c++11",
   ]
 
+def lightstep_linkopts():
+  return []
 
 def lightstep_include_prefix(path):
     if path.startswith('src/') or path.startswith('include/'):
@@ -71,7 +75,7 @@ def lightstep_cc_library(name,
       srcs = srcs + private_hdrs,
       hdrs = hdrs,
       copts = lightstep_include_copts() + lightstep_copts(is_3rd_party) + copts,
-      linkopts = linkopts,
+      linkopts = lightstep_linkopts() + linkopts,
       includes = includes,
       deps = external_deps + deps,
       data = data,
@@ -87,20 +91,20 @@ def lightstep_cc_binary(
         srcs = [],
         data = [],
         copts = [],
+        linkopts = [],
         linkshared = False,
         testonly = 0,
         visibility = None,
         external_deps = [],
-        deps = [],
-        linkopts = []):
+        deps = []):
     native.cc_binary(
         name = name,
         args = args,
         srcs = srcs,
         data = data,
-        copts = copts + lightstep_include_copts() + lightstep_copts(),
+        copts = lightstep_include_copts() + lightstep_copts() + copts,
         linkshared = linkshared,
-        linkopts = linkopts,
+        linkopts = lightstep_linkopts() + linkopts,
         testonly = testonly,
         linkstatic = 1,
         visibility = visibility,
@@ -124,7 +128,7 @@ def lightstep_cc_test(
         srcs = srcs,
         data = data,
         copts = lightstep_include_copts() + lightstep_copts(),
-        linkopts = linkopts,
+        linkopts = lightstep_linkopts() + linkopts,
         testonly = testonly,
         linkstatic = 1,
         visibility = visibility,
@@ -172,6 +176,7 @@ def lightstep_google_benchmark(
       args = ["--benchmark_min_time=0"],
       data = data,
       copts = lightstep_include_copts() + lightstep_copts(),
+      linkopts = lightstep_linkopts(),
       linkstatic = 1,
       deps = deps + ["@com_google_benchmark//:benchmark"],
   )
@@ -184,3 +189,30 @@ def lightstep_google_benchmark(
       testonly = 1,
       cmd = "$(location :%s) --benchmark_color=false --benchmark_min_time=.01 &> $@" % name,
 )
+
+def lightstep_go_binary(
+    name,
+    srcs = [],
+    out = None,
+    deps = [],
+    external_deps = []):
+  go_binary(
+      name,
+      cgo = True,
+      # Work around to issues when building go code when sanitizers are enabled.
+      # See https://github.com/bazelbuild/rules_go/issues/1306
+      clinkopts = select({
+          "@com_lightstep_tracer_cpp//bazel:asan_build": [
+              "-fsanitize=address",
+          ],
+          "//conditions:default": []
+      }) + select({
+          "@com_lightstep_tracer_cpp//bazel:tsan_build": [
+              "-fsanitize=thread",
+          ],
+          "//conditions:default": []
+      }),
+      srcs = srcs,
+      out = out,
+      deps = deps + external_deps,
+  )
