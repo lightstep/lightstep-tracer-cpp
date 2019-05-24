@@ -76,14 +76,13 @@ static PyModuleDef ModuleDefinition = {PyModuleDef_HEAD_INIT, "lightstep",
 //--------------------------------------------------------------------------------------------------
 extern "C" {
 PyMODINIT_FUNC PyInit_lightstep() noexcept {
-  auto module = PyModule_Create(&ModuleDefinition);
-  if (module == nullptr) {
+  python_bridge_tracer::PythonObjectWrapper module = PyModule_Create(&ModuleDefinition);
+  if (module.error()) {
     return nullptr;
   }
   if (!python_bridge_tracer::setupClasses(module)) {
-    Py_DECREF(module);
     return nullptr;
   }
-  return module;
+  return module.release();
 }
 } // extern "C"
