@@ -99,8 +99,8 @@ elif [[ "$1" == "bazel.coverage" ]]; then
     --combined_report=lcov \
     --instrumentation_filter="-3rd_party,-benchmark,-test,-bridge" \
     --coverage_report_generator=@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main \
-    --
-    //...
+    -- \
+    //... \
     -//test/bridge/...
   genhtml bazel-out/_coverage/_coverage_report.dat \
           --output-directory /coverage
