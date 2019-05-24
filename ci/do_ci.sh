@@ -60,7 +60,8 @@ elif [[ "$1" == "clang_tidy" ]]; then
   fi
   exit 0
 elif [[ "$1" == "bazel.test" ]]; then
-  bazel test -c dbg //...
+  bazel build -c dbg $BAZEL_OPTIONS //...
+  bazel test -c dbg $BAZEL_TEST_OPTIONS //...
   exit 0
 elif [[ "$1" == "bazel.asan" ]]; then
   setup_clang_toolchain
@@ -96,9 +97,11 @@ elif [[ "$1" == "bazel.coverage" ]]; then
     --instrument_test_targets \
     --experimental_cc_coverage \
     --combined_report=lcov \
-    --instrumentation_filter="-3rd_party,-benchmark,-test" \
+    --instrumentation_filter="-3rd_party,-benchmark,-test,-bridge" \
     --coverage_report_generator=@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main \
+    --
     //...
+    -//test/bridge/...
   genhtml bazel-out/_coverage/_coverage_report.dat \
           --output-directory /coverage
   tar czf /coverage.tgz /coverage

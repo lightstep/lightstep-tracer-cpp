@@ -31,19 +31,6 @@ lightstep_catch_test(
     ],
 )
 
-lightstep_cc_library(
-    name = "in_memory_collector_lib",
-    private_hdrs = [
-        "in_memory_collector.h",
-    ],
-    srcs = [
-        "in_memory_collector.cpp",
-    ],
-    deps = [
-        "//src/recorder/grpc_transporter:collector_proto_grpc",
-    ],
-)
-
 cc_binary(
     name = "lightstep_plugin.so",
     linkshared = 1,
@@ -65,7 +52,9 @@ lightstep_catch_test(
         ":lightstep_plugin.so",
     ],
     deps = [
-        ":in_memory_collector_lib",
+        "//test/mock_satellite:mock_satellite_lib",
+        "//test:ports_lib",
+        "//test:utility_lib",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",

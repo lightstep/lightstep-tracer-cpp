@@ -121,6 +121,7 @@ def lightstep_cc_test(
         visibility = None,
         external_deps = [],
         deps = [],
+        tags = [],
         linkopts = []):
     native.cc_test(
         name = name,
@@ -131,6 +132,7 @@ def lightstep_cc_test(
         linkopts = lightstep_linkopts() + linkopts,
         testonly = testonly,
         linkstatic = 1,
+        tags = tags,
         visibility = visibility,
         stamp = 1,
         deps = external_deps + deps,
@@ -143,11 +145,13 @@ def lightstep_catch_test(
         visibility = None,
         external_deps = [],
         deps = [],
+        tags = [],
         linkopts = []):
     lightstep_cc_test(
         name = name,
         srcs = srcs,
         data = data,
+        tags = tags,
         linkopts = linkopts,
         visibility = visibility,
         deps = deps,

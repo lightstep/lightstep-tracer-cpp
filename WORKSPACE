@@ -57,7 +57,7 @@ git_repository(
 git_repository(
     name = "com_github_grpc_grpc",
     remote = "https://github.com/grpc/grpc",
-    commit = "d418c42f1ef2f433df54aaee42c75f8d58742927",
+    commit = "75475f090875e737ad6909a6057c59577f0c79b1",
 )
 
 load("@build_stack_rules_proto//cpp:deps.bzl", "cpp_grpc_compile")
