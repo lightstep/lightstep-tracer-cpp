@@ -4,7 +4,7 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-# In order to statically link in the stqndard c++ library to produce portable binaries, we need
+# In order to statically link in the standard c++ library to produce portable binaries, we need
 # to wrap the compiler command to work around
 # See https://github.com/bazelbuild/bazel/issues/4644
 load("//bazel:cc_configure.bzl", "cc_configure")
