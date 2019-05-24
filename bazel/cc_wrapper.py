@@ -39,16 +39,6 @@ def main():
 
   argv = sys.argv
 
-  # Fix the redefined time macros.
-  # https://github.com/bazelbuild/rules_foreign_cc/issues/239
-  drop_args = [
-          '-D__DATE__=redacted',
-          '-D__TIMESTAMP__=redacted',
-          '-D__TIME__=redacted',
-  ]
-  prev_argv = argv[:]
-  argv = [arg for arg in prev_argv if arg not in drop_args]
-
   # `g++` and `gcc -lstdc++` have similar behavior and Bazel treats them as
   # interchangeable, but `gcc` will ignore the `-static-libstdc++` flag.
   # This check lets Envoy statically link against libstdc++ to be more
