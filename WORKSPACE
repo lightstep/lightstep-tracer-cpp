@@ -74,8 +74,8 @@ grpc_deps()
 
 git_repository(
     name = "com_github_lightstep_python_bridge_tracer",
-    remote = "https://github.com/rnburn/python-bridge-tracer.git",
-    commit = "f1d2a21551df1f1544e51de3b17043bc3a656d05",
+    remote = "https://github.com/lightstep/python-bridge-tracer.git",
+    commit = "e41e080324c14a4a0a62833c7ad8c522b5e60494",
 ) 
 
 http_archive(
