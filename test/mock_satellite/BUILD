@@ -3,9 +3,9 @@ load(
     "lightstep_package",
     "lightstep_cc_library",
     "lightstep_catch_test",
+    "lightstep_go_binary",
 )
 
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 lightstep_package()
@@ -44,7 +44,7 @@ go_proto_library(
     ],
 )
 
-go_binary(
+lightstep_go_binary(
 	name = "mock_satellite",
 	srcs = [
 		"main.go",

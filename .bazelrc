@@ -1,2 +1,15 @@
-build --incompatible_package_name_is_a_function=false
-query --incompatible_package_name_is_a_function=false
+build:asan --define LIGHTSTEP_CONFIG_ASAN=1
+build:asan --copt -fsanitize=address
+build:asan --linkopt -fsanitize=address
+
+
+build:tsan --define LIGHTSTEP_CONFIG_TSAN=1
+build:tsan --copt -fsanitize=thread
+build:tsan --linkopt -fsanitize=thread
+
+build --copt -DPYTHON_BRIDGE_TRACER_MODULE="\"lightstep\""
+
+# Ensure we use python3
+build --python_top=//ci:python-3
+run --python_top=//ci:python-3
+test --python_top=//ci:python-3

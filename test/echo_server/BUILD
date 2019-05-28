@@ -2,13 +2,12 @@ load(
     "//bazel:lightstep_build_system.bzl",
     "lightstep_package",
     "lightstep_cc_library",
+    "lightstep_go_binary",
 )
-
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 
 lightstep_package()
 
-go_binary(
+lightstep_go_binary(
 	name = "echo_server",
 	srcs = [
 		"main.go",
