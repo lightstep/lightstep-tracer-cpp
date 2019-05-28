@@ -10,6 +10,6 @@ build:tsan --linkopt -fsanitize=thread
 build --copt -DPYTHON_BRIDGE_TRACER_MODULE="\"lightstep\""
 
 # Ensure we use python3
-build --python_top=//ci:python-3.6.0
-run --python_top=//ci:python-3.6.0
-test --python_top=//ci:python-3.6.0
+build --python_top=//ci:python-3
+run --python_top=//ci:python-3
+test --python_top=//ci:python-3
