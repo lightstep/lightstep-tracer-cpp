@@ -6,6 +6,8 @@
 #include <mutex>
 #include <thread>
 
+#include "stream_recorder_impl.h"
+
 #include "common/chunk_circular_buffer.h"
 #include "common/logger.h"
 #include "common/noncopyable.h"
@@ -34,6 +36,26 @@ class StreamRecorder final : public Recorder, private Noncopyable {
    */
   bool empty() const noexcept { return span_buffer_.buffer().empty(); }
 
+  Logger& logger() const noexcept { return logger_; }
+
+  const LightStepTracerOptions& tracer_options() const noexcept {
+    return tracer_options_;
+  }
+
+  const StreamRecorderOptions& recorder_options() const noexcept {
+    return recorder_options_;
+  }
+
+  StreamRecorderMetrics& metrics() noexcept { return metrics_; }
+
+  ChunkCircularBuffer& span_buffer() noexcept { return span_buffer_; }
+
+  void Poll() noexcept;
+
+  int ConsumePendingFlushCount() noexcept {
+    return pending_flush_counter_.exchange(0);
+  }
+
   // Recorder
   void RecordSpan(const collector::Span& span) noexcept override;
 
@@ -46,26 +68,14 @@ class StreamRecorder final : public Recorder, private Noncopyable {
   StreamRecorderOptions recorder_options_;
   StreamRecorderMetrics metrics_;
   ChunkCircularBuffer span_buffer_;
-  size_t early_flush_marker_;
 
-  EventBase event_base_;
-  TimerEvent poll_timer_;
-  TimerEvent flush_timer_;
+  std::unique_ptr<StreamRecorderImpl> stream_recorder_impl_;
 
-  SatelliteStreamer streamer_;
-
-  std::thread thread_;
   std::atomic<bool> exit_{false};
 
   std::mutex flush_mutex_;
   std::condition_variable flush_condition_variable_;
   std::atomic<int> pending_flush_counter_{0};
   uint64_t num_bytes_consumed_{0};
-
-  void Run() noexcept;
-
-  void Poll() noexcept;
-
-  void Flush() noexcept;
 };
 }  // namespace lightstep

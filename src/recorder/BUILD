@@ -41,6 +41,19 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "threaded_recorder_lib",
+    private_hdrs = [
+        "threaded_recorder.h",
+    ],
+    srcs = [
+        "threaded_recorder.cpp",
+    ],
+    deps = [
+        ":recorder_interface",
+    ],
+)
+
+lightstep_cc_library(
     name = "report_builder_lib",
     private_hdrs = [
         "report_builder.h",
