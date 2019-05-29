@@ -28,7 +28,8 @@ ThreadedRecorder::~ThreadedRecorder() noexcept {
     active_recorders_ = active_recorders_->next_recorder_;
     return;
   }
-  for (auto recorder=active_recorders_; recorder != nullptr; recorder = recorder->next_recorder_) {
+  for (auto recorder = active_recorders_; recorder != nullptr;
+       recorder = recorder->next_recorder_) {
     if (recorder->next_recorder_ == this) {
       recorder->next_recorder_ = this->next_recorder_;
       return;
@@ -64,7 +65,8 @@ void ThreadedRecorder::ParentForkHandler() noexcept {
 //--------------------------------------------------------------------------------------------------
 void ThreadedRecorder::ChildForkHandler() noexcept {
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  for (auto recorder=active_recorders_; recorder != nullptr; recorder = recorder->next_recorder_) {
+  for (auto recorder = active_recorders_; recorder != nullptr;
+       recorder = recorder->next_recorder_) {
     recorder->OnForkedChild();
   }
 }
@@ -79,4 +81,4 @@ void ThreadedRecorder::SetupForkHandlers() noexcept {
   }();
   (void)once;
 }
-} // namespace lightstep
+}  // namespace lightstep

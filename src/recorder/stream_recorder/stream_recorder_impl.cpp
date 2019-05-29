@@ -8,9 +8,9 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 StreamRecorderImpl::StreamRecorderImpl(StreamRecorder& stream_recorder)
     : stream_recorder_{stream_recorder},
-      early_flush_marker_{
-          static_cast<size_t>(stream_recorder_.recorder_options().max_span_buffer_bytes *
-                              stream_recorder_.recorder_options().early_flush_threshold)},
+      early_flush_marker_{static_cast<size_t>(
+          stream_recorder_.recorder_options().max_span_buffer_bytes *
+          stream_recorder_.recorder_options().early_flush_threshold)},
       poll_timer_{
           event_base_, stream_recorder_.recorder_options().polling_period,
           MakeTimerCallback<StreamRecorderImpl, &StreamRecorderImpl::Poll>(),

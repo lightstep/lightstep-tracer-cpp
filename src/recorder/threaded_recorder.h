@@ -7,32 +7,30 @@
 namespace lightstep {
 class ThreadedRecorder : public Recorder {
  public:
-   ThreadedRecorder() noexcept;
+  ThreadedRecorder() noexcept;
 
-   ~ThreadedRecorder() noexcept override;
+  ~ThreadedRecorder() noexcept override;
 
-   virtual void PrepareForFork() noexcept {
-   }
+  virtual void PrepareForFork() noexcept {}
 
-   virtual void OnForkedParent() noexcept {
-   }
+  virtual void OnForkedParent() noexcept {}
 
-   virtual void OnForkedChild() noexcept {
-   }
+  virtual void OnForkedChild() noexcept {}
+
  private:
-   static std::mutex mutex_;
-   static ThreadedRecorder* active_recorders_;
+  static std::mutex mutex_;
+  static ThreadedRecorder* active_recorders_;
 
-   // Note: We use an intrusive linked list so as to avoid any lifetime issues associated with
-   // global variables with destructors.
-   ThreadedRecorder* next_recorder_{nullptr};
+  // Note: We use an intrusive linked list so as to avoid any lifetime issues
+  // associated with global variables with destructors.
+  ThreadedRecorder* next_recorder_{nullptr};
 
-   static void PrepareForkHandler() noexcept;
+  static void PrepareForkHandler() noexcept;
 
-   static void ParentForkHandler() noexcept;
+  static void ParentForkHandler() noexcept;
 
-   static void ChildForkHandler() noexcept;
+  static void ChildForkHandler() noexcept;
 
-   static void SetupForkHandlers() noexcept;
+  static void SetupForkHandlers() noexcept;
 };
-} // namespace lightstep
+}  // namespace lightstep

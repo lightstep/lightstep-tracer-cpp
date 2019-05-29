@@ -3,19 +3,19 @@
 #include <atomic>
 #include <thread>
 
-#include "recorder/stream_recorder/satellite_streamer.h"
+#include "common/noncopyable.h"
 #include "network/event_base.h"
 #include "network/timer_event.h"
-#include "common/noncopyable.h"
+#include "recorder/stream_recorder/satellite_streamer.h"
 
 namespace lightstep {
 class StreamRecorder;
 
 class StreamRecorderImpl : private Noncopyable {
  public:
-   explicit StreamRecorderImpl(StreamRecorder& stream_recorder);
+  explicit StreamRecorderImpl(StreamRecorder& stream_recorder);
 
-   ~StreamRecorderImpl() noexcept;
+  ~StreamRecorderImpl() noexcept;
 
  private:
   StreamRecorder& stream_recorder_;
@@ -36,4 +36,4 @@ class StreamRecorderImpl : private Noncopyable {
 
   void Flush() noexcept;
 };
-} // namespace lightstep
+}  // namespace lightstep

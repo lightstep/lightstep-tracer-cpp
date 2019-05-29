@@ -70,18 +70,28 @@ void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
 // PrepareForFork
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::PrepareForFork() noexcept {
+  // We don't want parent and child processes to share sockets so close any open
+  // connections.
+  stream_recorder_impl_.reset(nullptr);
 }
 
 //--------------------------------------------------------------------------------------------------
 // OnForkedParent
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::OnForkedParent() noexcept {
+  stream_recorder_impl_.reset(new StreamRecorderImpl{*this});
 }
 
 //--------------------------------------------------------------------------------------------------
 // OnForkedChild
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::OnForkedChild() noexcept {
+  // Clear any buffered data since it will already be recorded from the parent
+  // process.
+  metrics_.ConsumeDroppedSpans();
+  span_buffer_.Clear();
+
+  stream_recorder_impl_.reset(new StreamRecorderImpl{*this});
 }
 
 //--------------------------------------------------------------------------------------------------

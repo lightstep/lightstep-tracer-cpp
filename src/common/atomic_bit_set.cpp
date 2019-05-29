@@ -1,5 +1,7 @@
 #include "common/atomic_bit_set.h"
 
+#include <algorithm>
+
 namespace lightstep {
 static constexpr AtomicBitSet::BlockType one = 1;
 
@@ -48,5 +50,12 @@ bool AtomicBitSet::Set(int bit_index) noexcept {
   auto mask = one << ComputeBitOffSet(bit_index);
   return static_cast<bool>(
       blocks_[ComputeBlockIndex(bit_index)].fetch_or(mask) & mask);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Clear
+//--------------------------------------------------------------------------------------------------
+void AtomicBitSet::Clear() noexcept {
+  std::fill(blocks_.begin(), blocks_.end(), 0);
 }
 }  // namespace lightstep

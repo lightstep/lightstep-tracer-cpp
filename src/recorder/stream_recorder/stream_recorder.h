@@ -15,10 +15,10 @@
 #include "network/event_base.h"
 #include "network/timer_event.h"
 #include "recorder/stream_recorder.h"
-#include "recorder/threaded_recorder.h"
 #include "recorder/stream_recorder/satellite_streamer.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
 #include "recorder/stream_recorder/stream_recorder_options.h"
+#include "recorder/threaded_recorder.h"
 
 namespace lightstep {
 /**
