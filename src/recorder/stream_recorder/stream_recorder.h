@@ -33,29 +33,51 @@ class StreamRecorder final : public ForkAwareRecorder, private Noncopyable {
   ~StreamRecorder() noexcept override;
 
   /**
+   * Checks whether any threads blocked on flush calls can be resumed.
+   */
+  void Poll() noexcept;
+
+  /**
+   * Gets the pending flush count and resets the counter.
+   * @return the pending flush count.
+   */
+  int ConsumePendingFlushCount() noexcept {
+    return pending_flush_counter_.exchange(0);
+  }
+
+  /**
    * @return true if no spans are buffered in the recorder.
    */
   bool empty() const noexcept { return span_buffer_.buffer().empty(); }
 
+  /**
+   * @return the associated Logger.
+   */
   Logger& logger() const noexcept { return logger_; }
 
+  /**
+   * @return the associated LightStepTracerOptions
+   */
   const LightStepTracerOptions& tracer_options() const noexcept {
     return tracer_options_;
   }
 
+  /**
+   * @return the associated StreamRecorderOptions.
+   */
   const StreamRecorderOptions& recorder_options() const noexcept {
     return recorder_options_;
   }
 
+  /**
+   * @return the associated StreamRecorderMetrics.
+   */
   StreamRecorderMetrics& metrics() noexcept { return metrics_; }
 
+  /**
+   * @return the associated span buffer.
+   */
   ChunkCircularBuffer& span_buffer() noexcept { return span_buffer_; }
-
-  void Poll() noexcept;
-
-  int ConsumePendingFlushCount() noexcept {
-    return pending_flush_counter_.exchange(0);
-  }
 
   // ForkAwareRecorder
   void RecordSpan(const collector::Span& span) noexcept override;

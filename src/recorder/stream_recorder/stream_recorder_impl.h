@@ -11,6 +11,13 @@
 namespace lightstep {
 class StreamRecorder;
 
+/**
+ * Implements the part of StreamRecorder that manages the recording thread and
+ * satellite connections.
+ *
+ * This functionality is broken out into a separate class so that the resources
+ * can be brough down and resumed so as to support forking.
+ */
 class StreamRecorderImpl : private Noncopyable {
  public:
   explicit StreamRecorderImpl(StreamRecorder& stream_recorder);

@@ -54,11 +54,11 @@ TEST_CASE("StreamRecorder") {
 
   recorder_options.flushing_period =
       std::chrono::duration_cast<std::chrono::microseconds>(
-          std::chrono::milliseconds{100});
+          std::chrono::milliseconds{300});
   recorder_options.num_satellite_connections = 1;
   recorder_options.satellite_graceful_stream_shutdown_timeout =
       std::chrono::duration_cast<std::chrono::microseconds>(
-          std::chrono::milliseconds{100});
+          std::chrono::milliseconds{300});
 
   auto stream_recorder = new StreamRecorder{*logger, std::move(tracer_options),
                                             std::move(recorder_options)};
