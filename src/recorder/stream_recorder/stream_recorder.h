@@ -14,17 +14,17 @@
 #include "lightstep/tracer.h"
 #include "network/event_base.h"
 #include "network/timer_event.h"
+#include "recorder/fork_aware_recorder.h"
 #include "recorder/stream_recorder.h"
 #include "recorder/stream_recorder/satellite_streamer.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
 #include "recorder/stream_recorder/stream_recorder_options.h"
-#include "recorder/threaded_recorder.h"
 
 namespace lightstep {
 /**
  * A Recorder that load balances and streams spans to multiple satellites.
  */
-class StreamRecorder final : public ThreadedRecorder, private Noncopyable {
+class StreamRecorder final : public ForkAwareRecorder, private Noncopyable {
  public:
   StreamRecorder(
       Logger& logger, LightStepTracerOptions&& tracer_options,
@@ -57,7 +57,7 @@ class StreamRecorder final : public ThreadedRecorder, private Noncopyable {
     return pending_flush_counter_.exchange(0);
   }
 
-  // ThreadedRecorder
+  // ForkAwareRecorder
   void RecordSpan(const collector::Span& span) noexcept override;
 
   bool FlushWithTimeout(

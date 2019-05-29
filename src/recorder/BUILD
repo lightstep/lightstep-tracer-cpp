@@ -41,12 +41,12 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "threaded_recorder_lib",
+    name = "fork_aware_recorder_lib",
     private_hdrs = [
-        "threaded_recorder.h",
+        "fork_aware_recorder.h",
     ],
     srcs = [
-        "threaded_recorder.cpp",
+        "fork_aware_recorder.cpp",
     ],
     deps = [
         ":recorder_interface",
