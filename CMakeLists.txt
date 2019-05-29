@@ -196,6 +196,7 @@ endif()
 
 if (WITH_LIBEVENT)
   list(APPEND LIGHTSTEP_SRCS src/recorder/stream_recorder/stream_recorder.cpp
+                             src/recorder/stream_recorder/stream_recorder_impl.cpp
                              src/recorder/stream_recorder/satellite_dns_resolution_manager.cpp
                              src/recorder/stream_recorder/satellite_endpoint_manager.cpp
                              src/recorder/stream_recorder/satellite_connection.cpp
