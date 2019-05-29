@@ -88,6 +88,7 @@ void ChunkCircularBuffer::Consume(size_t num_bytes) noexcept {
 void ChunkCircularBuffer::Clear() noexcept {
   ready_flags_.Clear();
   buffer_.Consume(buffer_.size());
+  num_bytes_allotted_ = 0;
 }
 
 //--------------------------------------------------------------------------------------------------

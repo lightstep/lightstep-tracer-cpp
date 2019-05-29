@@ -108,7 +108,7 @@ func (handler *SatelliteHandler) serveStreamingHTTP(responseWriter http.Response
 			time.Sleep(5 * time.Millisecond)
 		}
 		_, err := reader.ReadByte()
-		if err == io.EOF {
+		if err == io.EOF || err == io.ErrUnexpectedEOF {
 			break
 		}
 		if err != nil {
@@ -124,6 +124,7 @@ func (handler *SatelliteHandler) serveStreamingHTTP(responseWriter http.Response
 		if err != nil {
 			log.Fatalf("ReadSpan failed: %s\n", err.Error())
 		}
+		log.Println("Reporting a span")
 		report := &collectorpb.ReportRequest{
 			Reporter: reportHeader.Reporter,
 			Auth:     reportHeader.Auth,

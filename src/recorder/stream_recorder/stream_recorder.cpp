@@ -90,6 +90,8 @@ void StreamRecorder::OnForkedChild() noexcept {
   // process.
   metrics_.ConsumeDroppedSpans();
   span_buffer_.Clear();
+  num_bytes_consumed_ = span_buffer_.buffer().num_bytes_produced();
+  pending_flush_counter_ = 0;
 
   stream_recorder_impl_.reset(new StreamRecorderImpl{*this});
 }
