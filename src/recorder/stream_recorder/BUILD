@@ -88,6 +88,8 @@ lightstep_cc_library(
     ],
     srcs = [
         "stream_recorder.cpp",
+        "stream_recorder_impl.h",
+        "stream_recorder_impl.cpp",
     ],
     deps = [
         "//src/common:logger_lib",
@@ -96,6 +98,7 @@ lightstep_cc_library(
         "//src/common:chunk_circular_buffer_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",
+        "//src/recorder:fork_aware_recorder_lib",
         "//src/recorder:stream_recorder_interface",
         ":stream_recorder_options_lib",
         ":stream_recorder_metrics_lib",

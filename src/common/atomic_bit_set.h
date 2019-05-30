@@ -40,6 +40,11 @@ class AtomicBitSet {
    */
   bool Set(int bit_index) noexcept;
 
+  /**
+   * Reset all bits to 0.
+   */
+  void Clear() noexcept;
+
  private:
   static constexpr int bits_per_block =
       static_cast<int>(std::numeric_limits<BlockType>::digits);

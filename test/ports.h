@@ -8,6 +8,7 @@ enum class PortAssignments : uint16_t {
   SatelliteDnsResolutionManagerTest,
   SatelliteEndpointManagerTest,
   StreamRecorderTest,
+  StreamRecorderForkTest,
   MockSatelliteTest,
   VectorWriteTestHttp,
   VectorWriteTestTcp,

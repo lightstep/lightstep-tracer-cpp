@@ -1,10 +1,10 @@
 #include <Python.h>
 
 #include "lightstep/tracer.h"
-#include "python_bridge_tracer/utility.h"
-#include "python_bridge_tracer/python_string_wrapper.h"
-#include "python_bridge_tracer/python_object_wrapper.h"
 #include "python_bridge_tracer/module.h"
+#include "python_bridge_tracer/python_object_wrapper.h"
+#include "python_bridge_tracer/python_string_wrapper.h"
+#include "python_bridge_tracer/utility.h"
 #include "tracer/lightstep_tracer_factory.h"
 
 namespace lightstep {
@@ -29,7 +29,8 @@ static bool ExtractScopeManager(
 //--------------------------------------------------------------------------------------------------
 // MakeTracer
 //--------------------------------------------------------------------------------------------------
-static PyObject* MakeTracer(PyObject* /*self*/, PyObject* /*args*/, PyObject* keywords) noexcept {
+static PyObject* MakeTracer(PyObject* /*self*/, PyObject* /*args*/,
+                            PyObject* keywords) noexcept {
   python_bridge_tracer::PythonObjectWrapper scope_manager;
   if (!ExtractScopeManager(keywords, scope_manager)) {
     return nullptr;
@@ -49,19 +50,21 @@ static PyObject* MakeTracer(PyObject* /*self*/, PyObject* /*args*/, PyObject* ke
   auto tracer_maybe = tracer_factory.MakeTracer(
       static_cast<opentracing::string_view>(json_config).data(), error_message);
   if (!tracer_maybe) {
-    PyErr_Format(PyExc_RuntimeError, "failed to construct tracer: %s", error_message.c_str());
+    PyErr_Format(PyExc_RuntimeError, "failed to construct tracer: %s",
+                 error_message.c_str());
     return nullptr;
   }
-  return python_bridge_tracer::makeTracer(std::move(*tracer_maybe), scope_manager);
+  return python_bridge_tracer::makeTracer(std::move(*tracer_maybe),
+                                          scope_manager);
 }
-} // namespace lightstep
+}  // namespace lightstep
 
 //--------------------------------------------------------------------------------------------------
 // ModuleMethods
 //--------------------------------------------------------------------------------------------------
 static PyMethodDef ModuleMethods[] = {
-    {"Tracer", reinterpret_cast<PyCFunction>(lightstep::MakeTracer), METH_VARARGS | METH_KEYWORDS,
-     PyDoc_STR("Construct the LightStep tracer")},
+    {"Tracer", reinterpret_cast<PyCFunction>(lightstep::MakeTracer),
+     METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Construct the LightStep tracer")},
     {nullptr, nullptr}};
 
 //--------------------------------------------------------------------------------------------------
@@ -76,7 +79,8 @@ static PyModuleDef ModuleDefinition = {PyModuleDef_HEAD_INIT, "lightstep",
 //--------------------------------------------------------------------------------------------------
 extern "C" {
 PyMODINIT_FUNC PyInit_lightstep() noexcept {
-  python_bridge_tracer::PythonObjectWrapper module = PyModule_Create(&ModuleDefinition);
+  python_bridge_tracer::PythonObjectWrapper module =
+      PyModule_Create(&ModuleDefinition);
   if (module.error()) {
     return nullptr;
   }
@@ -85,4 +89,4 @@ PyMODINIT_FUNC PyInit_lightstep() noexcept {
   }
   return module.release();
 }
-} // extern "C"
+}  // extern "C"
