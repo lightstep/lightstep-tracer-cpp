@@ -16,7 +16,7 @@ class StreamRecorder;
  * satellite connections.
  *
  * This functionality is broken out into a separate class so that the resources
- * can be brough down and resumed so as to support forking.
+ * can be brought down and resumed so as to support forking.
  */
 class StreamRecorderImpl : private Noncopyable {
  public:
