@@ -1,7 +1,5 @@
 #include "recorder/stream_recorder/stream_recorder.h"
 
-#include <sys/types.h>
-#include <unistd.h>
 #include <atomic>
 #include <cstdlib>
 #include <memory>
@@ -178,21 +176,5 @@ TEST_CASE("StreamRecorder") {
     }));
     stop = true;
     generator.join();
-  }
-
-  SECTION("The recorder can still be used after a fork") {
-    mock_satellite.reset(nullptr);
-    tracer->StartSpan("abc");
-    if (::fork() == 0) {
-      tracer->StartSpan("xyz");
-      tracer->Close();
-      std::cout << "child exit" << std::endl;
-      std::exit(0);
-    }
-    mock_satellite.reset(new MockSatelliteHandle{
-        static_cast<uint16_t>(PortAssignments::StreamRecorderTest)});
-    tracer->Close();
-    REQUIRE(
-        IsEventuallyTrue([&] { return mock_satellite->spans().size() == 2; }));
   }
 }
