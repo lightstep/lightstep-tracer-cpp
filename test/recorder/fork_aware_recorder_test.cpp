@@ -21,7 +21,9 @@ TEST_CASE("ForkAwareRecorder") {
     REQUIRE(ForkAwareRecorder::GetActiveRecordersForTesting().empty());
   }
 
-  SECTION("The list properly updated when there are more than 1 recorder.") {
+  SECTION(
+      "The active recorder list is properly updated when there are more than 1 "
+      "recorders.") {
     std::unique_ptr<DummyRecorder> recorder1{new DummyRecorder{}};
     std::unique_ptr<DummyRecorder> recorder2{new DummyRecorder{}};
     std::unique_ptr<DummyRecorder> recorder3{new DummyRecorder{}};
