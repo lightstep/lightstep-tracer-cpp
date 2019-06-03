@@ -75,6 +75,24 @@ static PyModuleDef ModuleDefinition = {PyModuleDef_HEAD_INIT, "lightstep",
                                        ModuleMethods};
 
 //--------------------------------------------------------------------------------------------------
+// flush
+//--------------------------------------------------------------------------------------------------
+namespace python_bridge_tracer {
+void flush(opentracing::Tracer& tracer,
+           std::chrono::microseconds timeout) noexcept {
+  auto lightstep_tracer = dynamic_cast<lightstep::LightStepTracer*>(&tracer);
+  if (lightstep_tracer == nullptr) {
+    return;
+  }
+  if (timeout.count() > 0) {
+    lightstep_tracer->FlushWithTimeout(timeout);
+  } else {
+    lightstep_tracer->Flush();
+  }
+}
+}  // namespace python_bridge_tracer
+
+//--------------------------------------------------------------------------------------------------
 // PyInit_lightstep
 //--------------------------------------------------------------------------------------------------
 extern "C" {
