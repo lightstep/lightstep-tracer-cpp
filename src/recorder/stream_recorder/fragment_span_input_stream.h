@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/circular_buffer.h"
-#include "network/fragment_array_input_stream.h"
+#include "common/fragment_array_input_stream.h"
 
 namespace lightstep {
 /**

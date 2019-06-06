@@ -10,6 +10,7 @@ enum class PortAssignments : uint16_t {
   StreamRecorderTest,
   MockSatelliteTest,
   VectorWriteTestHttp,
-  VectorWriteTestTcp
+  VectorWriteTestTcp,
+  DynamicLoadTest
 };
 }  // namespace lightstep

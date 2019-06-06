@@ -7,7 +7,7 @@
 
 #include "common/circular_buffer.h"
 #include "lightstep/tracer.h"
-#include "network/fragment_array_input_stream.h"
+#include "common/fragment_array_input_stream.h"
 
 namespace lightstep {
 /**

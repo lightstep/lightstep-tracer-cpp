@@ -1,7 +1,7 @@
 #include <random>
 
 #include "3rd_party/catch2/catch.hpp"
-#include "network/fragment_array_input_stream.h"
+#include "common/fragment_array_input_stream.h"
 #include "test/utility.h"
 using namespace lightstep;
 

@@ -209,8 +209,8 @@ if (WITH_LIBEVENT)
                              src/recorder/stream_recorder/utility.cpp
                              src/network/event.cpp
                              src/network/event_base.cpp
-                             src/network/fragment_input_stream.cpp
-                             src/network/fragment_array_input_stream.cpp
+                             src/common/fragment_input_stream.cpp
+                             src/common/fragment_array_input_stream.cpp
                              src/network/timer_event.cpp
                              src/network/ip_address.cpp
                              src/network/socket.cpp

@@ -10,6 +10,12 @@ git_repository(
 )
 
 git_repository(
+    name = "com_google_protobuf",
+    remote = "https://github.com/protocolbuffers/protobuf.git",
+    commit = "8e5ea65953f3c47e01bca360ecf3abdf2c8b1c33",
+)
+
+git_repository(
     name = "com_github_googleapis_googleapis",
     remote = "https://github.com/googleapis/googleapis",
     commit = "41d72d444fbe445f4da89e13be02078734fb7875",
@@ -44,7 +50,7 @@ git_repository(
 git_repository(
     name = "com_github_grpc_grpc",
     remote = "https://github.com/grpc/grpc",
-    commit = "e97c9457e2f4e6733873ea2975d3b90432fdfdc1",
+    commit = "75475f090875e737ad6909a6057c59577f0c79b1",
 )
 
 load("@build_stack_rules_proto//cpp:deps.bzl", "cpp_grpc_compile")

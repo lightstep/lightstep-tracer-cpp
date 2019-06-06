@@ -19,7 +19,7 @@ lightstep_cc_library(
         "//src/common:utility_lib",
         "//src/common:chunk_circular_buffer_lib",
         "//src/network:socket_lib",
-        "//src/network:fragment_input_stream_lib",
+        "//src/common:fragment_input_stream_lib",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",

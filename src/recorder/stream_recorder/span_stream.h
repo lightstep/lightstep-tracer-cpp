@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "common/chunk_circular_buffer.h"
-#include "network/fragment_array_input_stream.h"
+#include "common/fragment_array_input_stream.h"
 #include "recorder/stream_recorder/fragment_span_input_stream.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
 

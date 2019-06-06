@@ -160,3 +160,30 @@ lightstep_cc_library(
         ":random_lib",
     ],
 )
+
+lightstep_cc_library(
+    name = "fragment_input_stream_lib",
+    private_hdrs = [
+        "fragment_input_stream.h",
+    ],
+    srcs = [
+        "fragment_input_stream.cpp",
+    ],
+    deps = [
+        "//src/common:function_ref_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "fragment_array_input_stream_lib",
+    private_hdrs = [
+        "fragment_array_input_stream.h",
+    ],
+    srcs = [
+        "fragment_array_input_stream.cpp",
+    ],
+    deps = [
+        ":fragment_input_stream_lib",
+    ],
+)
+

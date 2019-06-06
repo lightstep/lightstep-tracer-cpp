@@ -47,7 +47,11 @@ lightstep_cc_library(
 cc_binary(
     name = "lightstep_plugin.so",
     linkshared = 1,
+    linkopts = [
+        "-Wl,--version-script=$(location :tracer-export-map.ld)",
+    ],
     deps = [
+        ":tracer-export-map.ld",
         "//:tracer_lib",
     ],
 )
@@ -61,7 +65,9 @@ lightstep_catch_test(
         ":lightstep_plugin.so",
     ],
     deps = [
-        ":in_memory_collector_lib",
+        "//test/mock_satellite:mock_satellite_lib",
+        "//test:ports_lib",
+        "//test:utility_lib",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",

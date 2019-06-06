@@ -4,7 +4,7 @@
 #include <thread>
 
 #include "common/chunk_circular_buffer.h"
-#include "network/fragment_input_stream.h"
+#include "common/fragment_input_stream.h"
 
 #include <opentracing/tracer.h>
 #include "lightstep-tracer-common/collector.pb.h"
