@@ -14,15 +14,9 @@ class SerializationChain final
     : public google::protobuf::io::ZeroCopyOutputStream,
       public FragmentInputStream,
       private Noncopyable {
+ public:
   static const int BlockSize = 1024;
 
-  struct Block {
-    std::unique_ptr<Block> next;
-    int size;
-    std::array<char, BlockSize> data;
-  };
-
- public:
   SerializationChain() noexcept;
 
   void AddChunkFraming() noexcept;
@@ -46,6 +40,12 @@ class SerializationChain final
   void Seek(int fragment_index, int position) noexcept override;
 
  private:
+  struct Block {
+    std::unique_ptr<Block> next;
+    int size;
+    std::array<char, BlockSize> data;
+  };
+
   int num_blocks_{0};
   int num_bytes_written_{0};
   int current_block_position_{0};

@@ -151,5 +151,6 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/common:serialization_chain_lib",
+        "//test:utility_lib",
     ],
 )

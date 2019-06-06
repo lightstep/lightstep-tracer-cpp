@@ -38,7 +38,7 @@ bool SerializationChain::Next(void** data, int* size) {
   }
   current_block_->next.reset(new Block);
   current_block_ = current_block_->next.get();
-  current_block_.size = BlockSize;
+  current_block_->size = BlockSize;
   current_block_position_ = BlockSize;
   *size = BlockSize;
   num_bytes_written_ += *size;
@@ -53,7 +53,7 @@ bool SerializationChain::Next(void** data, int* size) {
 void SerializationChain::BackUp(int count) {
   num_bytes_written_ -= count;
   current_block_position_ -= count;
-  current_block->size -= count;
+  current_block_->size -= count;
 }
 
 //--------------------------------------------------------------------------------------------------
