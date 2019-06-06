@@ -144,3 +144,12 @@ lightstep_catch_test(
     ],
 )
 
+lightstep_catch_test(
+    name = "serialization_chain_test",
+    srcs = [
+        "serialization_chain_test.cpp",
+    ],
+    deps = [
+        "//src/common:serialization_chain_lib",
+    ],
+)

@@ -30,6 +30,24 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "serialization_chain_lib",
+    private_hdrs = [
+        "serialization_chain.h",
+    ],
+    srcs = [
+        "serialization_chain.cpp",
+    ],
+    deps = [
+        ":fragment_input_stream_lib",
+        ":noncopyable_lib",
+        ":utility_lib",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+lightstep_cc_library(
     name = "circular_buffer_lib",
     private_hdrs = [
         "circular_buffer.h",
