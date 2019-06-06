@@ -46,7 +46,7 @@ class SerializationChain final
     std::array<char, BlockSize> data;
   };
 
-  int num_blocks_{0};
+  int num_blocks_{1};
   int num_bytes_written_{0};
   int current_block_position_{0};
   int chunk_header_size_{0};

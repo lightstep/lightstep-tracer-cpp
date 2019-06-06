@@ -14,7 +14,7 @@ SerializationChain::SerializationChain() noexcept
 // AddChunkFraming
 //--------------------------------------------------------------------------------------------------
 void SerializationChain::AddChunkFraming() noexcept {
-  auto chunk_header_size_ =
+  chunk_header_size_ =
       std::snprintf(chunk_header_.data(), chunk_header_.size(), "%llX\r\n",
                     static_cast<unsigned long long>(num_bytes_written_));
   assert(chunk_header_size_ > 0);
@@ -36,7 +36,7 @@ bool SerializationChain::Next(void** data, int* size) {
     current_block_->size = BlockSize;
     return true;
   }
-  current_block_->next.reset(new Block);
+  current_block_->next.reset(new Block{});
   current_block_ = current_block_->next.get();
   current_block_->size = BlockSize;
   current_block_position_ = BlockSize;
@@ -60,7 +60,7 @@ void SerializationChain::BackUp(int count) {
 // num_fragments
 //--------------------------------------------------------------------------------------------------
 int SerializationChain::num_fragments() const noexcept {
-  if (num_blocks_ == 0) {
+  if (num_bytes_written_ == 0) {
     return 0;
   }
   return num_blocks_ + 2 - fragment_index_; }
@@ -71,7 +71,7 @@ int SerializationChain::num_fragments() const noexcept {
 bool SerializationChain::ForEachFragment(Callback callback) const noexcept {
   assert(fragment_index_ >= 0 && fragment_index_ <= num_blocks_ + 1);
 
-  if (num_blocks_ == 0) {
+  if (current_block_ == nullptr) {
     return true;
   }
 
@@ -118,6 +118,7 @@ bool SerializationChain::ForEachFragment(Callback callback) const noexcept {
 //--------------------------------------------------------------------------------------------------
 void SerializationChain::Clear() noexcept {
   num_blocks_ = 0;
+  num_bytes_written_ = 0;
   fragment_index_ = 0;
   fragment_position_ = 0;
   current_block_ = nullptr;
