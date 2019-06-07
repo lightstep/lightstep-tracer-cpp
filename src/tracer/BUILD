@@ -159,6 +159,9 @@ lightstep_cc_library(
     srcs = [
         "serialization.cpp",
     ],
+    deps = [
+        "//src/common:serialization_lib",
+    ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",
         "@com_google_protobuf//:protobuf",

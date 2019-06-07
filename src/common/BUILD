@@ -205,3 +205,14 @@ lightstep_cc_library(
     ],
 )
 
+lightstep_cc_library(
+    name = "serialization_lib",
+    private_hdrs = [
+        "serialization.h",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+

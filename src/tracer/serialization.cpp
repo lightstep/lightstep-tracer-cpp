@@ -1,13 +1,17 @@
 #include "tracer/serialization.h"
 
-namespace lighstep {
+#include "common/serialization.h"
+
+const size_t OperationNameKey = 2; 
+const size_t DurationKey = 5;
+
+namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // WriteOperationName
 //--------------------------------------------------------------------------------------------------
 void WriteOperationName(google::protobuf::io::CodedOutputStream& stream,
                         opentracing::string_view operation_name) {
-  (void)stream;
-  (void)operation_name;
+  SerializeString<OperationNameKey>(stream, operation_name);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -34,8 +38,9 @@ void WriteStartTimestamp(google::protobuf::io::CodedOutputStream& stream,
 //--------------------------------------------------------------------------------------------------
 void WriteDuration(google::protobuf::io::CodedOutputStream& stream,
                    std::chrono::steady_clock::duration duration) {
-  (void)stream;
-  (void)duration;
+  SerializeVarint<DurationKey>(
+      stream,
+      std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
 }
 
 //--------------------------------------------------------------------------------------------------
