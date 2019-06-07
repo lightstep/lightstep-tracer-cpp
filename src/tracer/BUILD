@@ -161,6 +161,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:serialization_lib",
+        "//src/common:utility_lib",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",

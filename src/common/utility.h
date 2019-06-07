@@ -16,6 +16,12 @@
 namespace lightstep {
 const size_t Num64BitHexDigits = std::numeric_limits<uint64_t>::digits / 4;
 
+// Breaks the timestamp down into seconds past epoch and nanosecond fraction
+// to match that used by google in protobuf.
+// See https://github.com/protocolbuffers/protobuf/blob/8489612dadd3775ffbba029a583b6f00e91d0547/src/google/protobuf/timestamp.proto
+std::tuple<uint64_t, uint32_t> ProtobufFormatTimestamp(
+    const std::chrono::system_clock::time_point& t);
+
 // Convert a std::chrono::system_clock::time_point to the time value used
 // by protobuf.
 google::protobuf::Timestamp ToTimestamp(
@@ -35,6 +41,8 @@ inline timeval toTimeval(std::chrono::duration<Rep, Period> duration) {
 // Attempts to determine the name of the executable invoked.  Returns
 // "c++-program" if unsuccessful.
 std::string GetProgramName();
+
+std::string ToJson(const opentracing::Value& value);
 
 // Converts an OpenTracing key-value pair to the key-value pair used in the
 // protobuf data structures.
