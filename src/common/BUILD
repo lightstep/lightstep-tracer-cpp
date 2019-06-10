@@ -210,6 +210,9 @@ lightstep_cc_library(
     private_hdrs = [
         "serialization.h",
     ],
+    srcs = [
+        "serialization.cpp",
+    ],
     deps = [
         ":utility_lib",
     ],
