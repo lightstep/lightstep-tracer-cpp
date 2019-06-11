@@ -1,9 +1,12 @@
 #pragma once
 
 #include <vector>
+#include <string>
+#include <utility>
 
 #include <opentracing/string_view.h>
 #include <opentracing/span.h>
+#include <opentracing/propagation.h>
 #include <google/protobuf/io/coded_stream.h>
 
 namespace lightstep {
@@ -15,6 +18,10 @@ void WriteTag(google::protobuf::io::CodedOutputStream& stream,
 
 void WriteStartTimestamp(google::protobuf::io::CodedOutputStream& stream,
                          opentracing::SystemTime timestamp);
+
+void WriteSpanReference(google::protobuf::io::CodedOutputStream& stream,
+                        opentracing::SpanReferenceType reference_type,
+                        uint64_t trace_id, uint64_t span_id);
 
 void WriteDuration(google::protobuf::io::CodedOutputStream& stream,
                    std::chrono::steady_clock::duration duration);
