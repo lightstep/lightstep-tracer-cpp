@@ -36,3 +36,28 @@ lightstep_cc_binary(
         "//visibility:public",
     ],
 )
+
+# py_binary(
+#     name = "generate_record_line",
+#     srcs = ["generate_record_line.py"],
+# )
+
+genrule(
+    name = "generate_wheel",
+    srcs = [
+        "//:gen-config/lightstep/version.h",
+        "generate_record_line.py",
+    ],
+    outs = [
+        "py-wheel/WHEEL",
+        "py-wheel/RECORD",
+    ],
+    cmd = """
+    GENERATE_RECORD_LINE=$${PWD}/$(location generate_record_line.py)
+    VERSION_H=$(location //:gen-config/lightstep/version.h)
+    VERSION_=`grep LIGHTSTEP_VERSION $$VERSION_H | cut -d ' ' -f3`
+    VERSION=`eval echo $$VERSION_`
+    python $$GENERATE_RECORD_LINE > $${PWD}/$(location :py-wheel/RECORD)
+    echo $$VERSION > $${PWD}/$(location :py-wheel/WHEEL)
+    """,
+)
