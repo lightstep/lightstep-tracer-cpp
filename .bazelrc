@@ -7,7 +7,7 @@ build:tsan --define LIGHTSTEP_CONFIG_TSAN=1
 build:tsan --copt -fsanitize=thread
 build:tsan --linkopt -fsanitize=thread
 
-build --copt -DPYTHON_BRIDGE_TRACER_MODULE="\"lightstep\""
+build --copt -DPYTHON_BRIDGE_TRACER_MODULE="\"lightstep_native\""
 
 build:static_libcpp --linkopt -static-libstdc++
 build:static_libcpp --linkopt -static-libgcc

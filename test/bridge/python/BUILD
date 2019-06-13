@@ -17,6 +17,6 @@ py_test(
         requirement("opentracing"),
     ],
     data = [
-        "//bridge/python:lightstep.so",
+        "//bridge/python:lightstep_native.so",
     ],
 )

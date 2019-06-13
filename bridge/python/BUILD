@@ -7,7 +7,7 @@ load(
 lightstep_package()
 
 lightstep_cc_binary(
-    name = "lightstep.so",
+    name = "lightstep_native.so",
     linkshared = True,
     srcs = [
         "src/module.cpp",
