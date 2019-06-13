@@ -41,10 +41,11 @@ genrule(
     name = "generate_wheel",
     srcs = [
         "//:gen-config/lightstep/version.h",
-        "wheel/generate_record_line.py",
-        "wheel/WHEEL",
+        "//:LICENSE",
+        "//3rd_party/base64:LICENSE",
+        "//3rd_party/randutils:LICENSE",
         ":lightstep_native.so",
-    ],
+    ] + glob(["wheel/*"]),
     outs = [
         "wheel.tgz",
     ],
@@ -52,10 +53,10 @@ genrule(
     WORK_DIR=`mktemp -d`
     WHEEL_DIR=$$WORK_DIR/wheel
     mkdir $$WHEEL_DIR
-    GENERATE_RECORD_LINE=$${PWD}/$(location wheel/generate_record_line.py)
+    GENERATE_RECORD=$${PWD}/$(location wheel/generate_record.py)
     VERSION_H=$(location //:gen-config/lightstep/version.h)
     VERSION_=`grep LIGHTSTEP_VERSION $$VERSION_H | cut -d ' ' -f3`
-    VERSION=`eval echo $$VERSION_`
+    export VERSION=`eval echo $$VERSION_`
     WHEEL_NAME=lightstep_native-$$VERSION-cp3-abi3-linux_x86_64
 
     # Set up the dist-info directory
@@ -63,14 +64,23 @@ genrule(
     DISTINFO_DIR=$$WORK_DIR/$$DISTINFO_NAME
     mkdir $$DISTINFO_DIR
     cp $(location wheel/WHEEL) $$DISTINFO_DIR
+    cat $(location wheel/METADATA.in) | envsubst > $$DISTINFO_DIR/METADATA
 
     # Set up the source directory
     SRC_DIR=$$WORK_DIR/lightstep_native
     mkdir $$SRC_DIR
+    cp $(location wheel/__init__.py) $$SRC_DIR
     cp $(location :lightstep_native.so) $$SRC_DIR
+    cp $(location //:LICENSE) $$SRC_DIR
+    mkdir -p $$SRC_DIR/3rd_party/base64
+    cp $(location //3rd_party/base64:LICENSE) $$SRC_DIR/3rd_party/base64
+    mkdir -p $$SRC_DIR/3rd_party/randutils
+    cp $(location //3rd_party/randutils:LICENSE) $$SRC_DIR/3rd_party/randutils
 
     # Generate the record file
-
+    python $$GENERATE_RECORD $$WORK_DIR > $$DISTINFO_DIR/RECORD
+    echo "$$DISTINFO_NAME/RECORD,," >> $$DISTINFO_DIR/RECORD
+    
     # zip up our wheel
     pushd $$WORK_DIR
     zip -r wheel/$$WHEEL_NAME.whl $$DISTINFO_NAME lightstep_native

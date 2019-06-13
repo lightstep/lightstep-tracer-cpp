@@ -6,6 +6,8 @@ load(
 
 lightstep_package()
 
+exports_files(["LICENSE"])
+
 lightstep_cc_library(
     name = "base64_lib",
     private_hdrs = [

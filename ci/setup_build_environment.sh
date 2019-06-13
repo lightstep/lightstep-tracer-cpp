@@ -23,4 +23,5 @@ apt-get install --no-install-recommends --no-install-suggests -y \
                 zlib1g-dev \
                 libffi-dev \
                 python3 \
-                zip
+                zip \
+                gettext-base
