@@ -37,27 +37,47 @@ lightstep_cc_binary(
     ],
 )
 
-# py_binary(
-#     name = "generate_record_line",
-#     srcs = ["generate_record_line.py"],
-# )
-
 genrule(
     name = "generate_wheel",
     srcs = [
         "//:gen-config/lightstep/version.h",
-        "generate_record_line.py",
+        "wheel/generate_record_line.py",
+        "wheel/WHEEL",
+        ":lightstep_native.so",
     ],
     outs = [
-        "py-wheel/WHEEL",
-        "py-wheel/RECORD",
+        "wheel.tgz",
     ],
     cmd = """
-    GENERATE_RECORD_LINE=$${PWD}/$(location generate_record_line.py)
+    WORK_DIR=`mktemp -d`
+    WHEEL_DIR=$$WORK_DIR/wheel
+    mkdir $$WHEEL_DIR
+    GENERATE_RECORD_LINE=$${PWD}/$(location wheel/generate_record_line.py)
     VERSION_H=$(location //:gen-config/lightstep/version.h)
     VERSION_=`grep LIGHTSTEP_VERSION $$VERSION_H | cut -d ' ' -f3`
     VERSION=`eval echo $$VERSION_`
-    python $$GENERATE_RECORD_LINE > $${PWD}/$(location :py-wheel/RECORD)
-    echo $$VERSION > $${PWD}/$(location :py-wheel/WHEEL)
+    WHEEL_NAME=lightstep_native-$$VERSION-cp3-abi3-linux_x86_64
+
+    # Set up the dist-info directory
+    DISTINFO_NAME=lightstep_native-$$VERSION.dist-info
+    DISTINFO_DIR=$$WORK_DIR/$$DISTINFO_NAME
+    mkdir $$DISTINFO_DIR
+    cp $(location wheel/WHEEL) $$DISTINFO_DIR
+
+    # Set up the source directory
+    SRC_DIR=$$WORK_DIR/lightstep_native
+    mkdir $$SRC_DIR
+    cp $(location :lightstep_native.so) $$SRC_DIR
+
+    # Generate the record file
+
+    # zip up our wheel
+    pushd $$WORK_DIR
+    zip -r wheel/$$WHEEL_NAME.whl $$DISTINFO_NAME lightstep_native
+    tar czf wheel.tgz wheel
+    popd
+    cp $$WORK_DIR/wheel.tgz $${PWD}/$(location :wheel.tgz)
+
+    rm -rf $$WORK_DIR
     """,
 )

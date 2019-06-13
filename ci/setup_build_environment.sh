@@ -22,4 +22,5 @@ apt-get install --no-install-recommends --no-install-suggests -y \
                 python python-setuptools python-pip \
                 zlib1g-dev \
                 libffi-dev \
-                python3
+                python3 \
+                zip
