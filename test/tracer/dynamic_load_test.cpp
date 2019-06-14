@@ -1,16 +1,14 @@
 #include "opentracing/dynamic_load.h"
 
-#include <grpc++/server.h>
-#include <grpc++/server_builder.h>
-#include <grpc/grpc.h>
+#include <sstream>
 
-#include "test/tracer/in_memory_collector.h"
+#include "test/mock_satellite/mock_satellite_handle.h"
+#include "test/ports.h"
+#include "test/utility.h"
 
 #include "3rd_party/catch2/catch.hpp"
 
 using namespace lightstep;
-
-const char* const server_address = "0.0.0.0:50051";
 
 TEST_CASE("dynamic_load") {
   std::string error_message;
@@ -35,23 +33,25 @@ TEST_CASE("dynamic_load") {
   SECTION(
       "A tracer and spans can be created from the dynamically loaded "
       "library.") {
-    // Set up a test collector service.
-    InMemoryCollector collector_service;
-    grpc::ServerBuilder builder;
-    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-    builder.RegisterService(&collector_service);
-    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
+    std::unique_ptr<MockSatelliteHandle> mock_satellite{new MockSatelliteHandle{
+        static_cast<uint16_t>(PortAssignments::DynamicLoadTest)}};
 
     // Create a tracer.
-    const char* config = R"(
-    {
+    std::ostringstream oss;
+    oss << R"({
       "component_name" : "dynamic_load_test",
       "access_token": "abc123",
-      "collector_host": "0.0.0.0",
-      "collector_port": 50051,
-      "collector_plaintext": true
+      "collector_plaintext": true,
+      "use_stream_recorder": true,
+      "satellite_endpoints": [ {"host": "0.0.0.0", "port": 
+    )";
+    oss << static_cast<int>(PortAssignments::DynamicLoadTest);
+    oss << R"(
+      }]
     })";
-    auto tracer_maybe = tracer_factory.MakeTracer(config, error_message);
+
+    auto tracer_maybe =
+        tracer_factory.MakeTracer(oss.str().c_str(), error_message);
     REQUIRE(error_message.empty());
     REQUIRE(tracer_maybe);
     auto& tracer = *tracer_maybe;
@@ -59,7 +59,7 @@ TEST_CASE("dynamic_load") {
     auto span = tracer->StartSpan("abc");
     span->Finish();
     tracer->Close();
-    auto spans = collector_service.spans();
-    CHECK(spans.size() == 1);
+    REQUIRE(
+        IsEventuallyTrue([&] { return mock_satellite->spans().size() == 1; }));
   }
 }

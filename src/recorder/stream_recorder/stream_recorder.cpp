@@ -26,23 +26,12 @@ StreamRecorder::StreamRecorder(Logger& logger,
       tracer_options_{std::move(tracer_options)},
       recorder_options_{std::move(recorder_options)},
       metrics_{GetMetricsObserver(tracer_options_)},
-      span_buffer_{recorder_options_.max_span_buffer_bytes},
-      early_flush_marker_{
-          static_cast<size_t>(recorder_options_.max_span_buffer_bytes *
-                              recorder_options.early_flush_threshold)},
-      poll_timer_{event_base_, recorder_options_.polling_period,
-                  MakeTimerCallback<StreamRecorder, &StreamRecorder::Poll>(),
-                  static_cast<void*>(this)},
-      flush_timer_{event_base_, recorder_options.flushing_period,
-                   MakeTimerCallback<StreamRecorder, &StreamRecorder::Flush>(),
-                   static_cast<void*>(this)},
-      streamer_{logger_,           event_base_, tracer_options_,
-                recorder_options_, metrics_,    span_buffer_} {
+      span_buffer_{recorder_options_.max_span_buffer_bytes} {
   // If no MetricsObserver was provided, use a default one that does nothing.
   if (tracer_options_.metrics_observer == nullptr) {
     tracer_options_.metrics_observer.reset(new MetricsObserver{});
   }
-  thread_ = std::thread{&StreamRecorder::Run, this};
+  stream_recorder_impl_.reset(new StreamRecorderImpl{*this});
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -54,7 +43,6 @@ StreamRecorder::~StreamRecorder() noexcept {
     exit_ = true;
   }
   flush_condition_variable_.notify_all();
-  thread_.join();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -79,6 +67,36 @@ void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
+// PrepareForFork
+//--------------------------------------------------------------------------------------------------
+void StreamRecorder::PrepareForFork() noexcept {
+  // We don't want parent and child processes to share sockets so close any open
+  // connections.
+  stream_recorder_impl_.reset(nullptr);
+}
+
+//--------------------------------------------------------------------------------------------------
+// OnForkedParent
+//--------------------------------------------------------------------------------------------------
+void StreamRecorder::OnForkedParent() noexcept {
+  stream_recorder_impl_.reset(new StreamRecorderImpl{*this});
+}
+
+//--------------------------------------------------------------------------------------------------
+// OnForkedChild
+//--------------------------------------------------------------------------------------------------
+void StreamRecorder::OnForkedChild() noexcept {
+  // Clear any buffered data since it will already be recorded from the parent
+  // process.
+  metrics_.ConsumeDroppedSpans();
+  span_buffer_.Clear();
+  num_bytes_consumed_ = span_buffer_.buffer().num_bytes_produced();
+  pending_flush_counter_ = 0;
+
+  stream_recorder_impl_.reset(new StreamRecorderImpl{*this});
+}
+
+//--------------------------------------------------------------------------------------------------
 // FlushWithTimeout
 //--------------------------------------------------------------------------------------------------
 bool StreamRecorder::FlushWithTimeout(
@@ -99,36 +117,9 @@ bool StreamRecorder::FlushWithTimeout(
 }
 
 //--------------------------------------------------------------------------------------------------
-// Run
-//--------------------------------------------------------------------------------------------------
-void StreamRecorder::Run() noexcept try {
-  event_base_.Dispatch();
-} catch (const std::exception& e) {
-  logger_.Error("StreamRecorder::Run failed: ", e.what());
-}
-
-//--------------------------------------------------------------------------------------------------
 // Poll
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::Poll() noexcept {
-  if (exit_) {
-    try {
-      return event_base_.LoopBreak();
-    } catch (const std::exception& e) {
-      logger_.Error("StreamRecorder: failed to break out of event loop: ",
-                    e.what());
-      std::terminate();
-    }
-  }
-
-  // Force an early flush if FlushWithTimeout was explicitly called or the
-  // buffer is filling up.
-  auto pending_flush_count = pending_flush_counter_.exchange(0);
-  if (pending_flush_count > 0 ||
-      span_buffer_.buffer().size() > early_flush_marker_) {
-    Flush();
-  }
-
   auto num_bytes_consumed = span_buffer_.buffer().num_bytes_consumed();
   if (num_bytes_consumed > num_bytes_consumed_) {
     {
@@ -137,22 +128,6 @@ void StreamRecorder::Poll() noexcept {
     }
     flush_condition_variable_.notify_all();
   }
-}
-
-//--------------------------------------------------------------------------------------------------
-// Flush
-//--------------------------------------------------------------------------------------------------
-void StreamRecorder::Flush() noexcept try {
-  if (recorder_options_.throw_away_spans) {
-    span_buffer_.Allot();
-    span_buffer_.Consume(span_buffer_.num_bytes_allotted());
-  } else {
-    streamer_.Flush();
-  }
-  flush_timer_.Reset();
-  metrics_.OnFlush();
-} catch (const std::exception& e) {
-  logger_.Error("StreamRecorder::Flush failed: ", e.what());
 }
 
 //--------------------------------------------------------------------------------------------------

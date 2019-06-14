@@ -50,6 +50,11 @@ class ChunkCircularBuffer {
   void Consume(size_t num_bytes) noexcept;
 
   /**
+   * Remove all buffered data.
+   */
+  void Clear() noexcept;
+
+  /**
    * Locates the chunk in the circular buffer that contains a given pointer.
    * @param start a chunk boundary position to start searching from.
    * @param ptr the pointer to search for.

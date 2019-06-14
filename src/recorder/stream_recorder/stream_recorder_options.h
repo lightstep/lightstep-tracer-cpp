@@ -28,7 +28,7 @@ struct StreamRecorderOptions {
   // process when exiting.
   std::chrono::microseconds polling_period =
       std::chrono::duration_cast<std::chrono::microseconds>(
-          std::chrono::milliseconds{10});
+          std::chrono::milliseconds{1});
 
   // The amount of time between flushes of StreamRecorder's span buffer.
   std::chrono::microseconds flushing_period =
