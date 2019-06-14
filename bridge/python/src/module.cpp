@@ -31,6 +31,10 @@ static bool ExtractScopeManager(
 //--------------------------------------------------------------------------------------------------
 static PyObject* MakeTracer(PyObject* /*self*/, PyObject* /*args*/,
                             PyObject* keywords) noexcept {
+  if (keywords == nullptr) {
+    PyErr_Format(PyExc_RuntimeError, "no keyword arguments provided");
+    return nullptr;
+  }
   python_bridge_tracer::PythonObjectWrapper scope_manager;
   if (!ExtractScopeManager(keywords, scope_manager)) {
     return nullptr;
@@ -54,6 +58,10 @@ static PyObject* MakeTracer(PyObject* /*self*/, PyObject* /*args*/,
                  error_message.c_str());
     return nullptr;
   }
+  if (*tracer_maybe == nullptr) {
+    PyErr_Format(PyExc_RuntimeError, "failed to construct tracer");
+    return nullptr;
+  }
   return python_bridge_tracer::makeTracer(std::move(*tracer_maybe),
                                           scope_manager);
 }
@@ -70,9 +78,9 @@ static PyMethodDef ModuleMethods[] = {
 //--------------------------------------------------------------------------------------------------
 // ModuleDefinition
 //--------------------------------------------------------------------------------------------------
-static PyModuleDef ModuleDefinition = {PyModuleDef_HEAD_INIT, "lightstep_native",
-                                       PyDoc_STR("LightStep Python tracer"), -1,
-                                       ModuleMethods};
+static PyModuleDef ModuleDefinition = {
+    PyModuleDef_HEAD_INIT, "lightstep_native",
+    PyDoc_STR("LightStep Python tracer"), -1, ModuleMethods};
 
 //--------------------------------------------------------------------------------------------------
 // flush
