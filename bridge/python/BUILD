@@ -37,6 +37,8 @@ lightstep_cc_binary(
     ],
 )
 
+# Generates a wheel format suitable for uploading to Pypi
+# Follows PEP 491 (https://www.python.org/dev/peps/pep-0491/)
 genrule(
     name = "generate_wheel",
     srcs = [
