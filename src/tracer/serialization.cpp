@@ -3,7 +3,9 @@
 #include "common/serialization.h"
 #include "common/utility.h"
 
+const size_t SpanContextField = 1;
 const size_t OperationNameField = 2;
+const size_t SpanReferenceField = 3;
 const size_t StartTimestampField = 4;
 const size_t DurationField = 5;
 const size_t TagsField = 6;
@@ -11,6 +13,9 @@ const size_t TagsField = 6;
 const size_t SpanContextTraceIdField = 1;
 const size_t SpanContextSpanIdField = 2;
 const size_t SpanContextBaggageField = 3;
+
+const size_t SpanReferenceRelationshipField = 1;
+const size_t SpanReferenceSpanContextField = 2;
 
 const size_t MapEntryKeyField = 1;
 const size_t MapEntryValueField = 2;
@@ -21,7 +26,7 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 static size_t ComputeSpanContextSerializationSize(
     uint64_t trace_id, uint64_t span_id,
-    const std::vector<std::pair<std::string, std::string>>& baggage) noexcept {
+    const std::vector<std::pair<std::string, std::string>>& baggage = {}) noexcept {
   auto result =
       ComputeVarintSerializationSize<SpanContextTraceIdField>(trace_id) +
       ComputeVarintSerializationSize<SpanContextSpanIdField>(span_id);
@@ -35,6 +40,29 @@ static size_t ComputeSpanContextSerializationSize(
         baggage_serialization_size);
   }
   return result;
+}
+
+//--------------------------------------------------------------------------------------------------
+// WriteSpanContext
+//--------------------------------------------------------------------------------------------------
+template <size_t FieldNumber>
+static void WriteSpanContext(google::protobuf::io::CodedOutputStream& stream,
+                      uint64_t trace_id, uint64_t span_id,
+                      const std::vector<std::pair<std::string, std::string>>& baggage = {}) {
+  auto serialization_size = ComputeSpanContextSerializationSize(trace_id, span_id, baggage);
+  SerializeKeyLength<FieldNumber>(stream, serialization_size);
+  SerializeVarint<SpanContextTraceIdField>(stream, trace_id);
+  SerializeVarint<SpanContextSpanIdField>(stream, span_id);
+  for (auto& baggage_item : baggage) {
+    auto baggage_serialization_size =
+        ComputeLengthDelimitedSerializationSize<MapEntryKeyField>(
+            baggage_item.first.size()) +
+        ComputeLengthDelimitedSerializationSize<MapEntryValueField>(
+            baggage_item.second.size());
+    SerializeKeyLength<SpanContextBaggageField>(stream, baggage_serialization_size);
+    SerializeString<MapEntryKeyField>(stream, baggage_item.first);
+    SerializeString<MapEntryValueField>(stream, baggage_item.second);
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -67,10 +95,19 @@ void WriteStartTimestamp(google::protobuf::io::CodedOutputStream& stream,
 void WriteSpanReference(google::protobuf::io::CodedOutputStream& stream,
                         opentracing::SpanReferenceType reference_type,
                         uint64_t trace_id, uint64_t span_id) {
-  (void)stream;
-  (void)reference_type;
-  (void)trace_id;
-  (void)span_id;
+  static const uint32_t RelationshipChildOf = 0, RelationshipFollowsFrom = 1;
+  auto relationship =
+      reference_type == opentracing::SpanReferenceType::ChildOfRef
+          ? RelationshipChildOf
+          : RelationshipFollowsFrom;
+  auto serialization_size =
+      ComputeVarintSerializationSize<SpanReferenceRelationshipField>(
+          relationship) +
+      ComputeLengthDelimitedSerializationSize<SpanReferenceSpanContextField>(
+          ComputeSpanContextSerializationSize(trace_id, span_id));
+  SerializeKeyLength<SpanReferenceField>(stream, serialization_size);
+  SerializeVarint<SpanReferenceRelationshipField>(stream, relationship);
+  WriteSpanContext<SpanReferenceSpanContextField>(stream, trace_id, span_id);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -103,11 +140,7 @@ void WriteLog(google::protobuf::io::CodedOutputStream& stream,
 //--------------------------------------------------------------------------------------------------
 void WriteSpanContext(google::protobuf::io::CodedOutputStream& stream,
                       uint64_t trace_id, uint64_t span_id,
-                      const std::vector<std::string, std::string>& baggage) {
-  (void)ComputeSpanContextSerializationSize;
-  (void)stream;
-  (void)trace_id;
-  (void)span_id;
-  (void)baggage;
+                      const std::vector<std::pair<std::string, std::string>>& baggage) {
+  WriteSpanContext<SpanContextField>(stream, trace_id, span_id, baggage);
 }
 }  // namespace lightstep

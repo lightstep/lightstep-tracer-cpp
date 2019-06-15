@@ -30,7 +30,8 @@ template <class Iterator>
 void WriteLog(google::protobuf::io::CodedOutputStream& stream,
               opentracing::SystemTime timestamp, Iterator first, Iterator last);
 
-void WriteSpanContext(google::protobuf::io::CodedOutputStream& stream,
-                      uint64_t trace_id, uint64_t span_id,
-                      const std::vector<std::string, std::string>& baggage);
+void WriteSpanContext(
+    google::protobuf::io::CodedOutputStream& stream, uint64_t trace_id,
+    uint64_t span_id,
+    const std::vector<std::pair<std::string, std::string>>& baggage);
 }  // namespace lightstep
