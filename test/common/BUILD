@@ -154,3 +154,27 @@ lightstep_catch_test(
         "//test:utility_lib",
     ],
 )
+
+proto_library(
+  name = "test_proto",    
+  srcs = ["test.proto"],
+  deps = [
+      "//lightstep-tracer-common:collector_proto",
+  ],
+)
+
+cc_proto_library(
+    name = "test_proto_cc",
+    deps = [":test_proto"],
+)
+
+lightstep_catch_test(
+    name = "serialization_test",
+    srcs = [
+        "serialization_test.cpp",
+    ],
+    deps = [
+        "//src/common:serialization_lib",
+        ":test_proto_cc",
+    ],
+)

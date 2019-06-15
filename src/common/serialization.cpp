@@ -138,10 +138,10 @@ size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
 //--------------------------------------------------------------------------------------------------
 // SerializeKeyValueImpl
 //--------------------------------------------------------------------------------------------------
-void SerializeKeyValueImpl(opentracing::string_view key,
-                              google::protobuf::io::CodedOutputStream& stream,
-                              const opentracing::Value& value,
-                              const std::string& json, int& json_counter) {
+void SerializeKeyValueImpl(google::protobuf::io::CodedOutputStream& stream,
+                           opentracing::string_view key,
+                           const opentracing::Value& value,
+                           const std::string& json, int& json_counter) {
   SerializeString<KeyValueKeyField>(stream, key);
   SerializationValueVisitor value_visitor{stream, json, json_counter};
   apply_visitor(value_visitor, value);

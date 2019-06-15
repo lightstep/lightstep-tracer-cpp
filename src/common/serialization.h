@@ -91,7 +91,7 @@ void SerializeString(google::protobuf::io::CodedOutputStream& stream,
 template <size_t FieldNumber>
 void SerializeTimestamp(google::protobuf::io::CodedOutputStream& stream,
     std::chrono::system_clock::time_point timestamp) noexcept {
-  // See https://github.com/protocolbuffers/protobuf/blob/8489612dadd3775ffbba029a583b6f00e91d0547/src/google/protobuf/timestamp.pr      oto
+  // See https://github.com/protocolbuffers/protobuf/blob/8489612dadd3775ffbba029a583b6f00e91d0547/src/google/protobuf/timestamp.proto
   static const size_t SecondsSinceEpochField = 1;
   static const size_t NanoFractionField = 2;
   uint64_t seconds_since_epoch;
