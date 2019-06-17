@@ -123,6 +123,7 @@ jobs:
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_bazel.sh
       - run: ./ci/do_ci.sh python.wheel
       - run: cd /
       - run: tar zxf wheel.tgz
