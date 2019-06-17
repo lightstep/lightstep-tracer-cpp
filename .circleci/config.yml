@@ -132,7 +132,7 @@ jobs:
       - persist_to_workspace:
           root: /wheel
           paths:
-            - *
+            - "*"
 
   coverage:
     resource_class: xlarge
