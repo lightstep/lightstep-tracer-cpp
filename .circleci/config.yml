@@ -116,6 +116,24 @@ jobs:
           path: /liblightstep_tracer_plugin.so
           destination: liblightstep_tracer_plugin.so
 
+  build_python_wheel:
+    resource_class: xlarge
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: ./ci/setup_build_environment.sh
+      - run: ./ci/do_ci.sh python.wheel
+      - run: cd /
+      - run: tar zxf wheel.tgz
+      - store_artifacts:
+          path: /wheel
+          destination: wheel
+      - persist_to_workspace:
+          root: /wheel
+          paths:
+            - *
+
   coverage:
     resource_class: xlarge
     docker:
@@ -147,4 +165,5 @@ workflows:
       - benchmark
       - coverage
       - build_plugin
+      - build_python_wheel
       - clang_tidy
