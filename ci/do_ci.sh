@@ -111,6 +111,14 @@ elif [[ "$1" == "plugin" ]]; then
   cd "${BUILD_DIR}"
   "${SRC_DIR}"/ci/build_plugin.sh
   exit 0
+elif [[ "$1" == "python.wheel" ]]; then
+  bazel build -c opt \
+              --copt=-march=x86-64 \
+              --config=static_libcpp \
+              $BAZEL_OPTIONS \
+              //bridge/python:wheel.tgz
+  cp bazel-genfiles/bridge/python/wheel.tgz /
+  exit 0
 elif [[ "$1" == "release" ]]; then
   "${SRC_DIR}"/ci/build_plugin.sh
   "${SRC_DIR}"/ci/release.sh
