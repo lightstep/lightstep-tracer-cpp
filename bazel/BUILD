@@ -21,7 +21,7 @@ config_setting(
 cc_library(
     name = "glibc_version_lib",
     srcs = [
-        "glibc_version.c",
+        "glibc_version.cpp",
     ],
     linkopts = [
         "-lrt",
