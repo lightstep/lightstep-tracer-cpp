@@ -8,15 +8,14 @@ filegroup(
 
 cmake_external(
     name = "ares",
-    cmake_options = [
-        "-DEVENT__DISABLE_OPENSSL:BOOL=on",
-        "-DEVENT__DISABLE_REGRESS:BOOL=on",
-        "-DCARES_STATIC=on",
-        "-DCARES_SHARED=off",
-        "-DCARES_STATIC_PIC=on",
-        "-DCARES_BUILD_TESTS=off",
-        "-DCARES_BUILD_TOOLS=off",
-    ],
+    cache_entries = {
+      "CMAKE_BUILD_TYPE": "Release",
+      "CARES_SHARED": "off",
+      "CARES_STATIC": "on",
+      "CARES_STATIC_PIC": "on",
+      "CARES_BUILD_TESTS": "off",
+      "CARES_BUILD_TOOLS": "off",
+    },
     lib_source = ":srcs",
     static_libraries = ["libcares.a"],
     visibility = ["//visibility:public"],

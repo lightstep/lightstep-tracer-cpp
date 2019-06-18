@@ -9,14 +9,14 @@ filegroup(
 cmake_external(
     name = "libevent",
     cache_entries = {
-        "BUILD_SHARED_LIBS": "OFF",
-        "BUILD_STATIC_LIBS": "ON",
+      "CMAKE_BUILD_TYPE": "Release",
+      "CMAKE_POSITION_INDEPENDENT_CODE" : "on",
+      "BUILD_SHARED_LIBS": "off",
+      "BUILD_STATIC_LIBS": "on",
+      "EVENT__DISABLE_OPENSSL": "on",
+      "EVENT__DISABLE_REGRESS": "on",
+      "EVENT__DISABLE_TESTS": "on",
     },
-    cmake_options = [
-        "-DEVENT__DISABLE_OPENSSL:BOOL=on",
-        "-DEVENT__DISABLE_REGRESS:BOOL=on",
-        "-DCMAKE_POSITION_INDEPENDENT_CODE=on",
-    ],
     lib_source = ":srcs",
     static_libraries = ["libevent.a"],
     visibility = ["//visibility:public"],
