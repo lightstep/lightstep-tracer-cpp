@@ -11,6 +11,17 @@ load("//bazel:cc_configure.bzl", "cc_configure")
 cc_configure()
 
 git_repository(
+    name = "rules_foreign_cc",
+    remote = "https://github.com/bazelbuild/rules_foreign_cc",
+    commit = "bf99a0bf0080bcd50431aa7124ef23e5afd58325",
+)
+
+load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
+
+rules_foreign_cc_dependencies([
+])
+
+git_repository(
     name = "io_opentracing_cpp",
     remote = "https://github.com/opentracing/opentracing-cpp",
     commit = "ac50154a7713877f877981c33c3375003b6ebfe1",

@@ -114,6 +114,7 @@ elif [[ "$1" == "plugin" ]]; then
 elif [[ "$1" == "python.wheel" ]]; then
   bazel build -c opt \
               --copt=-march=x86-64 \
+              --config=portable_glibc \
               --config=static_libcpp \
               $BAZEL_OPTIONS \
               //bridge/python:wheel.tgz
