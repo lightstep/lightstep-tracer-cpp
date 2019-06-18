@@ -116,6 +116,13 @@ git_repository(
     remote = "https://github.com/google/benchmark",
 )
 
+git_repository(
+        name   = "com_github_gflags_gflags",
+        #tag    = "v2.2.2",
+        commit = "e171aa2d15ed9eb17054558e0b3a6a413bb01067",
+        remote = "https://github.com/gflags/gflags.git"
+)
+
 http_archive(
     name = "io_bazel_rules_go",
     urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.17.0/rules_go-0.17.0.tar.gz"],
