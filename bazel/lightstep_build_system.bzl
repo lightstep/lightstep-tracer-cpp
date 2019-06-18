@@ -112,6 +112,38 @@ def lightstep_cc_binary(
         deps = external_deps + deps,
     )
 
+def lightstep_portable_cc_binary(
+        name,
+        args = [],
+        srcs = [],
+        data = [],
+        copts = [],
+        linkopts = [],
+        linkshared = False,
+        testonly = 0,
+        visibility = None,
+        external_deps = [],
+        deps = []):
+  lightstep_cc_binary(
+      name,
+      args = args,
+      srcs = srcs,
+      data = data,
+      copts = copts,
+      linkopts = linkopts,
+      linkshared = linkshared,
+      testonly = testonly,
+      visibility = visibility,
+      external_deps = external_deps,
+      deps = deps + select({
+          "@com_lightstep_tracer_cpp//bazel:portable_glibc_build": [
+              "@com_lightstep_tracer_cpp//bazel:glibc_version_lib",
+          ],
+          "//conditions:default": []
+      }),
+  )
+
+
 def lightstep_cc_test(
         name,
         args = [],

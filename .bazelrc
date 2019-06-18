@@ -9,6 +9,13 @@ build:tsan --linkopt -fsanitize=thread
 
 build --copt -DPYTHON_BRIDGE_TRACER_MODULE="\"lightstep_native\""
 
+# Fortifying the sources will lead to requiring glibc >= 2.15, so we turn fortifying off
+# See https://stackoverflow.com/a/20953117/4447365
+build:portable_glibc --copt -U_FORTIFY_SOURCE
+build:portable_glibc --copt -D_FORTIFY_SOURCE=0
+
+build:portable_glibc --define LIGHTSTEP_PORTABLE_GLIBC=1
+
 build:static_libcpp --linkopt -static-libstdc++
 build:static_libcpp --linkopt -static-libgcc
 

@@ -1,12 +1,12 @@
 load(
     "//bazel:lightstep_build_system.bzl",
-    "lightstep_cc_binary",
+    "lightstep_portable_cc_binary",
     "lightstep_package",
 )
 
 lightstep_package()
 
-lightstep_cc_binary(
+lightstep_portable_cc_binary(
     name = "lightstep_native.so",
     linkshared = True,
     srcs = [
