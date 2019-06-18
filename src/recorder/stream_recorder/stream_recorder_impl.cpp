@@ -51,6 +51,13 @@ void StreamRecorderImpl::Run() noexcept try {
 void StreamRecorderImpl::Poll() noexcept {
   if (exit_) {
     try {
+      // Attempt to flush any pending spans before shutting down.
+      //
+      // Note: Flush is non-blocking so we can do this without causing an
+      // unacceptable delay to process termination.
+      Flush();
+
+      // Shut down the event loop.
       return event_base_.LoopBreak();
     } catch (const std::exception& e) {
       stream_recorder_.logger().Error(
