@@ -7,6 +7,9 @@ build:tsan --define LIGHTSTEP_CONFIG_TSAN=1
 build:tsan --copt -fsanitize=thread
 build:tsan --linkopt -fsanitize=thread
 
+# Needed due to https://github.com/libevent/libevent/issues/777
+build:tsan --copt -DEVENT__DISABLE_DEBUG_MODE
+
 build --copt -DPYTHON_BRIDGE_TRACER_MODULE="\"lightstep_native\""
 
 # Fortifying the sources will lead to requiring glibc >= 2.15, so we turn fortifying off
