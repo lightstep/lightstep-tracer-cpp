@@ -17,6 +17,12 @@ build --copt -DPYTHON_BRIDGE_TRACER_MODULE="\"lightstep_native\""
 build:portable_glibc --copt -U_FORTIFY_SOURCE
 build:portable_glibc --copt -D_FORTIFY_SOURCE=0
 
+# Work around to a bug with the gold linker where it doesn't work properly with wrapping and symbol
+# versioning
+# See https://sourceware.org/bugzilla/show_bug.cgi?id=22628
+build:portable_glibc --nostart_end_lib
+build:portable_glibc --linkopt -fuse-ld=bfd
+
 build:portable_glibc --define LIGHTSTEP_PORTABLE_GLIBC=1
 
 build:static_libcpp --linkopt -static-libstdc++

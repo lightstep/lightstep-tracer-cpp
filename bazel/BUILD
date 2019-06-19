@@ -27,5 +27,8 @@ cc_library(
         "-lrt",
         "-Wl,--wrap=memcpy",
         "-Wl,--wrap=clock_gettime",
+        # Note grpc already uses this wrapping technique with memcpy, so we add this flag to prevent
+        # a multiple definition error
+        "-Wl,--allow-multiple-definition", 
     ],
 )

@@ -8,6 +8,12 @@ mkdir -p "${BUILD_DIR}"
 
 BAZEL_OPTIONS=""
 BAZEL_TEST_OPTIONS="$BAZEL_OPTIONS --test_output=errors"
+BAZEL_PLUGIN_OPTIONS="$BAZEL_OPTIONS \
+              -c opt \
+              --copt=-march=x86-64 \
+              --config=portable_glibc \
+              --config=static_libcpp \
+  "
 
 function copy_benchmark_results() {
   mkdir -p "${BENCHMARK_DST_DIR}"
@@ -107,16 +113,24 @@ elif [[ "$1" == "bazel.coverage" ]]; then
           --output-directory /coverage
   tar czf /coverage.tgz /coverage
   exit 0
+elif [[ "$1" == "plugin2" ]]; then
+  bazel build $BAZEL_PLUGIN_OPTIONS \
+    //:lightstep_plugin.so \
+    //test/mock_satellite:mock_satellite \
+    //test/mock_satellite:mock_satellite_query \
+    //test/tracer:span_probe
+  mkdir -p /plugin
+  cp bazel-bin/lightstep_plugin.so /plugin
+  cp bazel-bin/test/mock_satellite/mock_satellite /plugin
+  cp bazel-bin/test/mock_satellite/mock_satellite_query /plugin
+  cp bazel-bin/test/tracer/span_probe /plugin
+  exit 0
 elif [[ "$1" == "plugin" ]]; then
   cd "${BUILD_DIR}"
   "${SRC_DIR}"/ci/build_plugin.sh
   exit 0
 elif [[ "$1" == "python.wheel" ]]; then
-  bazel build -c opt \
-              --copt=-march=x86-64 \
-              --config=portable_glibc \
-              --config=static_libcpp \
-              $BAZEL_OPTIONS \
+  bazel build $BAZEL_PLUGIN_OPTIONS \
               //bridge/python:wheel.tgz
   cp bazel-genfiles/bridge/python/wheel.tgz /
   exit 0
