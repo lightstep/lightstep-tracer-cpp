@@ -32,25 +32,13 @@ lightstep_catch_test(
     ],
 )
 
-cc_binary(
-    name = "lightstep_plugin.so",
-    linkshared = 1,
-    linkopts = [
-        "-Wl,--version-script=$(location :tracer-export-map.ld)",
-    ],
-    deps = [
-        ":tracer-export-map.ld",
-        "//:tracer_lib",
-    ],
-)
-
 lightstep_catch_test(
     name = "dynamic_load_test",
     srcs = [
         "dynamic_load_test.cpp",
     ],
     data = [
-        ":lightstep_plugin.so",
+        "//:liblightstep_tracer_plugin.so",
     ],
     deps = [
         "//test/mock_satellite:mock_satellite_lib",
