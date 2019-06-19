@@ -111,6 +111,7 @@ jobs:
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_bazel.sh
       - run: ./ci/do_ci.sh plugin
       - store_artifacts:
           path: /plugin
