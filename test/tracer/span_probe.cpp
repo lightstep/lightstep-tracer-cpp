@@ -1,10 +1,9 @@
 #include <cassert>
+#include <iostream>
 #include <sstream>
 #include <string>
-#include <iostream>
 
 #include <opentracing/dynamic_load.h>
-
 
 int main(int argc, char* argv[]) {
   if (argc != 4) {
