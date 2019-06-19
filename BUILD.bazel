@@ -69,7 +69,7 @@ lightstep_cc_library(
 )
 
 lightstep_portable_cc_binary(
-    name = "lightstep_plugin.so",
+    name = "liblightstep_tracer_plugin.so",
     linkshared = 1,
     linkopts = [
         "-Wl,--version-script=$(location :tracer-export-map.ld)",

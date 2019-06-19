@@ -113,8 +113,12 @@ jobs:
       - run: ./ci/setup_build_environment.sh
       - run: ./ci/do_ci.sh plugin
       - store_artifacts:
-          path: /liblightstep_tracer_plugin.so
-          destination: liblightstep_tracer_plugin.so
+          path: /plugin
+          destination: plugin
+      - persist_to_workspace:
+          root: /plugin
+          paths:
+            - "*"
 
   build_python_wheel:
     resource_class: xlarge

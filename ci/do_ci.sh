@@ -113,21 +113,26 @@ elif [[ "$1" == "bazel.coverage" ]]; then
           --output-directory /coverage
   tar czf /coverage.tgz /coverage
   exit 0
-elif [[ "$1" == "plugin2" ]]; then
+elif [[ "$1" == "plugin" ]]; then
   bazel build $BAZEL_PLUGIN_OPTIONS \
-    //:lightstep_plugin.so \
+    //:liblightstep_tracer_plugin.so \
     //test/mock_satellite:mock_satellite \
     //test/mock_satellite:mock_satellite_query \
     //test/tracer:span_probe
   mkdir -p /plugin
-  cp bazel-bin/lightstep_plugin.so /plugin
+  cp bazel-bin/liblightstep_tracer_plugin.so /plugin
   cp bazel-bin/test/mock_satellite/mock_satellite /plugin
   cp bazel-bin/test/mock_satellite/mock_satellite_query /plugin
   cp bazel-bin/test/tracer/span_probe /plugin
   exit 0
-elif [[ "$1" == "plugin" ]]; then
-  cd "${BUILD_DIR}"
-  "${SRC_DIR}"/ci/build_plugin.sh
+elif [[ "$1" == "plugin.test" ]]; then
+  MOCK_SATELLITE_PORT=5000
+  /plugin/mock_satellite $MOCK_SATELLITE_PORT &
+  MOCK_SATELLITE_PID=$!
+  /plugin/span_probe /plugin/liblightstep_tracer_plugin.so 127.0.0.1 $MOCK_SATELLITE_PORT
+  NUM_SPANS=`/plugin/mock_satellite_query --port $MOCK_SATELLITE_PORT num_spans`
+  kill $MOCK_SATELLITE_PID
+  [[ "$NUM_SPANS" -eq "1" ]] || exit 1
   exit 0
 elif [[ "$1" == "python.wheel" ]]; then
   bazel build $BAZEL_PLUGIN_OPTIONS \
