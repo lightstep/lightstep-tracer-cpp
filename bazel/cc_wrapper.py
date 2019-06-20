@@ -89,6 +89,10 @@ def main():
     # See https://github.com/envoyproxy/envoy/issues/2987
     argv.append("-Wno-maybe-uninitialized")
 
+  # remove the gold linker flag to ensure the bfd linker is used.
+  if "-fuse-ld=bfd" in argv:
+    argv = [arg for arg in argv if arg != "-fuse-ld=gold"]
+
   os.execv(compiler, [compiler] + argv)
 
 

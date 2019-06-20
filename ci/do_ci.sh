@@ -8,6 +8,12 @@ mkdir -p "${BUILD_DIR}"
 
 BAZEL_OPTIONS=""
 BAZEL_TEST_OPTIONS="$BAZEL_OPTIONS --test_output=errors"
+BAZEL_PLUGIN_OPTIONS="$BAZEL_OPTIONS \
+              -c opt \
+              --copt=-march=x86-64 \
+              --config=portable_glibc \
+              --config=static_libcpp \
+  "
 
 function copy_benchmark_results() {
   mkdir -p "${BENCHMARK_DST_DIR}"
@@ -108,20 +114,42 @@ elif [[ "$1" == "bazel.coverage" ]]; then
   tar czf /coverage.tgz /coverage
   exit 0
 elif [[ "$1" == "plugin" ]]; then
-  cd "${BUILD_DIR}"
-  "${SRC_DIR}"/ci/build_plugin.sh
-  exit 0
-elif [[ "$1" == "python.wheel" ]]; then
-  bazel build -c opt \
-              --copt=-march=x86-64 \
-              --config=portable_glibc \
-              --config=static_libcpp \
-              $BAZEL_OPTIONS \
-              //bridge/python:wheel.tgz
+  bazel build $BAZEL_PLUGIN_OPTIONS \
+    //:liblightstep_tracer_plugin.so \
+    //test/mock_satellite:mock_satellite \
+    //test/mock_satellite:mock_satellite_query \
+    //test/tracer:span_probe \
+    //bridge/python:wheel.tgz
+  mkdir -p /plugin
+  cp bazel-bin/liblightstep_tracer_plugin.so /plugin
+  cp bazel-bin/test/mock_satellite/mock_satellite /plugin
+  cp bazel-bin/test/mock_satellite/mock_satellite_query /plugin
+  cp bazel-bin/test/tracer/span_probe /plugin
   cp bazel-genfiles/bridge/python/wheel.tgz /
+  cd /
+  tar zxf wheel.tgz
+  cp wheel/* plugin/
+  exit 0
+elif [[ "$1" == "plugin.test" ]]; then
+  MOCK_SATELLITE_PORT=5000
+  /plugin/mock_satellite $MOCK_SATELLITE_PORT &
+  MOCK_SATELLITE_PID=$!
+  /plugin/span_probe /plugin/liblightstep_tracer_plugin.so 127.0.0.1 $MOCK_SATELLITE_PORT
+  NUM_SPANS=`/plugin/mock_satellite_query --port $MOCK_SATELLITE_PORT num_spans`
+  kill $MOCK_SATELLITE_PID
+  [[ "$NUM_SPANS" -eq "1" ]] || exit 1
+  exit 0
+elif [[ "$1" == "python.wheel.test" ]]; then
+  python3 -m pip install /plugin/*.whl
+  MOCK_SATELLITE_PORT=5000
+  /plugin/mock_satellite $MOCK_SATELLITE_PORT &
+  MOCK_SATELLITE_PID=$!
+  python3 test/bridge/python/span_probe.py 127.0.0.1 $MOCK_SATELLITE_PORT
+  NUM_SPANS=`/plugin/mock_satellite_query --port $MOCK_SATELLITE_PORT num_spans`
+  kill $MOCK_SATELLITE_PID
+  [[ "$NUM_SPANS" -eq "1" ]] || exit 1
   exit 0
 elif [[ "$1" == "release" ]]; then
-  "${SRC_DIR}"/ci/build_plugin.sh
   "${SRC_DIR}"/ci/release.sh
   exit 0
 fi

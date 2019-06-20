@@ -4,7 +4,9 @@ set -e
 apt-get update 
 apt-get install --no-install-recommends --no-install-suggests -y \
                 wget \
-                unzip
+                unzip \
+                python python-pip
+pip install twine
 
 # Install ghr
 cd /
@@ -12,7 +14,7 @@ wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd
 unzip ghr_v0.5.4_linux_amd64.zip
 
 # Create packaged plugins
-gzip -c /liblightstep_tracer_plugin.so > /linux-amd64-liblightstep_tracer_plugin.so.gz
+gzip -c /plugin/liblightstep_tracer_plugin.so > /linux-amd64-liblightstep_tracer_plugin.so.gz
 
 # Create release
 cd "${SRC_DIR}"
@@ -33,3 +35,9 @@ echo "/ghr -t <hidden> \
      -replace \
      "${VERSION_TAG}" \
      /linux-amd64-liblightstep_tracer_plugin.so.gz
+
+# Upload the wheel to pypi
+echo -e "[pypi]" >> ~/.pypirc
+echo -e "username = $PYPI_USER" >> ~/.pypirc
+echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
+twine upload plugin/*.whl
