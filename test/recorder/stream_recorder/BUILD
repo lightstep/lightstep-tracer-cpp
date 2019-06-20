@@ -25,6 +25,19 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "stream_recorder_fork_test",
+    srcs = [
+        "stream_recorder_fork_test.cpp",
+    ],
+    deps = [
+        "//:tracer_lib",
+        "//test/mock_satellite:mock_satellite_lib",
+        "//test:ports_lib",
+        "//test:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "fragment_span_input_stream_test",
     srcs = [
         "fragment_span_input_stream_test.cpp",

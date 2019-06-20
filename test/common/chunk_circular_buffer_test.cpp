@@ -102,4 +102,10 @@ TEST_CASE(
     REQUIRE(ToString(chunk) == "1\r\nc\r\n");
     REQUIRE(num_preceding_chunks == 1);
   }
+
+  SECTION("Clear removes any data in the buffer.") {
+    REQUIRE(AddString(buffer, "ab"));
+    buffer.Clear();
+    REQUIRE(buffer.Allot() == 0);
+  }
 }

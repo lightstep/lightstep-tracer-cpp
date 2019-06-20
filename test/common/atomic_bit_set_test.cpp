@@ -25,8 +25,8 @@ TEST_CASE("AtomicBitSet") {
   }
 
   SECTION("Setting a bit in the second block works as expected") {
-    CHECK(!bit_set.Set(64));
-    CHECK(bit_set.Set(64));
+    REQUIRE(!bit_set.Set(64));
+    REQUIRE(bit_set.Set(64));
     for (int bit_index = 0; bit_index < static_cast<int>(size); ++bit_index) {
       if (bit_index == 64) {
         REQUIRE(bit_set.Test(bit_index));
@@ -38,10 +38,16 @@ TEST_CASE("AtomicBitSet") {
 
   SECTION("Set, then Reset returns everything to zero") {
     bit_set.Set(63);
-    CHECK(bit_set.Reset(63));
-    CHECK(!bit_set.Reset(63));
+    REQUIRE(bit_set.Reset(63));
+    REQUIRE(!bit_set.Reset(63));
     for (int bit_index = 0; bit_index < static_cast<int>(size); ++bit_index) {
       REQUIRE(!bit_set.Test(bit_index));
     }
+  }
+
+  SECTION("Clear resets every bit to zero") {
+    bit_set.Set(63);
+    bit_set.Clear();
+    REQUIRE(!bit_set.Reset(63));
   }
 }

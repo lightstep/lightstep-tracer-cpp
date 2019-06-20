@@ -2,10 +2,11 @@ load(
     "//bazel:lightstep_build_system.bzl",
     "lightstep_package",
     "lightstep_cc_library",
+    "lightstep_portable_cc_binary",
     "lightstep_catch_test",
+    "lightstep_go_binary",
 )
 
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 lightstep_package()
@@ -44,7 +45,7 @@ go_proto_library(
     ],
 )
 
-go_binary(
+lightstep_go_binary(
 	name = "mock_satellite",
 	srcs = [
 		"main.go",
@@ -79,6 +80,20 @@ lightstep_cc_library(
     ],
     data = [
         ":mock_satellite",
+    ],
+)
+
+lightstep_portable_cc_binary(
+    name = "mock_satellite_query",
+    srcs = [
+        "mock_satellite_query.cpp",
+    ],
+    deps = [
+        "//test:http_connection_lib",
+        ":mock_satellite_proto_cc",
+    ],
+    external_deps = [
+      "@com_github_gflags_gflags//:gflags",
     ],
 )
 

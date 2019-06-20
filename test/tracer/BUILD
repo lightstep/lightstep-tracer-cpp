@@ -2,6 +2,7 @@ load(
     "//bazel:lightstep_build_system.bzl",
     "lightstep_catch_test",
     "lightstep_cc_test",
+    "lightstep_portable_cc_binary",
     "lightstep_cc_library",
     "lightstep_package",
 )
@@ -31,43 +32,28 @@ lightstep_catch_test(
     ],
 )
 
-lightstep_cc_library(
-    name = "in_memory_collector_lib",
-    private_hdrs = [
-        "in_memory_collector.h",
-    ],
-    srcs = [
-        "in_memory_collector.cpp",
-    ],
-    deps = [
-        "//src/recorder/grpc_transporter:collector_proto_grpc",
-    ],
-)
-
-cc_binary(
-    name = "lightstep_plugin.so",
-    linkshared = 1,
-    linkopts = [
-        "-Wl,--version-script=$(location :tracer-export-map.ld)",
-    ],
-    deps = [
-        ":tracer-export-map.ld",
-        "//:tracer_lib",
-    ],
-)
-
 lightstep_catch_test(
     name = "dynamic_load_test",
     srcs = [
         "dynamic_load_test.cpp",
     ],
     data = [
-        ":lightstep_plugin.so",
+        "//:liblightstep_tracer_plugin.so",
     ],
     deps = [
         "//test/mock_satellite:mock_satellite_lib",
         "//test:ports_lib",
         "//test:utility_lib",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_portable_cc_binary(
+    name = "span_probe",
+    srcs = [
+        "span_probe.cpp",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",

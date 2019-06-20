@@ -70,3 +70,13 @@ lightstep_catch_test(
         ":in_memory_sync_transporter_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "fork_aware_recorder_test",
+    srcs = [
+        "fork_aware_recorder_test.cpp",
+    ],
+    deps = [
+        "//src/recorder:fork_aware_recorder_lib",
+    ],
+)

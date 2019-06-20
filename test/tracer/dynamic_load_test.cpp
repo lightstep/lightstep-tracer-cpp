@@ -7,14 +7,14 @@
 #include "test/utility.h"
 
 #include "3rd_party/catch2/catch.hpp"
-
 using namespace lightstep;
 
 TEST_CASE("dynamic_load") {
   std::string error_message;
 
   auto handle_maybe = opentracing::DynamicallyLoadTracingLibrary(
-      "test/tracer/lightstep_plugin.so", error_message);
+      "./liblightstep_tracer_plugin.so", error_message);
+  INFO(error_message);
   REQUIRE(error_message.empty());
   REQUIRE(handle_maybe);
   auto& tracer_factory = handle_maybe->tracer_factory();
@@ -26,6 +26,7 @@ TEST_CASE("dynamic_load") {
     ]
     )";
     auto tracer_maybe = tracer_factory.MakeTracer(config, error_message);
+    INFO(error_message);
     CHECK(!error_message.empty());
     CHECK(!tracer_maybe);
   }

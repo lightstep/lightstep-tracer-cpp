@@ -1,6 +1,7 @@
 version: 2
 jobs:
   cmake_no_grpc:
+    resource_class: xlarge
     docker:
       - image: ubuntu:18.04
     steps:
@@ -14,6 +15,7 @@ jobs:
           destination: Test.log
 
   cmake_with_grpc:
+    resource_class: xlarge
     docker:
       - image: ubuntu:18.04
     steps:
@@ -27,34 +29,53 @@ jobs:
       - store_artifacts:
           path: /build/Testing/Temporary/LastTest.log
           destination: Test.log
-  asan:
+
+  test:
+    resource_class: xlarge
     docker:
       - image: ubuntu:18.04
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_bazel.sh
+      - run: ./ci/do_ci.sh bazel.test
+
+  asan:
+    resource_class: xlarge
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_clang.sh
       - run: ./ci/install_bazel.sh
       - run: ./ci/do_ci.sh bazel.asan
 
   tsan:
+    resource_class: xlarge
     docker:
       - image: ubuntu:18.04
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_clang.sh
       - run: ./ci/install_bazel.sh
       - run: ./ci/do_ci.sh bazel.tsan
 
   release:
+    resource_class: xlarge
     docker:
       - image: ubuntu:18.04
     steps:
       - run: apt-get -qq update; apt-get -y install git ssh
       - checkout
       - run: ./ci/setup_build_environment.sh
+      - attach_workspace:
+          at: /plugin
       - run: ./ci/do_ci.sh release
 
   benchmark:
+    resource_class: xlarge
     docker:
       - image: ubuntu:18.04
     steps:
@@ -67,6 +88,7 @@ jobs:
           desination: benchmark
 
   clang_tidy:
+    resource_class: xlarge
     docker:
       - image: ubuntu:18.04
     steps:
@@ -85,17 +107,47 @@ jobs:
           destination: /clang-tidy-errors.txt
 
   build_plugin:
+    resource_class: xlarge
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - run: apt-get -qq update; apt-get -y install git ssh
+      - checkout
+      - run: ./ci/setup_build_environment.sh
+      - run: ./ci/install_bazel.sh
+      - run: ./ci/do_ci.sh plugin
+      - store_artifacts:
+          path: /plugin
+          destination: plugin
+      - persist_to_workspace:
+          root: /plugin
+          paths:
+            - "*"
+
+  plugin_test:
+    resource_class: xlarge
     docker:
       - image: ubuntu:18.04
     steps:
       - checkout
       - run: ./ci/setup_build_environment.sh
-      - run: ./ci/do_ci.sh plugin
-      - store_artifacts:
-          path: /liblightstep_tracer_plugin.so
-          destination: liblightstep_tracer_plugin.so
+      - attach_workspace:
+          at: /plugin
+      - run: ./ci/do_ci.sh plugin.test
+
+  python_wheel_test:
+    resource_class: xlarge
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: apt-get -qq update; apt-get -y install python3 python3-pip
+      - attach_workspace:
+          at: /plugin
+      - run: ./ci/do_ci.sh python.wheel.test
 
   coverage:
+    resource_class: xlarge
     docker:
       - image: ubuntu:18.04
     steps:
@@ -109,19 +161,36 @@ jobs:
 
 workflows:
   version: 2
-  build_test_and_deploy:
+  build_and_test:
     jobs:
-      - release:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v[0-9]+(\.[0-9]+)*$/
       - cmake_no_grpc
       - cmake_with_grpc
+      - test
       - asan
       - tsan
       - benchmark
       - coverage
       - build_plugin
       - clang_tidy
+      - plugin_test:
+          requires: 
+            - build_plugin
+      - python_wheel_test:
+          requires: 
+            - build_plugin
+  deploy:
+    jobs:
+      - build_plugin:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+      - release:
+          requires:
+            - build_plugin
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/

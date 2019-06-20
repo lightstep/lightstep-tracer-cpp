@@ -1,7 +1,25 @@
 workspace(name = "com_lightstep_tracer_cpp")
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# In order to statically link in the standard c++ library to produce portable binaries, we need
+# to wrap the compiler command to work around
+# See https://github.com/bazelbuild/bazel/issues/4644
+load("//bazel:cc_configure.bzl", "cc_configure")
+cc_configure()
+
+git_repository(
+    name = "rules_foreign_cc",
+    remote = "https://github.com/bazelbuild/rules_foreign_cc",
+    commit = "bf99a0bf0080bcd50431aa7124ef23e5afd58325",
+)
+
+load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
+
+rules_foreign_cc_dependencies([
+])
 
 git_repository(
     name = "io_opentracing_cpp",
@@ -62,6 +80,33 @@ load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 grpc_deps()
 
 #######################################
+# Python bridge
+#######################################
+
+git_repository(
+    name = "com_github_lightstep_python_bridge_tracer",
+    remote = "https://github.com/lightstep/python-bridge-tracer.git",
+    commit = "4b80161ddb0d35b97e7a6d37bb61c11f64a53cbc",
+) 
+
+http_archive(
+    name = "com_github_python_cpython",
+    build_file = "@com_github_lightstep_python_bridge_tracer//bazel:cpython.BUILD",
+    strip_prefix = "cpython-3.7.3",
+    urls = [
+        "https://github.com/python/cpython/archive/v3.7.3.tar.gz",
+    ],
+)
+
+
+new_git_repository(
+    name = "vendored_pyconfig",
+    remote = "https://github.com/rnburn/python-bridge-tracer.git",
+    commit = "9c14ba0add5db148f5736a60b15e96b7afc3ba19",
+    build_file = "@com_github_lightstep_python_bridge_tracer//bazel:vendored_pyconfig.BUILD",
+) 
+
+#######################################
 # Testing dependencies
 #######################################
 
@@ -69,6 +114,13 @@ git_repository(
     name = "com_google_benchmark",
     commit = "e776aa0275e293707b6a0901e0e8d8a8a3679508",
     remote = "https://github.com/google/benchmark",
+)
+
+git_repository(
+        name   = "com_github_gflags_gflags",
+        #tag    = "v2.2.2",
+        commit = "e171aa2d15ed9eb17054558e0b3a6a413bb01067",
+        remote = "https://github.com/gflags/gflags.git"
 )
 
 http_archive(
@@ -102,3 +154,23 @@ go_repository(
     tag = "v1.3.0",
 )
 
+# Only needed for PIP support:
+git_repository(
+    name = "io_bazel_rules_python",
+    remote = "https://github.com/bazelbuild/rules_python.git",
+    commit = "965d4b4a63e6462204ae671d7c3f02b25da37941",
+)
+
+load("@io_bazel_rules_python//python:pip.bzl", "pip_repositories")
+
+pip_repositories()
+
+load("@io_bazel_rules_python//python:pip.bzl", "pip_import")
+
+pip_import(
+    name = "python_pip_deps",
+    requirements = "//bridge/python:requirements.txt",
+)
+
+load("@python_pip_deps//:requirements.bzl", "pip_install")
+pip_install()
