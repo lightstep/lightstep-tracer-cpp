@@ -132,23 +132,6 @@ jobs:
           at: /plugin
       - run: ./ci/do_ci.sh plugin.test
 
-  build_python_wheel:
-    resource_class: xlarge
-    docker:
-      - image: ubuntu:18.04
-    steps:
-      - checkout
-      - run: ./ci/setup_build_environment.sh
-      - run: ./ci/install_bazel.sh
-      - run: ./ci/do_ci.sh python.wheel
-      - store_artifacts:
-          path: /wheel
-          destination: wheel
-      - persist_to_workspace:
-          root: /wheel
-          paths:
-            - "*"
-
   python_wheel_test:
     resource_class: xlarge
     docker:
@@ -158,8 +141,6 @@ jobs:
       - run: apt-get -qq update; apt-get -y install python3 python3-pip
       - attach_workspace:
           at: /plugin
-      - attach_workspace:
-          at: /wheel
       - run: ./ci/do_ci.sh python.wheel.test
 
   coverage:
@@ -193,7 +174,6 @@ workflows:
       - benchmark
       - coverage
       - build_plugin
-      - build_python_wheel
       - clang_tidy
       - plugin_test:
           requires: 
@@ -201,4 +181,3 @@ workflows:
       - python_wheel_test:
           requires: 
             - build_plugin
-            - build_python_wheel
