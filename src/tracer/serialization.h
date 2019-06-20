@@ -26,9 +26,16 @@ void WriteSpanReference(google::protobuf::io::CodedOutputStream& stream,
 void WriteDuration(google::protobuf::io::CodedOutputStream& stream,
                    std::chrono::steady_clock::duration duration);
 
-template <class Iterator>
+void WriteLog(
+    google::protobuf::io::CodedOutputStream& stream,
+    opentracing::SystemTime timestamp,
+    const std::pair<opentracing::string_view, opentracing::Value>* first,
+    const std::pair<opentracing::string_view, opentracing::Value>* last);
+
 void WriteLog(google::protobuf::io::CodedOutputStream& stream,
-              opentracing::SystemTime timestamp, Iterator first, Iterator last);
+              opentracing::SystemTime timestamp,
+              const std::pair<std::string, opentracing::Value>* first,
+              const std::pair<std::string, opentracing::Value>* last);
 
 void WriteSpanContext(
     google::protobuf::io::CodedOutputStream& stream, uint64_t trace_id,

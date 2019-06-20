@@ -1,7 +1,11 @@
 #include "tracer/serialization.h"
 
+#include <iterator>
+
 #include "common/serialization.h"
 #include "common/utility.h"
+
+#include <alloca.h>
 
 const size_t SpanContextField = 1;
 const size_t OperationNameField = 2;
@@ -9,6 +13,7 @@ const size_t SpanReferenceField = 3;
 const size_t StartTimestampField = 4;
 const size_t DurationField = 5;
 const size_t TagsField = 6;
+const size_t LogsField = 7;
 
 const size_t SpanContextTraceIdField = 1;
 const size_t SpanContextSpanIdField = 2;
@@ -19,6 +24,9 @@ const size_t SpanReferenceSpanContextField = 2;
 
 const size_t MapEntryKeyField = 1;
 const size_t MapEntryValueField = 2;
+
+const size_t LogTimestampField = 1;
+const size_t LogFieldsField = 2;
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -66,6 +74,59 @@ static void WriteSpanContext(
                                                 baggage_serialization_size);
     SerializeString<MapEntryKeyField>(stream, baggage_item.first);
     SerializeString<MapEntryValueField>(stream, baggage_item.second);
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+// WriteLogImpl
+//--------------------------------------------------------------------------------------------------
+template <class Iterator>
+static void WriteLogImpl(google::protobuf::io::CodedOutputStream& stream,
+                         opentracing::SystemTime timestamp, Iterator first,
+                         Iterator last) {
+  auto num_key_values = std::distance(first, last);
+
+  size_t* field_serialization_sizes =
+      static_cast<size_t*>(alloca(num_key_values * sizeof(size_t)));
+  std::vector<std::string> json_values;
+  std::string json;
+  int json_counter = 0;
+
+  uint64_t seconds_since_epoch;
+  uint32_t nano_fraction;
+  std::tie(seconds_since_epoch, nano_fraction) =
+      ProtobufFormatTimestamp(timestamp);
+  auto timestamp_serialization_size =
+      ComputeTimestampSerializationSize(seconds_since_epoch, nano_fraction);
+
+  size_t serialization_size =
+      ComputeLengthDelimitedSerializationSize<LogTimestampField>(
+          timestamp_serialization_size);
+
+  int field_index = 0;
+  for (auto iter = first; iter != last; ++iter) {
+    auto field_serialization_size = ComputeKeyValueSerializationSize(
+        iter->first, iter->second, json, json_counter);
+    if (static_cast<size_t>(json_counter) > json_values.size()) {
+      json_values.emplace_back(std::move(json));
+    }
+    field_serialization_sizes[field_index] = field_serialization_size;
+    serialization_size +=
+        ComputeLengthDelimitedSerializationSize<LogFieldsField>(
+            field_serialization_size);
+    ++field_index;
+  }
+
+  SerializeKeyLength<LogsField>(stream, serialization_size);
+  SerializeTimestamp<LogTimestampField>(stream, timestamp_serialization_size,
+                                        seconds_since_epoch, nano_fraction);
+  field_index = 0;
+  json_counter = 0;
+  for (auto iter = first; iter != last; ++iter) {
+    SerializeKeyValue<LogFieldsField>(
+        stream, field_serialization_sizes[field_index], iter->first,
+        iter->second, json_values.data(), json_counter);
+    ++field_index;
   }
 }
 
@@ -129,14 +190,19 @@ void WriteDuration(google::protobuf::io::CodedOutputStream& stream,
 //--------------------------------------------------------------------------------------------------
 // WriteLog
 //--------------------------------------------------------------------------------------------------
-template <class Iterator>
+void WriteLog(
+    google::protobuf::io::CodedOutputStream& stream,
+    opentracing::SystemTime timestamp,
+    const std::pair<opentracing::string_view, opentracing::Value>* first,
+    const std::pair<opentracing::string_view, opentracing::Value>* last) {
+  WriteLogImpl(stream, timestamp, first, last);
+}
+
 void WriteLog(google::protobuf::io::CodedOutputStream& stream,
-              opentracing::SystemTime timestamp, Iterator first,
-              Iterator last) {
-  (void)stream;
-  (void)timestamp;
-  (void)first;
-  (void)last;
+              opentracing::SystemTime timestamp,
+              const std::pair<std::string, opentracing::Value>* first,
+              const std::pair<std::string, opentracing::Value>* last) {
+  WriteLogImpl(stream, timestamp, first, last);
 }
 
 //--------------------------------------------------------------------------------------------------

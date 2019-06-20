@@ -84,25 +84,33 @@ void SerializeString(google::protobuf::io::CodedOutputStream& stream,
   stream.WriteRaw(static_cast<const void*>(s.data()), s.size());
 }
 
+size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
+                                         uint32_t nano_fraction) noexcept;
+
+void SerializeTimestampImpl(google::protobuf::io::CodedOutputStream& stream,
+                            uint64_t seconds_since_epoch,
+                            uint32_t nano_fraction) noexcept;
+
+template <size_t FieldNumber>
+void SerializeTimestamp(google::protobuf::io::CodedOutputStream& stream,
+                        size_t serialization_size, uint64_t seconds_since_epoch,
+                        uint32_t nano_fraction) noexcept {
+  SerializeKeyLength<FieldNumber>(stream, serialization_size);
+  SerializeTimestampImpl(stream, seconds_since_epoch, nano_fraction);
+}
+
 template <size_t FieldNumber>
 void SerializeTimestamp(
     google::protobuf::io::CodedOutputStream& stream,
     std::chrono::system_clock::time_point timestamp) noexcept {
-  // See
-  // https://github.com/protocolbuffers/protobuf/blob/8489612dadd3775ffbba029a583b6f00e91d0547/src/google/protobuf/timestamp.proto
-  static const size_t SecondsSinceEpochField = 1;
-  static const size_t NanoFractionField = 2;
   uint64_t seconds_since_epoch;
   uint32_t nano_fraction;
   std::tie(seconds_since_epoch, nano_fraction) =
       ProtobufFormatTimestamp(timestamp);
   auto serialization_size =
-      ComputeVarintSerializationSize<SecondsSinceEpochField>(
-          seconds_since_epoch) +
-      ComputeVarintSerializationSize<NanoFractionField>(nano_fraction);
-  SerializeKeyLength<FieldNumber>(stream, serialization_size);
-  SerializeVarint<SecondsSinceEpochField>(stream, seconds_since_epoch);
-  SerializeVarint<NanoFractionField>(stream, nano_fraction);
+      ComputeTimestampSerializationSize(seconds_since_epoch, nano_fraction);
+  SerializeTimestamp<FieldNumber>(stream, serialization_size,
+                                  seconds_since_epoch, nano_fraction);
 }
 
 size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
@@ -112,16 +120,15 @@ size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
 void SerializeKeyValueImpl(google::protobuf::io::CodedOutputStream& stream,
                            opentracing::string_view key,
                            const opentracing::Value& value,
-                           const std::string& json, int& json_counter);
+                           const std::string* json_values, int& json_counter);
 
 template <size_t FieldNumber>
 void SerializeKeyValue(google::protobuf::io::CodedOutputStream& stream,
-                       opentracing::string_view key,
+                       size_t serialization_size, opentracing::string_view key,
                        const opentracing::Value& value,
-                       size_t serialization_size, const std::string& json,
-                       int& json_counter) {
+                       const std::string* json_values, int& json_counter) {
   SerializeKeyLength<FieldNumber>(stream, serialization_size);
-  SerializeKeyValueImpl(stream, key, value, json, json_counter);
+  SerializeKeyValueImpl(stream, key, value, json_values, json_counter);
 }
 
 template <size_t FieldNumber>
@@ -132,7 +139,8 @@ void SerializeKeyValue(google::protobuf::io::CodedOutputStream& stream,
   int json_counter = 0;
   auto serialization_size =
       ComputeKeyValueSerializationSize(key, value, json, json_counter);
-  SerializeKeyValue<FieldNumber>(stream, key, value, serialization_size, json,
+  json_counter = 0;
+  SerializeKeyValue<FieldNumber>(stream, serialization_size, key, value, &json,
                                  json_counter);
 }
 }  // namespace lightstep

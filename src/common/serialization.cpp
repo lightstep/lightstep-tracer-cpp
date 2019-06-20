@@ -7,6 +7,11 @@ const size_t KeyValueDoubleValueField = 4;
 const size_t KeyValueBoolValueField = 5;
 const size_t KeyValueJsonValueField = 6;
 
+// See
+// https://github.com/protocolbuffers/protobuf/blob/8489612dadd3775ffbba029a583b6f00e91d0547/src/google/protobuf/timestamp.proto
+static const size_t TimestampSecondsSinceEpochField = 1;
+static const size_t TimestampNanoFractionField = 2;
+
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // SerializationSizeValueVisitor
@@ -75,7 +80,7 @@ struct SerializationSizeValueVisitor {
 namespace {
 struct SerializationValueVisitor {
   google::protobuf::io::CodedOutputStream& stream;
-  const std::string& json;
+  const std::string* json_values;
   int& json_counter;
 
   void operator()(bool value) const {
@@ -119,8 +124,8 @@ struct SerializationValueVisitor {
   }
 
   void do_json() const {
+    SerializeString<KeyValueJsonValueField>(stream, json_values[json_counter]);
     ++json_counter;
-    SerializeString<KeyValueJsonValueField>(stream, json);
   }
 };
 }  // namespace
@@ -145,9 +150,30 @@ size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
 void SerializeKeyValueImpl(google::protobuf::io::CodedOutputStream& stream,
                            opentracing::string_view key,
                            const opentracing::Value& value,
-                           const std::string& json, int& json_counter) {
+                           const std::string* json_values, int& json_counter) {
   SerializeString<KeyValueKeyField>(stream, key);
-  SerializationValueVisitor value_visitor{stream, json, json_counter};
+  SerializationValueVisitor value_visitor{stream, json_values, json_counter};
   apply_visitor(value_visitor, value);
+}
+
+//--------------------------------------------------------------------------------------------------
+// ComputeTimestampSerializationSize
+//--------------------------------------------------------------------------------------------------
+size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
+                                         uint32_t nano_fraction) noexcept {
+  return ComputeVarintSerializationSize<TimestampSecondsSinceEpochField>(
+             seconds_since_epoch) +
+         ComputeVarintSerializationSize<TimestampNanoFractionField>(
+             nano_fraction);
+}
+
+//--------------------------------------------------------------------------------------------------
+// SerializeTimestampImpl
+//--------------------------------------------------------------------------------------------------
+void SerializeTimestampImpl(google::protobuf::io::CodedOutputStream& stream,
+                            uint64_t seconds_since_epoch,
+                            uint32_t nano_fraction) noexcept {
+  SerializeVarint<TimestampSecondsSinceEpochField>(stream, seconds_since_epoch);
+  SerializeVarint<TimestampNanoFractionField>(stream, nano_fraction);
 }
 }  // namespace lightstep

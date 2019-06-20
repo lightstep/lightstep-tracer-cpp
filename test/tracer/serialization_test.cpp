@@ -39,7 +39,7 @@ TEST_CASE("Serialization") {
     REQUIRE(span.operation_name() == "abc123");
   }
 
-  SECTION("We can attach tags to the span") {
+  SECTION("We can attach tags to a span") {
     WriteTag(coded_stream, "abc", 123);
     finalize();
     REQUIRE(span.tags().size() == 1);
@@ -100,5 +100,19 @@ TEST_CASE("Serialization") {
             collector::Reference_Relationship_FOLLOWS_FROM);
     REQUIRE(references[1].span_context().trace_id() == 789);
     REQUIRE(references[1].span_context().span_id() == 101112);
+  }
+
+  SECTION("We can attach logs to the a span") {
+    auto now = std::chrono::system_clock::now();
+    std::vector<std::pair<std::string, opentracing::Value>> fields = {
+        {"abc", 123},
+        {"json1", opentracing::Values{1, 2, 3}},
+        {"json2", opentracing::Dictionary{{"abc", 123}}}};
+    WriteLog(coded_stream, now, fields.data(), fields.data() + fields.size());
+    finalize();
+    auto expected_log = ToLog(now, fields.begin(), fields.end());
+    REQUIRE(span.logs().size() == 1);
+    REQUIRE(google::protobuf::util::MessageDifferencer::Equals(span.logs()[0],
+                                                               expected_log));
   }
 }

@@ -50,6 +50,20 @@ std::string ToJson(const opentracing::Value& value);
 collector::KeyValue ToKeyValue(opentracing::string_view key,
                                const opentracing::Value& value);
 
+template <class Iterator>
+collector::Log ToLog(std::chrono::system_clock::time_point timestamp,
+                     Iterator field_first, Iterator field_last) {
+  collector::Log result;
+  *result.mutable_timestamp() = ToTimestamp(timestamp);
+  auto& key_values = *result.mutable_fields();
+  key_values.Reserve(static_cast<int>(std::distance(field_first, field_last)));
+  for (Iterator field_iter = field_first; field_iter != field_last;
+       ++field_iter) {
+    *key_values.Add() = ToKeyValue(field_iter->first, field_iter->second);
+  }
+  return result;
+}
+
 // Logs any information returned by the collector.
 void LogReportResponse(Logger& logger, bool verbose,
                        const collector::ReportResponse& response);
