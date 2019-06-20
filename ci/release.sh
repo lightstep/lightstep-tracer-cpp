@@ -12,7 +12,7 @@ wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd
 unzip ghr_v0.5.4_linux_amd64.zip
 
 # Create packaged plugins
-gzip -c /liblightstep_tracer_plugin.so > /linux-amd64-liblightstep_tracer_plugin.so.gz
+gzip -c /plugin/liblightstep_tracer_plugin.so > /linux-amd64-liblightstep_tracer_plugin.so.gz
 
 # Create release
 cd "${SRC_DIR}"

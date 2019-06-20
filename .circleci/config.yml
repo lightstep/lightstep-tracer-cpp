@@ -70,6 +70,8 @@ jobs:
       - run: apt-get -qq update; apt-get -y install git ssh
       - checkout
       - run: ./ci/setup_build_environment.sh
+      - attach_workspace:
+          at: /plugin
       - run: ./ci/do_ci.sh release
 
   benchmark:
@@ -109,6 +111,7 @@ jobs:
     docker:
       - image: ubuntu:18.04
     steps:
+      - run: apt-get -qq update; apt-get -y install git ssh
       - checkout
       - run: ./ci/setup_build_environment.sh
       - run: ./ci/install_bazel.sh
@@ -158,14 +161,8 @@ jobs:
 
 workflows:
   version: 2
-  build_test_and_deploy:
+  build_and_test:
     jobs:
-      - release:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v[0-9]+(\.[0-9]+)*$/
       - cmake_no_grpc
       - cmake_with_grpc
       - test
@@ -181,3 +178,19 @@ workflows:
       - python_wheel_test:
           requires: 
             - build_plugin
+  deploy:
+    jobs:
+      - build_plugin:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+      - release:
+          requires:
+            - build_plugin
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/

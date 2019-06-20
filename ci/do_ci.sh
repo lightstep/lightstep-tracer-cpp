@@ -150,7 +150,6 @@ elif [[ "$1" == "python.wheel.test" ]]; then
   [[ "$NUM_SPANS" -eq "1" ]] || exit 1
   exit 0
 elif [[ "$1" == "release" ]]; then
-  "${SRC_DIR}"/ci/build_plugin.sh
   "${SRC_DIR}"/ci/release.sh
   exit 0
 fi
