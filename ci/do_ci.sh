@@ -140,7 +140,7 @@ elif [[ "$1" == "plugin.test" ]]; then
   [[ "$NUM_SPANS" -eq "1" ]] || exit 1
   exit 0
 elif [[ "$1" == "python.wheel.test" ]]; then
-  python3 -m pip install /wheel/*.whl
+  python3 -m pip install /plugin/*.whl
   MOCK_SATELLITE_PORT=5000
   /plugin/mock_satellite $MOCK_SATELLITE_PORT &
   MOCK_SATELLITE_PID=$!
