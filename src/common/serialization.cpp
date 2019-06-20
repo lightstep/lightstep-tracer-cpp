@@ -63,7 +63,8 @@ struct SerializationSizeValueVisitor {
   void do_json() const {
     json = ToJson(original_value);
     ++json_counter;
-    result += ComputeLengthDelimitedSerializationSize<KeyValueJsonValueField>(json.size());
+    result += ComputeLengthDelimitedSerializationSize<KeyValueJsonValueField>(
+        json.size());
   }
 };
 }  // namespace
@@ -77,16 +78,19 @@ struct SerializationValueVisitor {
   const std::string& json;
   int& json_counter;
 
-  void operator()(bool value) const { 
-    SerializeVarint<KeyValueBoolValueField>(stream, static_cast<uint32_t>(value));
+  void operator()(bool value) const {
+    SerializeVarint<KeyValueBoolValueField>(stream,
+                                            static_cast<uint32_t>(value));
   }
 
   void operator()(double value) const {
-    SerializeFixed64<KeyValueDoubleValueField>(stream, static_cast<void*>(&value));
+    SerializeFixed64<KeyValueDoubleValueField>(stream,
+                                               static_cast<void*>(&value));
   }
 
-  void operator()(int64_t value) const { 
-    SerializeVarint<KeyValueIntValueField>(stream, static_cast<uint64_t>(value));
+  void operator()(int64_t value) const {
+    SerializeVarint<KeyValueIntValueField>(stream,
+                                           static_cast<uint64_t>(value));
   }
 
   void operator()(uint64_t value) const {
@@ -94,7 +98,7 @@ struct SerializationValueVisitor {
     this->operator()(static_cast<int64_t>(value));
   }
 
-  void operator()(opentracing::string_view s) const { 
+  void operator()(opentracing::string_view s) const {
     SerializeString<KeyValueStringValueField>(stream, s);
   }
 
@@ -146,4 +150,4 @@ void SerializeKeyValueImpl(google::protobuf::io::CodedOutputStream& stream,
   SerializationValueVisitor value_visitor{stream, json, json_counter};
   apply_visitor(value_visitor, value);
 }
-} // namespace lightstep
+}  // namespace lightstep

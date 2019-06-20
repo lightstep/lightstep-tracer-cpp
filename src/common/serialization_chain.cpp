@@ -6,9 +6,7 @@ static const char* LineTerminator = "\r\n";
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-SerializationChain::SerializationChain() noexcept 
-  : current_block_{&head_}
-{}
+SerializationChain::SerializationChain() noexcept : current_block_{&head_} {}
 
 //--------------------------------------------------------------------------------------------------
 // AddChunkFraming
@@ -63,7 +61,8 @@ int SerializationChain::num_fragments() const noexcept {
   if (num_bytes_written_ == 0) {
     return 0;
   }
-  return num_blocks_ + 2 - fragment_index_; }
+  return num_blocks_ + 2 - fragment_index_;
+}
 
 //--------------------------------------------------------------------------------------------------
 // ForEachFragment
@@ -90,14 +89,16 @@ bool SerializationChain::ForEachFragment(Callback callback) const noexcept {
   if (fragment_index_ > 0 && fragment_index_ <= num_blocks_) {
     auto block_size = block->size;
     assert(block_size >= fragment_position_);
-    if (!callback(static_cast<void*>(const_cast<char*>(block->data.data()) + fragment_position_),
-          block_size - fragment_position_)) {
+    if (!callback(static_cast<void*>(const_cast<char*>(block->data.data()) +
+                                     fragment_position_),
+                  block_size - fragment_position_)) {
       return false;
     }
     block = block->next.get();
   }
   while (block != nullptr) {
-    if (!callback(static_cast<void*>(const_cast<char*>(block->data.data())), block->size)) {
+    if (!callback(static_cast<void*>(const_cast<char*>(block->data.data())),
+                  block->size)) {
       return false;
     }
     block = block->next.get();
@@ -107,8 +108,8 @@ bool SerializationChain::ForEachFragment(Callback callback) const noexcept {
   if (fragment_index_ == num_blocks_ + 1) {
     assert(fragment_position_ < 2);
     return callback(static_cast<void*>(const_cast<char*>(LineTerminator) +
-                                fragment_position_),
-             2 - fragment_position_);
+                                       fragment_position_),
+                    2 - fragment_position_);
   }
   return callback(static_cast<void*>(const_cast<char*>(LineTerminator)), 2);
 }
@@ -141,7 +142,7 @@ void SerializationChain::Seek(int fragment_index, int position) noexcept {
 
   int prev_block_index = std::max(prev_fragment_index - 1, 0);
   int block_index = fragment_index_ - 1;
-  for (int i=prev_block_index; i<block_index; ++i) {
+  for (int i = prev_block_index; i < block_index; ++i) {
     current_block_ = current_block_->next.get();
   }
   fragment_position_ = position;

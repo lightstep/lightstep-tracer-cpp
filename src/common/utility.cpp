@@ -23,7 +23,9 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 std::tuple<uint64_t, uint32_t> ProtobufFormatTimestamp(
     const std::chrono::system_clock::time_point& t) {
-  auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(t.time_since_epoch()).count();
+  auto nanos =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(t.time_since_epoch())
+          .count();
   google::protobuf::Timestamp ts;
   const uint64_t nanosPerSec = 1000000000;
   return {static_cast<uint64_t>(nanos / nanosPerSec),

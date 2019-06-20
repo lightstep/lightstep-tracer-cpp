@@ -1,13 +1,13 @@
 #pragma once
 
-#include <vector>
 #include <string>
 #include <utility>
+#include <vector>
 
-#include <opentracing/string_view.h>
-#include <opentracing/span.h>
-#include <opentracing/propagation.h>
 #include <google/protobuf/io/coded_stream.h>
+#include <opentracing/propagation.h>
+#include <opentracing/span.h>
+#include <opentracing/string_view.h>
 
 namespace lightstep {
 void WriteOperationName(google::protobuf::io::CodedOutputStream& stream,

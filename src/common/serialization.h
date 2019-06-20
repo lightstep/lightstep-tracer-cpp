@@ -9,11 +9,7 @@
 namespace lightstep {
 // See https://developers.google.com/protocol-buffers/docs/encoding#structure
 // Only lists the ones we use
-enum class WireType {
-  Varint = 0,
-  Fixed64 = 1,
-  LengthDelimited = 2
-};
+enum class WireType { Varint = 0, Fixed64 = 1, LengthDelimited = 2 };
 
 template <size_t FieldNumber, WireType WireTypeValue>
 struct StaticSerializationKey {
@@ -89,9 +85,11 @@ void SerializeString(google::protobuf::io::CodedOutputStream& stream,
 }
 
 template <size_t FieldNumber>
-void SerializeTimestamp(google::protobuf::io::CodedOutputStream& stream,
+void SerializeTimestamp(
+    google::protobuf::io::CodedOutputStream& stream,
     std::chrono::system_clock::time_point timestamp) noexcept {
-  // See https://github.com/protocolbuffers/protobuf/blob/8489612dadd3775ffbba029a583b6f00e91d0547/src/google/protobuf/timestamp.proto
+  // See
+  // https://github.com/protocolbuffers/protobuf/blob/8489612dadd3775ffbba029a583b6f00e91d0547/src/google/protobuf/timestamp.proto
   static const size_t SecondsSinceEpochField = 1;
   static const size_t NanoFractionField = 2;
   uint64_t seconds_since_epoch;
@@ -99,7 +97,8 @@ void SerializeTimestamp(google::protobuf::io::CodedOutputStream& stream,
   std::tie(seconds_since_epoch, nano_fraction) =
       ProtobufFormatTimestamp(timestamp);
   auto serialization_size =
-      ComputeVarintSerializationSize<SecondsSinceEpochField>(seconds_since_epoch) +
+      ComputeVarintSerializationSize<SecondsSinceEpochField>(
+          seconds_since_epoch) +
       ComputeVarintSerializationSize<NanoFractionField>(nano_fraction);
   SerializeKeyLength<FieldNumber>(stream, serialization_size);
   SerializeVarint<SecondsSinceEpochField>(stream, seconds_since_epoch);
@@ -107,8 +106,8 @@ void SerializeTimestamp(google::protobuf::io::CodedOutputStream& stream,
 }
 
 size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
-                                 const opentracing::Value& value,
-                                 std::string& json, int& json_counter);
+                                        const opentracing::Value& value,
+                                        std::string& json, int& json_counter);
 
 void SerializeKeyValueImpl(google::protobuf::io::CodedOutputStream& stream,
                            opentracing::string_view key,
@@ -136,4 +135,4 @@ void SerializeKeyValue(google::protobuf::io::CodedOutputStream& stream,
   SerializeKeyValue<FieldNumber>(stream, key, value, serialization_size, json,
                                  json_counter);
 }
-} // namespace lightstep
+}  // namespace lightstep

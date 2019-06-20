@@ -1,7 +1,7 @@
 #include "common/serialization_chain.h"
 
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 
 #include "test/utility.h"
 
@@ -31,7 +31,7 @@ TEST_CASE("SerializationChain") {
   }
 
   SECTION("We can write strings larger than a single block.") {
-    std::string s(SerializationChain::BlockSize+1, 'X');
+    std::string s(SerializationChain::BlockSize + 1, 'X');
     stream->WriteString(s);
     stream.reset();
     chain.AddChunkFraming();
@@ -42,7 +42,7 @@ TEST_CASE("SerializationChain") {
   }
 
   SECTION("We can seek to any byte in the fragment stream.") {
-    std::string s(SerializationChain::BlockSize+2, 'X');
+    std::string s(SerializationChain::BlockSize + 2, 'X');
     stream->WriteString(s);
     stream.reset();
     chain.AddChunkFraming();

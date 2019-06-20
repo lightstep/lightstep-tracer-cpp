@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "common/circular_buffer.h"
-#include "lightstep/tracer.h"
 #include "common/fragment_array_input_stream.h"
+#include "lightstep/tracer.h"
 
 namespace lightstep {
 /**
