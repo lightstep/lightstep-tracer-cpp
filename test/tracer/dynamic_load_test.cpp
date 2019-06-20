@@ -36,7 +36,7 @@ TEST_CASE("dynamic_load") {
   std::string error_message;
 
   auto handle_maybe = opentracing::DynamicallyLoadTracingLibrary(
-      "liblightstep_tracer_plugin.so", error_message);
+      "./liblightstep_tracer_plugin.so", error_message);
   INFO("TEST_TEMP_DIR: " << exec("echo $TEST_TMPDIR"));
   INFO("pwd output: " << exec("pwd"));
   INFO("ls output: " << exec("ls"));
