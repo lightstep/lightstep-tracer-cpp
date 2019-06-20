@@ -149,6 +149,19 @@ jobs:
           paths:
             - "*"
 
+  python_wheel_test:
+    resource_class: xlarge
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: apt-get -qq update; apt-get -y install python3 python3-pip
+      - attach_workspace:
+          at: /plugin
+      - attach_workspace:
+          at: /wheel
+      - run: ./ci/do_ci.sh python.wheel.test
+
   coverage:
     resource_class: xlarge
     docker:
@@ -185,3 +198,7 @@ workflows:
       - plugin_test:
           requires: 
             - build_plugin
+      - python_wheel_test:
+          requires: 
+            - build_plugin
+            - build_python_wheel

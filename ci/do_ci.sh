@@ -138,6 +138,18 @@ elif [[ "$1" == "python.wheel" ]]; then
   bazel build $BAZEL_PLUGIN_OPTIONS \
               //bridge/python:wheel.tgz
   cp bazel-genfiles/bridge/python/wheel.tgz /
+  cd /
+  tar zxf wheel.tgz
+  exit 0
+elif [[ "$1" == "python.wheel.test" ]]; then
+  python3 -m pip install /wheel/*
+  MOCK_SATELLITE_PORT=5000
+  /plugin/mock_satellite $MOCK_SATELLITE_PORT &
+  MOCK_SATELLITE_PID=$!
+  python3 test/bridge/python/span_probe.py 127.0.0.1 $MOCK_SATELLITE_PORT
+  NUM_SPANS=`/plugin/mock_satellite_query --port $MOCK_SATELLITE_PORT num_spans`
+  kill $MOCK_SATELLITE_PID
+  [[ "$NUM_SPANS" -eq "1" ]] || exit 1
   exit 0
 elif [[ "$1" == "release" ]]; then
   "${SRC_DIR}"/ci/build_plugin.sh
