@@ -160,6 +160,7 @@ proto_library(
   srcs = ["test.proto"],
   deps = [
       "//lightstep-tracer-common:collector_proto",
+        "@com_google_protobuf//:timestamp_proto",
   ],
 )
 

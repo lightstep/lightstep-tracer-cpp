@@ -44,4 +44,16 @@ TEST_CASE("Serialization") {
           key_value.key_value(), expected_key_value));
     }
   }
+
+  SECTION("We can serialize timestamps") {
+    auto now = std::chrono::system_clock::now();
+    auto expected_timestamp = ToTimestamp(now);
+    SerializeTimestamp<test::TimestampTest::kTimestampFieldNumber>(coded_stream,
+                                                                   now);
+    finalize();
+    test::TimestampTest timestamp;
+    REQUIRE(timestamp.ParseFromString(oss.str()));
+    REQUIRE(google::protobuf::util::MessageDifferencer::Equals(
+        timestamp.timestamp(), expected_timestamp));
+  }
 }
