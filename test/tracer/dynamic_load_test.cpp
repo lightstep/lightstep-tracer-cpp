@@ -15,6 +15,7 @@ TEST_CASE("dynamic_load") {
 
   auto handle_maybe = opentracing::DynamicallyLoadTracingLibrary(
       "liblightstep_tracer_plugin.so", error_message);
+  INFO(error_message);
   REQUIRE(error_message.empty());
   REQUIRE(handle_maybe);
   auto& tracer_factory = handle_maybe->tracer_factory();
