@@ -119,7 +119,17 @@ jobs:
       - persist_to_workspace:
           root: /plugin
           paths:
-            - "*"
+
+  plugin_test:
+    resource_class: xlarge
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run: ./ci/setup_build_environment.sh
+      - attach_workspace:
+          at: /plugin
+      - run: ./ci/do_ci.sh plugin.test
 
   build_python_wheel:
     resource_class: xlarge
@@ -174,3 +184,6 @@ workflows:
       - build_plugin
       - build_python_wheel
       - clang_tidy
+      - plugin_test:
+          requires: 
+            - build_plugin
