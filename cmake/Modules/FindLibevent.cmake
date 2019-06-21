@@ -9,9 +9,13 @@
 # Taken from https://github.com/apache/thrift/blob/7edc8faefd391ce11eca3023a35cc54bcb2eb1af/build/cmake/FindLibevent.cmake
 # with modification.
 
-set(LIBEVENT_ROOT CACHE PATH "Root directory of libevent installation")
+# not sure why this was CACHE PREFIX before, but it wasn't working
+set(LIBEVENT_ROOT "C:/Program Files (x86)/libevent")
+
 set(LibEvent_EXTRA_PREFIXES /usr/local /opt/local "$ENV{HOME}" ${LIBEVENT_ROOT})
+
 foreach(prefix ${LibEvent_EXTRA_PREFIXES})
+  message("prefix: " ${prefix})
   list(APPEND LibEvent_INCLUDE_PATHS "${prefix}/include")
   list(APPEND LibEvent_LIBRARIES_PATHS "${prefix}/lib")
 endforeach()

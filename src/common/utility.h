@@ -9,7 +9,7 @@
 #include "common/logger.h"
 #include "lightstep-tracer-common/collector.pb.h"
 
-#include <sys/time.h>
+#include <winsock.h> // also has timeval struct with same members
 
 #include <google/protobuf/io/zero_copy_stream.h>
 

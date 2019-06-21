@@ -26,6 +26,8 @@ foreach(IMPORT_DIR ${PROTOBUF_IMPORT_DIRS})
   list(APPEND PROTOBUF_INCLUDE_FLAGS "-I${IMPORT_DIR}")
 endforeach()
 
+message("proto: ${PROTOBUF_INCLUDE_FLAGS}")
+
 add_custom_command(
   OUTPUT ${GOOGLE_API_HTTP_PB_H_FILE}
          ${GOOGLE_API_HTTP_PB_CPP_FILE}

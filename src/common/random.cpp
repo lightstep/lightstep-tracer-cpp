@@ -4,7 +4,7 @@
 
 #include "lightstep/randutils.h"
 
-#include <pthread.h>
+//#include <pthread.h>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -15,22 +15,45 @@ namespace lightstep {
 //
 // See https://stackoverflow.com/q/51882689/4447365 and
 //     https://github.com/opentracing-contrib/nginx-opentracing/issues/52
+
+
+//namespace {
+//class TlsRandomNumberGenerator {
+// public:
+//  TlsRandomNumberGenerator() { ::pthread_atfork(nullptr, nullptr, OnFork); }
+//
+//  static std::mt19937_64& engine() { return base_generator_.engine(); }
+//
+// private:
+//  static thread_local lightstep::randutils::mt19937_64_rng base_generator_;
+//
+//  static void OnFork() { base_generator_.seed(); }
+//};
+//
+//thread_local lightstep::randutils::mt19937_64_rng
+//    TlsRandomNumberGenerator::base_generator_{};
+//}  // namespace
+
+
+// Isaac's modified version of this code that doesn't worry about the 
+// possability of forking
 namespace {
 class TlsRandomNumberGenerator {
  public:
-  TlsRandomNumberGenerator() { ::pthread_atfork(nullptr, nullptr, OnFork); }
-
+  TlsRandomNumberGenerator() {}
   static std::mt19937_64& engine() { return base_generator_.engine(); }
 
  private:
   static thread_local lightstep::randutils::mt19937_64_rng base_generator_;
-
-  static void OnFork() { base_generator_.seed(); }
 };
 
 thread_local lightstep::randutils::mt19937_64_rng
     TlsRandomNumberGenerator::base_generator_{};
-}  // namespace
+
+} //namespace
+
+
+
 
 //--------------------------------------------------------------------------------------------------
 // GetRandomNumberGenerator

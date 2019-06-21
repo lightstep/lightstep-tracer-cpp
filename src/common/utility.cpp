@@ -5,7 +5,7 @@
 
 #include "lightstep-tracer-common/collector.pb.h"
 
-#include <unistd.h>
+//#include <unistd.h>
 #include <array>
 #include <cctype>
 #include <cmath>
@@ -14,8 +14,16 @@
 #include <sstream>
 #include <stdexcept>
 #include <system_error>
+#include <limits>
 
-#include <pthread.h>
+//#include <pthread.h>
+
+/*
+stuff we need to replace:
+ - suseconds_t
+ - readlink
+ - ssize_t
+*/
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -39,7 +47,7 @@ timeval ToTimeval(std::chrono::microseconds microseconds) {
   result.tv_sec =
       static_cast<time_t>(num_microseconds / microseconds_in_second);
   result.tv_usec =
-      static_cast<suseconds_t>(num_microseconds % microseconds_in_second);
+      static_cast<long>(num_microseconds % microseconds_in_second);
   return result;
 }
 
@@ -47,18 +55,24 @@ timeval ToTimeval(std::chrono::microseconds microseconds) {
 // GetProgramName
 //------------------------------------------------------------------------------
 std::string GetProgramName() {
-  constexpr int path_max = 1024;
-  std::unique_ptr<char[]> exe_path(new char[path_max]);
-  ssize_t size = ::readlink("/proc/self/exe", exe_path.get(), path_max);
-  if (size == -1) {
+  const int path_max = 1024;
+  TCHAR exe_path_char[path_max]; 
+
+  // this returns a DWORD by default
+  int size = (int) GetModuleFileName(NULL, exe_path_char, path_max);
+
+  std::string exe_path(exe_path_char);
+
+  if (size == 0) {
     return "c++-program";  // Dunno...
   }
-  std::string path(exe_path.get(), size);
-  size_t lslash = path.rfind('/');
+
+
+  size_t lslash = exe_path.rfind('/');
   if (lslash != std::string::npos) {
-    return path.substr(lslash + 1);
+    return exe_path.substr(lslash + 1);
   }
-  return path;
+  return exe_path;
 }
 
 //------------------------------------------------------------------------------
@@ -284,7 +298,15 @@ opentracing::string_view Uint64ToHex(uint64_t x, char* output) {
 //------------------------------------------------------------------------------
 // Adopted from https://stackoverflow.com/a/11068850/4447365
 opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s) {
+// get rid of windows max() macro so we can use [namespace]::max()
+#undef max 
+
+
+  std::cout << std::numeric_limits<float>::max() << std::endl;
+
   static const unsigned char nil = std::numeric_limits<unsigned char>::max();
+
+
   static const std::array<unsigned char, 256> hextable = {
       {nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
        nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,

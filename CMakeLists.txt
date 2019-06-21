@@ -91,6 +91,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 find_package(Protobuf REQUIRED)
 
+ # this is required so that when protobuf is compiled from .proto --> .cpp the 
+ # compiler will be able to find the locations of some of the common .proto files
+ # that are NOT saved in the local project
+set(PROTOBUF_IMPORT_DIRS ${PROTOBUF_INCLUDE_DIRS})
+
 if (NOT DEFINED OPENTRACING_INCLUDE_DIR)
   find_path(OPENTRACING_INCLUDE_DIR NAMES opentracing/tracer.h)
 endif()
@@ -144,6 +149,15 @@ set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
+
+message("final list of include paths:")
+
+get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
+message("inc_dirs = ${inc_dirs}")
+
+# foreach (path ${INCLUDE_DIRECTORIES})
+#	message("-- " ${path})
+# endforeach()
 
 # ==============================================================================
 # Build LightStep tracer library
