@@ -61,7 +61,7 @@ TEST_CASE("SerializationChain") {
   }
 
   SECTION("We can advance to any byte randomly") {
-    std::string s(SerializationChain::BlockSize + 2, 'X');
+    std::string s(3 * SerializationChain::BlockSize + 10, 'X');
     stream->WriteString(s);
     stream.reset();
     chain.AddChunkFraming();
