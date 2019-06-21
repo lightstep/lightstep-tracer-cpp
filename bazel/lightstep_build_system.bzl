@@ -92,8 +92,8 @@ def lightstep_cc_binary(
         data = [],
         copts = [],
         linkopts = [],
-        linkshared = False,
         testonly = 0,
+        linkshared = 0,
         visibility = None,
         external_deps = [],
         deps = []):

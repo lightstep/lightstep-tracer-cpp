@@ -150,3 +150,21 @@ lightstep_cc_library(
       "no_default_ssl_roots_pem.cpp",
     ],
 )
+
+lightstep_cc_library(
+    name = "serialization_lib",
+    private_hdrs = [
+        "serialization.h",
+    ],
+    srcs = [
+        "serialization.cpp",
+    ],
+    deps = [
+        "//src/common:serialization_lib",
+        "//src/common:utility_lib",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+        "@com_google_protobuf//:protobuf",
+    ],
+)

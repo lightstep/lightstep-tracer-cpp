@@ -16,14 +16,21 @@
 namespace lightstep {
 const size_t Num64BitHexDigits = std::numeric_limits<uint64_t>::digits / 4;
 
+/**
+ * Breaks the timestamp down into seconds past epoch and nanosecond fraction
+ * to match that used by google in protobuf.
+ * See
+ * https://github.com/protocolbuffers/protobuf/blob/8489612dadd3775ffbba029a583b6f00e91d0547/src/google/protobuf/timestamp.proto
+ * @param t the time point to format
+ */
+std::tuple<uint64_t, uint32_t> ProtobufFormatTimestamp(
+    const std::chrono::system_clock::time_point& t);
+
 // Convert a std::chrono::system_clock::time_point to the time value used
 // by protobuf.
 google::protobuf::Timestamp ToTimestamp(
     const std::chrono::system_clock::time_point& t);
 
-/**
- *
- */
 timeval ToTimeval(std::chrono::microseconds microseconds);
 
 template <class Rep, class Period>
@@ -36,10 +43,38 @@ inline timeval toTimeval(std::chrono::duration<Rep, Period> duration) {
 // "c++-program" if unsuccessful.
 std::string GetProgramName();
 
+/**
+ * Converts an opentracing value to json.
+ * @param value the value to convert
+ * @return a json representation of value
+ */
+std::string ToJson(const opentracing::Value& value);
+
 // Converts an OpenTracing key-value pair to the key-value pair used in the
 // protobuf data structures.
 collector::KeyValue ToKeyValue(opentracing::string_view key,
                                const opentracing::Value& value);
+
+/**
+ * Creates a protobuf log record.
+ * @param timestamp the timestamp for the log record
+ * @param field_first the first iterator for the log fields
+ * @param field_last the last iterator for the log fields
+ * @return the protobuf log record
+ */
+template <class Iterator>
+collector::Log ToLog(std::chrono::system_clock::time_point timestamp,
+                     Iterator field_first, Iterator field_last) {
+  collector::Log result;
+  *result.mutable_timestamp() = ToTimestamp(timestamp);
+  auto& key_values = *result.mutable_fields();
+  key_values.Reserve(static_cast<int>(std::distance(field_first, field_last)));
+  for (Iterator field_iter = field_first; field_iter != field_last;
+       ++field_iter) {
+    *key_values.Add() = ToKeyValue(field_iter->first, field_iter->second);
+  }
+  return result;
+}
 
 // Logs any information returned by the collector.
 void LogReportResponse(Logger& logger, bool verbose,

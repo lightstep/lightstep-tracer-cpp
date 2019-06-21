@@ -30,6 +30,24 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "serialization_chain_lib",
+    private_hdrs = [
+        "serialization_chain.h",
+    ],
+    srcs = [
+        "serialization_chain.cpp",
+    ],
+    deps = [
+        ":fragment_input_stream_lib",
+        ":noncopyable_lib",
+        ":utility_lib",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+lightstep_cc_library(
     name = "circular_buffer_lib",
     private_hdrs = [
         "circular_buffer.h",
@@ -160,3 +178,47 @@ lightstep_cc_library(
         ":random_lib",
     ],
 )
+
+lightstep_cc_library(
+    name = "fragment_input_stream_lib",
+    private_hdrs = [
+        "fragment_input_stream.h",
+    ],
+    srcs = [
+        "fragment_input_stream.cpp",
+    ],
+    deps = [
+        "//src/common:function_ref_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "fragment_array_input_stream_lib",
+    private_hdrs = [
+        "fragment_array_input_stream.h",
+    ],
+    srcs = [
+        "fragment_array_input_stream.cpp",
+    ],
+    deps = [
+        ":fragment_input_stream_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "serialization_lib",
+    private_hdrs = [
+        "serialization.h",
+    ],
+    srcs = [
+        "serialization.cpp",
+    ],
+    deps = [
+        ":utility_lib",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+

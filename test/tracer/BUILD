@@ -50,6 +50,17 @@ lightstep_catch_test(
     ],
 )
 
+lightstep_catch_test(
+    name = "serialization_test",
+    srcs = [
+        "serialization_test.cpp",
+    ],
+    deps = [
+        "//src/tracer:serialization_lib",
+        "//src/common:utility_lib",
+    ],
+)
+
 lightstep_portable_cc_binary(
     name = "span_probe",
     srcs = [

@@ -121,3 +121,62 @@ lightstep_catch_test(
       "//src/common:random_traverser_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "fragment_input_stream_test",
+    srcs = [
+        "fragment_input_stream_test.cpp",
+    ],
+    deps = [
+        "//src/common:fragment_array_input_stream_lib",
+        "//test:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "fragment_array_input_stream_test",
+    srcs = [
+        "fragment_array_input_stream_test.cpp",
+    ],
+    deps = [
+        "//src/common:fragment_array_input_stream_lib",
+        "//test:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "serialization_chain_test",
+    srcs = [
+        "serialization_chain_test.cpp",
+    ],
+    deps = [
+        "//src/common:serialization_chain_lib",
+        "//test:utility_lib",
+    ],
+)
+
+proto_library(
+  name = "test_proto",    
+  srcs = ["test.proto"],
+  deps = [
+      "//lightstep-tracer-common:collector_proto",
+        "@com_google_protobuf//:timestamp_proto",
+  ],
+)
+
+cc_proto_library(
+    name = "test_proto_cc",
+    deps = [":test_proto"],
+)
+
+lightstep_catch_test(
+    name = "serialization_test",
+    srcs = [
+        "serialization_test.cpp",
+    ],
+    deps = [
+        "//src/common:serialization_lib",
+        "//src/common:utility_lib",
+        ":test_proto_cc",
+    ],
+)

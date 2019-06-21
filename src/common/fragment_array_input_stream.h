@@ -3,7 +3,7 @@
 #include <initializer_list>
 #include <vector>
 
-#include "network/fragment_input_stream.h"
+#include "common/fragment_input_stream.h"
 
 namespace lightstep {
 /**

@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "3rd_party/catch2/catch.hpp"
-#include "network/fragment_array_input_stream.h"
+#include "common/fragment_array_input_stream.h"
 #include "network/socket.h"
 #include "test/echo_server/echo_server_handle.h"
 #include "test/ports.h"
