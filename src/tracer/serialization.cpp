@@ -95,7 +95,7 @@ static void WriteLogImpl(google::protobuf::io::CodedOutputStream& stream,
                          Iterator last) {
   auto num_key_values = std::distance(first, last);
 
-  size_t* field_serialization_sizes =
+  auto field_serialization_sizes =
       static_cast<size_t*>(alloca(num_key_values * sizeof(size_t)));
   std::vector<std::string> json_values;
   std::string json;

@@ -52,7 +52,7 @@ TEST_CASE("SerializationChain") {
       return oss.str();
     }();
     for (size_t i = 1; i <= serialization.size(); ++i) {
-      SECTION("cosumption instance") {
+      SECTION("cosumption instance " + std::to_string(i)) {
         Consume({&chain}, i);
         REQUIRE(ToString(chain) == serialization.substr(i));
       }

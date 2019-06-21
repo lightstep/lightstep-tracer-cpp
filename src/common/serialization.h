@@ -7,10 +7,14 @@
 #include "common/utility.h"
 
 namespace lightstep {
+// Wire type values that matches those used by protobuf.
 // See https://developers.google.com/protocol-buffers/docs/encoding#structure
-// Only lists the ones we use
+// Only lists wire types we use
 enum class WireType { Varint = 0, Fixed64 = 1, LengthDelimited = 2 };
 
+/**
+ * Compute the encoding of a field and its type at compile-time
+ */
 template <size_t FieldNumber, WireType WireTypeValue>
 struct StaticSerializationKey {
   // See https://developers.google.com/protocol-buffers/docs/encoding#structure
@@ -19,6 +23,9 @@ struct StaticSerializationKey {
       (FieldNumber << 3) | static_cast<size_t>(WireTypeValue));
 };
 
+/**
+ * Compute the size of an encoded field and its type at compile-time.
+ */
 template <size_t FieldNumber, WireType WireTypeValue>
 struct StaticKeySerializationSize {
   static const size_t value =
@@ -62,7 +69,7 @@ size_t ComputeLengthDelimitedSerializationSize(size_t length) {
 }
 
 /**
- * Serialize a length-delimited key field with its length
+ * Serialize a length-delimited key field with its length.
  * @param stream the stream to serialize into
  * @param the length for the field
  */
@@ -75,7 +82,7 @@ void SerializeKeyLength(google::protobuf::io::CodedOutputStream& stream,
 }
 
 /**
- * Serialize a 64-bit fixed size field
+ * Serialize a 64-bit fixed size field.
  * @param stream the stream to serialize into
  * @param data the data to serialize
  */
@@ -88,7 +95,7 @@ void WriteFixed64(google::protobuf::io::CodedOutputStream& stream,
 }
 
 /**
- * Serialize a varint
+ * Serialize a varint.
  * @param stream the stream to serialize into
  * @param x the value to serialize
  */
@@ -101,7 +108,7 @@ void WriteVarint(google::protobuf::io::CodedOutputStream& stream,
 }
 
 /**
- * Serialize a varint
+ * Serialize a varint.
  * @param stream the stream to serialize into
  * @param x the value to serialize
  */
@@ -113,7 +120,7 @@ void WriteVarint(google::protobuf::io::CodedOutputStream& stream, uint32_t x) {
 }
 
 /**
- * Serialize a string
+ * Serialize a string.
  * @param stream the stream to serialize into
  * @param s the string to serialize
  */
@@ -125,7 +132,7 @@ void WriteString(google::protobuf::io::CodedOutputStream& stream,
 }
 
 /**
- * Compute the serialization of a timestamp not including its key field
+ * Compute the serialization of a timestamp not including its key field.
  * @param seconds_since_epoch the seconds since the epoch
  * @param nano_fraction the fraction of remaining nanoseconds
  */
@@ -133,7 +140,7 @@ size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
                                          uint32_t nano_fraction) noexcept;
 
 /**
- * Serialize a timestamp not including its key field
+ * Serialize a timestamp not including its key field.
  * @param stream the stream to serialize into
  * @param seconds_since_epoch the seconds since the epoch
  * @param nano_fraction the fraction of remaining nanoseconds
@@ -142,7 +149,7 @@ void WriteTimestampImpl(google::protobuf::io::CodedOutputStream& stream,
                         uint64_t seconds_since_epoch, uint32_t nano_fraction);
 
 /**
- * Serialize a timestamp including its key field
+ * Serialize a timestamp including its key field.
  * @param stream the stream to serialize into
  * @param serialization_size the serialization size of the timestamp not
  * including its key field
@@ -158,7 +165,7 @@ void WriteTimestamp(google::protobuf::io::CodedOutputStream& stream,
 }
 
 /**
- * Serialize a timestamp
+ * Serialize a timestamp.
  * @param stream the stream to serialize into
  * @param timestamp the timestamp to serialize
  */
@@ -176,7 +183,7 @@ void WriteTimestamp(google::protobuf::io::CodedOutputStream& stream,
 }
 
 /**
- * Compute the serialization size of a key-value not including its key field
+ * Compute the serialization size of a key-value not including its key field.
  * @param key the key of the serialization
  * @param value the value of the serialization
  * @param json the string to write json into if the value requires conversion
@@ -188,7 +195,7 @@ size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
                                         std::string& json, int& json_counter);
 
 /**
- * Serialize a key-value not including its key field
+ * Serialize a key-value not including its key field.
  * @param stream the stream to serialize into
  * @param key the key of the serialization
  * @param value the value of the serialization
@@ -202,7 +209,7 @@ void WriteKeyValueImpl(google::protobuf::io::CodedOutputStream& stream,
                        const std::string* json_values, int& json_counter);
 
 /**
- * Serialize a key-value with its key field
+ * Serialize a key-value with its key field.
  * @param stream the stream to serialize into
  * @param key the key of the serialization
  * @param value the value of the serialization
@@ -220,7 +227,7 @@ void WriteKeyValue(google::protobuf::io::CodedOutputStream& stream,
 }
 
 /**
- * Serialize a key-value with its key field
+ * Serialize a key-value with its key field.
  * @param stream the stream to serialize into
  * @param key the key of the serialization
  * @param value the value of the serialization

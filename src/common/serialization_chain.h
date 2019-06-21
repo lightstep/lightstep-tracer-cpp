@@ -11,7 +11,7 @@
 
 namespace lightstep {
 /**
- * Maintains a linked chain of blocks that for a serialization.
+ * Maintains a linked chain of blocks for a serialization.
  */
 class SerializationChain final
     : public google::protobuf::io::ZeroCopyOutputStream,

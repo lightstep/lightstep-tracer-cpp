@@ -16,10 +16,13 @@
 namespace lightstep {
 const size_t Num64BitHexDigits = std::numeric_limits<uint64_t>::digits / 4;
 
-// Breaks the timestamp down into seconds past epoch and nanosecond fraction
-// to match that used by google in protobuf.
-// See
-// https://github.com/protocolbuffers/protobuf/blob/8489612dadd3775ffbba029a583b6f00e91d0547/src/google/protobuf/timestamp.proto
+/** 
+ * Breaks the timestamp down into seconds past epoch and nanosecond fraction
+ * to match that used by google in protobuf.
+ * See
+ * https://github.com/protocolbuffers/protobuf/blob/8489612dadd3775ffbba029a583b6f00e91d0547/src/google/protobuf/timestamp.proto
+ * @param t the time point to format
+ */
 std::tuple<uint64_t, uint32_t> ProtobufFormatTimestamp(
     const std::chrono::system_clock::time_point& t);
 
@@ -40,6 +43,11 @@ inline timeval toTimeval(std::chrono::duration<Rep, Period> duration) {
 // "c++-program" if unsuccessful.
 std::string GetProgramName();
 
+/**
+ * Converts an opentracing value to json.
+ * @param value the value to convert
+ * @return a json representation of value
+ */
 std::string ToJson(const opentracing::Value& value);
 
 // Converts an OpenTracing key-value pair to the key-value pair used in the
