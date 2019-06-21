@@ -1,4 +1,4 @@
 Wheel-Version: 1.0
 Generator: lightstep_custom (0.1.0)
 Root-Is-Purelib: false
-Tag: cp32-abi3-linux_x86_64
+Tag: cp32-abi3-manylinux1

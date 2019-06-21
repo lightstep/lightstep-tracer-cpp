@@ -59,7 +59,7 @@ genrule(
     VERSION_H=$(location //:gen-config/lightstep/version.h)
     VERSION_=`grep LIGHTSTEP_VERSION $$VERSION_H | cut -d ' ' -f3`
     export VERSION=`eval echo $$VERSION_`
-    WHEEL_NAME=lightstep_native-$$VERSION-cp32-abi3-linux_x86_64
+    WHEEL_NAME=lightstep_native-$$VERSION-cp32-abi3-manylinux1
 
     # Set up the dist-info directory
     DISTINFO_NAME=lightstep_native-$$VERSION.dist-info
