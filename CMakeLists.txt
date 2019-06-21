@@ -168,11 +168,14 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/common/bipart_memory_stream.cpp
                    src/common/circular_buffer.cpp
                    src/common/chunk_circular_buffer.cpp
+                   src/common/fragment_input_stream.cpp
+                   src/common/fragment_array_input_stream.cpp
                    src/common/protobuf.cpp
                    src/common/in_memory_stream.cpp
                    src/common/logger.cpp
                    src/common/random.cpp
                    src/common/random_traverser.cpp
+                   src/common/serialization.cpp
                    src/recorder/report_builder.cpp
                    src/recorder/auto_recorder.cpp
                    src/recorder/fork_aware_recorder.cpp
@@ -185,6 +188,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/tracer/lightstep_span.cpp
                    src/tracer/lightstep_tracer_impl.cpp
                    src/tracer/lightstep_tracer_factory.cpp
+                   src/tracer/serialization.cpp
                    src/tracer/tracer.cpp
                    )
 
@@ -211,8 +215,6 @@ if (WITH_LIBEVENT)
                              src/recorder/stream_recorder/utility.cpp
                              src/network/event.cpp
                              src/network/event_base.cpp
-                             src/common/fragment_input_stream.cpp
-                             src/common/fragment_array_input_stream.cpp
                              src/network/timer_event.cpp
                              src/network/ip_address.cpp
                              src/network/socket.cpp
