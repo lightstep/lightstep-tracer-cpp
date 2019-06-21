@@ -32,7 +32,8 @@ TEST_CASE("VectorWrite") {
     auto result = Write(socket.file_descriptor(), {&fragments1, &fragments2});
     socket = Socket{};
     REQUIRE(result);
-    REQUIRE(echo_server.data() == "abc123xyz");
+    REQUIRE(
+        IsEventuallyTrue([&] { return echo_server.data() == "abc123xyz"; }));
   }
 
   SECTION(
