@@ -10,6 +10,9 @@
 #include <google/protobuf/io/zero_copy_stream.h>
 
 namespace lightstep {
+/**
+ * Maintains a linked chain of blocks that for a serialization.
+ */
 class SerializationChain final
     : public google::protobuf::io::ZeroCopyOutputStream,
       public FragmentInputStream,
@@ -19,6 +22,9 @@ class SerializationChain final
 
   SerializationChain() noexcept;
 
+  /**
+   * Adds http/1.1 chunk framing
+   */
   void AddChunkFraming() noexcept;
 
   // ZeroCopyOutputStream

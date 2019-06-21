@@ -23,39 +23,39 @@ struct SerializationSizeValueVisitor {
   int& json_counter;
   size_t& result;
 
-  void operator()(bool value) const {
+  void operator()(bool value) const noexcept {
     result += ComputeVarintSerializationSize<KeyValueBoolValueField>(
         static_cast<uint32_t>(value));
   }
 
-  void operator()(double /*value*/) const {
+  void operator()(double /*value*/) const noexcept {
     result += StaticKeySerializationSize<KeyValueDoubleValueField,
                                          WireType::Fixed64>::value +
               sizeof(int64_t);
   }
 
-  void operator()(int64_t value) const {
+  void operator()(int64_t value) const noexcept {
     result += ComputeVarintSerializationSize<KeyValueIntValueField>(
         static_cast<uint64_t>(value));
   }
 
-  void operator()(uint64_t value) const {
+  void operator()(uint64_t value) const noexcept {
     // There's no uint64_t value type so cast to an int64_t.
     this->operator()(static_cast<int64_t>(value));
   }
 
-  void operator()(opentracing::string_view s) const {
+  void operator()(opentracing::string_view s) const noexcept {
     result += ComputeLengthDelimitedSerializationSize<KeyValueStringValueField>(
         s.size());
   }
 
-  void operator()(const std::string& s) const {
+  void operator()(const std::string& s) const noexcept {
     this->operator()(opentracing::string_view{s});
   }
 
-  void operator()(std::nullptr_t) const { this->operator()(false); }
+  void operator()(std::nullptr_t) const noexcept { this->operator()(false); }
 
-  void operator()(const char* s) const {
+  void operator()(const char* s) const noexcept {
     this->operator()(opentracing::string_view{s});
   }
 
@@ -88,8 +88,7 @@ struct SerializationValueVisitor {
   }
 
   void operator()(double value) const {
-    SerializeFixed64<KeyValueDoubleValueField>(stream,
-                                               static_cast<void*>(&value));
+    WriteFixed64<KeyValueDoubleValueField>(stream, static_cast<void*>(&value));
   }
 
   void operator()(int64_t value) const {
@@ -169,8 +168,7 @@ size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
 // WriteTimestampImpl
 //--------------------------------------------------------------------------------------------------
 void WriteTimestampImpl(google::protobuf::io::CodedOutputStream& stream,
-                        uint64_t seconds_since_epoch,
-                        uint32_t nano_fraction) noexcept {
+                        uint64_t seconds_since_epoch, uint32_t nano_fraction) {
   WriteVarint<TimestampSecondsSinceEpochField>(stream, seconds_since_epoch);
   WriteVarint<TimestampNanoFractionField>(stream, nano_fraction);
 }

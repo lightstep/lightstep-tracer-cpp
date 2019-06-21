@@ -28,9 +28,6 @@ std::tuple<uint64_t, uint32_t> ProtobufFormatTimestamp(
 google::protobuf::Timestamp ToTimestamp(
     const std::chrono::system_clock::time_point& t);
 
-/**
- *
- */
 timeval ToTimeval(std::chrono::microseconds microseconds);
 
 template <class Rep, class Period>
@@ -50,6 +47,13 @@ std::string ToJson(const opentracing::Value& value);
 collector::KeyValue ToKeyValue(opentracing::string_view key,
                                const opentracing::Value& value);
 
+/**
+ * Creates a protobuf log record.
+ * @param timestamp the timestamp for the log record
+ * @param field_first the first iterator for the log fields
+ * @param field_last the last iterator for the log fields
+ * @return the protobuf log record
+ */
 template <class Iterator>
 collector::Log ToLog(std::chrono::system_clock::time_point timestamp,
                      Iterator field_first, Iterator field_last) {
