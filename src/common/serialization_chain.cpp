@@ -70,7 +70,7 @@ int SerializationChain::num_fragments() const noexcept {
 bool SerializationChain::ForEachFragment(Callback callback) const noexcept {
   assert(fragment_index_ >= 0 && fragment_index_ <= num_blocks_ + 1);
 
-  if (current_block_ == nullptr) {
+  if (num_blocks_ == 0) {
     return true;
   }
 
@@ -131,12 +131,14 @@ void SerializationChain::Clear() noexcept {
 void SerializationChain::Seek(int fragment_index, int position) noexcept {
   if (fragment_index == 0) {
     fragment_position_ += position;
+    return;
   }
   auto prev_fragment_index = fragment_index_;
   fragment_index_ += fragment_index;
   if (fragment_index_ == num_blocks_ + 1) {
     assert(position < 2);
     fragment_position_ = position;
+    current_block_ = nullptr;
     return;
   }
 

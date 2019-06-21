@@ -16,7 +16,7 @@
 namespace lightstep {
 const size_t Num64BitHexDigits = std::numeric_limits<uint64_t>::digits / 4;
 
-/** 
+/**
  * Breaks the timestamp down into seconds past epoch and nanosecond fraction
  * to match that used by google in protobuf.
  * See

@@ -18,7 +18,7 @@ class SerializationChain final
       public FragmentInputStream,
       private Noncopyable {
  public:
-  static const int BlockSize = 1024;
+  static const int BlockSize = 256;
 
   SerializationChain() noexcept;
 

@@ -1,6 +1,7 @@
 #include "common/serialization_chain.h"
 
 #include <iomanip>
+#include <random>
 #include <sstream>
 
 #include "test/utility.h"
@@ -55,6 +56,32 @@ TEST_CASE("SerializationChain") {
       SECTION("cosumption instance " + std::to_string(i)) {
         Consume({&chain}, i);
         REQUIRE(ToString(chain) == serialization.substr(i));
+      }
+    }
+  }
+
+  SECTION("We can advance to any byte randomly") {
+    std::string s(SerializationChain::BlockSize + 2, 'X');
+    stream->WriteString(s);
+    stream.reset();
+    chain.AddChunkFraming();
+    std::string serialization = [&] {
+      std::ostringstream oss;
+      oss << std::hex << std::uppercase << s.size() << "\r\n" << s << "\r\n";
+      return oss.str();
+    }();
+    std::mt19937 random_number_generator{0};
+    for (int i = 0; i < 100; ++i) {
+      size_t num_bytes_consumed = 0;
+      SECTION("Random advance " + std::to_string(i)) {
+        while (num_bytes_consumed < serialization.size()) {
+          std::uniform_int_distribution<size_t> distribution{
+              1, static_cast<int>(serialization.size()) - num_bytes_consumed};
+          auto n = distribution(random_number_generator);
+          Consume({&chain}, n);
+          num_bytes_consumed += n;
+          REQUIRE(ToString(chain) == serialization.substr(num_bytes_consumed));
+        }
       }
     }
   }
