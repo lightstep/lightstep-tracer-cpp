@@ -56,11 +56,9 @@ static size_t ComputeSpanContextSerializationSize(
 //--------------------------------------------------------------------------------------------------
 template <size_t FieldNumber>
 static void WriteSpanContext(
-    google::protobuf::io::CodedOutputStream& stream, uint64_t trace_id,
-    uint64_t span_id,
+    google::protobuf::io::CodedOutputStream& stream, size_t serialization_size,
+    uint64_t trace_id, uint64_t span_id,
     const std::vector<std::pair<std::string, std::string>>& baggage = {}) {
-  auto serialization_size =
-      ComputeSpanContextSerializationSize(trace_id, span_id, baggage);
   SerializeKeyLength<FieldNumber>(stream, serialization_size);
   SerializeVarint<SpanContextTraceIdField>(stream, trace_id);
   SerializeVarint<SpanContextSpanIdField>(stream, span_id);
@@ -75,6 +73,17 @@ static void WriteSpanContext(
     SerializeString<MapEntryKeyField>(stream, baggage_item.first);
     SerializeString<MapEntryValueField>(stream, baggage_item.second);
   }
+}
+
+template <size_t FieldNumber>
+static void WriteSpanContext(
+    google::protobuf::io::CodedOutputStream& stream, uint64_t trace_id,
+    uint64_t span_id,
+    const std::vector<std::pair<std::string, std::string>>& baggage = {}) {
+  auto serialization_size =
+      ComputeSpanContextSerializationSize(trace_id, span_id, baggage);
+  return WriteSpanContext<FieldNumber>(stream, serialization_size, trace_id,
+                                       span_id, baggage);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -165,14 +174,17 @@ void WriteSpanReference(google::protobuf::io::CodedOutputStream& stream,
       reference_type == opentracing::SpanReferenceType::ChildOfRef
           ? RelationshipChildOf
           : RelationshipFollowsFrom;
+  auto span_context_serialization_size =
+      ComputeSpanContextSerializationSize(trace_id, span_id);
   auto serialization_size =
       ComputeVarintSerializationSize<SpanReferenceRelationshipField>(
           relationship) +
       ComputeLengthDelimitedSerializationSize<SpanReferenceSpanContextField>(
-          ComputeSpanContextSerializationSize(trace_id, span_id));
+          span_context_serialization_size);
   SerializeKeyLength<SpanReferenceField>(stream, serialization_size);
   SerializeVarint<SpanReferenceRelationshipField>(stream, relationship);
-  WriteSpanContext<SpanReferenceSpanContextField>(stream, trace_id, span_id);
+  WriteSpanContext<SpanReferenceSpanContextField>(
+      stream, span_context_serialization_size, trace_id, span_id);
 }
 
 //--------------------------------------------------------------------------------------------------
