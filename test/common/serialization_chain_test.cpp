@@ -60,7 +60,7 @@ TEST_CASE("SerializationChain") {
     }
   }
 
-  SECTION("We can advance to any byte randomly") {
+  SECTION("We can advance to any byte in the fragment stream randomly.") {
     std::string s(3 * SerializationChain::BlockSize + 10, 'X');
     stream->WriteString(s);
     stream.reset();
