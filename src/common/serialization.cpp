@@ -84,8 +84,7 @@ struct SerializationValueVisitor {
   int& json_counter;
 
   void operator()(bool value) const {
-    SerializeVarint<KeyValueBoolValueField>(stream,
-                                            static_cast<uint32_t>(value));
+    WriteVarint<KeyValueBoolValueField>(stream, static_cast<uint32_t>(value));
   }
 
   void operator()(double value) const {
@@ -94,8 +93,7 @@ struct SerializationValueVisitor {
   }
 
   void operator()(int64_t value) const {
-    SerializeVarint<KeyValueIntValueField>(stream,
-                                           static_cast<uint64_t>(value));
+    WriteVarint<KeyValueIntValueField>(stream, static_cast<uint64_t>(value));
   }
 
   void operator()(uint64_t value) const {
@@ -104,7 +102,7 @@ struct SerializationValueVisitor {
   }
 
   void operator()(opentracing::string_view s) const {
-    SerializeString<KeyValueStringValueField>(stream, s);
+    WriteString<KeyValueStringValueField>(stream, s);
   }
 
   void operator()(const std::string& s) const {
@@ -124,7 +122,7 @@ struct SerializationValueVisitor {
   }
 
   void do_json() const {
-    SerializeString<KeyValueJsonValueField>(stream, json_values[json_counter]);
+    WriteString<KeyValueJsonValueField>(stream, json_values[json_counter]);
     ++json_counter;
   }
 };
@@ -145,13 +143,13 @@ size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
 }
 
 //--------------------------------------------------------------------------------------------------
-// SerializeKeyValueImpl
+// WriteKeyValueImpl
 //--------------------------------------------------------------------------------------------------
-void SerializeKeyValueImpl(google::protobuf::io::CodedOutputStream& stream,
-                           opentracing::string_view key,
-                           const opentracing::Value& value,
-                           const std::string* json_values, int& json_counter) {
-  SerializeString<KeyValueKeyField>(stream, key);
+void WriteKeyValueImpl(google::protobuf::io::CodedOutputStream& stream,
+                       opentracing::string_view key,
+                       const opentracing::Value& value,
+                       const std::string* json_values, int& json_counter) {
+  WriteString<KeyValueKeyField>(stream, key);
   SerializationValueVisitor value_visitor{stream, json_values, json_counter};
   apply_visitor(value_visitor, value);
 }
@@ -168,12 +166,12 @@ size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
 }
 
 //--------------------------------------------------------------------------------------------------
-// SerializeTimestampImpl
+// WriteTimestampImpl
 //--------------------------------------------------------------------------------------------------
-void SerializeTimestampImpl(google::protobuf::io::CodedOutputStream& stream,
-                            uint64_t seconds_since_epoch,
-                            uint32_t nano_fraction) noexcept {
-  SerializeVarint<TimestampSecondsSinceEpochField>(stream, seconds_since_epoch);
-  SerializeVarint<TimestampNanoFractionField>(stream, nano_fraction);
+void WriteTimestampImpl(google::protobuf::io::CodedOutputStream& stream,
+                        uint64_t seconds_since_epoch,
+                        uint32_t nano_fraction) noexcept {
+  WriteVarint<TimestampSecondsSinceEpochField>(stream, seconds_since_epoch);
+  WriteVarint<TimestampNanoFractionField>(stream, nano_fraction);
 }
 }  // namespace lightstep

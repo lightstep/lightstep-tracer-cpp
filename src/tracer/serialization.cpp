@@ -60,8 +60,8 @@ static void WriteSpanContext(
     uint64_t trace_id, uint64_t span_id,
     const std::vector<std::pair<std::string, std::string>>& baggage = {}) {
   SerializeKeyLength<FieldNumber>(stream, serialization_size);
-  SerializeVarint<SpanContextTraceIdField>(stream, trace_id);
-  SerializeVarint<SpanContextSpanIdField>(stream, span_id);
+  WriteVarint<SpanContextTraceIdField>(stream, trace_id);
+  WriteVarint<SpanContextSpanIdField>(stream, span_id);
   for (auto& baggage_item : baggage) {
     auto baggage_serialization_size =
         ComputeLengthDelimitedSerializationSize<MapEntryKeyField>(
@@ -70,8 +70,8 @@ static void WriteSpanContext(
             baggage_item.second.size());
     SerializeKeyLength<SpanContextBaggageField>(stream,
                                                 baggage_serialization_size);
-    SerializeString<MapEntryKeyField>(stream, baggage_item.first);
-    SerializeString<MapEntryValueField>(stream, baggage_item.second);
+    WriteString<MapEntryKeyField>(stream, baggage_item.first);
+    WriteString<MapEntryValueField>(stream, baggage_item.second);
   }
 }
 
@@ -127,12 +127,12 @@ static void WriteLogImpl(google::protobuf::io::CodedOutputStream& stream,
   }
 
   SerializeKeyLength<LogsField>(stream, serialization_size);
-  SerializeTimestamp<LogTimestampField>(stream, timestamp_serialization_size,
-                                        seconds_since_epoch, nano_fraction);
+  WriteTimestamp<LogTimestampField>(stream, timestamp_serialization_size,
+                                    seconds_since_epoch, nano_fraction);
   field_index = 0;
   json_counter = 0;
   for (auto iter = first; iter != last; ++iter) {
-    SerializeKeyValue<LogFieldsField>(
+    WriteKeyValue<LogFieldsField>(
         stream, field_serialization_sizes[field_index], iter->first,
         iter->second, json_values.data(), json_counter);
     ++field_index;
@@ -144,7 +144,7 @@ static void WriteLogImpl(google::protobuf::io::CodedOutputStream& stream,
 //--------------------------------------------------------------------------------------------------
 void WriteOperationName(google::protobuf::io::CodedOutputStream& stream,
                         opentracing::string_view operation_name) {
-  SerializeString<OperationNameField>(stream, operation_name);
+  WriteString<OperationNameField>(stream, operation_name);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -152,7 +152,7 @@ void WriteOperationName(google::protobuf::io::CodedOutputStream& stream,
 //--------------------------------------------------------------------------------------------------
 void WriteTag(google::protobuf::io::CodedOutputStream& stream,
               opentracing::string_view key, const opentracing::Value& value) {
-  SerializeKeyValue<TagsField>(stream, key, value);
+  WriteKeyValue<TagsField>(stream, key, value);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ void WriteTag(google::protobuf::io::CodedOutputStream& stream,
 //--------------------------------------------------------------------------------------------------
 void WriteStartTimestamp(google::protobuf::io::CodedOutputStream& stream,
                          opentracing::SystemTime timestamp) {
-  SerializeTimestamp<StartTimestampField>(stream, timestamp);
+  WriteTimestamp<StartTimestampField>(stream, timestamp);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -182,7 +182,7 @@ void WriteSpanReference(google::protobuf::io::CodedOutputStream& stream,
       ComputeLengthDelimitedSerializationSize<SpanReferenceSpanContextField>(
           span_context_serialization_size);
   SerializeKeyLength<SpanReferenceField>(stream, serialization_size);
-  SerializeVarint<SpanReferenceRelationshipField>(stream, relationship);
+  WriteVarint<SpanReferenceRelationshipField>(stream, relationship);
   WriteSpanContext<SpanReferenceSpanContextField>(
       stream, span_context_serialization_size, trace_id, span_id);
 }
@@ -192,7 +192,7 @@ void WriteSpanReference(google::protobuf::io::CodedOutputStream& stream,
 //--------------------------------------------------------------------------------------------------
 void WriteDuration(google::protobuf::io::CodedOutputStream& stream,
                    std::chrono::steady_clock::duration duration) {
-  SerializeVarint<DurationField>(
+  WriteVarint<DurationField>(
       stream,
       static_cast<uint64_t>(
           std::chrono::duration_cast<std::chrono::microseconds>(duration)

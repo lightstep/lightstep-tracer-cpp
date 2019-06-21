@@ -35,8 +35,8 @@ TEST_CASE("Serialization") {
     auto expected_key_value = ToKeyValue(key, value);
     SECTION("We can serialize various KeyValues: " +
             expected_key_value.SerializeAsString()) {
-      SerializeKeyValue<test::KeyValueTest::kKeyValueFieldNumber>(coded_stream,
-                                                                  key, value);
+      WriteKeyValue<test::KeyValueTest::kKeyValueFieldNumber>(coded_stream, key,
+                                                              value);
       finalize();
       test::KeyValueTest key_value;
       REQUIRE(key_value.ParseFromString(oss.str()));
@@ -48,8 +48,8 @@ TEST_CASE("Serialization") {
   SECTION("We can serialize timestamps") {
     auto now = std::chrono::system_clock::now();
     auto expected_timestamp = ToTimestamp(now);
-    SerializeTimestamp<test::TimestampTest::kTimestampFieldNumber>(coded_stream,
-                                                                   now);
+    WriteTimestamp<test::TimestampTest::kTimestampFieldNumber>(coded_stream,
+                                                               now);
     finalize();
     test::TimestampTest timestamp;
     REQUIRE(timestamp.ParseFromString(oss.str()));
