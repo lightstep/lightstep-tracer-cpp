@@ -7,17 +7,21 @@
 #include "tracer/propagation.h"
 
 namespace lightstep {
-class LightStepTracerImpl final
-    : public LightStepTracer,
-      public std::enable_shared_from_this<LightStepTracerImpl> {
+class TracerImpl final : public LightStepTracer,
+                         public std::enable_shared_from_this<TracerImpl> {
  public:
-  LightStepTracerImpl(const PropagationOptions& propagation_options,
+  TracerImpl(const PropagationOptions& propagation_options,
                       std::unique_ptr<Recorder>&& recorder) noexcept;
 
-  LightStepTracerImpl(std::shared_ptr<Logger> logger,
+  TracerImpl(std::shared_ptr<Logger> logger,
                       const PropagationOptions& propagation_options,
                       std::unique_ptr<Recorder>&& recorder) noexcept;
 
+  Logger& logger() const noexcept { return *logger_; }
+
+  Recorder& recorder() const noexcept { return *recorder_; }
+
+  // opentracing::Span
   std::unique_ptr<opentracing::Span> StartSpanWithOptions(
       opentracing::string_view operation_name,
       const opentracing::StartSpanOptions& options) const noexcept override;
@@ -43,12 +47,13 @@ class LightStepTracerImpl final
   opentracing::expected<std::unique_ptr<opentracing::SpanContext>> Extract(
       const opentracing::HTTPHeadersReader& reader) const override;
 
+  void Close() noexcept override;
+
+  // LightStepTracer
   bool Flush() noexcept override;
 
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;
-
-  void Close() noexcept override;
 
  private:
   std::shared_ptr<Logger> logger_;
