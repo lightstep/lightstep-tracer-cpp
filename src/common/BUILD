@@ -128,6 +128,13 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "flat_map_lib",
+    private_hdrs = [
+        "flat_map.h",
+    ],
+)
+
+lightstep_cc_library(
     name = "protobuf_lib",
     private_hdrs = [
         "protobuf.h",
