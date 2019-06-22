@@ -3,7 +3,12 @@
 #include "network/event.h"
 #include "network/event_base.h"
 
-#include <winsock.h>
+//#ifndef _WINSOCK_
+//#define _WINSOCK_
+//#include "common/timeval.h"
+//#endif
+
+#include "winsock.h"
 
 struct event;
 

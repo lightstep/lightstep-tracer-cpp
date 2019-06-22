@@ -7,9 +7,13 @@
 #include <stdexcept>
 
 #include <fcntl.h>
-#include <sys/socket.h>
 #include <sys/types.h>
-#include <unistd.h>
+//#include <unistd.h>
+
+#ifndef _WINSOCKAPI_
+#define _WINSOCKAPI_
+#include "winsock2.h"
+#endif
 
 namespace lightstep {
 //------------------------------------------------------------------------------
