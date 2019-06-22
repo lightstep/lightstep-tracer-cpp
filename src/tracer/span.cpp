@@ -2,16 +2,65 @@
 
 #include "tracer/serialization.h"
 
+using opentracing::SteadyClock;
+using opentracing::SteadyTime;
+using opentracing::SystemClock;
+using opentracing::SystemTime;
+
 namespace lightstep {
+//------------------------------------------------------------------------------
+// is_sampled
+//------------------------------------------------------------------------------
+#if 0
+static bool is_sampled(const opentracing::Value& value) {
+  return value != opentracing::Value{0} && value != opentracing::Value{0u};
+}
+#endif
+
+//------------------------------------------------------------------------------
+// ComputeStartTimestamps
+//------------------------------------------------------------------------------
+static std::tuple<SystemTime, SteadyTime> ComputeStartTimestamps(
+    const SystemTime& start_system_timestamp,
+    const SteadyTime& start_steady_timestamp) {
+  // If neither the system nor steady timestamps are set, get the tme from the
+  // respective clocks; otherwise, use the set timestamp to initialize the
+  // other.
+  if (start_system_timestamp == SystemTime() &&
+      start_steady_timestamp == SteadyTime()) {
+    return std::tuple<SystemTime, SteadyTime>{SystemClock::now(),
+                                              SteadyClock::now()};
+  }
+  if (start_system_timestamp == SystemTime()) {
+    return std::tuple<SystemTime, SteadyTime>{
+        opentracing::convert_time_point<SystemClock>(start_steady_timestamp),
+        start_steady_timestamp};
+  }
+  if (start_steady_timestamp == SteadyTime()) {
+    return std::tuple<SystemTime, SteadyTime>{
+        start_system_timestamp,
+        opentracing::convert_time_point<SteadyClock>(start_system_timestamp)};
+  }
+  return std::tuple<SystemTime, SteadyTime>{start_system_timestamp,
+                                            start_steady_timestamp};
+}
+
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
 Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
            opentracing::string_view operation_name,
            const opentracing::StartSpanOptions& options)
-    : tracer_{std::move(tracer)} {
-  (void)operation_name;
-  (void)options;
+    : serialization_chain_{new SerializationChain{}},
+      stream_{serialization_chain_.get()},
+      tracer_{std::move(tracer)} {
+  WriteOperationName(stream_, operation_name);
+
+  // Set the start timestamps.
+  std::chrono::system_clock::time_point start_timestamp;
+  std::tie(start_timestamp, start_steady_) = ComputeStartTimestamps(
+      options.start_system_timestamp, options.start_steady_timestamp);
+  WriteStartTimestamp(stream_, start_timestamp);
 }
 
 //--------------------------------------------------------------------------------------------------

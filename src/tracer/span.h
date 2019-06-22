@@ -9,6 +9,7 @@
 #include "common/serialization_chain.h"
 
 #include <opentracing/span.h>
+#include <google/protobuf/io/coded_stream.h>
 
 namespace lightstep {
 class Span final : public opentracing::Span,
@@ -82,7 +83,8 @@ class Span final : public opentracing::Span,
   }
  private:
   std::mutex mutex_;
-  std::unique_ptr<SerializationChain> serialization_;
+  std::unique_ptr<SerializationChain> serialization_chain_;
+  google::protobuf::io::CodedOutputStream stream_;
 
   std::chrono::steady_clock::time_point start_steady_;
   std::atomic<bool> is_finished_{false};
