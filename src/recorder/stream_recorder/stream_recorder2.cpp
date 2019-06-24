@@ -15,7 +15,8 @@ StreamRecorder2::StreamRecorder2(Logger& logger,
 //--------------------------------------------------------------------------------------------------
 // RecordSpan
 //--------------------------------------------------------------------------------------------------
-void StreamRecorder2::RecordSpan(std::unique_ptr<SerializationChain>&& span) noexcept {
+void StreamRecorder2::RecordSpan(
+    std::unique_ptr<SerializationChain>&& span) noexcept {
   span->AddChunkFraming();
   (void)span;
 }
@@ -24,8 +25,8 @@ void StreamRecorder2::RecordSpan(std::unique_ptr<SerializationChain>&& span) noe
 // FlushWithTimeout
 //--------------------------------------------------------------------------------------------------
 bool StreamRecorder2::FlushWithTimeout(
-      std::chrono::system_clock::duration timeout) noexcept {
+    std::chrono::system_clock::duration timeout) noexcept {
   (void)timeout;
   return true;
 }
-} // namespace lightstep
+}  // namespace lightstep

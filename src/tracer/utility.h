@@ -1,7 +1,7 @@
 #pragma once
 
-#include <tuple>
 #include <chrono>
+#include <tuple>
 
 #include <opentracing/value.h>
 
@@ -16,4 +16,4 @@ bool is_sampled(const opentracing::Value& value) noexcept;
 std::tuple<SystemTime, SteadyTime> ComputeStartTimestamps(
     const SystemTime& start_system_timestamp,
     const SteadyTime& start_steady_timestamp) noexcept;
-} // namespace lightstep
+}  // namespace lightstep

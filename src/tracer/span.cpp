@@ -1,9 +1,9 @@
 #include "tracer/span.h"
 
-#include "tracer/serialization.h"
-#include "tracer/utility.h"
 #include "common/random.h"
 #include "common/utility.h"
+#include "tracer/serialization.h"
+#include "tracer/utility.h"
 
 #include <opentracing/ext/tags.h>
 
@@ -115,8 +115,7 @@ void Span::FinishWithOptions(
 //------------------------------------------------------------------------------
 // SetOperationName
 //------------------------------------------------------------------------------
-void Span::SetOperationName(
-    opentracing::string_view name) noexcept try {
+void Span::SetOperationName(opentracing::string_view name) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   WriteOperationName(stream_, name);
 } catch (const std::exception& e) {
@@ -127,7 +126,7 @@ void Span::SetOperationName(
 // SetTag
 //------------------------------------------------------------------------------
 void Span::SetTag(opentracing::string_view key,
-                           const opentracing::Value& value) noexcept try {
+                  const opentracing::Value& value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   WriteTag(stream_, key, value);
   if (key == opentracing::ext::sampling_priority) {
@@ -141,7 +140,7 @@ void Span::SetTag(opentracing::string_view key,
 // SetBaggageItem
 //------------------------------------------------------------------------------
 void Span::SetBaggageItem(opentracing::string_view restricted_key,
-                                   opentracing::string_view value) noexcept try {
+                          opentracing::string_view value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   baggage_.insert(std::string{restricted_key}, std::string{value});
 } catch (const std::exception& e) {
@@ -151,8 +150,8 @@ void Span::SetBaggageItem(opentracing::string_view restricted_key,
 //------------------------------------------------------------------------------
 // BaggageItem
 //------------------------------------------------------------------------------
-std::string Span::BaggageItem(
-    opentracing::string_view restricted_key) const noexcept try {
+std::string Span::BaggageItem(opentracing::string_view restricted_key) const
+    noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   auto iter = baggage_.lookup(restricted_key);
   if (iter != baggage_.end()) {
@@ -160,7 +159,8 @@ std::string Span::BaggageItem(
   }
   return {};
 } catch (const std::exception& e) {
-  tracer_->logger().Error("BaggageItem failed, returning empty string: ", e.what());
+  tracer_->logger().Error("BaggageItem failed, returning empty string: ",
+                          e.what());
   return {};
 }
 
@@ -168,8 +168,8 @@ std::string Span::BaggageItem(
 // Log
 //------------------------------------------------------------------------------
 void Span::Log(std::initializer_list<
-                        std::pair<opentracing::string_view, opentracing::Value>>
-                            fields) noexcept try {
+               std::pair<opentracing::string_view, opentracing::Value>>
+                   fields) noexcept try {
   auto timestamp = SystemClock::now();
   std::lock_guard<std::mutex> lock_guard{mutex_};
   WriteLog(stream_, timestamp, fields.begin(), fields.end());

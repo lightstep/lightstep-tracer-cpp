@@ -37,4 +37,4 @@ std::tuple<SystemTime, SteadyTime> ComputeStartTimestamps(
   return std::tuple<SystemTime, SteadyTime>{start_system_timestamp,
                                             start_steady_timestamp};
 }
-} // namespace lightstep
+}  // namespace lightstep

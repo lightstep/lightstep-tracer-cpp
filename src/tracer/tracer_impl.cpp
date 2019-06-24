@@ -1,7 +1,7 @@
 #include "tracer/tracer_impl.h"
 
-#include "tracer/span.h"
 #include "tracer/legacy/lightstep_immutable_span_context.h"
+#include "tracer/span.h"
 
 namespace lightstep {
 const auto DefaultFlushTimeout = std::chrono::seconds{10};
@@ -51,17 +51,15 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-TracerImpl::TracerImpl(
-    const PropagationOptions& propagation_options,
-    std::unique_ptr<Recorder>&& recorder) noexcept
+TracerImpl::TracerImpl(const PropagationOptions& propagation_options,
+                       std::unique_ptr<Recorder>&& recorder) noexcept
     : logger_{std::make_shared<Logger>()},
       propagation_options_{propagation_options},
       recorder_{std::move(recorder)} {}
 
-TracerImpl::TracerImpl(
-    std::shared_ptr<Logger> logger,
-    const PropagationOptions& propagation_options,
-    std::unique_ptr<Recorder>&& recorder) noexcept
+TracerImpl::TracerImpl(std::shared_ptr<Logger> logger,
+                       const PropagationOptions& propagation_options,
+                       std::unique_ptr<Recorder>&& recorder) noexcept
     : logger_{std::move(logger)},
       propagation_options_{propagation_options},
       recorder_{std::move(recorder)} {}
@@ -113,8 +111,7 @@ TracerImpl::Extract(const opentracing::TextMapReader& reader) const {
 }
 
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
-TracerImpl::Extract(
-    const opentracing::HTTPHeadersReader& reader) const {
+TracerImpl::Extract(const opentracing::HTTPHeadersReader& reader) const {
   return ExtractImpl(propagation_options_, reader);
 }
 
@@ -137,4 +134,4 @@ bool TracerImpl::FlushWithTimeout(
 // Close
 //------------------------------------------------------------------------------
 void TracerImpl::Close() noexcept { Flush(); }
-} // namespace lightstep
+}  // namespace lightstep

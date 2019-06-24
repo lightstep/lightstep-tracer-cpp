@@ -9,12 +9,11 @@
 
 #include "common/serialization_chain.h"
 
-#include <opentracing/span.h>
 #include <google/protobuf/io/coded_stream.h>
+#include <opentracing/span.h>
 
 namespace lightstep {
-class Span final : public opentracing::Span,
-                   public LightStepSpanContext {
+class Span final : public opentracing::Span, public LightStepSpanContext {
  public:
   Span(std::shared_ptr<const TracerImpl>&& tracer,
        opentracing::string_view operation_name,
@@ -53,7 +52,6 @@ class Span final : public opentracing::Span,
       std::function<bool(const std::string& key, const std::string& value)> f)
       const override;
 
-
   opentracing::expected<void> Inject(
       const PropagationOptions& propagation_options,
       std::ostream& writer) const override {
@@ -75,13 +73,10 @@ class Span final : public opentracing::Span,
   // LightStepSpanContext
   bool sampled() const noexcept override;
 
-  uint64_t trace_id() const noexcept override {
-    return trace_id_;
-  }
+  uint64_t trace_id() const noexcept override { return trace_id_; }
 
-  uint64_t span_id() const noexcept override {
-    return span_id_;
-  }
+  uint64_t span_id() const noexcept override { return span_id_; }
+
  private:
   mutable std::mutex mutex_;
   std::unique_ptr<SerializationChain> serialization_chain_;
@@ -113,6 +108,7 @@ class Span final : public opentracing::Span,
 
   bool SetSpanReference(
       const std::pair<opentracing::SpanReferenceType,
-                      const opentracing::SpanContext*>& reference, uint64_t& trace_id);
+                      const opentracing::SpanContext*>& reference,
+      uint64_t& trace_id);
 };
-} // namespace lightstep
+}  // namespace lightstep

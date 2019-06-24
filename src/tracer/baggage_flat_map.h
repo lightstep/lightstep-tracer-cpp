@@ -9,8 +9,10 @@
 
 namespace lightstep {
 struct StringViewComparison {
-  bool operator()(opentracing::string_view lhs, opentracing::string_view rhs) const noexcept {
-    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+  bool operator()(opentracing::string_view lhs,
+                  opentracing::string_view rhs) const noexcept {
+    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(),
+                                        rhs.end());
   }
 };
 

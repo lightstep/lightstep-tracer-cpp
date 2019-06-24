@@ -12,13 +12,12 @@
 #include <vector>
 
 namespace lightstep {
-class LegacySpan final : public opentracing::Span,
-                            public LightStepSpanContext {
+class LegacySpan final : public opentracing::Span, public LightStepSpanContext {
  public:
   LegacySpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
-                Logger& logger, Recorder& recorder,
-                opentracing::string_view operation_name,
-                const opentracing::StartSpanOptions& options);
+             Logger& logger, Recorder& recorder,
+             opentracing::string_view operation_name,
+             const opentracing::StartSpanOptions& options);
 
   LegacySpan(const LegacySpan&) = delete;
   LegacySpan(LegacySpan&&) = delete;

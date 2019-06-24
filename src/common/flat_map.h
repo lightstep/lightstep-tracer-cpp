@@ -1,14 +1,15 @@
 #pragma once
 
 #include <algorithm>
-#include <vector>
-#include <utility>
 #include <functional>
+#include <utility>
+#include <vector>
 
 namespace lightstep {
 template <class Key, class Value, class Comp = std::less<Key>>
 class FlatMap {
   using MapImpl = std::vector<std::pair<Key, Value>>;
+
  public:
   using iterator = typename MapImpl::const_iterator;
 
@@ -37,8 +38,9 @@ class FlatMap {
   iterator end() const noexcept { return data_.end(); }
 
   const MapImpl& as_vector() const noexcept { return data_; }
+
  private:
-   MapImpl data_;
+  MapImpl data_;
 
   template <class T>
   iterator lower_bound(const T& key) const noexcept {
@@ -48,4 +50,4 @@ class FlatMap {
                             });
   }
 };
-} // namespace lightstep
+}  // namespace lightstep

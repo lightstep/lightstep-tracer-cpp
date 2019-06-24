@@ -126,8 +126,8 @@ static std::shared_ptr<opentracing::Tracer> MakeStreamTracer2() {
       *logger, std::move(tracer_options), std::move(recorder_options)};
   std::unique_ptr<lightstep::Recorder> recorder{stream_recorder};
   lightstep::PropagationOptions propagation_options;
-  return std::make_shared<lightstep::TracerImpl>(
-      logger, propagation_options, std::move(recorder));
+  return std::make_shared<lightstep::TracerImpl>(logger, propagation_options,
+                                                 std::move(recorder));
 }
 
 //--------------------------------------------------------------------------------------------------

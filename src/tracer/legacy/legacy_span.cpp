@@ -1,9 +1,9 @@
 #include "tracer/legacy/legacy_span.h"
 #include <opentracing/ext/tags.h>
 
-#include "tracer/utility.h"
 #include "common/random.h"
 #include "common/utility.h"
+#include "tracer/utility.h"
 
 using opentracing::SteadyClock;
 using opentracing::SteadyTime;
@@ -57,10 +57,10 @@ static bool SetSpanReference(
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-LegacySpan::LegacySpan(
-    std::shared_ptr<const opentracing::Tracer>&& tracer, Logger& logger,
-    Recorder& recorder, opentracing::string_view operation_name,
-    const opentracing::StartSpanOptions& options)
+LegacySpan::LegacySpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
+                       Logger& logger, Recorder& recorder,
+                       opentracing::string_view operation_name,
+                       const opentracing::StartSpanOptions& options)
     : tracer_{std::move(tracer)}, logger_{logger}, recorder_{recorder} {
   span_.set_operation_name(operation_name.data(), operation_name.size());
   auto& span_context = *span_.mutable_span_context();
@@ -167,8 +167,7 @@ void LegacySpan::FinishWithOptions(
 //------------------------------------------------------------------------------
 // SetOperationName
 //------------------------------------------------------------------------------
-void LegacySpan::SetOperationName(
-    opentracing::string_view name) noexcept try {
+void LegacySpan::SetOperationName(opentracing::string_view name) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   span_.set_operation_name(name.data(), name.size());
 } catch (const std::exception& e) {
@@ -179,7 +178,7 @@ void LegacySpan::SetOperationName(
 // SetTag
 //------------------------------------------------------------------------------
 void LegacySpan::SetTag(opentracing::string_view key,
-                           const opentracing::Value& value) noexcept try {
+                        const opentracing::Value& value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   *span_.mutable_tags()->Add() = ToKeyValue(key, value);
 
@@ -194,7 +193,7 @@ void LegacySpan::SetTag(opentracing::string_view key,
 // SetBaggageItem
 //------------------------------------------------------------------------------
 void LegacySpan::SetBaggageItem(opentracing::string_view restricted_key,
-                                   opentracing::string_view value) noexcept {
+                                opentracing::string_view value) noexcept {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   auto& baggage = *span_.mutable_span_context()->mutable_baggage();
   baggage.insert(BaggageMap::value_type(restricted_key, value));
@@ -221,8 +220,8 @@ std::string LegacySpan::BaggageItem(
 // Log
 //------------------------------------------------------------------------------
 void LegacySpan::Log(std::initializer_list<
-                        std::pair<opentracing::string_view, opentracing::Value>>
-                            fields) noexcept try {
+                     std::pair<opentracing::string_view, opentracing::Value>>
+                         fields) noexcept try {
   auto timestamp = SystemClock::now();
   std::lock_guard<std::mutex> lock_guard{mutex_};
   *span_.mutable_logs()->Add() =

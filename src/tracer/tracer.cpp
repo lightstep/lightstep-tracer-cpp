@@ -15,9 +15,9 @@
 #include "recorder/grpc_transporter.h"
 #include "recorder/manual_recorder.h"
 #include "recorder/stream_recorder.h"
-#include "tracer/tracer_impl.h"
 #include "tracer/legacy/lightstep_immutable_span_context.h"
 #include "tracer/legacy/lightstep_tracer_impl.h"
+#include "tracer/tracer_impl.h"
 
 #include "opentracing/string_view.h"
 #include "opentracing/value.h"

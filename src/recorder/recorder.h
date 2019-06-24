@@ -22,9 +22,7 @@ class Recorder {
   Recorder& operator=(Recorder&&) = delete;
   Recorder& operator=(const Recorder&) = delete;
 
-  virtual void RecordSpan(const collector::Span& span) noexcept {
-    (void)span;
-  }
+  virtual void RecordSpan(const collector::Span& span) noexcept { (void)span; }
 
   virtual void RecordSpan(std::unique_ptr<SerializationChain>&& span) noexcept {
     (void)span;
