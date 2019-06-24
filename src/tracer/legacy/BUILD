@@ -29,10 +29,10 @@ lightstep_cc_library(
 lightstep_cc_library(
     name = "lightstep_span_lib",
     private_hdrs = [
-        "lightstep_span.h",
+        "legacy_span.h",
     ],
     srcs = [
-        "lightstep_span.cpp",
+        "legacy_span.cpp",
     ],
     deps = [
         "//src/common:logger_lib",

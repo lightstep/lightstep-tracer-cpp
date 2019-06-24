@@ -1,6 +1,6 @@
 #include "tracer/legacy/lightstep_tracer_impl.h"
 #include "tracer/legacy/lightstep_immutable_span_context.h"
-#include "tracer/legacy/lightstep_span.h"
+#include "tracer/legacy/legacy_span.h"
 
 namespace lightstep {
 const auto DefaultFlushTimeout = std::chrono::seconds{10};
@@ -71,7 +71,7 @@ LightStepTracerImpl::LightStepTracerImpl(
 std::unique_ptr<opentracing::Span> LightStepTracerImpl::StartSpanWithOptions(
     opentracing::string_view operation_name,
     const opentracing::StartSpanOptions& options) const noexcept try {
-  return std::unique_ptr<opentracing::Span>{new LightStepSpan{
+  return std::unique_ptr<opentracing::Span>{new LegacySpan{
       shared_from_this(), *logger_, *recorder_, operation_name, options}};
 } catch (const std::exception& e) {
   logger_->Error("StartSpanWithOptions failed: ", e.what());
