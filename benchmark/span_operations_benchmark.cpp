@@ -3,7 +3,7 @@
 #include "lightstep/tracer.h"
 
 #include "recorder/stream_recorder/stream_recorder.h"
-#include "tracer/lightstep_tracer_impl.h"
+#include "tracer/legacy/lightstep_tracer_impl.h"
 
 #include "benchmark/benchmark.h"
 

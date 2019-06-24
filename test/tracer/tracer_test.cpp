@@ -6,7 +6,7 @@
 #include "lightstep/tracer.h"
 #include "test/recorder/in_memory_recorder.h"
 #include "test/utility.h"
-#include "tracer/lightstep_tracer_impl.h"
+#include "tracer/legacy/lightstep_tracer_impl.h"
 
 using namespace lightstep;
 using namespace opentracing;

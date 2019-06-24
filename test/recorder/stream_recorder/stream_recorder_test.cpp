@@ -10,7 +10,7 @@
 #include "test/ports.h"
 #include "test/string_logger_sink.h"
 #include "test/utility.h"
-#include "tracer/lightstep_tracer_impl.h"
+#include "tracer/legacy/lightstep_tracer_impl.h"
 
 #include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;

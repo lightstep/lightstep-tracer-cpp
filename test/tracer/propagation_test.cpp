@@ -11,8 +11,8 @@
 #include "lightstep/binary_carrier.h"
 #include "lightstep/tracer.h"
 #include "test/recorder/in_memory_recorder.h"
-#include "tracer/lightstep_immutable_span_context.h"
-#include "tracer/lightstep_tracer_impl.h"
+#include "tracer/legacy/lightstep_immutable_span_context.h"
+#include "tracer/legacy/lightstep_tracer_impl.h"
 
 using namespace lightstep;
 
