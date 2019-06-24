@@ -14,8 +14,8 @@ class FlatMap {
 
   void insert(Key&& key, Value&& value) {
     auto iter = this->lower_bound(key);
-    if (iter->first == key) {
-      data_[std::distance(data_.begin(), iter)]->second = std::move(value);
+    if (iter != data_.cend() && iter->first == key) {
+      data_[std::distance(data_.cbegin(), iter)].second = std::move(value);
       return;
     }
     data_.emplace(iter, std::move(key), std::move(value));
@@ -24,11 +24,13 @@ class FlatMap {
   template <class T>
   iterator lookup(const T& key) const noexcept {
     auto iter = this->lower_bound(key);
-    if (iter->first == key) {
+    if (iter != data_.end() && iter->first == key) {
       return iter;
     }
     return data_.end();
   }
+
+  bool empty() const noexcept { return data_.empty(); }
 
   iterator begin() const noexcept { return data_.begin(); }
 
