@@ -36,6 +36,7 @@ class FlatMap {
 
   iterator end() const noexcept { return data_.end(); }
 
+  const MapImpl& as_vector() const noexcept { return data_; }
  private:
    MapImpl data_;
 

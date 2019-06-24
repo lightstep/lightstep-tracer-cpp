@@ -75,8 +75,6 @@ Span::~Span() noexcept {
 //------------------------------------------------------------------------------
 void Span::FinishWithOptions(
     const opentracing::FinishSpanOptions& options) noexcept try {
-  (void)options;
-#if 0
   // Ensure the span is only finished once.
   if (is_finished_.exchange(true)) {
     return;
@@ -94,21 +92,21 @@ void Span::FinishWithOptions(
 
   // Set timing information.
   auto duration = finish_timestamp - start_steady_;
-  span_.set_duration_micros(
-      std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
+  WriteDuration(stream_, duration);
 
   // Set logs
-  auto& logs = *span_.mutable_logs();
-  logs.Reserve(logs.size() + static_cast<int>(options.log_records.size()));
   for (auto& log_record : options.log_records) {
     try {
-      *logs.Add() = ToLog(log_record.timestamp, std::begin(log_record.fields),
-                          std::end(log_record.fields));
+      WriteLog(stream_, log_record.timestamp, log_record.fields.data(),
+               log_record.fields.data() + log_record.fields.size());
     } catch (const std::exception& e) {
-      logger_.Error("Dropping log record: ", e.what());
+      tracer_->logger().Error("Dropping log record: ", e.what());
     }
   }
 
+  WriteSpanContext(stream_, trace_id_, span_id_, baggage_.as_vector());
+
+#if 0
   // Record the span
   recorder_.RecordSpan(span_);
 #endif
