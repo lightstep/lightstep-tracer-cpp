@@ -7,6 +7,19 @@ load(
 lightstep_package()
 
 lightstep_cc_library(
+    name = "baggage_flat_map_lib",
+    private_hdrs = [
+        "baggage_flat_map.h",
+    ],
+    deps = [
+        "//src/common:flat_map_lib",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_cc_library(
     name = "propagation_lib",
     private_hdrs = [
         "propagation.h",
@@ -88,6 +101,7 @@ lightstep_cc_library(
         "//src/common:random_lib",
         "//src/common:serialization_chain_lib",
         "//src/recorder:recorder_interface",
+        ":baggage_flat_map_lib",
         ":lightstep_span_context_interface",
         ":tracer_impl_lib",
         ":serialization_lib",

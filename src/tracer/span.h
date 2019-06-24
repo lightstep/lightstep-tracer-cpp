@@ -3,6 +3,7 @@
 #include <memory>
 #include <mutex>
 
+#include "tracer/baggage_flat_map.h"
 #include "tracer/lightstep_span_context.h"
 #include "tracer/tracer_impl.h"
 
@@ -92,6 +93,7 @@ class Span final : public opentracing::Span,
   std::shared_ptr<const TracerImpl> tracer_;
   uint64_t trace_id_;
   uint64_t span_id_;
+  BaggageFlatMap baggage_;
   bool sampled_;
 
   template <class Carrier>
