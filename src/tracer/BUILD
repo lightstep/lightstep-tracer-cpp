@@ -32,6 +32,19 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "utility_lib",
+    private_hdrs = [
+        "utility.h",
+    ],
+    srcs = [
+        "utility.cpp",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_cc_library(
     name = "dynamic_load_lib",
     srcs = [
         "dynamic_load.cpp",
@@ -72,6 +85,7 @@ lightstep_cc_library(
         ":lightstep_span_context_interface",
         ":tracer_impl_lib",
         ":serialization_lib",
+        ":utility_lib",
     ],
 )
 

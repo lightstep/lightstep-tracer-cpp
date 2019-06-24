@@ -1,6 +1,7 @@
 #include "tracer/legacy/lightstep_span.h"
 #include <opentracing/ext/tags.h>
 
+#include "tracer/utility.h"
 #include "common/random.h"
 #include "common/utility.h"
 
@@ -10,41 +11,6 @@ using opentracing::SystemClock;
 using opentracing::SystemTime;
 
 namespace lightstep {
-//------------------------------------------------------------------------------
-// is_sampled
-//------------------------------------------------------------------------------
-static bool is_sampled(const opentracing::Value& value) {
-  return value != opentracing::Value{0} && value != opentracing::Value{0u};
-}
-
-//------------------------------------------------------------------------------
-// ComputeStartTimestamps
-//------------------------------------------------------------------------------
-static std::tuple<SystemTime, SteadyTime> ComputeStartTimestamps(
-    const SystemTime& start_system_timestamp,
-    const SteadyTime& start_steady_timestamp) {
-  // If neither the system nor steady timestamps are set, get the tme from the
-  // respective clocks; otherwise, use the set timestamp to initialize the
-  // other.
-  if (start_system_timestamp == SystemTime() &&
-      start_steady_timestamp == SteadyTime()) {
-    return std::tuple<SystemTime, SteadyTime>{SystemClock::now(),
-                                              SteadyClock::now()};
-  }
-  if (start_system_timestamp == SystemTime()) {
-    return std::tuple<SystemTime, SteadyTime>{
-        opentracing::convert_time_point<SystemClock>(start_steady_timestamp),
-        start_steady_timestamp};
-  }
-  if (start_steady_timestamp == SteadyTime()) {
-    return std::tuple<SystemTime, SteadyTime>{
-        start_system_timestamp,
-        opentracing::convert_time_point<SteadyClock>(start_system_timestamp)};
-  }
-  return std::tuple<SystemTime, SteadyTime>{start_system_timestamp,
-                                            start_steady_timestamp};
-}
-
 //------------------------------------------------------------------------------
 // SetSpanReference
 //------------------------------------------------------------------------------
