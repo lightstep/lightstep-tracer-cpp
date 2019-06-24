@@ -68,11 +68,13 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "span_lib",
+    name = "tracer_impl_lib",
     private_hdrs = [
+        "tracer_impl.h",
         "span.h",
     ],
     srcs = [
+        "tracer_impl.cpp",
         "span.cpp",
     ],
     deps = [
@@ -81,28 +83,12 @@ lightstep_cc_library(
         "//src/common:random_lib",
         "//src/common:serialization_chain_lib",
         "//src/recorder:recorder_interface",
-        ":baggage_flat_map_lib",
-        ":lightstep_span_context_interface",
-        ":tracer_impl_lib",
-        ":serialization_lib",
-        ":utility_lib",
-    ],
-)
-
-lightstep_cc_library(
-    name = "tracer_impl_lib",
-    private_hdrs = [
-        "tracer_impl.h",
-    ],
-    srcs = [
-        "tracer_impl.cpp",
-    ],
-    deps = [
-        "//src/common:logger_lib",
-        "//src/recorder:recorder_interface",
-        "//src/tracer/legacy:lightstep_span_lib",
         "//src/tracer/legacy:propagation_lib",
         "//src/tracer/legacy:lightstep_immutable_span_context_lib",
+        ":baggage_flat_map_lib",
+        ":lightstep_span_context_interface",
+        ":serialization_lib",
+        ":utility_lib",
     ],
 )
 

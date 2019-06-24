@@ -85,17 +85,20 @@ lightstep_cc_library(
     name = "stream_recorder_lib",
     private_hdrs = [
         "stream_recorder.h",
+        "stream_recorder2.h"
     ],
     srcs = [
         "stream_recorder.cpp",
+        "stream_recorder2.cpp",
         "stream_recorder_impl.h",
         "stream_recorder_impl.cpp",
     ],
     deps = [
+        "//src/common:chunk_circular_buffer_lib",
         "//src/common:logger_lib",
         "//src/common:noncopyable_lib",
         "//src/common:protobuf_lib",
-        "//src/common:chunk_circular_buffer_lib",
+        "//src/common:serialization_chain_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",
         "//src/recorder:fork_aware_recorder_lib",

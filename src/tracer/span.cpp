@@ -106,10 +106,8 @@ void Span::FinishWithOptions(
 
   WriteSpanContext(stream_, trace_id_, span_id_, baggage_.as_vector());
 
-#if 0
   // Record the span
-  recorder_.RecordSpan(span_);
-#endif
+  tracer_->recorder().RecordSpan(std::move(serialization_chain_));
 } catch (const std::exception& e) {
   tracer_->logger().Error("FinishWithOptions failed: ", e.what());
 }

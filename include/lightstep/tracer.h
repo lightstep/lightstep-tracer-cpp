@@ -107,6 +107,9 @@ struct LightStepTracerOptions {
   // concurrently, then the user is responsible for synchronization.
   bool use_thread = true;
 
+  // TODO(rnburn): remove when new span implementation is complete
+  bool use_span_v2 = false;
+
   // Enable streaming recorder for faster uploading of spans.
   bool use_stream_recorder = false;
 

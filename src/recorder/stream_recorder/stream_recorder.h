@@ -79,12 +79,13 @@ class StreamRecorder final : public ForkAwareRecorder, private Noncopyable {
    */
   ChunkCircularBuffer& span_buffer() noexcept { return span_buffer_; }
 
-  // ForkAwareRecorder
+  // Recorder
   void RecordSpan(const collector::Span& span) noexcept override;
 
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;
 
+  // ForkAwareRecorder
   void PrepareForFork() noexcept override;
 
   void OnForkedParent() noexcept override;

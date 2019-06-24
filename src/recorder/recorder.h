@@ -1,7 +1,11 @@
 #pragma once
 
-#include <lightstep/tracer.h>
 #include <chrono>
+#include <memory>
+
+#include "common/serialization_chain.h"
+
+#include <lightstep/tracer.h>
 #include "lightstep-tracer-common/collector.pb.h"
 
 namespace lightstep {
@@ -18,7 +22,13 @@ class Recorder {
   Recorder& operator=(Recorder&&) = delete;
   Recorder& operator=(const Recorder&) = delete;
 
-  virtual void RecordSpan(const collector::Span& span) noexcept = 0;
+  virtual void RecordSpan(const collector::Span& span) noexcept {
+    (void)span;
+  }
+
+  virtual void RecordSpan(std::unique_ptr<SerializationChain>&& span) noexcept {
+    (void)span;
+  }
 
   virtual bool FlushWithTimeout(
       std::chrono::system_clock::duration /*timeout*/) noexcept {

@@ -1,5 +1,6 @@
 #include "tracer/tracer_impl.h"
 
+#include "tracer/span.h"
 #include "tracer/legacy/lightstep_immutable_span_context.h"
 
 namespace lightstep {
@@ -71,9 +72,8 @@ TracerImpl::TracerImpl(
 std::unique_ptr<opentracing::Span> TracerImpl::StartSpanWithOptions(
     opentracing::string_view operation_name,
     const opentracing::StartSpanOptions& options) const noexcept try {
-  (void)operation_name;
-  (void)options;
-  return nullptr;
+  return std::unique_ptr<opentracing::Span>{
+      new Span{shared_from_this(), operation_name, options}};
 } catch (const std::exception& e) {
   logger_->Error("StartSpanWithOptions failed: ", e.what());
   return nullptr;
