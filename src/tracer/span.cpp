@@ -2,6 +2,10 @@
 
 #include "tracer/serialization.h"
 #include "tracer/utility.h"
+#include "common/random.h"
+#include "common/utility.h"
+
+#include <opentracing/ext/tags.h>
 
 using opentracing::SteadyClock;
 using opentracing::SteadyTime;
@@ -30,13 +34,30 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
   sampled_ = false;
   int reference_count = 0;
   for (auto& reference : options.references) {
-    reference_count += static_cast<int>(SetSpanReference(reference));
+    uint64_t trace_id;
+    reference_count += static_cast<int>(SetSpanReference(reference, trace_id));
+    if (reference_count == 1) {
+      trace_id_ = trace_id;
+    }
   }
 
   // If there are any span references, sampled should be true if any of the
   // references are sampled; with no refences, we set sampled to true.
   if (reference_count == 0) {
     sampled_ = true;
+    trace_id_ = GenerateId();
+  }
+  span_id_ = GenerateId();
+
+  // Set tags.
+  for (auto& tag : options.tags) {
+    WriteTag(stream_, tag.first, tag.second);
+
+    // If sampling_priority is set, it overrides whatever sampling decision was
+    // derived from the referenced spans.
+    if (tag.first == opentracing::ext::sampling_priority) {
+      sampled_ = is_sampled(tag.second);
+    }
   }
 }
 
@@ -100,11 +121,8 @@ void Span::FinishWithOptions(
 //------------------------------------------------------------------------------
 void Span::SetOperationName(
     opentracing::string_view name) noexcept try {
-  (void)name;
-#if 0
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  span_.set_operation_name(name.data(), name.size());
-#endif
+  WriteOperationName(stream_, name);
 } catch (const std::exception& e) {
   tracer_->logger().Error("SetOperationName failed: ", e.what());
 }
@@ -114,16 +132,11 @@ void Span::SetOperationName(
 //------------------------------------------------------------------------------
 void Span::SetTag(opentracing::string_view key,
                            const opentracing::Value& value) noexcept try {
-  (void)key;
-  (void)value;
-#if 0
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  *span_.mutable_tags()->Add() = ToKeyValue(key, value);
-
+  WriteTag(stream_, key, value);
   if (key == opentracing::ext::sampling_priority) {
     sampled_ = is_sampled(value);
   }
-#endif
 } catch (const std::exception& e) {
   tracer_->logger().Error("SetTag failed: ", e.what());
 }
@@ -161,13 +174,9 @@ std::string Span::BaggageItem(
 void Span::Log(std::initializer_list<
                         std::pair<opentracing::string_view, opentracing::Value>>
                             fields) noexcept try {
-  (void)fields;
-#if 0
   auto timestamp = SystemClock::now();
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  *span_.mutable_logs()->Add() =
-      ToLog(timestamp, std::begin(fields), std::end(fields));
-#endif
+  WriteLog(stream_, timestamp, fields.begin(), fields.end());
 } catch (const std::exception& e) {
   tracer_->logger().Error("Log failed: ", e.what());
 }
@@ -198,8 +207,9 @@ bool Span::sampled() const noexcept {
 // SetSpanReference
 //--------------------------------------------------------------------------------------------------
 bool Span::SetSpanReference(
-      const std::pair<opentracing::SpanReferenceType,
-                      const opentracing::SpanContext*>& reference) {
+    const std::pair<opentracing::SpanReferenceType,
+                    const opentracing::SpanContext*>& reference,
+    uint64_t& trace_id) {
   if (reference.second == nullptr) {
     tracer_->logger().Warn("Passed in null span reference.");
     return false;
@@ -210,7 +220,8 @@ bool Span::SetSpanReference(
     tracer_->logger().Warn("Passed in span reference of unexpected type.");
     return false;
   }
-  WriteSpanReference(stream_, reference.first, referenced_context->trace_id(),
+  trace_id = referenced_context->trace_id();
+  WriteSpanReference(stream_, reference.first, trace_id,
                      referenced_context->span_id());
   sampled_ = sampled_ || referenced_context->sampled();
   referenced_context->ForeachBaggageItem(
