@@ -123,6 +123,7 @@ lightstep_cc_library(
         "//src/tracer/legacy:lightstep_tracer_impl_lib",
         "//lightstep-tracer-common:collector_proto_cc",
         "//:config_lib",
+        ":tracer_impl_lib",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",

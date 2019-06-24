@@ -15,6 +15,7 @@
 #include "recorder/grpc_transporter.h"
 #include "recorder/manual_recorder.h"
 #include "recorder/stream_recorder.h"
+#include "tracer/tracer_impl.h"
 #include "tracer/legacy/lightstep_immutable_span_context.h"
 #include "tracer/legacy/lightstep_tracer_impl.h"
 
@@ -129,6 +130,10 @@ static std::shared_ptr<LightStepTracer> MakeStreamTracer(
   PropagationOptions propagation_options{};
   propagation_options.use_single_key = options.use_single_key_propagation;
   auto recorder = MakeStreamRecorder(*logger, std::move(options));
+  if (options.use_span_v2) {
+    return std::shared_ptr<LightStepTracer>{new TracerImpl{
+        std::move(logger), propagation_options, std::move(recorder)}};
+  }
   return std::shared_ptr<LightStepTracer>{new LightStepTracerImpl{
       std::move(logger), propagation_options, std::move(recorder)}};
 }

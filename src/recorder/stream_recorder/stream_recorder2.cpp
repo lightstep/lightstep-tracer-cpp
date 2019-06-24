@@ -16,6 +16,7 @@ StreamRecorder2::StreamRecorder2(Logger& logger,
 // RecordSpan
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder2::RecordSpan(std::unique_ptr<SerializationChain>&& span) noexcept {
+  span->AddChunkFraming();
   (void)span;
 }
 
