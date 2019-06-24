@@ -83,7 +83,7 @@ class Span final : public opentracing::Span,
     return span_id_;
   }
  private:
-  std::mutex mutex_;
+  mutable std::mutex mutex_;
   std::unique_ptr<SerializationChain> serialization_chain_;
   google::protobuf::io::CodedOutputStream stream_;
 
@@ -110,5 +110,9 @@ class Span final : public opentracing::Span,
 #endif
     return {};
   }
+
+  bool SetSpanReference(
+      const std::pair<opentracing::SpanReferenceType,
+                      const opentracing::SpanContext*>& reference);
 };
 } // namespace lightstep

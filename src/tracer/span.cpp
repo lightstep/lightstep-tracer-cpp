@@ -25,6 +25,19 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
   std::tie(start_timestamp, start_steady_) = ComputeStartTimestamps(
       options.start_system_timestamp, options.start_steady_timestamp);
   WriteStartTimestamp(stream_, start_timestamp);
+
+  // Set any span references.
+  sampled_ = false;
+  int reference_count = 0;
+  for (auto& reference : options.references) {
+    reference_count += static_cast<int>(SetSpanReference(reference));
+  }
+
+  // If there are any span references, sampled should be true if any of the
+  // references are sampled; with no refences, we set sampled to true.
+  if (reference_count == 0) {
+    sampled_ = true;
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -120,13 +133,8 @@ void Span::SetTag(opentracing::string_view key,
 //------------------------------------------------------------------------------
 void Span::SetBaggageItem(opentracing::string_view restricted_key,
                                    opentracing::string_view value) noexcept try {
-  (void)restricted_key;
-  (void)value;
-#if 0
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  auto& baggage = *span_.mutable_span_context()->mutable_baggage();
-  baggage.insert(BaggageMap::value_type(restricted_key, value));
-#endif
+  baggage_.insert(std::string{restricted_key}, std::string{value});
 } catch (const std::exception& e) {
   tracer_->logger().Error("SetBaggageItem failed: ", e.what());
 }
@@ -136,15 +144,11 @@ void Span::SetBaggageItem(opentracing::string_view restricted_key,
 //------------------------------------------------------------------------------
 std::string Span::BaggageItem(
     opentracing::string_view restricted_key) const noexcept try {
-  (void)restricted_key;
-#if 0
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  auto& baggage = span_.span_context().baggage();
-  auto lookup = baggage.find(restricted_key);
-  if (lookup != baggage.end()) {
-    return lookup->second;
+  auto iter = baggage_.lookup(restricted_key);
+  if (iter != baggage_.end()) {
+    return iter->second;
   }
-#endif
   return {};
 } catch (const std::exception& e) {
   tracer_->logger().Error("BaggageItem failed, returning empty string: ", e.what());
@@ -174,25 +178,46 @@ void Span::Log(std::initializer_list<
 void Span::ForeachBaggageItem(
     std::function<bool(const std::string& key, const std::string& value)> f)
     const {
-  (void)f;
-#if 0
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  for (const auto& baggage_item : span_.span_context().baggage()) {
+  for (const auto& baggage_item : baggage_) {
     if (!f(baggage_item.first, baggage_item.second)) {
       return;
     }
   }
-#endif
 }
 
 //------------------------------------------------------------------------------
 // sampled
 //------------------------------------------------------------------------------
 bool Span::sampled() const noexcept {
-#if 0
   std::lock_guard<std::mutex> lock_guard{mutex_};
   return sampled_;
-#endif
+}
+
+//--------------------------------------------------------------------------------------------------
+// SetSpanReference
+//--------------------------------------------------------------------------------------------------
+bool Span::SetSpanReference(
+      const std::pair<opentracing::SpanReferenceType,
+                      const opentracing::SpanContext*>& reference) {
+  if (reference.second == nullptr) {
+    tracer_->logger().Warn("Passed in null span reference.");
+    return false;
+  }
+  auto referenced_context =
+      dynamic_cast<const LightStepSpanContext*>(reference.second);
+  if (referenced_context == nullptr) {
+    tracer_->logger().Warn("Passed in span reference of unexpected type.");
+    return false;
+  }
+  WriteSpanReference(stream_, reference.first, referenced_context->trace_id(),
+                     referenced_context->span_id());
+  sampled_ = sampled_ || referenced_context->sampled();
+  referenced_context->ForeachBaggageItem(
+      [this](const std::string& key, const std::string& value) {
+        this->baggage_.insert(std::string{key}, std::string{value});
+        return true;
+      });
   return true;
 }
 }  // namespace lightstep
