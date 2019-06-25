@@ -9,13 +9,15 @@
 # Taken from https://github.com/apache/thrift/blob/7edc8faefd391ce11eca3023a35cc54bcb2eb1af/build/cmake/FindLibevent.cmake
 # with modification.
 
-# not sure why this was CACHE PREFIX before, but it wasn't working
-set(LIBEVENT_ROOT "C:/Program Files (x86)/libevent")
-
-set(LibEvent_EXTRA_PREFIXES /usr/local /opt/local "$ENV{HOME}" ${LIBEVENT_ROOT})
+# this is sort of a search path
+set(LibEvent_EXTRA_PREFIXES
+	"C:/Program Files (x86)/libevent" 
+	/usr/local 
+	/opt/local 
+	"$ENV{HOME}" 
+	${LIBEVENT_ROOT})
 
 foreach(prefix ${LibEvent_EXTRA_PREFIXES})
-  message("prefix: " ${prefix})
   list(APPEND LibEvent_INCLUDE_PATHS "${prefix}/include")
   list(APPEND LibEvent_LIBRARIES_PATHS "${prefix}/lib")
 endforeach()
@@ -27,6 +29,7 @@ find_path(LIBEVENT_INCLUDE_DIRS evhttp.h event.h PATHS ${LibEvent_INCLUDE_PATHS}
 # "lib" prefix is needed on Windows in some cases
 # newer versions of libevent use three libraries
 find_library(LIBEVENT_LIBRARIES NAMES event_core PATHS ${LibEvent_LIBRARIES_PATHS})
+
 
 if (LIBEVENT_LIBRARIES AND LIBEVENT_INCLUDE_DIRS)
   set(Libevent_FOUND TRUE)

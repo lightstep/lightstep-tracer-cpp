@@ -8,16 +8,27 @@
 # CARES_LIBRARY, where to find the c-ares library.
 # Taken from https://github.com/curl/curl/blob/d1207c07d0cc3c7870e50865052bb59850917ec9/CMake/FindCARES.cmake
 
-find_path(CARES_INCLUDE_DIR ares.h
-  /usr/local/include
-  /usr/include
-  )
+set(CARES_SEARCH_PATHS
+	# search for include folder
+	"/usr/local/include" 
+	"/usr/include"  
+	"C:/Program Files (x86)/c-ares/include"
+  "C:/Program Files/c-ares/include"
+
+	# search for .lib
+	"/usr/local/lib" 
+	"/usr/lib"  
+	"C:/Program Files (x86)/c-ares/lib"
+  "C:/Program Files/c-ares/lib"
+)
+
+find_path(CARES_INCLUDE_DIR ares.h ${CARES_SEARCH_PATHS})
+
+message("Include Path: ${CARES_INCLUDE_DIR}")
 
 set(CARES_NAMES ${CARES_NAMES} cares)
-find_library(CARES_LIBRARY
-  NAMES ${CARES_NAMES}
-  PATHS /usr/lib /usr/local/lib
-  )
+
+find_library(CARES_LIBRARY NAMES ${CARES_NAMES} PATHS ${CARES_SEARCH_PATHS})
 
 if(CARES_LIBRARY AND CARES_INCLUDE_DIR)
   set(CARES_LIBRARIES ${CARES_LIBRARY})
