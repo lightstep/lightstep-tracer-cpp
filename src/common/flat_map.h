@@ -13,7 +13,7 @@ class FlatMap {
  public:
   using iterator = typename MapImpl::const_iterator;
 
-  void insert(Key&& key, Value&& value) {
+  void insert_or_assign(Key&& key, Value&& value) {
     auto iter = this->lower_bound(key);
     if (iter != data_.cend() && iter->first == key) {
       data_[std::distance(data_.cbegin(), iter)].second = std::move(value);
@@ -23,7 +23,7 @@ class FlatMap {
   }
 
   template <class T>
-  iterator lookup(const T& key) const noexcept {
+  iterator find(const T& key) const noexcept {
     auto iter = this->lower_bound(key);
     if (iter != data_.end() && iter->first == key) {
       return iter;
