@@ -12,7 +12,7 @@
 #include "lightstep/tracer.h"
 #include "test/recorder/in_memory_recorder.h"
 #include "tracer/legacy/lightstep_immutable_span_context.h"
-#include "tracer/legacy/lightstep_tracer_impl.h"
+#include "tracer/legacy/legacy_tracer_impl.h"
 
 using namespace lightstep;
 
@@ -175,7 +175,7 @@ static void VerifyInjectExtract(const opentracing::Tracer& tracer,
 //------------------------------------------------------------------------------
 TEST_CASE("propagation") {
   auto recorder = new InMemoryRecorder();
-  auto tracer = std::shared_ptr<opentracing::Tracer>{new LightStepTracerImpl{
+  auto tracer = std::shared_ptr<opentracing::Tracer>{new LegacyTracerImpl{
       PropagationOptions{}, std::unique_ptr<Recorder>{recorder}}};
   std::unordered_map<std::string, std::string> text_map;
   TextMapCarrier text_map_carrier{text_map};
@@ -294,10 +294,10 @@ TEST_CASE("propagation - single key") {
   auto recorder = new InMemoryRecorder{};
   PropagationOptions propagation_options;
   propagation_options.use_single_key = true;
-  auto tracer = std::shared_ptr<opentracing::Tracer>{new LightStepTracerImpl{
+  auto tracer = std::shared_ptr<opentracing::Tracer>{new LegacyTracerImpl{
       propagation_options, std::unique_ptr<Recorder>{recorder}}};
   auto multikey_tracer =
-      std::shared_ptr<opentracing::Tracer>{new LightStepTracerImpl{
+      std::shared_ptr<opentracing::Tracer>{new LegacyTracerImpl{
           PropagationOptions{},
           std::unique_ptr<Recorder>{new InMemoryRecorder{}}}};
   std::unordered_map<std::string, std::string> text_map;

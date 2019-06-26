@@ -7,14 +7,14 @@
 #include "tracer/legacy/propagation.h"
 
 namespace lightstep {
-class LightStepTracerImpl final
+class LegacyTracerImpl final
     : public LightStepTracer,
-      public std::enable_shared_from_this<LightStepTracerImpl> {
+      public std::enable_shared_from_this<LegacyTracerImpl> {
  public:
-  LightStepTracerImpl(const PropagationOptions& propagation_options,
+  LegacyTracerImpl(const PropagationOptions& propagation_options,
                       std::unique_ptr<Recorder>&& recorder) noexcept;
 
-  LightStepTracerImpl(std::shared_ptr<Logger> logger,
+  LegacyTracerImpl(std::shared_ptr<Logger> logger,
                       const PropagationOptions& propagation_options,
                       std::unique_ptr<Recorder>&& recorder) noexcept;
 

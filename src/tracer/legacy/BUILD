@@ -58,12 +58,12 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "lightstep_tracer_impl_lib",
+    name = "legacy_tracer_impl_lib",
     private_hdrs = [
-        "lightstep_tracer_impl.h",
+        "legacy_tracer_impl.h",
     ],
     srcs = [
-        "lightstep_tracer_impl.cpp",
+        "legacy_tracer_impl.cpp",
     ],
     deps = [
         "//src/common:logger_lib",

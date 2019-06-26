@@ -1,4 +1,4 @@
-#include "tracer/legacy/lightstep_tracer_impl.h"
+#include "tracer/legacy/legacy_tracer_impl.h"
 #include "tracer/legacy/legacy_span.h"
 #include "tracer/legacy/lightstep_immutable_span_context.h"
 
@@ -50,14 +50,14 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-LightStepTracerImpl::LightStepTracerImpl(
+LegacyTracerImpl::LegacyTracerImpl(
     const PropagationOptions& propagation_options,
     std::unique_ptr<Recorder>&& recorder) noexcept
     : logger_{std::make_shared<Logger>()},
       propagation_options_{propagation_options},
       recorder_{std::move(recorder)} {}
 
-LightStepTracerImpl::LightStepTracerImpl(
+LegacyTracerImpl::LegacyTracerImpl(
     std::shared_ptr<Logger> logger,
     const PropagationOptions& propagation_options,
     std::unique_ptr<Recorder>&& recorder) noexcept
@@ -68,7 +68,7 @@ LightStepTracerImpl::LightStepTracerImpl(
 //------------------------------------------------------------------------------
 // StartSpanWithOptions
 //------------------------------------------------------------------------------
-std::unique_ptr<opentracing::Span> LightStepTracerImpl::StartSpanWithOptions(
+std::unique_ptr<opentracing::Span> LegacyTracerImpl::StartSpanWithOptions(
     opentracing::string_view operation_name,
     const opentracing::StartSpanOptions& options) const noexcept try {
   return std::unique_ptr<opentracing::Span>{new LegacySpan{
@@ -81,18 +81,18 @@ std::unique_ptr<opentracing::Span> LightStepTracerImpl::StartSpanWithOptions(
 //------------------------------------------------------------------------------
 // Inject
 //------------------------------------------------------------------------------
-opentracing::expected<void> LightStepTracerImpl::Inject(
+opentracing::expected<void> LegacyTracerImpl::Inject(
     const opentracing::SpanContext& span_context, std::ostream& writer) const {
   return InjectImpl(propagation_options_, span_context, writer);
 }
 
-opentracing::expected<void> LightStepTracerImpl::Inject(
+opentracing::expected<void> LegacyTracerImpl::Inject(
     const opentracing::SpanContext& span_context,
     const opentracing::TextMapWriter& writer) const {
   return InjectImpl(propagation_options_, span_context, writer);
 }
 
-opentracing::expected<void> LightStepTracerImpl::Inject(
+opentracing::expected<void> LegacyTracerImpl::Inject(
     const opentracing::SpanContext& span_context,
     const opentracing::HTTPHeadersWriter& writer) const {
   return InjectImpl(propagation_options_, span_context, writer);
@@ -102,17 +102,17 @@ opentracing::expected<void> LightStepTracerImpl::Inject(
 // Extract
 //------------------------------------------------------------------------------
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
-LightStepTracerImpl::Extract(std::istream& reader) const {
+LegacyTracerImpl::Extract(std::istream& reader) const {
   return ExtractImpl(propagation_options_, reader);
 }
 
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
-LightStepTracerImpl::Extract(const opentracing::TextMapReader& reader) const {
+LegacyTracerImpl::Extract(const opentracing::TextMapReader& reader) const {
   return ExtractImpl(propagation_options_, reader);
 }
 
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
-LightStepTracerImpl::Extract(
+LegacyTracerImpl::Extract(
     const opentracing::HTTPHeadersReader& reader) const {
   return ExtractImpl(propagation_options_, reader);
 }
@@ -120,14 +120,14 @@ LightStepTracerImpl::Extract(
 //------------------------------------------------------------------------------
 // Flush
 //------------------------------------------------------------------------------
-bool LightStepTracerImpl::Flush() noexcept {
+bool LegacyTracerImpl::Flush() noexcept {
   return recorder_->FlushWithTimeout(DefaultFlushTimeout);
 }
 
 //--------------------------------------------------------------------------------------------------
 // FlushWithTimeout
 //--------------------------------------------------------------------------------------------------
-bool LightStepTracerImpl::FlushWithTimeout(
+bool LegacyTracerImpl::FlushWithTimeout(
     std::chrono::system_clock::duration timeout) noexcept {
   return recorder_->FlushWithTimeout(timeout);
 }
@@ -135,5 +135,5 @@ bool LightStepTracerImpl::FlushWithTimeout(
 //------------------------------------------------------------------------------
 // Close
 //------------------------------------------------------------------------------
-void LightStepTracerImpl::Close() noexcept { Flush(); }
+void LegacyTracerImpl::Close() noexcept { Flush(); }
 }  // namespace lightstep

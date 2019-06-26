@@ -120,7 +120,7 @@ lightstep_cc_library(
         "//src/recorder:grpc_transporter_interface",
         "//src/recorder:manual_recorder_lib",
         "//src/recorder:stream_recorder_interface",
-        "//src/tracer/legacy:lightstep_tracer_impl_lib",
+        "//src/tracer/legacy:legacy_tracer_impl_lib",
         "//lightstep-tracer-common:collector_proto_cc",
         "//:config_lib",
         ":tracer_impl_lib",

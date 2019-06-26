@@ -16,7 +16,7 @@
 #include "recorder/manual_recorder.h"
 #include "recorder/stream_recorder.h"
 #include "tracer/legacy/lightstep_immutable_span_context.h"
-#include "tracer/legacy/lightstep_tracer_impl.h"
+#include "tracer/legacy/legacy_tracer_impl.h"
 #include "tracer/tracer_impl.h"
 
 #include "opentracing/string_view.h"
@@ -118,7 +118,7 @@ static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
   propagation_options.use_single_key = options.use_single_key_propagation;
   auto recorder = std::unique_ptr<Recorder>{
       new AutoRecorder{*logger, std::move(options), std::move(transporter)}};
-  return std::shared_ptr<LightStepTracer>{new LightStepTracerImpl{
+  return std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
       std::move(logger), propagation_options, std::move(recorder)}};
 }
 
@@ -134,7 +134,7 @@ static std::shared_ptr<LightStepTracer> MakeStreamTracer(
     return std::shared_ptr<LightStepTracer>{new TracerImpl{
         std::move(logger), propagation_options, std::move(recorder)}};
   }
-  return std::shared_ptr<LightStepTracer>{new LightStepTracerImpl{
+  return std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
       std::move(logger), propagation_options, std::move(recorder)}};
 }
 
@@ -162,7 +162,7 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
   propagation_options.use_single_key = options.use_single_key_propagation;
   auto recorder = std::unique_ptr<Recorder>{
       new ManualRecorder{*logger, std::move(options), std::move(transporter)}};
-  return std::shared_ptr<LightStepTracer>{new LightStepTracerImpl{
+  return std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
       std::move(logger), propagation_options, std::move(recorder)}};
 }
 

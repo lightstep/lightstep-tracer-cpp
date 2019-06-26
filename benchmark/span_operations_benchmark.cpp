@@ -4,7 +4,7 @@
 
 #include "recorder/stream_recorder/stream_recorder.h"
 #include "recorder/stream_recorder/stream_recorder2.h"
-#include "tracer/legacy/lightstep_tracer_impl.h"
+#include "tracer/legacy/legacy_tracer_impl.h"
 #include "tracer/tracer_impl.h"
 
 #include "benchmark/benchmark.h"
@@ -112,7 +112,7 @@ static std::shared_ptr<opentracing::Tracer> MakeStreamTracer() {
       *logger, std::move(tracer_options), std::move(recorder_options)};
   std::unique_ptr<lightstep::Recorder> recorder{stream_recorder};
   lightstep::PropagationOptions propagation_options;
-  return std::make_shared<lightstep::LightStepTracerImpl>(
+  return std::make_shared<lightstep::LegacyTracerImpl>(
       logger, propagation_options, std::move(recorder));
 }
 

@@ -10,7 +10,7 @@
 #include "test/ports.h"
 #include "test/string_logger_sink.h"
 #include "test/utility.h"
-#include "tracer/legacy/lightstep_tracer_impl.h"
+#include "tracer/legacy/legacy_tracer_impl.h"
 
 #include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
@@ -62,7 +62,7 @@ TEST_CASE("StreamRecorder") {
                                             std::move(recorder_options)};
   std::unique_ptr<Recorder> recorder{stream_recorder};
   PropagationOptions propagation_options;
-  auto tracer = std::make_shared<LightStepTracerImpl>(
+  auto tracer = std::make_shared<LegacyTracerImpl>(
       logger, propagation_options, std::move(recorder));
 
   SECTION("Spans are consumed from the buffer and sent to the satellite.") {
