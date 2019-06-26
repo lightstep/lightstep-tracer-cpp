@@ -41,7 +41,7 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
   }
   std::unique_ptr<opentracing::SpanContext> result{
       new LegacyImmutableSpanContext{trace_id, span_id, sampled,
-                                        std::move(baggage)}};
+                                     std::move(baggage)}};
   return std::move(result);
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(

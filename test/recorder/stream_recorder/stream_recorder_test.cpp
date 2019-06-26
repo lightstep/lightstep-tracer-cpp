@@ -62,8 +62,8 @@ TEST_CASE("StreamRecorder") {
                                             std::move(recorder_options)};
   std::unique_ptr<Recorder> recorder{stream_recorder};
   PropagationOptions propagation_options;
-  auto tracer = std::make_shared<LegacyTracerImpl>(
-      logger, propagation_options, std::move(recorder));
+  auto tracer = std::make_shared<LegacyTracerImpl>(logger, propagation_options,
+                                                   std::move(recorder));
 
   SECTION("Spans are consumed from the buffer and sent to the satellite.") {
     auto span = tracer->StartSpan("abc");

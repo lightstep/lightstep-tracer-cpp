@@ -9,8 +9,8 @@ class LegacyImmutableSpanContext final : public LightStepSpanContext {
       uint64_t trace_id, uint64_t span_id, bool sampled,
       const std::unordered_map<std::string, std::string>& baggage);
 
-  LegacyImmutableSpanContext(uint64_t trace_id, uint64_t span_id,
-                                bool sampled, BaggageMap&& baggage) noexcept;
+  LegacyImmutableSpanContext(uint64_t trace_id, uint64_t span_id, bool sampled,
+                             BaggageMap&& baggage) noexcept;
 
   uint64_t trace_id() const noexcept override { return trace_id_; }
 

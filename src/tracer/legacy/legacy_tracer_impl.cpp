@@ -1,6 +1,6 @@
 #include "tracer/legacy/legacy_tracer_impl.h"
-#include "tracer/legacy/legacy_span.h"
 #include "tracer/legacy/legacy_immutable_span_context.h"
+#include "tracer/legacy/legacy_span.h"
 
 namespace lightstep {
 const auto DefaultFlushTimeout = std::chrono::seconds{10};
@@ -40,7 +40,7 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
   }
   std::unique_ptr<opentracing::SpanContext> result{
       new LegacyImmutableSpanContext{trace_id, span_id, sampled,
-                                        std::move(baggage)}};
+                                     std::move(baggage)}};
   return std::move(result);
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(
@@ -112,8 +112,7 @@ LegacyTracerImpl::Extract(const opentracing::TextMapReader& reader) const {
 }
 
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
-LegacyTracerImpl::Extract(
-    const opentracing::HTTPHeadersReader& reader) const {
+LegacyTracerImpl::Extract(const opentracing::HTTPHeadersReader& reader) const {
   return ExtractImpl(propagation_options_, reader);
 }
 

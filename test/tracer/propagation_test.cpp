@@ -123,8 +123,8 @@ static std::vector<std::unique_ptr<opentracing::SpanContext>>
 MakeTestSpanContexts() {
   std::vector<std::unique_ptr<opentracing::SpanContext>> result;
   // most basic span context
-  result.push_back(std::unique_ptr<opentracing::SpanContext>{
-      new LegacyImmutableSpanContext{
+  result.push_back(
+      std::unique_ptr<opentracing::SpanContext>{new LegacyImmutableSpanContext{
           123, 456, true, std::unordered_map<std::string, std::string>{}}});
 
   // span context with single baggage item
@@ -132,13 +132,13 @@ MakeTestSpanContexts() {
       new LegacyImmutableSpanContext{123, 456, true, {{"abc", "123"}}}});
 
   // span context with multiple baggage items
-  result.push_back(std::unique_ptr<opentracing::SpanContext>{
-      new LegacyImmutableSpanContext{
+  result.push_back(
+      std::unique_ptr<opentracing::SpanContext>{new LegacyImmutableSpanContext{
           123, 456, true, {{"abc", "123"}, {"xyz", "qrz"}}}});
 
   // unsampled span context
-  result.push_back(std::unique_ptr<opentracing::SpanContext>{
-      new LegacyImmutableSpanContext{
+  result.push_back(
+      std::unique_ptr<opentracing::SpanContext>{new LegacyImmutableSpanContext{
           123, 456, false, std::unordered_map<std::string, std::string>{}}});
 
   return result;
@@ -296,10 +296,9 @@ TEST_CASE("propagation - single key") {
   propagation_options.use_single_key = true;
   auto tracer = std::shared_ptr<opentracing::Tracer>{new LegacyTracerImpl{
       propagation_options, std::unique_ptr<Recorder>{recorder}}};
-  auto multikey_tracer =
-      std::shared_ptr<opentracing::Tracer>{new LegacyTracerImpl{
-          PropagationOptions{},
-          std::unique_ptr<Recorder>{new InMemoryRecorder{}}}};
+  auto multikey_tracer = std::shared_ptr<opentracing::Tracer>{
+      new LegacyTracerImpl{PropagationOptions{},
+                           std::unique_ptr<Recorder>{new InMemoryRecorder{}}}};
   std::unordered_map<std::string, std::string> text_map;
   TextMapCarrier text_map_carrier{text_map};
   HTTPHeadersCarrier http_headers_carrier{text_map};
