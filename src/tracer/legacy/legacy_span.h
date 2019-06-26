@@ -1,15 +1,15 @@
 #pragma once
 
+#include <atomic>
+#include <mutex>
+#include <vector>
+
 #include "common/logger.h"
 #include "lightstep-tracer-common/collector.pb.h"
 #include "recorder/recorder.h"
 #include "tracer/lightstep_span_context.h"
 
 #include <opentracing/span.h>
-
-#include <atomic>
-#include <mutex>
-#include <vector>
 
 namespace lightstep {
 class LegacySpan final : public opentracing::Span, public LightStepSpanContext {
