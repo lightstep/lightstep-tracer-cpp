@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <mutex>
+#include <exception>
 
 #include "tracer/baggage_flat_map.h"
 #include "tracer/lightstep_span_context.h"
@@ -96,14 +97,8 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
       const PropagationOptions& propagation_options, Carrier& writer) const {
     (void)propagation_options;
     (void)writer;
-#if 0
-    std::lock_guard<std::mutex> lock_guard{mutex_};
-    auto& span_context = span_.span_context();
-    return InjectSpanContext(propagation_options, writer,
-                             span_context.trace_id(), span_context.span_id(),
-                             sampled_, span_context.baggage());
-#endif
-    return {};
+    // TODO(rnburn): Implement new propagation
+    std::terminate();
   }
 
   bool SetSpanReference(
