@@ -1,5 +1,7 @@
 #include "common/serialization_chain.h"
 
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+
 namespace lightstep {
 static const char* LineTerminator = "\r\n";
 
@@ -9,13 +11,25 @@ static const char* LineTerminator = "\r\n";
 SerializationChain::SerializationChain() noexcept : current_block_{&head_} {}
 
 //--------------------------------------------------------------------------------------------------
-// AddChunkFraming
+// AddFraming
 //--------------------------------------------------------------------------------------------------
-void SerializationChain::AddChunkFraming() noexcept {
-  chunk_header_size_ =
-      std::snprintf(chunk_header_.data(), chunk_header_.size(), "%llX\r\n",
-                    static_cast<unsigned long long>(num_bytes_written_));
-  assert(chunk_header_size_ > 0);
+void SerializationChain::AddFraming() noexcept {
+  auto protobuf_header_size =
+      ComputeLengthDelimitedHeaderSerializationSize<ReportRequestSpansField>(
+          num_bytes_written_);
+  header_size_ = std::snprintf(header_.data(), header_.size(), "%llX\r\n",
+                               static_cast<unsigned long long>(
+                                   num_bytes_written_ + protobuf_header_size));
+  assert(header_size_ > 0);
+
+  // Serialize the spans key field and length
+  google::protobuf::io::ArrayOutputStream zero_copy_stream{
+      static_cast<void*>(header_.data() + header_size_),
+      static_cast<int>(header_.size()) - header_size_};
+  google::protobuf::io::CodedOutputStream stream{&zero_copy_stream};
+  SerializeKeyLength<ReportRequestSpansField>(
+      stream, static_cast<size_t>(num_bytes_written_));
+  header_size_ += protobuf_header_size;
 
   // Prepare the data structure to act as a FragmentInputStream.
   current_block_ = &head_;
@@ -74,12 +88,12 @@ bool SerializationChain::ForEachFragment(Callback callback) const noexcept {
     return true;
   }
 
-  // chunk header
+  // header
   if (fragment_index_ == 0) {
-    assert(fragment_position_ < chunk_header_size_);
-    if (!callback(static_cast<void*>(const_cast<char*>(chunk_header_.data()) +
+    assert(fragment_position_ < header_size_);
+    if (!callback(static_cast<void*>(const_cast<char*>(header_.data()) +
                                      fragment_position_),
-                  chunk_header_size_ - fragment_position_)) {
+                  header_size_ - fragment_position_)) {
       return false;
     }
   }

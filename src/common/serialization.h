@@ -39,7 +39,7 @@ struct StaticKeySerializationSize {
  * @return the serialization size
  */
 template <size_t FieldNumber>
-size_t ComputeVarintSerializationSize(uint64_t x) {
+size_t ComputeVarintSerializationSize(uint64_t x) noexcept {
   return StaticKeySerializationSize<FieldNumber, WireType::Varint>::value +
          google::protobuf::io::CodedOutputStream::VarintSize64(x);
 }
@@ -50,9 +50,21 @@ size_t ComputeVarintSerializationSize(uint64_t x) {
  * @return the serialization size
  */
 template <size_t FieldNumber>
-size_t ComputeVarintSerializationSize(uint32_t x) {
+size_t ComputeVarintSerializationSize(uint32_t x) noexcept {
   return StaticKeySerializationSize<FieldNumber, WireType::Varint>::value +
          google::protobuf::io::CodedOutputStream::VarintSize32(x);
+}
+
+/**
+ * Compute the serialization size of a length-delimited protobuf message header.
+ * @param length the length of the protobuf message
+ * @return the serialization size
+ */
+template <size_t FieldNumber>
+size_t ComputeLengthDelimitedHeaderSerializationSize(size_t length) noexcept {
+  return StaticKeySerializationSize<FieldNumber,
+                                    WireType::LengthDelimited>::value +
+         google::protobuf::io::CodedOutputStream::VarintSize64(length);
 }
 
 /**
@@ -62,7 +74,7 @@ size_t ComputeVarintSerializationSize(uint32_t x) {
  * @return the serialization size
  */
 template <size_t FieldNumber>
-size_t ComputeLengthDelimitedSerializationSize(size_t length) {
+size_t ComputeLengthDelimitedSerializationSize(size_t length) noexcept {
   return StaticKeySerializationSize<FieldNumber,
                                     WireType::LengthDelimited>::value +
          google::protobuf::io::CodedOutputStream::VarintSize64(length) + length;

@@ -89,9 +89,9 @@ TEST_CASE("tracer") {
       span_b->Finish();
       auto spans = recorder->spans();
       REQUIRE(spans.at(0).span_context().trace_id() ==
-            spans.at(1).span_context().trace_id());
+              spans.at(1).span_context().trace_id());
       REQUIRE(HasRelationship(SpanReferenceType::ChildOfRef, spans.at(1),
-                            spans.at(0)));
+                              spans.at(0)));
     }
 
     SECTION(
@@ -105,9 +105,9 @@ TEST_CASE("tracer") {
       span_b->Finish();
       auto spans = recorder->spans();
       REQUIRE(spans.at(0).span_context().trace_id() ==
-            spans.at(1).span_context().trace_id());
+              spans.at(1).span_context().trace_id());
       REQUIRE(HasRelationship(SpanReferenceType::FollowsFromRef, spans.at(1),
-                            spans.at(0)));
+                              spans.at(0)));
     }
 
     SECTION(tracer_type +
@@ -123,9 +123,9 @@ TEST_CASE("tracer") {
       span_c->Finish();
       auto spans = recorder->spans();
       REQUIRE(HasRelationship(SpanReferenceType::ChildOfRef, spans.at(2),
-                            spans.at(0)));
+                              spans.at(0)));
       REQUIRE(HasRelationship(SpanReferenceType::FollowsFromRef, spans.at(2),
-                            spans.at(1)));
+                              spans.at(1)));
     }
 
     SECTION(tracer_type +

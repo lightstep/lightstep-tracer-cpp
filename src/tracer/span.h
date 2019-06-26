@@ -1,8 +1,8 @@
 #pragma once
 
+#include <exception>
 #include <memory>
 #include <mutex>
-#include <exception>
 
 #include "tracer/baggage_flat_map.h"
 #include "tracer/lightstep_span_context.h"
