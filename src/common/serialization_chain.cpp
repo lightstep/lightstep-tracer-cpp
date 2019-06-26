@@ -17,9 +17,10 @@ void SerializationChain::AddFraming() noexcept {
   auto protobuf_header_size =
       ComputeLengthDelimitedHeaderSerializationSize<ReportRequestSpansField>(
           num_bytes_written_);
-  header_size_ = std::snprintf(header_.data(), header_.size(), "%llX\r\n",
-                               static_cast<unsigned long long>(
-                                   num_bytes_written_ + protobuf_header_size));
+  header_size_ = std::snprintf(
+      header_.data(), header_.size(), "%llX\r\n",
+      static_cast<unsigned long long>(static_cast<size_t>(num_bytes_written_) +
+                                      protobuf_header_size));
   assert(header_size_ > 0);
 
   // Serialize the spans key field and length
