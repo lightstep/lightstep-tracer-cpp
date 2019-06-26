@@ -184,7 +184,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/tracer/propagation.cpp
                    src/tracer/binary_carrier.cpp
                    src/tracer/lightstep_span_context.cpp
-                   src/tracer/lightstep_immutable_span_context.cpp
+                   src/tracer/legacy_immutable_span_context.cpp
                    src/tracer/legacy_span.cpp
                    src/tracer/legacy_tracer_impl.cpp
                    src/tracer/lightstep_tracer_factory.cpp

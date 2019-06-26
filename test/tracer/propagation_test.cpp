@@ -11,7 +11,7 @@
 #include "lightstep/binary_carrier.h"
 #include "lightstep/tracer.h"
 #include "test/recorder/in_memory_recorder.h"
-#include "tracer/legacy/lightstep_immutable_span_context.h"
+#include "tracer/legacy/legacy_immutable_span_context.h"
 #include "tracer/legacy/legacy_tracer_impl.h"
 
 using namespace lightstep;
@@ -124,21 +124,21 @@ MakeTestSpanContexts() {
   std::vector<std::unique_ptr<opentracing::SpanContext>> result;
   // most basic span context
   result.push_back(std::unique_ptr<opentracing::SpanContext>{
-      new LightStepImmutableSpanContext{
+      new LegacyImmutableSpanContext{
           123, 456, true, std::unordered_map<std::string, std::string>{}}});
 
   // span context with single baggage item
   result.push_back(std::unique_ptr<opentracing::SpanContext>{
-      new LightStepImmutableSpanContext{123, 456, true, {{"abc", "123"}}}});
+      new LegacyImmutableSpanContext{123, 456, true, {{"abc", "123"}}}});
 
   // span context with multiple baggage items
   result.push_back(std::unique_ptr<opentracing::SpanContext>{
-      new LightStepImmutableSpanContext{
+      new LegacyImmutableSpanContext{
           123, 456, true, {{"abc", "123"}, {"xyz", "qrz"}}}});
 
   // unsampled span context
   result.push_back(std::unique_ptr<opentracing::SpanContext>{
-      new LightStepImmutableSpanContext{
+      new LegacyImmutableSpanContext{
           123, 456, false, std::unordered_map<std::string, std::string>{}}});
 
   return result;

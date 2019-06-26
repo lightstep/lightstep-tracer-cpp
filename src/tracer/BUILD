@@ -84,7 +84,7 @@ lightstep_cc_library(
         "//src/common:serialization_chain_lib",
         "//src/recorder:recorder_interface",
         "//src/tracer/legacy:propagation_lib",
-        "//src/tracer/legacy:lightstep_immutable_span_context_lib",
+        "//src/tracer/legacy:legacy_immutable_span_context_lib",
         ":baggage_flat_map_lib",
         ":lightstep_span_context_interface",
         ":serialization_lib",
