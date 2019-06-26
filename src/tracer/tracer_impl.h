@@ -7,6 +7,9 @@
 #include "tracer/legacy/propagation.h"
 
 namespace lightstep {
+/**
+ * LightStep's implementation of the opentracing Tracer class.
+ */
 class TracerImpl final : public LightStepTracer,
                          public std::enable_shared_from_this<TracerImpl> {
  public:
@@ -17,8 +20,14 @@ class TracerImpl final : public LightStepTracer,
              const PropagationOptions& propagation_options,
              std::unique_ptr<Recorder>&& recorder) noexcept;
 
+  /**
+   * @return the associated Logger.
+   */
   Logger& logger() const noexcept { return *logger_; }
 
+  /**
+   * @return the associated Recorder
+   */
   Recorder& recorder() const noexcept { return *recorder_; }
 
   // opentracing::Span

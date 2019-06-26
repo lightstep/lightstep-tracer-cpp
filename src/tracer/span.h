@@ -15,6 +15,9 @@
 #include <opentracing/span.h>
 
 namespace lightstep {
+/**
+ * LightStep's implementation of the OpenTracing Span class.
+ */
 class Span final : public opentracing::Span, public LightStepSpanContext {
  public:
   Span(std::shared_ptr<const TracerImpl>&& tracer,
@@ -49,7 +52,7 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
     return *tracer_;
   }
 
-  // oopentracing::SpanContext
+  // opentracing::SpanContext
   void ForeachBaggageItem(
       std::function<bool(const std::string& key, const std::string& value)> f)
       const override;

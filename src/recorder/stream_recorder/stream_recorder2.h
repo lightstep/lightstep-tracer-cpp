@@ -6,6 +6,10 @@
 #include "recorder/stream_recorder/stream_recorder_options.h"
 
 namespace lightstep {
+/**
+ * TODO(rnburn): this will replace StreamRecorder when the implementation is
+ * finished.
+ */
 class StreamRecorder2 : public ForkAwareRecorder, private Noncopyable {
  public:
   StreamRecorder2(

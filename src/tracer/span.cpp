@@ -36,7 +36,7 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
   for (auto& reference : options.references) {
     uint64_t trace_id;
     auto valid_reference = SetSpanReference(reference, trace_id);
-    reference_count += static_cast<bool>(valid_reference);
+    reference_count += static_cast<int>(valid_reference);
     if (reference_count == 1 && valid_reference) {
       trace_id_ = trace_id;
     }
