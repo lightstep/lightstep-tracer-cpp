@@ -176,6 +176,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/common/random.cpp
                    src/common/random_traverser.cpp
                    src/common/serialization.cpp
+                   src/common/serialization_chain.cpp
                    src/recorder/report_builder.cpp
                    src/recorder/auto_recorder.cpp
                    src/recorder/fork_aware_recorder.cpp
