@@ -13,8 +13,10 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 Event::Event(const EventBase& event_base, int file_descriptor, short options,
              Callback callback, void* context) {
-  event_ = event_new(event_base.libevent_handle(), file_descriptor, options,
-                     callback, context);
+	
+	// TODO: make sure this conversion is legic (casting int --> long long)
+  event_ = event_new(event_base.libevent_handle(), file_descriptor, options, (void (*)(intptr_t, short, void*)) (callback), context);
+
   if (event_ == nullptr) {
     throw std::runtime_error{"event_new failed"};
   }

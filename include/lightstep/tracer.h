@@ -163,8 +163,9 @@ class LightStepTracer : public opentracing::Tracer {
 };
 
 // Returns a std::shared_ptr to a LightStepTracer or nullptr on failure.
-std::shared_ptr<LightStepTracer> MakeLightStepTracer(
+__declspec(dllexport) std::shared_ptr<LightStepTracer> MakeLightStepTracer(
     LightStepTracerOptions&& options) noexcept;
 
-std::shared_ptr<LightStepTracer> MakeLightStepTracer(const char* config);
+__declspec(dllexport) std::shared_ptr<LightStepTracer> MakeLightStepTracer(
+    const char* config);
 }  // namespace lightstep

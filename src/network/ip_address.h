@@ -5,13 +5,10 @@
 #include <string>
 
 // for most socket things
-#ifndef _WINSOCKAPI_
-#define _WINSOCKAPI_
 #include "winsock2.h"
-#endif
 
-// for sockaddr_in6
-#include "ws2ipdef.h"
+// tcp / ip specific includes (in6_addr, sockaddr_in6)
+#include "ws2tcpip.h"
 
 // we have to define this manually because winsock2.h sucks
 typedef unsigned int sa_family_t;

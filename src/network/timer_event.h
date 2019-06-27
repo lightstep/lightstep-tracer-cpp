@@ -8,7 +8,7 @@
 //#include "common/timeval.h"
 //#endif
 
-#include "winsock.h"
+#include "winsock2.h"
 
 struct event;
 
@@ -54,7 +54,7 @@ class TimerEvent {
  */
 template <class T, void (T::*MemberFunction)()>
 Event::Callback MakeTimerCallback() {
-  return [](int /*socket*/, short /*what*/, void* context) {
+  return [](intptr_t /*socket*/, short /*what*/, void* context) {
     (static_cast<T*>(context)->*MemberFunction)();
   };
 }

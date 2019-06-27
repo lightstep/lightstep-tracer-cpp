@@ -91,10 +91,19 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 find_package(Protobuf REQUIRED)
 
- # this is required so that when protobuf is compiled from .proto --> .cpp the 
- # compiler will be able to find the locations of some of the common .proto files
- # that are NOT saved in the local project
+# include the common .proto files such as descriptor.proto that our proto
+# config depend on. 
+# only necesarry on Windows because it doesn't save includes in a consistent place
+# which compilers can search
 set(PROTOBUF_IMPORT_DIRS ${PROTOBUF_INCLUDE_DIRS})
+
+
+
+# this is important to make sure that we don't have crazy symbols in our includes
+add_compile_definitions(OPENTRACING_STATIC)
+set(OPENTRACING_INCLUDE_DIR "C:/Program Files (x86)/opentracing-cpp/include")
+set(OPENTRACING_LIBRARY "C:/Program Files (x86)/opentracing-cpp/lib/opentracing.lib")
+
 
 if (NOT DEFINED OPENTRACING_INCLUDE_DIR)
   find_path(OPENTRACING_INCLUDE_DIR NAMES opentracing/tracer.h)
@@ -108,7 +117,15 @@ include_directories(SYSTEM ${OPENTRACING_INCLUDE_DIR})
 include_directories(SYSTEM ${PROTOBUF_INCLUDE_DIRS})
 
 set(LIGHTSTEP_LINK_LIBRARIES ${OPENTRACING_LIBRARY}
-                             ${PROTOBUF_LIBRARIES})
+# gives the location of both debug and optimized libraries
+# cmake will choose which one to use depending on this program's build config
+                             ${Protobuf_LIBRARIES})
+
+# these libraries interface with windows sockets
+# they are installed by default, but we still need to find and link them	 
+if(WIN32)
+	list(APPEND LIGHTSTEP_LINK_LIBRARIES "wsock32" "ws2_32")
+endif()
 
 if (WITH_GRPC)                           
   find_package(gRPC CONFIG)
@@ -135,7 +152,7 @@ endif()
 
 if (WITH_LIBEVENT)
   find_package(Libevent REQUIRED)
-  list(APPEND LIGHTSTEP_LINK_LIBRARIES   ${LIBEVENT_LIBRARIES})
+  list(APPEND LIGHTSTEP_LINK_LIBRARIES ${LIBEVENT_LIBRARIES})
   include_directories(SYSTEM ${LIBEVENT_INCLUDE_DIRS})
 endif()
 
@@ -150,14 +167,13 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
 
-message("final list of include paths:")
-
 get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-message("inc_dirs = ${inc_dirs}")
+message("INCLUDE_DIRECTORIES = ${inc_dirs}")
 
-# foreach (path ${INCLUDE_DIRECTORIES})
-#	message("-- " ${path})
-# endforeach()
+message("LIGHTSTEP_LINK_LIBRARIES:")
+foreach (path ${LIGHTSTEP_LINK_LIBRARIES})
+	message("-- " ${path})
+endforeach()
 
 # ==============================================================================
 # Build LightStep tracer library
@@ -195,6 +211,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/tracer/lightstep_tracer_impl.cpp
                    src/tracer/lightstep_tracer_factory.cpp
                    src/tracer/tracer.cpp
+									 src/tracer/sampling_priority_patch.cpp
                    )
 
 if (WITH_GRPC)
@@ -238,7 +255,7 @@ else()
 endif()
 
 if (WITH_DYNAMIC_LOAD)
-  list(APPEND LIGHTSTEP_SRCS src/tracer/dynamic_load.cpp)
+  list(APPEND LIGHTSTEP_SRCS src/tracer/dynamic_load.cpp) 
 endif()
 
 if (DEFAULT_SSL_ROOTS_PEM STREQUAL "")
@@ -254,11 +271,18 @@ else()
   list(APPEND LIGHTSTEP_SRCS ${EMBED_SSL_ROOTS_PEM_CPP_FILE})
 endif()
 
-if (BUILD_SHARED_LIBS)  
+	
+
+if (BUILD_SHARED_LIBS)
   add_library(lightstep_tracer SHARED $<TARGET_OBJECTS:lightstep_tracer_common>
                                       $<TARGET_OBJECTS:lightstep_tracer_configuration>
                                       $<TARGET_OBJECTS:lightstep_3rd_party>
                                       ${LIGHTSTEP_SRCS})
+	# unmaps min / max because these keywords are used
+	if (WIN32)
+		target_compile_definitions(lightstep_tracer PRIVATE NOMINMAX)
+	endif()
+
   target_compile_options(lightstep_tracer PUBLIC ${WARNING_CXX_FLAGS})
   target_link_libraries(lightstep_tracer ${LIGHTSTEP_LINK_LIBRARIES})
   set_target_properties(lightstep_tracer PROPERTIES SOVERSION ${LIGHTSTEP_VERSION_MAJOR})
@@ -271,7 +295,18 @@ if (BUILD_STATIC_LIBS)
                                              $<TARGET_OBJECTS:lightstep_tracer_configuration>
                                              $<TARGET_OBJECTS:lightstep_3rd_party>
                                              ${LIGHTSTEP_SRCS})
-  set_target_properties(lightstep_tracer-static PROPERTIES OUTPUT_NAME lightstep_tracer)
+
+  # on Windows setting OUTPUT_NAME to lightstep_tracer will make the static / dynamic libraries
+  # have the same name (because the file extensions are the same)
+  if (NOT WIN32)
+	set_target_properties(lightstep_tracer-static PROPERTIES OUTPUT_NAME lightstep_tracer)
+  endif()
+
+  # unmaps min / max because these keywords are used
+	if (WIN32)
+		target_compile_definitions(lightstep_tracer-static PRIVATE NOMINMAX)
+	endif()
+
   target_compile_options(lightstep_tracer-static PUBLIC ${WARNING_CXX_FLAGS})
   target_link_libraries(lightstep_tracer-static ${LIGHTSTEP_LINK_LIBRARIES})
   install(TARGETS lightstep_tracer-static

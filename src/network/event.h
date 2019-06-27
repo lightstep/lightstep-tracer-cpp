@@ -2,7 +2,8 @@
 
 #include <chrono>
 
-#include "winsock.h"
+// for timeval
+#include "winsock2.h" 
 
 struct event;
 
@@ -14,7 +15,9 @@ class EventBase;
  */
 class Event {
  public:
-  using Callback = void (*)(int socket, short what, void* context);
+  //using Callback = void (*)(int socket, short what, void* context);
+	// so this is compatible with 
+	using Callback =  void (*)(intptr_t socket, short what, void* context);;
 
   Event() noexcept = default;
 
@@ -66,7 +69,7 @@ class Event {
  */
 template <class T, void (T::*MemberFunction)(int, short)>
 Event::Callback MakeEventCallback() {
-  return [](int socket, short what, void* context) {
+  return [](intptr_t socket, short what, void* context) {
     (static_cast<T*>(context)->*MemberFunction)(socket, what);
   };
 }

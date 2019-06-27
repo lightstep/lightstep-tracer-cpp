@@ -11,7 +11,9 @@
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
-#include <strings.h>
+
+// windows has a differnt name for strcasecmp (from unix strings.h) 
+#define strcasecmp _stricmp
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------

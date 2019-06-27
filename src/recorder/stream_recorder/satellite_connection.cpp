@@ -12,7 +12,9 @@
 #include "recorder/stream_recorder/satellite_streamer.h"
 
 #include <event2/event.h>
-#include <unistd.h>
+
+// for ssize_t and read
+#include "winsock2.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -191,12 +193,13 @@ void SatelliteConnection::OnReadable(int file_descriptor,
   streamer_.logger().Info("Satellite file_descriptor ", file_descriptor,
                           " is readable");
   std::array<char, 512> buffer;
-  ssize_t rcode;
+  int rcode;
 
   // Read satellite response
   while (true) {
-    rcode = ::read(file_descriptor, static_cast<void*>(buffer.data()),
-                   buffer.size());
+		// pass 0 because we don't want to set any flags
+    rcode = recv(file_descriptor, static_cast<char*>(buffer.data()),
+                   buffer.size(), 0);
     if (rcode <= 0) {
       break;
     }

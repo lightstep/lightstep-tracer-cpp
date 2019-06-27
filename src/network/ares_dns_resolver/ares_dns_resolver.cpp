@@ -98,11 +98,18 @@ AresDnsResolver::AresDnsResolver(Logger& logger, EventBase& event_base,
     throw std::runtime_error{"ares failed to initialize"};
   }
   struct ares_options options = {};
-  options.sock_state_cb = [](void* context, int file_descriptor, int read,
-                             int write) {
-    static_cast<AresDnsResolver*>(context)->OnSocketStateChange(file_descriptor,
-                                                                read, write);
+
+	ares_sock_state_cb sock_state_cb = [](void* context,
+                                        ares_socket_t file_descriptor,
+                                        int read, int write) {
+    static_cast<AresDnsResolver*>(context)->OnSocketStateChange(static_cast<int>(file_descriptor), read, write);
   };
+
+	//void (*sock_state_cb)(void *data, ares_socket_t socket_fd, int readable, int writable
+
+  options.sock_state_cb = static_cast<ares_sock_state_cb>(sock_state_cb);
+
+
   options.sock_state_cb_data = static_cast<void*>(this);
   int option_mask = 0;
   option_mask |= ARES_OPT_SOCK_STATE_CB;
