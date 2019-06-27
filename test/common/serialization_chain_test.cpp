@@ -18,8 +18,8 @@ static std::string AddFraming(const std::string& s) {
     {
       google::protobuf::io::OstreamOutputStream zero_copy_stream{&oss};
       google::protobuf::io::CodedOutputStream stream{&zero_copy_stream};
-      SerializeKeyLength<SerializationChain::ReportRequestSpansField>(stream,
-                                                                      s.size());
+      WriteKeyLength<SerializationChain::ReportRequestSpansField>(stream,
+                                                                  s.size());
     }
     return oss.str();
   }();

@@ -193,10 +193,12 @@ void LegacySpan::SetTag(opentracing::string_view key,
 // SetBaggageItem
 //------------------------------------------------------------------------------
 void LegacySpan::SetBaggageItem(opentracing::string_view restricted_key,
-                                opentracing::string_view value) noexcept {
+                                opentracing::string_view value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   auto& baggage = *span_.mutable_span_context()->mutable_baggage();
   baggage.insert(BaggageMap::value_type(restricted_key, value));
+} catch (const std::exception& e) {
+  logger_.Error("SetBaggageItem failed: ", e.what());
 }
 
 //------------------------------------------------------------------------------

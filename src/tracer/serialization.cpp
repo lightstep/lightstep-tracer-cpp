@@ -59,7 +59,7 @@ static void WriteSpanContext(
     google::protobuf::io::CodedOutputStream& stream, size_t serialization_size,
     uint64_t trace_id, uint64_t span_id,
     const std::vector<std::pair<std::string, std::string>>& baggage = {}) {
-  SerializeKeyLength<FieldNumber>(stream, serialization_size);
+  WriteKeyLength<FieldNumber>(stream, serialization_size);
   WriteVarint<SpanContextTraceIdField>(stream, trace_id);
   WriteVarint<SpanContextSpanIdField>(stream, span_id);
   for (auto& baggage_item : baggage) {
@@ -68,8 +68,7 @@ static void WriteSpanContext(
             baggage_item.first.size()) +
         ComputeLengthDelimitedSerializationSize<MapEntryValueField>(
             baggage_item.second.size());
-    SerializeKeyLength<SpanContextBaggageField>(stream,
-                                                baggage_serialization_size);
+    WriteKeyLength<SpanContextBaggageField>(stream, baggage_serialization_size);
     WriteString<MapEntryKeyField>(stream, baggage_item.first);
     WriteString<MapEntryValueField>(stream, baggage_item.second);
   }
@@ -126,7 +125,7 @@ static void WriteLogImpl(google::protobuf::io::CodedOutputStream& stream,
     ++field_index;
   }
 
-  SerializeKeyLength<LogsField>(stream, serialization_size);
+  WriteKeyLength<LogsField>(stream, serialization_size);
   WriteTimestamp<LogTimestampField>(stream, timestamp_serialization_size,
                                     seconds_since_epoch, nano_fraction);
   field_index = 0;
@@ -181,7 +180,7 @@ void WriteSpanReference(google::protobuf::io::CodedOutputStream& stream,
           relationship) +
       ComputeLengthDelimitedSerializationSize<SpanReferenceSpanContextField>(
           span_context_serialization_size);
-  SerializeKeyLength<SpanReferenceField>(stream, serialization_size);
+  WriteKeyLength<SpanReferenceField>(stream, serialization_size);
   WriteVarint<SpanReferenceRelationshipField>(stream, relationship);
   WriteSpanContext<SpanReferenceSpanContextField>(
       stream, span_context_serialization_size, trace_id, span_id);

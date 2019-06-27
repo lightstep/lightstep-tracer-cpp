@@ -28,7 +28,7 @@ void SerializationChain::AddFraming() noexcept {
       static_cast<void*>(header_.data() + header_size_),
       static_cast<int>(header_.size()) - header_size_};
   google::protobuf::io::CodedOutputStream stream{&zero_copy_stream};
-  SerializeKeyLength<ReportRequestSpansField>(
+  WriteKeyLength<ReportRequestSpansField>(
       stream, static_cast<size_t>(num_bytes_written_));
   header_size_ += protobuf_header_size;
 
