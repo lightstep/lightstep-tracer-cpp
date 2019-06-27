@@ -1,4 +1,4 @@
-#include "tracer/propagation.h"
+#include "tracer/legacy/propagation.h"
 #include <lightstep/base64/base64.h>
 #include <algorithm>
 #include <array>

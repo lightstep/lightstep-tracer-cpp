@@ -1,4 +1,5 @@
-#include "stream_recorder.h"
+#include "recorder/stream_recorder/stream_recorder.h"
+#include "recorder/stream_recorder/stream_recorder2.h"
 
 #include <exception>
 
@@ -135,8 +136,11 @@ void StreamRecorder::Poll() noexcept {
 //--------------------------------------------------------------------------------------------------
 std::unique_ptr<Recorder> MakeStreamRecorder(
     Logger& logger, LightStepTracerOptions&& tracer_options) {
-  std::unique_ptr<Recorder> result{
+  if (tracer_options.use_span_v2) {
+    return std::unique_ptr<Recorder>{
+        new StreamRecorder2{logger, std::move(tracer_options)}};
+  }
+  return std::unique_ptr<Recorder>{
       new StreamRecorder{logger, std::move(tracer_options)}};
-  return result;
 }
 }  // namespace lightstep

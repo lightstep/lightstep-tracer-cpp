@@ -17,6 +17,7 @@ CHECKS="\
 -google-build-using-namespace,\
 -google-runtime-int,\
 -google-explicit-constructor,\
+-misc-misplaced-widening-cast,\
 -modernize-make-unique,\
 -modernize-use-transparent-functors,\
 -performance-move-const-arg,\

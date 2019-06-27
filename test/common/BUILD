@@ -113,6 +113,16 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "flat_map_test",
+    srcs = [
+        "flat_map_test.cpp",
+    ],
+    deps = [
+        "//src/common:flat_map_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "random_traverser_test",
     srcs = [
         "random_traverser_test.cpp",

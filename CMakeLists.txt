@@ -176,20 +176,24 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/common/random.cpp
                    src/common/random_traverser.cpp
                    src/common/serialization.cpp
+                   src/common/serialization_chain.cpp
                    src/recorder/report_builder.cpp
                    src/recorder/auto_recorder.cpp
                    src/recorder/fork_aware_recorder.cpp
                    src/recorder/manual_recorder.cpp
                    src/recorder/transporter.cpp
-                   src/tracer/propagation.cpp
                    src/tracer/binary_carrier.cpp
+                   src/tracer/legacy/legacy_immutable_span_context.cpp
+                   src/tracer/legacy/legacy_span.cpp
+                   src/tracer/legacy/legacy_tracer_impl.cpp
+                   src/tracer/legacy/propagation.cpp
                    src/tracer/lightstep_span_context.cpp
-                   src/tracer/lightstep_immutable_span_context.cpp
-                   src/tracer/lightstep_span.cpp
-                   src/tracer/lightstep_tracer_impl.cpp
                    src/tracer/lightstep_tracer_factory.cpp
                    src/tracer/serialization.cpp
+                   src/tracer/span.cpp
+                   src/tracer/tracer_impl.cpp
                    src/tracer/tracer.cpp
+                   src/tracer/utility.cpp
                    )
 
 if (WITH_GRPC)
@@ -200,6 +204,7 @@ endif()
 
 if (WITH_LIBEVENT)
   list(APPEND LIGHTSTEP_SRCS src/recorder/stream_recorder/stream_recorder.cpp
+                             src/recorder/stream_recorder/stream_recorder2.cpp
                              src/recorder/stream_recorder/stream_recorder_impl.cpp
                              src/recorder/stream_recorder/satellite_dns_resolution_manager.cpp
                              src/recorder/stream_recorder/satellite_endpoint_manager.cpp

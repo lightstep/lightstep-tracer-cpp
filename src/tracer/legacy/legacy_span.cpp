@@ -1,8 +1,9 @@
-#include "tracer/lightstep_span.h"
+#include "tracer/legacy/legacy_span.h"
 #include <opentracing/ext/tags.h>
 
 #include "common/random.h"
 #include "common/utility.h"
+#include "tracer/utility.h"
 
 using opentracing::SteadyClock;
 using opentracing::SteadyTime;
@@ -10,41 +11,6 @@ using opentracing::SystemClock;
 using opentracing::SystemTime;
 
 namespace lightstep {
-//------------------------------------------------------------------------------
-// is_sampled
-//------------------------------------------------------------------------------
-static bool is_sampled(const opentracing::Value& value) {
-  return value != opentracing::Value{0} && value != opentracing::Value{0u};
-}
-
-//------------------------------------------------------------------------------
-// ComputeStartTimestamps
-//------------------------------------------------------------------------------
-static std::tuple<SystemTime, SteadyTime> ComputeStartTimestamps(
-    const SystemTime& start_system_timestamp,
-    const SteadyTime& start_steady_timestamp) {
-  // If neither the system nor steady timestamps are set, get the tme from the
-  // respective clocks; otherwise, use the set timestamp to initialize the
-  // other.
-  if (start_system_timestamp == SystemTime() &&
-      start_steady_timestamp == SteadyTime()) {
-    return std::tuple<SystemTime, SteadyTime>{SystemClock::now(),
-                                              SteadyClock::now()};
-  }
-  if (start_system_timestamp == SystemTime()) {
-    return std::tuple<SystemTime, SteadyTime>{
-        opentracing::convert_time_point<SystemClock>(start_steady_timestamp),
-        start_steady_timestamp};
-  }
-  if (start_steady_timestamp == SteadyTime()) {
-    return std::tuple<SystemTime, SteadyTime>{
-        start_system_timestamp,
-        opentracing::convert_time_point<SteadyClock>(start_system_timestamp)};
-  }
-  return std::tuple<SystemTime, SteadyTime>{start_system_timestamp,
-                                            start_steady_timestamp};
-}
-
 //------------------------------------------------------------------------------
 // SetSpanReference
 //------------------------------------------------------------------------------
@@ -91,10 +57,10 @@ static bool SetSpanReference(
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-LightStepSpan::LightStepSpan(
-    std::shared_ptr<const opentracing::Tracer>&& tracer, Logger& logger,
-    Recorder& recorder, opentracing::string_view operation_name,
-    const opentracing::StartSpanOptions& options)
+LegacySpan::LegacySpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
+                       Logger& logger, Recorder& recorder,
+                       opentracing::string_view operation_name,
+                       const opentracing::StartSpanOptions& options)
     : tracer_{std::move(tracer)}, logger_{logger}, recorder_{recorder} {
   span_.set_operation_name(operation_name.data(), operation_name.size());
   auto& span_context = *span_.mutable_span_context();
@@ -149,7 +115,7 @@ LightStepSpan::LightStepSpan(
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-LightStepSpan::~LightStepSpan() {
+LegacySpan::~LegacySpan() {
   if (!is_finished_) {
     Finish();
   }
@@ -158,7 +124,7 @@ LightStepSpan::~LightStepSpan() {
 //------------------------------------------------------------------------------
 // FinishWithOptions
 //------------------------------------------------------------------------------
-void LightStepSpan::FinishWithOptions(
+void LegacySpan::FinishWithOptions(
     const opentracing::FinishSpanOptions& options) noexcept try {
   // Ensure the span is only finished once.
   if (is_finished_.exchange(true)) {
@@ -201,8 +167,7 @@ void LightStepSpan::FinishWithOptions(
 //------------------------------------------------------------------------------
 // SetOperationName
 //------------------------------------------------------------------------------
-void LightStepSpan::SetOperationName(
-    opentracing::string_view name) noexcept try {
+void LegacySpan::SetOperationName(opentracing::string_view name) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   span_.set_operation_name(name.data(), name.size());
 } catch (const std::exception& e) {
@@ -212,8 +177,8 @@ void LightStepSpan::SetOperationName(
 //------------------------------------------------------------------------------
 // SetTag
 //------------------------------------------------------------------------------
-void LightStepSpan::SetTag(opentracing::string_view key,
-                           const opentracing::Value& value) noexcept try {
+void LegacySpan::SetTag(opentracing::string_view key,
+                        const opentracing::Value& value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   *span_.mutable_tags()->Add() = ToKeyValue(key, value);
 
@@ -227,17 +192,19 @@ void LightStepSpan::SetTag(opentracing::string_view key,
 //------------------------------------------------------------------------------
 // SetBaggageItem
 //------------------------------------------------------------------------------
-void LightStepSpan::SetBaggageItem(opentracing::string_view restricted_key,
-                                   opentracing::string_view value) noexcept {
+void LegacySpan::SetBaggageItem(opentracing::string_view restricted_key,
+                                opentracing::string_view value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   auto& baggage = *span_.mutable_span_context()->mutable_baggage();
   baggage.insert(BaggageMap::value_type(restricted_key, value));
+} catch (const std::exception& e) {
+  logger_.Error("SetBaggageItem failed: ", e.what());
 }
 
 //------------------------------------------------------------------------------
 // BaggageItem
 //------------------------------------------------------------------------------
-std::string LightStepSpan::BaggageItem(
+std::string LegacySpan::BaggageItem(
     opentracing::string_view restricted_key) const noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   auto& baggage = span_.span_context().baggage();
@@ -254,9 +221,9 @@ std::string LightStepSpan::BaggageItem(
 //------------------------------------------------------------------------------
 // Log
 //------------------------------------------------------------------------------
-void LightStepSpan::Log(std::initializer_list<
-                        std::pair<opentracing::string_view, opentracing::Value>>
-                            fields) noexcept try {
+void LegacySpan::Log(std::initializer_list<
+                     std::pair<opentracing::string_view, opentracing::Value>>
+                         fields) noexcept try {
   auto timestamp = SystemClock::now();
   std::lock_guard<std::mutex> lock_guard{mutex_};
   *span_.mutable_logs()->Add() =
@@ -268,7 +235,7 @@ void LightStepSpan::Log(std::initializer_list<
 //------------------------------------------------------------------------------
 // ForeachBaggageItem
 //------------------------------------------------------------------------------
-void LightStepSpan::ForeachBaggageItem(
+void LegacySpan::ForeachBaggageItem(
     std::function<bool(const std::string& key, const std::string& value)> f)
     const {
   std::lock_guard<std::mutex> lock_guard{mutex_};
@@ -282,7 +249,7 @@ void LightStepSpan::ForeachBaggageItem(
 //------------------------------------------------------------------------------
 // sampled
 //------------------------------------------------------------------------------
-bool LightStepSpan::sampled() const noexcept {
+bool LegacySpan::sampled() const noexcept {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   return sampled_;
 }

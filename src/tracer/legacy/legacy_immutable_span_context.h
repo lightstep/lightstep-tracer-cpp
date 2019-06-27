@@ -3,14 +3,14 @@
 #include "tracer/lightstep_span_context.h"
 
 namespace lightstep {
-class LightStepImmutableSpanContext final : public LightStepSpanContext {
+class LegacyImmutableSpanContext final : public LightStepSpanContext {
  public:
-  LightStepImmutableSpanContext(
+  LegacyImmutableSpanContext(
       uint64_t trace_id, uint64_t span_id, bool sampled,
       const std::unordered_map<std::string, std::string>& baggage);
 
-  LightStepImmutableSpanContext(uint64_t trace_id, uint64_t span_id,
-                                bool sampled, BaggageMap&& baggage) noexcept;
+  LegacyImmutableSpanContext(uint64_t trace_id, uint64_t span_id, bool sampled,
+                             BaggageMap&& baggage) noexcept;
 
   uint64_t trace_id() const noexcept override { return trace_id_; }
 

@@ -39,7 +39,7 @@ struct StaticKeySerializationSize {
  * @return the serialization size
  */
 template <size_t FieldNumber>
-size_t ComputeVarintSerializationSize(uint64_t x) {
+size_t ComputeVarintSerializationSize(uint64_t x) noexcept {
   return StaticKeySerializationSize<FieldNumber, WireType::Varint>::value +
          google::protobuf::io::CodedOutputStream::VarintSize64(x);
 }
@@ -50,9 +50,21 @@ size_t ComputeVarintSerializationSize(uint64_t x) {
  * @return the serialization size
  */
 template <size_t FieldNumber>
-size_t ComputeVarintSerializationSize(uint32_t x) {
+size_t ComputeVarintSerializationSize(uint32_t x) noexcept {
   return StaticKeySerializationSize<FieldNumber, WireType::Varint>::value +
          google::protobuf::io::CodedOutputStream::VarintSize32(x);
+}
+
+/**
+ * Compute the serialization size of a length-delimited protobuf message header.
+ * @param length the length of the protobuf message
+ * @return the serialization size
+ */
+template <size_t FieldNumber>
+size_t ComputeLengthDelimitedHeaderSerializationSize(size_t length) noexcept {
+  return StaticKeySerializationSize<FieldNumber,
+                                    WireType::LengthDelimited>::value +
+         google::protobuf::io::CodedOutputStream::VarintSize64(length);
 }
 
 /**
@@ -62,7 +74,7 @@ size_t ComputeVarintSerializationSize(uint32_t x) {
  * @return the serialization size
  */
 template <size_t FieldNumber>
-size_t ComputeLengthDelimitedSerializationSize(size_t length) {
+size_t ComputeLengthDelimitedSerializationSize(size_t length) noexcept {
   return StaticKeySerializationSize<FieldNumber,
                                     WireType::LengthDelimited>::value +
          google::protobuf::io::CodedOutputStream::VarintSize64(length) + length;
@@ -74,8 +86,8 @@ size_t ComputeLengthDelimitedSerializationSize(size_t length) {
  * @param the length for the field
  */
 template <size_t FieldNumber>
-void SerializeKeyLength(google::protobuf::io::CodedOutputStream& stream,
-                        size_t length) {
+void WriteKeyLength(google::protobuf::io::CodedOutputStream& stream,
+                    size_t length) {
   stream.WriteVarint32(
       StaticSerializationKey<FieldNumber, WireType::LengthDelimited>::value);
   stream.WriteVarint64(length);
@@ -127,7 +139,7 @@ void WriteVarint(google::protobuf::io::CodedOutputStream& stream, uint32_t x) {
 template <size_t FieldNumber>
 void WriteString(google::protobuf::io::CodedOutputStream& stream,
                  opentracing::string_view s) {
-  SerializeKeyLength<FieldNumber>(stream, s.size());
+  WriteKeyLength<FieldNumber>(stream, s.size());
   stream.WriteRaw(static_cast<const void*>(s.data()), s.size());
 }
 
@@ -160,7 +172,7 @@ template <size_t FieldNumber>
 void WriteTimestamp(google::protobuf::io::CodedOutputStream& stream,
                     size_t serialization_size, uint64_t seconds_since_epoch,
                     uint32_t nano_fraction) noexcept {
-  SerializeKeyLength<FieldNumber>(stream, serialization_size);
+  WriteKeyLength<FieldNumber>(stream, serialization_size);
   WriteTimestampImpl(stream, seconds_since_epoch, nano_fraction);
 }
 
@@ -222,7 +234,7 @@ void WriteKeyValue(google::protobuf::io::CodedOutputStream& stream,
                    size_t serialization_size, opentracing::string_view key,
                    const opentracing::Value& value,
                    const std::string* json_values, int& json_counter) {
-  SerializeKeyLength<FieldNumber>(stream, serialization_size);
+  WriteKeyLength<FieldNumber>(stream, serialization_size);
   WriteKeyValueImpl(stream, key, value, json_values, json_counter);
 }
 

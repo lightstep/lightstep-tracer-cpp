@@ -7,7 +7,7 @@
 #include "test/recorder/in_memory_sync_transporter.h"
 #include "test/testing_condition_variable_wrapper.h"
 #include "test/utility.h"
-#include "tracer/lightstep_tracer_impl.h"
+#include "tracer/legacy/legacy_tracer_impl.h"
 
 using namespace lightstep;
 using namespace opentracing;
@@ -28,7 +28,7 @@ TEST_CASE("auto_recorder") {
       logger, std::move(options),
       std::unique_ptr<SyncTransporter>{in_memory_transporter},
       std::unique_ptr<ConditionVariableWrapper>{condition_variable}};
-  auto tracer = std::shared_ptr<opentracing::Tracer>{new LightStepTracerImpl{
+  auto tracer = std::shared_ptr<opentracing::Tracer>{new LegacyTracerImpl{
       PropagationOptions{}, std::unique_ptr<Recorder>{recorder}}};
   CHECK(tracer);
 

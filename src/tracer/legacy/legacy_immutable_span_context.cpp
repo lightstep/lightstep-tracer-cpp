@@ -1,10 +1,10 @@
-#include "tracer/lightstep_immutable_span_context.h"
+#include "tracer/legacy/legacy_immutable_span_context.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
 // constructor
 //------------------------------------------------------------------------------
-LightStepImmutableSpanContext::LightStepImmutableSpanContext(
+LegacyImmutableSpanContext::LegacyImmutableSpanContext(
     uint64_t trace_id, uint64_t span_id, bool sampled,
     const std::unordered_map<std::string, std::string>& baggage)
     : trace_id_{trace_id}, span_id_{span_id}, sampled_{sampled} {
@@ -14,7 +14,7 @@ LightStepImmutableSpanContext::LightStepImmutableSpanContext(
   }
 }
 
-LightStepImmutableSpanContext::LightStepImmutableSpanContext(
+LegacyImmutableSpanContext::LegacyImmutableSpanContext(
     uint64_t trace_id, uint64_t span_id, bool sampled,
     BaggageMap&& baggage) noexcept
     : trace_id_{trace_id},
@@ -25,7 +25,7 @@ LightStepImmutableSpanContext::LightStepImmutableSpanContext(
 //------------------------------------------------------------------------------
 // ForeachBaggageItem
 //------------------------------------------------------------------------------
-void LightStepImmutableSpanContext::ForeachBaggageItem(
+void LegacyImmutableSpanContext::ForeachBaggageItem(
     std::function<bool(const std::string& key, const std::string& value)> f)
     const {
   for (const auto& baggage_item : baggage_) {

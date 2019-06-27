@@ -41,6 +41,7 @@ lightstep_cc_library(
         ":fragment_input_stream_lib",
         ":noncopyable_lib",
         ":utility_lib",
+        ":serialization_lib",
     ],
     external_deps = [
         "@com_google_protobuf//:protobuf",
@@ -124,6 +125,13 @@ lightstep_cc_library(
     ],
     linkopts = [
         "-pthread",
+    ],
+)
+
+lightstep_cc_library(
+    name = "flat_map_lib",
+    private_hdrs = [
+        "flat_map.h",
     ],
 )
 

@@ -5,7 +5,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
-#include "tracer/propagation.h"
+#include "tracer/legacy/propagation.h"
 
 namespace lightstep {
 class LightStepSpanContext : public opentracing::SpanContext {

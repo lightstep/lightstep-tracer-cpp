@@ -1,5 +1,9 @@
 #pragma once
 
+#include <atomic>
+#include <mutex>
+#include <vector>
+
 #include "common/logger.h"
 #include "lightstep-tracer-common/collector.pb.h"
 #include "recorder/recorder.h"
@@ -7,25 +11,20 @@
 
 #include <opentracing/span.h>
 
-#include <atomic>
-#include <mutex>
-#include <vector>
-
 namespace lightstep {
-class LightStepSpan final : public opentracing::Span,
-                            public LightStepSpanContext {
+class LegacySpan final : public opentracing::Span, public LightStepSpanContext {
  public:
-  LightStepSpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
-                Logger& logger, Recorder& recorder,
-                opentracing::string_view operation_name,
-                const opentracing::StartSpanOptions& options);
+  LegacySpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
+             Logger& logger, Recorder& recorder,
+             opentracing::string_view operation_name,
+             const opentracing::StartSpanOptions& options);
 
-  LightStepSpan(const LightStepSpan&) = delete;
-  LightStepSpan(LightStepSpan&&) = delete;
-  LightStepSpan& operator=(const LightStepSpan&) = delete;
-  LightStepSpan& operator=(LightStepSpan&&) = delete;
+  LegacySpan(const LegacySpan&) = delete;
+  LegacySpan(LegacySpan&&) = delete;
+  LegacySpan& operator=(const LegacySpan&) = delete;
+  LegacySpan& operator=(LegacySpan&&) = delete;
 
-  ~LightStepSpan() override;
+  ~LegacySpan() override;
 
   void FinishWithOptions(
       const opentracing::FinishSpanOptions& options) noexcept override;
