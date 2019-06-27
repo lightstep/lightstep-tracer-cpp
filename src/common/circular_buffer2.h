@@ -13,25 +13,16 @@ class CircularBuffer2 {
   explicit CircularBuffer2(size_t max_size) noexcept
       : data_{new AtomicUniquePtr<T>[max_size + 1]}, capacity_{max_size + 1} {}
 
-  CircularBufferRange<T> Peek() noexcept {
-    int tail = tail_;
-    int head = head_;
-    if (head == tail) {
-      return {};
-    }
-    auto data = data_.get();
-    if (tail < head) {
-      return {data + tail, data + head, nullptr, nullptr};
-    }
-    return {data + tail, data + capacity_, data, data + head};
+  CircularBufferRange<const AtomicUniquePtr<T>> Peek() const noexcept {
+    return const_cast<CircularBuffer2*>(this)->PeekImpl();
   }
 
   template <class Callback>
   void Consume(size_t n, Callback callback) noexcept {
-    assert(n <= size());
-    auto range = Peek().Take(n);
-    static_assert(noexcept(callback(range)), "callback cannot throw");
-    tail_ = (tail_ + n) % capacity_;
+    assert(n <= ComputeSize(head_, tail_));
+    auto range = PeekImpl().Take(n);
+    static_assert(noexcept(callback(range)), "callback not allowed to throw");
+    tail_ = (tail_ + n) % static_cast<int>(capacity_);
     callback(range);
   }
 
@@ -41,7 +32,7 @@ class CircularBuffer2 {
       int tail = tail_;
 
       // The circular buffer is full, so return false.
-      if ((head + 1) % capacity_ == tail) {
+      if ((head + 1) % static_cast<int>(capacity_) == tail) {
         return false;
       }
 
@@ -66,19 +57,32 @@ class CircularBuffer2 {
     return true;
   }
 
-  size_t size() const noexcept {
-    int tail = tail_;
-    int head = head_;
-    if (tail <= head) {
-      return head - tail;
-    }
-    return capacity_ - (tail - head);
-  }
+  size_t max_size() const noexcept { return capacity_ - 1; }
 
  private:
    std::unique_ptr<AtomicUniquePtr<T>[]> data_;
    size_t capacity_;
    std::atomic<int> head_{0};
    std::atomic<int> tail_{0};
+
+  CircularBufferRange<AtomicUniquePtr<T>> PeekImpl() noexcept {
+    int tail = tail_;
+    int head = head_;
+    if (head == tail) {
+      return {};
+    }
+    auto data = data_.get();
+    if (tail < head) {
+      return {data + tail, data + head, nullptr, nullptr};
+    }
+    return {data + tail, data + capacity_, data, data + head};
+  }
+
+  size_t ComputeSize(int head, int tail) const noexcept {
+    if (tail <= head) {
+      return head - tail;
+    }
+    return capacity_ - (tail - head);
+  }
 };
 } // namespace lightstep

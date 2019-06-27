@@ -38,4 +38,16 @@ TEST_CASE("CircularBufferRange") {
     });
     REQUIRE(x == 5);
   }
+
+  SECTION(
+      "We can implicitly convert a non-const CircularBufferRange to a const "
+      "one") {
+    CircularBufferRange<const int> range2{range};
+    int x = 0;
+    range2.ForEach([&](int y) {
+      REQUIRE(++x == y);
+      return true;
+    });
+    REQUIRE(x == 7);
+  }
 }

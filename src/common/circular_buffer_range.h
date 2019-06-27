@@ -3,6 +3,7 @@
 #include <cassert>
 #include <utility>
 #include <iterator>
+#include <type_traits>
 
 namespace lightstep {
 template <class T>
@@ -15,7 +16,7 @@ class CircularBufferRange {
 
   template <class Callback>
   bool ForEach(Callback callback) const
-      noexcept(noexcept(std::declval<Callback>()(std::declval<T>()))) {
+      noexcept(noexcept(std::declval<Callback>()(std::declval<T&>()))) {
     for (auto iter = first1_; iter != last1_; ++iter) {
       if (!callback(*iter)) {
         return false;
@@ -36,10 +37,14 @@ class CircularBufferRange {
 
   CircularBufferRange Take(size_t n) const noexcept {
     assert(n <= size());
-    if (std::distance(first1_, last1_) >= n) {
+    if (static_cast<size_t>(std::distance(first1_, last1_)) >= n) {
       return {first1_, first1_ + n, nullptr, nullptr};
     }
     return {first1_, last1_, first2_, first2_ + n};
+  }
+
+  operator CircularBufferRange<const T>() const noexcept {
+    return {first1_, last1_, first2_, last2_};
   }
 
  private:

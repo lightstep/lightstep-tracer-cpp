@@ -36,9 +36,13 @@ class AtomicUniquePtr {
     }
   }
 
-  T* Get() noexcept { return ptr_; }
+  T* Get() const noexcept { return ptr_; }
 
-  const T* Get() const noexcept { return ptr_; }
+  T& operator*() const noexcept {
+    return *Get();
+  }
+
+  T* operator->() const noexcept { return Get(); }
 
  private:
   std::atomic<T*> ptr_{nullptr};

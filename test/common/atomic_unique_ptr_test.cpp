@@ -11,7 +11,7 @@ TEST_CASE("AtomicUniquePtr") {
     std::unique_ptr<int> x{new int{33}};
     REQUIRE(ptr.SwapIfNull(x));
     REQUIRE(x == nullptr);
-    REQUIRE(*ptr.Get() == 33);
+    REQUIRE(*ptr == 33);
   }
 
   SECTION("SwapIfNull does nothing if AtomicUniquePtr is non-null") {
@@ -20,7 +20,7 @@ TEST_CASE("AtomicUniquePtr") {
     REQUIRE(!ptr.SwapIfNull(x));
     REQUIRE(x != nullptr);
     REQUIRE(*x == 33);
-    REQUIRE(*ptr.Get() == 11);
+    REQUIRE(*ptr == 11);
   }
 
   SECTION("Swap always swaps an AtomicUniquePtr") {
@@ -30,6 +30,6 @@ TEST_CASE("AtomicUniquePtr") {
     REQUIRE(!ptr.IsNull());
     REQUIRE(x != nullptr);
     REQUIRE(*x == 11);
-    REQUIRE(*ptr.Get() == 33);
+    REQUIRE(*ptr == 33);
   }
 }
