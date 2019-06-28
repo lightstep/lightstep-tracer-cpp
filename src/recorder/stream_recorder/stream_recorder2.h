@@ -32,6 +32,7 @@ class StreamRecorder2 : public ForkAwareRecorder, private Noncopyable {
    * Checks whether any threads blocked on flush calls can be resumed.
    */
   void Poll() noexcept;
+
   /**
    * Gets the pending flush count and resets the counter.
    * @return the pending flush count.
