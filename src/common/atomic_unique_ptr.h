@@ -4,6 +4,10 @@
 #include <memory>
 
 namespace lightstep {
+/**
+ * An owning pointer similar to std::unique_ptr but with methods for atomic
+ * operations.
+ */
 template <class T>
 class AtomicUniquePtr {
  public:
@@ -11,8 +15,25 @@ class AtomicUniquePtr {
 
   ~AtomicUniquePtr() noexcept { Reset(); }
 
+  T& operator*() const noexcept { return *Get(); }
+
+  T* operator->() const noexcept { return Get(); }
+
+  /**
+   * @return the underly pointer managed.
+   */
+  T* Get() const noexcept { return ptr_; }
+
+  /**
+   * @return true if the pointer is null
+   */
   bool IsNull() const noexcept { return ptr_ == nullptr; }
 
+  /**
+   * Atomically swap the pointer only if it's null.
+   * @param owner the pointer to swap with
+   * @return true if the swap was successful
+   */
   bool SwapIfNull(std::unique_ptr<T>& owner) noexcept {
     auto ptr = owner.get();
     T* expected = nullptr;
@@ -25,22 +46,24 @@ class AtomicUniquePtr {
     return false;
   }
 
+  /**
+   * Atomically swap the pointer with another.
+   * @param ptr the pointer to swap with
+   */
   void Swap(std::unique_ptr<T>& ptr) noexcept {
     ptr.reset(ptr_.exchange(ptr.release()));
   }
 
+  /**
+   * Set the pointer to a new value and delete the current value if non-null.
+   * @param ptr the new pointer value to set
+   */
   void Reset(T* ptr = nullptr) noexcept {
     ptr = ptr_.exchange(ptr);
     if (ptr != nullptr) {
       delete ptr;
     }
   }
-
-  T* Get() const noexcept { return ptr_; }
-
-  T& operator*() const noexcept { return *Get(); }
-
-  T* operator->() const noexcept { return Get(); }
 
  private:
   std::atomic<T*> ptr_{nullptr};

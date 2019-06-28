@@ -76,6 +76,14 @@ TEST_CASE("CircularBuffer") {
     });
   }
 
+  SECTION("We can clear a circular buffer") {
+    std::unique_ptr<int> x{new int{11}};
+    REQUIRE(buffer.Add(x));
+    REQUIRE(x == nullptr);
+    buffer.Clear();
+    REQUIRE(buffer.empty());
+  }
+
   SECTION("If CircularBuffer is full, Add fails") {
     for (int i = 0; i < static_cast<int>(buffer.max_size()); ++i) {
       std::unique_ptr<int> x{new int{i}};

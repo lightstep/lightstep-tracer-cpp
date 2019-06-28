@@ -8,16 +8,35 @@
 #include "common/circular_buffer_range.h"
 
 namespace lightstep {
+/*
+ * A lock-free circular buffer that supports multiple concurrent producers
+ * and a single consumer.
+ */
 template <class T>
 class CircularBuffer2 {
  public:
   explicit CircularBuffer2(size_t max_size) noexcept
       : data_{new AtomicUniquePtr<T>[max_size + 1]}, capacity_{max_size + 1} {}
 
+  /**
+   * @return a range of the elements in the circular buffer
+   *
+   * Note: This method must only be called from the consumer thread.
+   */
   CircularBufferRange<const AtomicUniquePtr<T>> Peek() const noexcept {
     return const_cast<CircularBuffer2*>(this)->PeekImpl();
   }
 
+  /**
+   * Consume elements from the circular buffer's tail.
+   * @param n the number of elements to consume
+   * @param callback the callback to invoke with a AtomicUniquePtr to each
+   * consumed element.
+   *
+   * Note: The callback must set the passed AtomicUniquePtr to null.
+   *
+   * Note: This method must only be called from the consumer thread.
+   */
   template <class Callback>
   void Consume(size_t n, Callback callback) noexcept {
     assert(n <= static_cast<size_t>(head_ - tail_));
@@ -27,6 +46,11 @@ class CircularBuffer2 {
     callback(range);
   }
 
+  /**
+   * Adds an element into the circular buffer.
+   * @param ptr a pointer to the element to add
+   * @return true if the element successfully added; false, otherwise.
+   */
   bool Add(std::unique_ptr<T>& ptr) noexcept {
     while (true) {
       int64_t tail = tail_;
@@ -59,6 +83,11 @@ class CircularBuffer2 {
     return true;
   }
 
+  /**
+   * Clear the circular buffer.
+   *
+   * Note: This method must only be called from the consumer thread.
+   */
   void Clear() noexcept {
     Consume(
         size(), [](CircularBufferRange<AtomicUniquePtr<T>> range) noexcept {
@@ -69,16 +98,29 @@ class CircularBuffer2 {
         });
   }
 
+  /**
+   * @return the maximum number of bytes that can be stored in the buffer.
+   */
   size_t max_size() const noexcept { return capacity_ - 1; }
 
+  /**
+   * @return true if the buffer is empty.
+   */
   bool empty() const noexcept { return head_ == tail_; }
 
+  /**
+   * @return the number of bytes stored in the circular buffer.
+   *
+   * Note: this method will only return a correct snapshot of the size if called
+   * from the consumer thread.
+   */
   size_t size() const noexcept {
     uint64_t tail = tail_;
     uint64_t head = head_;
     assert(tail <= head);
     return head - tail;
   }
+
   /**
    * @return the number of elements consumed from the circular buffer.
    */
