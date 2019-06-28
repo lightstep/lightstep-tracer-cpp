@@ -49,7 +49,7 @@ class CircularBuffer2 {
   /**
    * Adds an element into the circular buffer.
    * @param ptr a pointer to the element to add
-   * @return true if the element successfully added; false, otherwise.
+   * @return true if the element was successfully added; false, otherwise.
    */
   bool Add(std::unique_ptr<T>& ptr) noexcept {
     while (true) {
