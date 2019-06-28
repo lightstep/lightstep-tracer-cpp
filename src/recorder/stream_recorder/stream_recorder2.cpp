@@ -36,7 +36,7 @@ StreamRecorder2::StreamRecorder2(Logger& logger,
 void StreamRecorder2::RecordSpan(
     std::unique_ptr<SerializationChain>&& span) noexcept {
   span->AddFraming();
-  if(!span_buffer_.Add(span)) {
+  if (!span_buffer_.Add(span)) {
     logger_.Debug("Dropping span");
     metrics_.OnSpansDropped(1);
     span.reset();

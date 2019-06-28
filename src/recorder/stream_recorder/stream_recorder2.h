@@ -8,12 +8,12 @@
 
 #include "stream_recorder_impl2.h"
 
+#include "common/circular_buffer2.h"
 #include "common/noncopyable.h"
 #include "common/serialization_chain.h"
-#include "common/circular_buffer2.h"
 #include "recorder/fork_aware_recorder.h"
-#include "recorder/stream_recorder/stream_recorder_options.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
+#include "recorder/stream_recorder/stream_recorder_options.h"
 
 namespace lightstep {
 /**
@@ -65,7 +65,9 @@ class StreamRecorder2 : public ForkAwareRecorder, private Noncopyable {
   /**
    * @return the associated span buffer.
    */
-  CircularBuffer2<SerializationChain>& span_buffer() noexcept { return span_buffer_; }
+  CircularBuffer2<SerializationChain>& span_buffer() noexcept {
+    return span_buffer_;
+  }
 
   // Recorder
   void RecordSpan(std::unique_ptr<SerializationChain>&& span) noexcept override;

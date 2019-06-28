@@ -42,4 +42,4 @@ class StreamRecorderImpl2 : private Noncopyable {
 
   void Flush() noexcept;
 };
-} // namespace lightstep
+}  // namespace lightstep

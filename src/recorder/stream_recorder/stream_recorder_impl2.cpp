@@ -18,14 +18,13 @@ StreamRecorderImpl2::StreamRecorderImpl2(StreamRecorder2& stream_recorder)
       flush_timer_{
           event_base_, stream_recorder_.recorder_options().flushing_period,
           MakeTimerCallback<StreamRecorderImpl2, &StreamRecorderImpl2::Flush>(),
-          static_cast<void*>(this)}
-/* , */
+          static_cast<void*>(this)} /* , */
 /*       streamer_{stream_recorder_.logger(), */
 /*                 event_base_, */
 /*                 stream_recorder_.tracer_options(), */
 /*                 stream_recorder_.recorder_options(), */
 /*                 stream_recorder_.metrics(), */
-/*                 stream_recorder_.span_buffer()} */ 
+/*                 stream_recorder_.span_buffer()} */
 {
   thread_ = std::thread{&StreamRecorderImpl2::Run, this};
 }
@@ -97,4 +96,4 @@ void StreamRecorderImpl2::Flush() noexcept try {
 } catch (const std::exception& e) {
   stream_recorder_.logger().Error("StreamRecorder::Flush failed: ", e.what());
 }
-} // namespace lightstep
+}  // namespace lightstep
