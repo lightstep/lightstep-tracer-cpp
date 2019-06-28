@@ -23,11 +23,18 @@ StreamRecorder2::StreamRecorder2(Logger& logger,
       recorder_options_{std::move(recorder_options)},
       metrics_{GetMetricsObserver(tracer_options_)},
       span_buffer_{tracer_options_.max_buffered_spans.value()} {
-  // If no MetricsObserver was provided, use a default one that does nothing.
-  if (tracer_options_.metrics_observer == nullptr) {
-    tracer_options_.metrics_observer.reset(new MetricsObserver{});
-  }
   stream_recorder_impl_.reset(new StreamRecorderImpl2{*this});
+}
+
+//--------------------------------------------------------------------------------------------------
+// destructor
+//--------------------------------------------------------------------------------------------------
+StreamRecorder2::~StreamRecorder2() noexcept {
+  {
+    std::lock_guard<std::mutex> lock_guard{flush_mutex_};
+    exit_ = true;
+  }
+  flush_condition_variable_.notify_all();
 }
 
 //--------------------------------------------------------------------------------------------------

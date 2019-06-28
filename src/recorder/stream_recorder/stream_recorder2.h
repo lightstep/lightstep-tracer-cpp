@@ -26,6 +26,8 @@ class StreamRecorder2 : public ForkAwareRecorder, private Noncopyable {
       Logger& logger, LightStepTracerOptions&& tracer_options,
       StreamRecorderOptions&& recorder_options = StreamRecorderOptions{});
 
+  ~StreamRecorder2() noexcept override;
+
   /**
    * Checks whether any threads blocked on flush calls can be resumed.
    */
