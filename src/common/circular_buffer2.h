@@ -59,7 +59,35 @@ class CircularBuffer2 {
     return true;
   }
 
+  void Clear() noexcept {
+    Consume(
+        size(), [](CircularBufferRange<AtomicUniquePtr<T>> range) noexcept {
+          range.ForEach([](AtomicUniquePtr<T> & ptr) noexcept {
+            ptr.Reset();
+            return true;
+          });
+        });
+  }
+
   size_t max_size() const noexcept { return capacity_ - 1; }
+
+  bool empty() const noexcept { return head_ == tail_; }
+
+  size_t size() const noexcept {
+    uint64_t tail = tail_;
+    uint64_t head = head_;
+    assert(tail <= head);
+    return head - tail;
+  }
+  /**
+   * @return the number of elements consumed from the circular buffer.
+   */
+  int64_t consumption_count() const noexcept { return tail_; }
+
+  /**
+   * @return the number of elements added to the circular buffer.
+   */
+  int64_t production_count() const noexcept { return head_; }
 
  private:
   std::unique_ptr<AtomicUniquePtr<T>[]> data_;
