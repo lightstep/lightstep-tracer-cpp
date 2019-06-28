@@ -38,9 +38,7 @@ class AtomicUniquePtr {
 
   T* Get() const noexcept { return ptr_; }
 
-  T& operator*() const noexcept {
-    return *Get();
-  }
+  T& operator*() const noexcept { return *Get(); }
 
   T* operator->() const noexcept { return Get(); }
 

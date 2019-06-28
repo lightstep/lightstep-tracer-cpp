@@ -1,8 +1,8 @@
 #pragma once
 
 #include <atomic>
-#include <memory>
 #include <cstdint>
+#include <memory>
 
 #include "common/atomic_unique_ptr.h"
 #include "common/circular_buffer_range.h"
@@ -62,10 +62,10 @@ class CircularBuffer2 {
   size_t max_size() const noexcept { return capacity_ - 1; }
 
  private:
-   std::unique_ptr<AtomicUniquePtr<T>[]> data_;
-   size_t capacity_;
-   std::atomic<int64_t> head_{0};
-   std::atomic<int64_t> tail_{0};
+  std::unique_ptr<AtomicUniquePtr<T>[]> data_;
+  size_t capacity_;
+  std::atomic<int64_t> head_{0};
+  std::atomic<int64_t> tail_{0};
 
   CircularBufferRange<AtomicUniquePtr<T>> PeekImpl() noexcept {
     int64_t tail_index = tail_ % capacity_;
@@ -80,4 +80,4 @@ class CircularBuffer2 {
     return {data + tail_index, data + capacity_, data, data + head_index};
   }
 };
-} // namespace lightstep
+}  // namespace lightstep

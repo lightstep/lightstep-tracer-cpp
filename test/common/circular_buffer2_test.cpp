@@ -6,12 +6,11 @@
 #include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
 
-static thread_local std::mt19937 RandomNumberGenerator{
-    std::random_device{}()};
+static thread_local std::mt19937 RandomNumberGenerator{std::random_device{}()};
 
 static void GenerateRandomNumbers(CircularBuffer2<uint32_t>& buffer,
                                   std::vector<uint32_t>& numbers, int n) {
-  for (int i=0; i<n; ++i) {
+  for (int i = 0; i < n; ++i) {
     auto value = static_cast<uint32_t>(RandomNumberGenerator());
     std::unique_ptr<uint32_t> x{new uint32_t{value}};
     if (buffer.Add(x)) {
@@ -71,9 +70,9 @@ TEST_CASE("CircularBuffer") {
     REQUIRE(x == nullptr);
     auto range = buffer.Peek();
     REQUIRE(range.size() == 1);
-    range.ForEach([] (const AtomicUniquePtr<int>& y) {
-        REQUIRE(*y == 11);
-        return true;
+    range.ForEach([](const AtomicUniquePtr<int>& y) {
+      REQUIRE(*y == 11);
+      return true;
     });
   }
 
@@ -94,13 +93,14 @@ TEST_CASE("CircularBuffer") {
       REQUIRE(buffer.Add(x));
     }
     int count = 0;
-    buffer.Consume(5, [&] (CircularBufferRange<AtomicUniquePtr<int>> range) noexcept {
-      range.ForEach([&] (AtomicUniquePtr<int>& ptr) {
-          REQUIRE(*ptr == count++);
-          ptr.Reset();
-          return true;
-      });
-    });
+    buffer.Consume(
+        5, [&](CircularBufferRange<AtomicUniquePtr<int>> range) noexcept {
+          range.ForEach([&](AtomicUniquePtr<int>& ptr) {
+            REQUIRE(*ptr == count++);
+            ptr.Reset();
+            return true;
+          });
+        });
     REQUIRE(count == 5);
   }
 }

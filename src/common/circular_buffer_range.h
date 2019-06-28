@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cassert>
-#include <utility>
 #include <iterator>
 #include <type_traits>
+#include <utility>
 
 namespace lightstep {
 template <class T>
