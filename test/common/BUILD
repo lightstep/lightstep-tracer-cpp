@@ -52,6 +52,7 @@ lightstep_catch_test(
     srcs = [
         "circular_buffer2_test.cpp",
     ],
+    linkopts = ["-pthread"],
     deps = [
         "//src/common:circular_buffer2_lib",
     ],

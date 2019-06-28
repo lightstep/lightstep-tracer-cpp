@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <memory>
+#include <cstdint>
 
 #include "common/atomic_unique_ptr.h"
 #include "common/circular_buffer_range.h"
@@ -19,25 +20,26 @@ class CircularBuffer2 {
 
   template <class Callback>
   void Consume(size_t n, Callback callback) noexcept {
-    assert(n <= ComputeSize(head_, tail_));
+    assert(n <= static_cast<size_t>(head_ - tail_));
     auto range = PeekImpl().Take(n);
     static_assert(noexcept(callback(range)), "callback not allowed to throw");
-    tail_ = (tail_ + n) % static_cast<int>(capacity_);
+    tail_ += n;
     callback(range);
   }
 
   bool Add(std::unique_ptr<T>& ptr) noexcept {
     while (true) {
-      int head = head_;
-      int tail = tail_;
+      int64_t tail = tail_;
+      int64_t head = head_;
 
       // The circular buffer is full, so return false.
-      if ((head + 1) % static_cast<int>(capacity_) == tail) {
+      if (static_cast<size_t>(head - tail) >= capacity_ - 1) {
         return false;
       }
 
-      if (data_[head].SwapIfNull(ptr)) {
-        auto new_head = (head + 1) % capacity_;
+      int64_t head_index = head % capacity_;
+      if (data_[head_index].SwapIfNull(ptr)) {
+        auto new_head = head + 1;
         auto expected_head = head;
         if (head_.compare_exchange_weak(expected_head, new_head,
                                         std::memory_order_release,
@@ -51,7 +53,7 @@ class CircularBuffer2 {
         // If we reached this point (unlikely), it means that between the last
         // iteration elements were added and then consumed from the circular
         // buffer, so we undo the swap and attempt to add again.
-        data_[head].Swap(ptr);
+        data_[head_index].Swap(ptr);
       }
     }
     return true;
@@ -62,27 +64,20 @@ class CircularBuffer2 {
  private:
    std::unique_ptr<AtomicUniquePtr<T>[]> data_;
    size_t capacity_;
-   std::atomic<int> head_{0};
-   std::atomic<int> tail_{0};
+   std::atomic<int64_t> head_{0};
+   std::atomic<int64_t> tail_{0};
 
   CircularBufferRange<AtomicUniquePtr<T>> PeekImpl() noexcept {
-    int tail = tail_;
-    int head = head_;
-    if (head == tail) {
+    int64_t tail_index = tail_ % capacity_;
+    int64_t head_index = head_ % capacity_;
+    if (head_index == tail_index) {
       return {};
     }
     auto data = data_.get();
-    if (tail < head) {
-      return {data + tail, data + head, nullptr, nullptr};
+    if (tail_index < head_index) {
+      return {data + tail_index, data + head_index, nullptr, nullptr};
     }
-    return {data + tail, data + capacity_, data, data + head};
-  }
-
-  size_t ComputeSize(int head, int tail) const noexcept {
-    if (tail <= head) {
-      return head - tail;
-    }
-    return capacity_ - (tail - head);
+    return {data + tail_index, data + capacity_, data, data + head_index};
   }
 };
 } // namespace lightstep

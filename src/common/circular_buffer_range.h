@@ -35,12 +35,18 @@ class CircularBufferRange {
                                std::distance(first2_, last2_));
   }
 
+  bool empty() const noexcept {
+    assert((first1_ != last1_) || (first2_ == last2_));
+    return first1_ == last1_;
+  }
+
   CircularBufferRange Take(size_t n) const noexcept {
     assert(n <= size());
-    if (static_cast<size_t>(std::distance(first1_, last1_)) >= n) {
+    auto size1 = std::distance(first1_, last1_);
+    if (static_cast<size_t>(size1) >= n) {
       return {first1_, first1_ + n, nullptr, nullptr};
     }
-    return {first1_, last1_, first2_, first2_ + n};
+    return {first1_, last1_, first2_, first2_ + (n - size1)};
   }
 
   operator CircularBufferRange<const T>() const noexcept {
