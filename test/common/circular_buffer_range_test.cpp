@@ -31,10 +31,7 @@ TEST_CASE("CircularBufferRange") {
     x = 0;
     range.ForEach([&](int y) {
       REQUIRE(++x == y);
-      if (y == 5) {
-        return false;
-      }
-      return true;
+      return y != 5;
     });
     REQUIRE(x == 5);
   }
