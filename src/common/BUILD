@@ -17,6 +17,13 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "atomic_unique_ptr_lib",
+    private_hdrs = [
+        "atomic_unique_ptr.h",
+    ],
+)
+
+lightstep_cc_library(
     name = "bipart_memory_stream_lib",
     private_hdrs = [
         "bipart_memory_stream.h",
@@ -59,6 +66,17 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "circular_buffer2_lib",
+    private_hdrs = [
+        "circular_buffer2.h",
+    ],
+    deps = [
+        ":circular_buffer_range_lib",
+        ":atomic_unique_ptr_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "chunk_circular_buffer_lib",
     private_hdrs = [
       "chunk_circular_buffer.h",
@@ -72,6 +90,13 @@ lightstep_cc_library(
         ":circular_buffer_lib",
         ":function_ref_lib",
         ":utility_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "circular_buffer_range_lib",
+    private_hdrs = [
+        "circular_buffer_range.h",
     ],
 )
 

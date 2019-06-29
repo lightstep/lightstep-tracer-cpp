@@ -92,9 +92,12 @@ lightstep_cc_library(
         "stream_recorder2.cpp",
         "stream_recorder_impl.h",
         "stream_recorder_impl.cpp",
+        "stream_recorder_impl2.h",
+        "stream_recorder_impl2.cpp",
     ],
     deps = [
         "//src/common:chunk_circular_buffer_lib",
+        "//src/common:circular_buffer2_lib",
         "//src/common:logger_lib",
         "//src/common:noncopyable_lib",
         "//src/common:protobuf_lib",

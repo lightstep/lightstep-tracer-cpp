@@ -18,6 +18,16 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "atomic_unique_ptr_test",
+    srcs = [
+        "atomic_unique_ptr_test.cpp",
+    ],
+    deps = [
+        "//src/common:atomic_unique_ptr_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "bipart_memory_stream_test",
     srcs = [
         "bipart_memory_stream_test.cpp",
@@ -34,6 +44,27 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/common:circular_buffer_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "circular_buffer2_test",
+    srcs = [
+        "circular_buffer2_test.cpp",
+    ],
+    linkopts = ["-pthread"],
+    deps = [
+        "//src/common:circular_buffer2_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "circular_buffer_range_test",
+    srcs = [
+        "circular_buffer_range_test.cpp",
+    ],
+    deps = [
+        "//src/common:circular_buffer_range_lib",
     ],
 )
 
