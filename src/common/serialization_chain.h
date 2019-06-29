@@ -25,6 +25,10 @@ class SerializationChain final
 
   SerializationChain() noexcept;
 
+  void* operator new(size_t /*size*/);
+
+  void operator delete(void* ptr) noexcept;
+
   /**
    * Adds http/1.1 chunk framing and a message header so that the data can be
    * parsed as part of a protobuf ReportRequest.
@@ -54,6 +58,10 @@ class SerializationChain final
     std::unique_ptr<Block> next;
     int size;
     std::array<char, BlockSize> data;
+
+    void* operator new(size_t);
+
+    void operator delete(void* ptr) noexcept;
   };
 
   int num_blocks_{1};

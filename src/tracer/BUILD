@@ -82,6 +82,7 @@ lightstep_cc_library(
         "//src/common:utility_lib",
         "//src/common:random_lib",
         "//src/common:serialization_chain_lib",
+        "//src/common:block_allocator_lib",
         "//src/recorder:recorder_interface",
         "//src/tracer/legacy:propagation_lib",
         "//src/tracer/legacy:legacy_immutable_span_context_lib",

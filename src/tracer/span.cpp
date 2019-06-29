@@ -1,5 +1,8 @@
 #include "tracer/span.h"
 
+#include <cassert>
+
+#include "common/block_allocator.h"
 #include "common/random.h"
 #include "common/utility.h"
 #include "tracer/serialization.h"
@@ -69,6 +72,29 @@ Span::~Span() noexcept {
   if (!is_finished_) {
     Finish();
   }
+}
+
+//--------------------------------------------------------------------------------------------------
+// operator new
+//--------------------------------------------------------------------------------------------------
+void* Span::operator new(size_t size) {
+  assert(size == sizeof(Span));
+  (void)size;
+  auto result = GetBlockAllocator<Span>()->allocate();
+  if (result == nullptr) {
+    throw std::bad_alloc{};
+  }
+  return result;
+}
+
+//--------------------------------------------------------------------------------------------------
+// operator delete
+//--------------------------------------------------------------------------------------------------
+void Span::operator delete(void* ptr) noexcept {
+  if (ptr == nullptr) {
+    return;
+  }
+  GetBlockAllocator<Span>()->deallocate(ptr);
 }
 
 //------------------------------------------------------------------------------

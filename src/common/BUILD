@@ -49,6 +49,7 @@ lightstep_cc_library(
         ":noncopyable_lib",
         ":utility_lib",
         ":serialization_lib",
+        ":block_allocator_lib",
     ],
     external_deps = [
         "@com_google_protobuf//:protobuf",
@@ -255,3 +256,23 @@ lightstep_cc_library(
     ],
 )
 
+
+lightstep_cc_library(
+    name = "lock_free_list_lib",
+    private_hdrs = [
+        "lock_free_list.h",
+    ],
+)
+
+lightstep_cc_library(
+    name = "block_allocator_lib",
+    private_hdrs = [
+        "block_allocator.h",
+    ],
+    srcs = [
+        "block_allocator.cpp",
+    ],
+    deps = [
+        ":lock_free_list_lib",
+    ],
+)

@@ -1,5 +1,7 @@
 #include "common/serialization_chain.h"
 
+#include "common/block_allocator.h"
+
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 
 namespace lightstep {
@@ -9,6 +11,47 @@ static const char* LineTerminator = "\r\n";
 // constructor
 //--------------------------------------------------------------------------------------------------
 SerializationChain::SerializationChain() noexcept : current_block_{&head_} {}
+
+//--------------------------------------------------------------------------------------------------
+// operator new
+//--------------------------------------------------------------------------------------------------
+void* SerializationChain::operator new(size_t size) {
+  assert(size == sizeof(SerializationChain));
+  (void)size;
+  auto result = GetBlockAllocator<SerializationChain>()->allocate();
+  if (result == nullptr) {
+    throw std::bad_alloc{};
+  }
+  return result;
+}
+
+void* SerializationChain::Block::operator new(size_t size) {
+  assert(size == sizeof(Block));
+  (void)size;
+  auto result = GetBlockAllocator<Block>()->allocate();
+  if (result == nullptr) {
+    throw std::bad_alloc{};
+  }
+  return result;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// operator delete
+//--------------------------------------------------------------------------------------------------
+void SerializationChain::operator delete(void* ptr) noexcept {
+  if (ptr == nullptr) {
+    return;
+  }
+  GetBlockAllocator<SerializationChain>()->deallocate(ptr);
+}
+
+void SerializationChain::Block::operator delete(void* ptr) noexcept {
+  if (ptr == nullptr) {
+    return;
+  }
+  GetBlockAllocator<Block>()->deallocate(ptr);
+}
 
 //--------------------------------------------------------------------------------------------------
 // AddFraming

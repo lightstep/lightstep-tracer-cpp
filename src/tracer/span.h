@@ -26,6 +26,10 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
 
   ~Span() noexcept override;
 
+  void* operator new(size_t size);
+
+  void operator delete(void* ptr) noexcept;
+
   // opentracing::Span
   void FinishWithOptions(
       const opentracing::FinishSpanOptions& options) noexcept override;
