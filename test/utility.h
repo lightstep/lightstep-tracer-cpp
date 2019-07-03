@@ -73,4 +73,11 @@ std::string ToString(const CircularBufferConstPlacement& placement);
  * @return true if the string was succesfully added.
  */
 bool AddString(ChunkCircularBuffer& buffer, opentracing::string_view s);
+
+/**
+ * Adds http/1.1 chunk framing and ReportRequest embedded span framing to a string.
+ * @param s the string to add framing to
+ * @return the original string wrapped with framing
+ */
+std::string AddSpanChunkFraming(opentracing::string_view s);
 }  // namespace lightstep

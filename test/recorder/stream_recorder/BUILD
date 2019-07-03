@@ -117,6 +117,17 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "span_stream2_test",
+    srcs = [
+        "span_stream2_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:span_stream2_lib",
+        "//test:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "connection_stream_test",
     srcs = [
         "connection_stream_test.cpp",

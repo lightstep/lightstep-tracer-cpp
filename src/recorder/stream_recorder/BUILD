@@ -47,6 +47,22 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "span_stream2_lib",
+    private_hdrs = [
+        "span_stream2.h",
+    ],
+    srcs = [
+        "span_stream2.cpp",
+    ],
+    deps = [
+        "//src/common:circular_buffer2_lib",
+        "//src/common:serialization_chain_lib",
+        "//src/common:fragment_input_stream_lib",
+        ":stream_recorder_metrics_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "fragment_span_input_stream_lib",
     private_hdrs = [
         "fragment_span_input_stream.h",

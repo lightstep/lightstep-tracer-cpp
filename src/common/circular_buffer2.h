@@ -47,6 +47,22 @@ class CircularBuffer2 {
   }
 
   /**
+   * Consume elements from the circular buffer's tail.
+   * @param n the number of elements to consume
+   *
+   * Note: This method must only be called from the consumer thread.
+   */
+  void Consume(size_t n) noexcept {
+    Consume(
+        n, [](CircularBufferRange<AtomicUniquePtr<T>> & range) noexcept {
+          range.ForEach([](AtomicUniquePtr<T> & ptr) noexcept {
+            ptr.Reset();
+            return true;
+          });
+        });
+  }
+
+  /**
    * Adds an element into the circular buffer.
    * @param ptr a pointer to the element to add
    * @return true if the element was successfully added; false, otherwise.
@@ -89,13 +105,7 @@ class CircularBuffer2 {
    * Note: This method must only be called from the consumer thread.
    */
   void Clear() noexcept {
-    Consume(
-        size(), [](CircularBufferRange<AtomicUniquePtr<T>> range) noexcept {
-          range.ForEach([](AtomicUniquePtr<T> & ptr) noexcept {
-            ptr.Reset();
-            return true;
-          });
-        });
+    Consume(size());
   }
 
   /**
