@@ -41,7 +41,7 @@ int SpanStream2::num_fragments() const noexcept {
 bool SpanStream2::ForEachFragment(Callback callback) const noexcept {
   return allotment_.ForEach(
       [callback](const AtomicUniquePtr<SerializationChain>& span) {
-        if (span->ForEachFragment(callback)) {
+        if (!span->ForEachFragment(callback)) {
           return false;
         }
         return true;
@@ -54,6 +54,7 @@ bool SpanStream2::ForEachFragment(Callback callback) const noexcept {
 void SpanStream2::Clear() noexcept {
   remnant_.reset();
   span_buffer_.Consume(allotment_.size());  
+  allotment_ = CircularBufferRange<const AtomicUniquePtr<SerializationChain>>{};
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -62,13 +63,18 @@ void SpanStream2::Clear() noexcept {
 void SpanStream2::Seek(int fragment_index, int position) noexcept {
   remnant_.reset();
   int span_count = 0;
-  allotment_.ForEach([ fragment_index, &span_count ](
+  allotment_.ForEach([ fragment_index, &span_count, position ](
       const AtomicUniquePtr<SerializationChain>& span) mutable noexcept {
     auto num_fragments = span->num_fragments();
     if (num_fragments <= fragment_index) {
       fragment_index -= num_fragments;
       ++span_count;
       return true;
+    }
+    // Check to see if we seek onto a span boundary -- in which case, we don't
+    // consume the the next span.
+    if (fragment_index == 0 && position == 0) {
+      return false;
     }
     ++span_count;
     return false;

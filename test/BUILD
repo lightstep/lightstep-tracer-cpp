@@ -22,6 +22,7 @@ lightstep_cc_library(
         "//src/common:fragment_input_stream_lib",
         "//src/common:serialization_lib",
         "//src/common:serialization_chain_lib",
+        "//src/common:circular_buffer2_lib",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",
