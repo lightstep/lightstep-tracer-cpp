@@ -141,6 +141,19 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "connection_stream2_test",
+    srcs = [
+        "connection_stream2_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:connection_stream2_lib",
+        "//src/recorder/stream_recorder:utility_lib",
+        "//test:number_simulation_lib",
+        "//test:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "host_header_test",
     srcs = [
         "host_header_test.cpp",

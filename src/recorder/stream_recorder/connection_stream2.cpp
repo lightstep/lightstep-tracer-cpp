@@ -1,4 +1,4 @@
-#include "recorder/stream_recorder/connection_stream.h"
+#include "recorder/stream_recorder/connection_stream2.h"
 
 #include <cassert>
 #include <cstdio>
@@ -38,11 +38,11 @@ static Fragment WriteChunkHeader(char* buffer, size_t buffer_size,
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-ConnectionStream::ConnectionStream(Fragment host_header_fragment,
-                                   Fragment header_common_fragment,
-                                   SpanStream& span_stream)
-    : host_header_fragment_{std::move(host_header_fragment)},
-      header_common_fragment_{std::move(header_common_fragment)},
+ConnectionStream2::ConnectionStream2(Fragment host_header_fragment,
+                                     Fragment header_common_fragment,
+                                     SpanStream2& span_stream)
+    : host_header_fragment_{host_header_fragment},
+      header_common_fragment_{header_common_fragment},
       span_stream_{span_stream} {
   InitializeStream();
 }
@@ -50,50 +50,49 @@ ConnectionStream::ConnectionStream(Fragment host_header_fragment,
 //--------------------------------------------------------------------------------------------------
 // Reset
 //--------------------------------------------------------------------------------------------------
-void ConnectionStream::Reset() {
+void ConnectionStream2::Reset() {
   if (!header_stream_.empty()) {
     // We weren't able to upload the metrics so add the counters back
     span_stream_.metrics().UnconsumeDroppedSpans(
         embedded_metrics_message_.num_dropped_spans());
   }
-  if (!span_remnant_.empty()) {
+  if(span_remnant_ != nullptr && !span_remnant_->empty()) {
     span_stream_.metrics().OnSpansDropped(1);
-    span_stream_.RemoveSpanRemnant(span_remnant_.chunk_start());
-    span_remnant_.Clear();
   }
+  span_remnant_.reset();
   InitializeStream();
 }
 
 //--------------------------------------------------------------------------------------------------
 // Shutdown
 //--------------------------------------------------------------------------------------------------
-void ConnectionStream::Shutdown() noexcept { shutting_down_ = true; }
+void ConnectionStream2::Shutdown() noexcept { shutting_down_ = true; }
 
 //--------------------------------------------------------------------------------------------------
 // Flush
 //--------------------------------------------------------------------------------------------------
-bool ConnectionStream::Flush(Writer writer) {
+bool ConnectionStream2::Flush(Writer writer) {
   if (shutting_down_) {
     return FlushShutdown(writer);
   }
-  auto chunk_start = span_remnant_.chunk_start();
   span_stream_.Allot();
-  auto result = writer({&header_stream_, &span_remnant_, &span_stream_});
-  if (span_remnant_.empty()) {
-    if (chunk_start != nullptr) {
-      span_stream_.metrics().OnSpansSent(1);
-      span_stream_.RemoveSpanRemnant(chunk_start);
-    }
-    span_stream_.PopSpanRemnant(span_remnant_);
+  if (span_remnant_ == nullptr) {
+    auto result = writer({&header_stream_, &span_stream_});
+    span_remnant_ = span_stream_.ConsumeRemnant();
+    return result;
+  } 
+  auto result = writer({&header_stream_, span_remnant_.get(), &span_stream_});
+  if (span_remnant_->empty()) {
+    span_stream_.metrics().OnSpansSent(1);
+    span_remnant_ = span_stream_.ConsumeRemnant();
   }
-  span_stream_.Consume();
   return result;
 }
 
 //--------------------------------------------------------------------------------------------------
 // InitializeStream
 //--------------------------------------------------------------------------------------------------
-void ConnectionStream::InitializeStream() {
+void ConnectionStream2::InitializeStream() {
   shutting_down_ = false;
   terminal_stream_ = {TerminalFragment};
 
@@ -116,24 +115,17 @@ void ConnectionStream::InitializeStream() {
 }
 
 //--------------------------------------------------------------------------------------------------
-// first_chunk_position
-//--------------------------------------------------------------------------------------------------
-int ConnectionStream::first_chunk_position() const noexcept {
-  return HttpRequestCommonFragment.second + host_header_fragment_.second +
-         EndOfLineFragment.second;
-}
-
-//--------------------------------------------------------------------------------------------------
 // FlushShutdown
 //--------------------------------------------------------------------------------------------------
-bool ConnectionStream::FlushShutdown(Writer writer) {
-  auto chunk_start = span_remnant_.chunk_start();
-  auto result = writer({&header_stream_, &span_remnant_, &terminal_stream_});
-  if (span_remnant_.empty() && chunk_start != nullptr) {
+bool ConnectionStream2::FlushShutdown(Writer writer) {
+  if (span_remnant_ == nullptr) {
+    return writer({&header_stream_, &terminal_stream_});
+  }
+  auto result = writer({&header_stream_, span_remnant_.get(), &terminal_stream_});
+  if (span_remnant_->empty()) {
     span_stream_.metrics().OnSpansSent(1);
-    span_stream_.RemoveSpanRemnant(chunk_start);
-    span_stream_.Consume();
+    span_remnant_.reset();
   }
   return result;
 }
-}  // namespace lightstep
+} // namespace lightstep

@@ -97,6 +97,27 @@ lightstep_cc_library(
     ],
 )
 
+
+lightstep_cc_library(
+    name = "connection_stream2_lib",
+    private_hdrs = [
+        "connection_stream2.h",
+    ],
+    srcs = [
+        "connection_stream2.cpp",
+    ],
+    deps = [
+        "//src/common:function_ref_lib",
+        "//src/common:utility_lib",
+        "//src/common:fragment_input_stream_lib",
+        "//src/common:fragment_array_input_stream_lib",
+        ":embedded_metrics_message_lib",
+        ":span_stream2_lib",
+        ":stream_recorder_metrics_lib",
+        ":fragment_span_input_stream_lib",
+    ],
+)
+
 lightstep_cc_library(
     name = "stream_recorder_lib",
     private_hdrs = [
