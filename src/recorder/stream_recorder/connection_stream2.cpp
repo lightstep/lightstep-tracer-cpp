@@ -56,7 +56,7 @@ void ConnectionStream2::Reset() {
     span_stream_.metrics().UnconsumeDroppedSpans(
         embedded_metrics_message_.num_dropped_spans());
   }
-  if(span_remnant_ != nullptr && !span_remnant_->empty()) {
+  if (span_remnant_ != nullptr && !span_remnant_->empty()) {
     span_stream_.metrics().OnSpansDropped(1);
   }
   span_remnant_.reset();
@@ -80,7 +80,7 @@ bool ConnectionStream2::Flush(Writer writer) {
     auto result = writer({&header_stream_, &span_stream_});
     span_remnant_ = span_stream_.ConsumeRemnant();
     return result;
-  } 
+  }
   auto result = writer({&header_stream_, span_remnant_.get(), &span_stream_});
   if (span_remnant_->empty()) {
     span_stream_.metrics().OnSpansSent(1);
@@ -115,17 +115,26 @@ void ConnectionStream2::InitializeStream() {
 }
 
 //--------------------------------------------------------------------------------------------------
+// first_chunk_position
+//--------------------------------------------------------------------------------------------------
+int ConnectionStream2::first_chunk_position() const noexcept {
+  return HttpRequestCommonFragment.second + host_header_fragment_.second +
+         EndOfLineFragment.second;
+}
+
+//--------------------------------------------------------------------------------------------------
 // FlushShutdown
 //--------------------------------------------------------------------------------------------------
 bool ConnectionStream2::FlushShutdown(Writer writer) {
   if (span_remnant_ == nullptr) {
     return writer({&header_stream_, &terminal_stream_});
   }
-  auto result = writer({&header_stream_, span_remnant_.get(), &terminal_stream_});
+  auto result =
+      writer({&header_stream_, span_remnant_.get(), &terminal_stream_});
   if (span_remnant_->empty()) {
     span_stream_.metrics().OnSpansSent(1);
     span_remnant_.reset();
   }
   return result;
 }
-} // namespace lightstep
+}  // namespace lightstep

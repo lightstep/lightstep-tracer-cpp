@@ -119,8 +119,10 @@ bool AddString(ChunkCircularBuffer& buffer, opentracing::string_view s) {
       s.size());
 }
 
-bool AddString(CircularBuffer2<SerializationChain>& buffer, const std::string& s) {
-  std::unique_ptr<SerializationChain> chain{new SerializationChain{}};;
+bool AddString(CircularBuffer2<SerializationChain>& buffer,
+               const std::string& s) {
+  std::unique_ptr<SerializationChain> chain{new SerializationChain{}};
+  ;
   {
     google::protobuf::io::CodedOutputStream stream{chain.get()};
     stream.WriteString(s);

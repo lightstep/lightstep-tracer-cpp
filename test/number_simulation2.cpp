@@ -14,8 +14,8 @@
 #include "test/utility.h"
 #include "test/zero_copy_connection_input_stream2.h"
 
-#include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 
 static thread_local std::mt19937 RandomNumberGenerator{std::random_device{}()};
 
@@ -47,9 +47,9 @@ GenerateRandomBinaryNumber(size_t max_digits) {
 //--------------------------------------------------------------------------------------------------
 // GenerateRandomBinaryNumbers
 //--------------------------------------------------------------------------------------------------
-static void GenerateRandomBinaryNumbers(CircularBuffer2<SerializationChain>& buffer,
-                                        std::vector<uint32_t>& numbers,
-                                        size_t n) {
+static void GenerateRandomBinaryNumbers(
+    CircularBuffer2<SerializationChain>& buffer, std::vector<uint32_t>& numbers,
+    size_t n) {
   while (n-- != 0) {
     uint32_t x;
     opentracing::string_view s;
@@ -112,16 +112,31 @@ static uint32_t ReadBinaryNumber(
 //--------------------------------------------------------------------------------------------------
 static bool ReadBinaryNumberChunk(
     google::protobuf::io::ZeroCopyInputStream& stream, uint32_t& x) {
-  size_t num_digits;
-  if (!ReadChunkHeader(stream, num_digits)) {
+  size_t chunk_size;
+  if (!ReadChunkHeader(stream, chunk_size)) {
     return false;
   }
 
-  if (num_digits == 0) {
+  if (chunk_size == 0) {
     // We reached the terminal chunk
     stream.Skip(2);
     return false;
   }
+
+  size_t num_digits = [&] {
+    google::protobuf::io::CodedInputStream coded_stream{&stream};
+    google::protobuf::uint32 field_number;
+    if (!coded_stream.ReadVarint32(&field_number)) {
+      std::cerr << "ReadVarint32 failed\n";
+      std::terminate();
+    }
+    google::protobuf::uint64 num_digits;
+    if (!coded_stream.ReadVarint64(&num_digits)) {
+      std::cerr << "ReadVarint64 failed\n";
+      std::terminate();
+    }
+    return static_cast<size_t>(num_digits);
+  }();
 
   x = ReadBinaryNumber(stream, num_digits);
   stream.Skip(2);
@@ -172,17 +187,9 @@ void RunBinaryNumberProducer(CircularBuffer2<SerializationChain>& buffer,
 // RunBinaryNumberConnectionConsumer
 //--------------------------------------------------------------------------------------------------
 void RunBinaryNumberConnectionConsumer(
-    SpanStream2& span_stream, std::vector<ConnectionStream2>& connection_streams,
-    std::atomic<bool>& exit, std::vector<uint32_t>& numbers) {
-  (void)span_stream;
-  (void)connection_streams;
-  (void)exit;
-  (void)numbers;
-
-  (void)ReadStreamHeader;
-  (void)ReadBinaryNumberChunk;
-  (void)HasPendingData;
-#if 0
+    SpanStream2& span_stream,
+    std::vector<ConnectionStream2>& connection_streams, std::atomic<bool>& exit,
+    std::vector<uint32_t>& numbers) {
   std::vector<std::unique_ptr<ZeroCopyConnectionInputStream>> zero_copy_streams;
   zero_copy_streams.reserve(connection_streams.size());
   for (auto& connection_stream : connection_streams) {
@@ -225,6 +232,5 @@ void RunBinaryNumberConnectionConsumer(
       numbers.push_back(x);
     }
   }
-#endif
 }
 }  // namespace lightstep

@@ -3,7 +3,7 @@
 #include "3rd_party/catch2/catch.hpp"
 #include "recorder/stream_recorder/span_stream2.h"
 #include "recorder/stream_recorder/utility.h"
-#include "test/number_simulation.h"
+#include "test/number_simulation2.h"
 #include "test/utility.h"
 using namespace lightstep;
 
@@ -176,7 +176,9 @@ TEST_CASE("ConnectionStream") {
           contents = ToString(fragment_streams);
           return Consume(fragment_streams, 4);
         });
-    REQUIRE(contents == (AddSpanChunkFraming("abc") + AddSpanChunkFraming("123")).substr(4));
+    REQUIRE(
+        contents ==
+        (AddSpanChunkFraming("abc") + AddSpanChunkFraming("123")).substr(4));
   }
 
   SECTION(
@@ -235,5 +237,53 @@ TEST_CASE("ConnectionStream") {
     auto& counts = report_request.internal_metrics().counts();
     REQUIRE(counts.size() == 1);
     REQUIRE(counts[0].int_value() == 1);
+  }
+}
+
+TEST_CASE(
+    "Verify through simulation that ConnectionStream behaves correctly.") {
+  LightStepTracerOptions tracer_options;
+  std::string header_common_fragment =
+      WriteStreamHeaderCommonFragment(tracer_options, 123);
+  MetricsObserver metrics_observer;
+  StreamRecorderMetrics metrics{metrics_observer};
+  auto host_header_fragment = MakeFragment("Host:abc\r\n");
+  const size_t num_producer_threads = 4;
+  const size_t num_connections = 10;
+  const size_t n = 25000;
+  for (size_t max_size : {1, 2, 10, 100, 1000}) {
+    CircularBuffer2<SerializationChain> buffer{max_size};
+    SpanStream2 span_stream{buffer, metrics};
+    std::vector<ConnectionStream2> connection_streams;
+    connection_streams.reserve(num_connections);
+    for (int i = 0; i < static_cast<int>(num_connections); ++i) {
+      connection_streams.emplace_back(
+          host_header_fragment,
+          Fragment{static_cast<void*>(&header_common_fragment[0]),
+                   static_cast<int>(header_common_fragment.size())},
+          span_stream);
+    }
+    std::vector<uint32_t> producer_numbers;
+    std::vector<uint32_t> consumer_numbers;
+    auto producer =
+        std::thread{RunBinaryNumberProducer, std::ref(buffer),
+                    std::ref(producer_numbers), num_producer_threads, n};
+    std::atomic<bool> exit{false};
+    auto consumer =
+        std::thread{RunBinaryNumberConnectionConsumer, std::ref(span_stream),
+                    std::ref(connection_streams), std::ref(exit),
+                    std::ref(consumer_numbers)};
+    producer.join();
+    exit = true;
+    consumer.join();
+    REQUIRE(span_stream.empty());
+    for (auto& connection_stream : connection_streams) {
+      REQUIRE(connection_stream.completed());
+    }
+    REQUIRE(buffer.empty());
+    std::sort(producer_numbers.begin(), producer_numbers.end());
+    std::sort(consumer_numbers.begin(), consumer_numbers.end());
+    REQUIRE(producer_numbers.size() == consumer_numbers.size());
+    REQUIRE(producer_numbers == consumer_numbers);
   }
 }

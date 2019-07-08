@@ -104,9 +104,7 @@ class CircularBuffer2 {
    *
    * Note: This method must only be called from the consumer thread.
    */
-  void Clear() noexcept {
-    Consume(size());
-  }
+  void Clear() noexcept { Consume(size()); }
 
   /**
    * @return the maximum number of bytes that can be stored in the buffer.

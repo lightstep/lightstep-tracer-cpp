@@ -11,9 +11,7 @@ SpanStream2::SpanStream2(CircularBuffer2<SerializationChain>& span_buffer,
 //--------------------------------------------------------------------------------------------------
 // Allot
 //--------------------------------------------------------------------------------------------------
-void SpanStream2::Allot() noexcept {
-  allotment_ = span_buffer_.Peek();
-}
+void SpanStream2::Allot() noexcept { allotment_ = span_buffer_.Peek(); }
 
 //--------------------------------------------------------------------------------------------------
 // ConsumeRemnant
@@ -53,7 +51,7 @@ bool SpanStream2::ForEachFragment(Callback callback) const noexcept {
 //--------------------------------------------------------------------------------------------------
 void SpanStream2::Clear() noexcept {
   remnant_.reset();
-  span_buffer_.Consume(allotment_.size());  
+  span_buffer_.Consume(allotment_.size());
   allotment_ = CircularBufferRange<const AtomicUniquePtr<SerializationChain>>{};
 }
 

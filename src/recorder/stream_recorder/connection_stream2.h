@@ -20,6 +20,7 @@ namespace lightstep {
 class ConnectionStream2 {
   // Account for the size encoded in hex plus the following \r\n sequence.
   static const size_t MaxChunkHeaderSize = Num64BitHexDigits + 2;
+
  public:
   using Writer = FunctionRef<bool(
       std::initializer_list<FragmentInputStream*> fragment_input_streams)>;
@@ -54,6 +55,11 @@ class ConnectionStream2 {
    */
   bool completed() const noexcept { return terminal_stream_.empty(); }
 
+  /**
+   * @return the number of bytes in the stream until the first chunk.
+   */
+  int first_chunk_position() const noexcept;
+
  private:
   Fragment host_header_fragment_;
   Fragment header_common_fragment_;
@@ -75,4 +81,4 @@ class ConnectionStream2 {
 
   bool FlushShutdown(Writer writer);
 };
-} // namespace lightstep
+}  // namespace lightstep

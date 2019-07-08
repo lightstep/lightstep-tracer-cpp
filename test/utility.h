@@ -4,9 +4,9 @@
 #include <thread>
 
 #include "common/chunk_circular_buffer.h"
+#include "common/circular_buffer2.h"
 #include "common/fragment_input_stream.h"
 #include "common/serialization_chain.h"
-#include "common/circular_buffer2.h"
 
 #include <opentracing/tracer.h>
 #include "lightstep-tracer-common/collector.pb.h"
@@ -82,10 +82,12 @@ bool AddString(ChunkCircularBuffer& buffer, opentracing::string_view s);
  * @param s the string to add.
  * @return true if the string was succesfully added.
  */
-bool AddString(CircularBuffer2<SerializationChain>& buffer, const std::string& s);
+bool AddString(CircularBuffer2<SerializationChain>& buffer,
+               const std::string& s);
 
 /**
- * Adds http/1.1 chunk framing and ReportRequest embedded span framing to a string.
+ * Adds http/1.1 chunk framing and ReportRequest embedded span framing to a
+ * string.
  * @param s the string to add framing to
  * @return the original string wrapped with framing
  */
