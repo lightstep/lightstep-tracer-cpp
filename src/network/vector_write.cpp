@@ -64,10 +64,7 @@ bool Write(int socket,
       do_write();
       fragment_iter = fragments;
       batch_num_bytes = 0;
-      if (error || blocked) {
-        return false;
-      }
-      return true;
+      return !(error || blocked);
     });
   }
   if (batch_num_bytes > 0) {

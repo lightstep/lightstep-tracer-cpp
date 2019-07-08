@@ -41,8 +41,8 @@ static Fragment WriteChunkHeader(char* buffer, size_t buffer_size,
 ConnectionStream2::ConnectionStream2(Fragment host_header_fragment,
                                      Fragment header_common_fragment,
                                      SpanStream2& span_stream)
-    : host_header_fragment_{host_header_fragment},
-      header_common_fragment_{header_common_fragment},
+    : host_header_fragment_{std::move(host_header_fragment)},
+      header_common_fragment_{std::move(header_common_fragment)},
       span_stream_{span_stream} {
   InitializeStream();
 }

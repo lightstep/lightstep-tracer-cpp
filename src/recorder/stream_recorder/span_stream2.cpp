@@ -39,10 +39,7 @@ int SpanStream2::num_fragments() const noexcept {
 bool SpanStream2::ForEachFragment(Callback callback) const noexcept {
   return allotment_.ForEach(
       [callback](const AtomicUniquePtr<SerializationChain>& span) {
-        if (!span->ForEachFragment(callback)) {
-          return false;
-        }
-        return true;
+        return span->ForEachFragment(callback);
       });
 }
 
