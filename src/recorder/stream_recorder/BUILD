@@ -215,6 +215,35 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "satellite_streamer2_lib",
+    private_hdrs = [
+        "satellite_connection2.h",
+        "satellite_streamer2.h",
+    ],
+    srcs = [
+        "satellite_connection2.cpp",
+        "satellite_streamer2.cpp",
+    ],
+    deps = [
+        ":satellite_endpoint_manager_lib",
+        "//src/common:noncopyable_lib",
+        "//src/common:random_lib",
+        "//src/common:random_traverser_lib",
+        "//src/network:socket_lib",
+        "//src/network:event_lib",
+        "//src/network:timer_event_lib",
+        "//src/network:vector_write_lib",
+        ":stream_recorder_metrics_lib",
+        ":embedded_metrics_message_lib",
+        ":utility_lib",
+        ":host_header_lib",
+        ":span_stream2_lib",
+        ":connection_stream2_lib",
+        ":status_line_parser_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "utility_lib",
     private_hdrs = [
         "utility.h",
