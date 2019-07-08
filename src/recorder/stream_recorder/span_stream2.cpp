@@ -51,6 +51,7 @@ bool SpanStream2::ForEachFragment(Callback callback) const noexcept {
 //--------------------------------------------------------------------------------------------------
 void SpanStream2::Clear() noexcept {
   remnant_.reset();
+  metrics_.OnSpansSent(allotment_.size());
   span_buffer_.Consume(allotment_.size());
   allotment_ = CircularBufferRange<const AtomicUniquePtr<SerializationChain>>{};
 }
@@ -60,8 +61,9 @@ void SpanStream2::Clear() noexcept {
 //--------------------------------------------------------------------------------------------------
 void SpanStream2::Seek(int fragment_index, int position) noexcept {
   remnant_.reset();
+  int full_span_count = 0;
   int span_count = 0;
-  allotment_.ForEach([ fragment_index, &span_count, position ](
+  allotment_.ForEach([&, fragment_index ](
       const AtomicUniquePtr<SerializationChain>& span) mutable noexcept {
     auto num_fragments = span->num_fragments();
     if (num_fragments <= fragment_index) {
@@ -69,6 +71,7 @@ void SpanStream2::Seek(int fragment_index, int position) noexcept {
       ++span_count;
       return true;
     }
+    full_span_count = span_count;
     // Check to see if we seek onto a span boundary -- in which case, we don't
     // consume the the next span.
     if (fragment_index == 0 && position == 0) {
@@ -93,6 +96,7 @@ void SpanStream2::Seek(int fragment_index, int position) noexcept {
           return true;
         });
       });
+  metrics_.OnSpansSent(full_span_count);
   allotment_ = CircularBufferRange<const AtomicUniquePtr<SerializationChain>>{};
 }
 }  // namespace lightstep

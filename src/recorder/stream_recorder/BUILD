@@ -146,6 +146,7 @@ lightstep_cc_library(
         ":stream_recorder_options_lib",
         ":stream_recorder_metrics_lib",
         ":satellite_streamer_lib",
+        ":satellite_streamer2_lib",
     ],
 )
 

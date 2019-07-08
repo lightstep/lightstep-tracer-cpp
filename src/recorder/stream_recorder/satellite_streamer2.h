@@ -14,10 +14,10 @@ namespace lightstep {
 class SatelliteStreamer2 : private Noncopyable {
  public:
   SatelliteStreamer2(Logger& logger, EventBase& event_base,
-                    const LightStepTracerOptions& tracer_options,
-                    const StreamRecorderOptions& recorder_options,
-                    StreamRecorderMetrics& metrics,
-                    CircularBuffer2<SerializationChain>& span_buffer);
+                     const LightStepTracerOptions& tracer_options,
+                     const StreamRecorderOptions& recorder_options,
+                     StreamRecorderMetrics& metrics,
+                     CircularBuffer2<SerializationChain>& span_buffer);
 
   /**
    * @return the associated Logger.

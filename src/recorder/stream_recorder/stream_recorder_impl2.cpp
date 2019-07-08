@@ -18,7 +18,13 @@ StreamRecorderImpl2::StreamRecorderImpl2(StreamRecorder2& stream_recorder)
       flush_timer_{
           event_base_, stream_recorder_.recorder_options().flushing_period,
           MakeTimerCallback<StreamRecorderImpl2, &StreamRecorderImpl2::Flush>(),
-          static_cast<void*>(this)} {
+          static_cast<void*>(this)},
+      streamer_{stream_recorder_.logger(),
+                event_base_,
+                stream_recorder_.tracer_options(),
+                stream_recorder_.recorder_options(),
+                stream_recorder_.metrics(),
+                stream_recorder_.span_buffer()} {
   thread_ = std::thread{&StreamRecorderImpl2::Run, this};
 }
 
@@ -74,16 +80,11 @@ void StreamRecorderImpl2::Poll() noexcept {
 //--------------------------------------------------------------------------------------------------
 void StreamRecorderImpl2::Flush() noexcept try {
   auto& span_buffer = stream_recorder_.span_buffer();
-  auto allotment = span_buffer.Peek();
-  span_buffer.Consume(
-      allotment.size(),
-      [](CircularBufferRange<AtomicUniquePtr<SerializationChain>>
-             range) noexcept {
-        range.ForEach([](AtomicUniquePtr<SerializationChain> & span) noexcept {
-          span.Reset();
-          return true;
-        });
-      });
+  if (stream_recorder_.recorder_options().throw_away_spans) {
+    span_buffer.Clear();
+  } else {
+    streamer_.Flush();
+  }
   flush_timer_.Reset();
   stream_recorder_.metrics().OnFlush();
 } catch (const std::exception& e) {
