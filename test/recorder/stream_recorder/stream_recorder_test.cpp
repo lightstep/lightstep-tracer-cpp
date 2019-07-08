@@ -30,7 +30,6 @@ TEST_CASE("StreamRecorder") {
   std::unique_ptr<MockSatelliteHandle> mock_satellite{new MockSatelliteHandle{
       static_cast<uint16_t>(PortAssignments::StreamRecorderTest)}};
 
-  // Testing stub. More will be added when StreamRecorder is filled out.
   auto logger_sink = std::make_shared<StringLoggerSink>();
   auto logger = std::make_shared<Logger>(
       [logger_sink](LogLevel log_level, opentracing::string_view message) {
@@ -185,7 +184,6 @@ TEST_CASE("StreamRecorder2") {
   std::unique_ptr<MockSatelliteHandle> mock_satellite{new MockSatelliteHandle{
       static_cast<uint16_t>(PortAssignments::StreamRecorderTest)}};
 
-  // Testing stub. More will be added when StreamRecorder is filled out.
   auto logger_sink = std::make_shared<StringLoggerSink>();
   auto logger = std::make_shared<Logger>(
       [logger_sink](LogLevel log_level, opentracing::string_view message) {
