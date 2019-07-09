@@ -1,12 +1,31 @@
 workspace(name = "com_lightstep_tracer_cpp")
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 git_repository(
+    name = "rules_foreign_cc",
+    remote = "https://github.com/bazelbuild/rules_foreign_cc",
+    commit = "0b8356f1999d370024fc7afd924c87cb9ce77965",
+)
+
+load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
+
+rules_foreign_cc_dependencies([
+])
+
+# git_repository(
+#     name = "io_opentracing_cpp",
+#     remote = "https://github.com/opentracing/opentracing-cpp",
+#     commit = "ac50154a7713877f877981c33c3375003b6ebfe1",
+# )
+
+# this repo is a custom branch that was created starting with commit
+# ac50154a7713877f877981c33c3375003b6ebfe1
+local_repository(
     name = "io_opentracing_cpp",
-    remote = "https://github.com/opentracing/opentracing-cpp",
-    commit = "ac50154a7713877f877981c33c3375003b6ebfe1",
+    path = "C:/Users/isaac/opentracing-cpp",
 )
 
 git_repository(
@@ -35,25 +54,35 @@ http_archive(
     build_file = "//bazel:cares.BUILD",
 )
 
+# original: 4c2226458203a9653ae722245cc27e8b07c383f7
+
+# this is the one that fixed my problem, references v1.20.1 gRPC
+# new: de317930548a33025a3acf430bf67e21a676084f
+
+# current: 78d64b7317a332ee884ad7fcd0506d78f2a402cb
+
 git_repository(
     name = "build_stack_rules_proto",
     remote = "https://github.com/stackb/rules_proto",
     commit = "4c2226458203a9653ae722245cc27e8b07c383f7",
 )
 
-git_repository(
-    name = "com_github_grpc_grpc",
-    remote = "https://github.com/grpc/grpc",
-    commit = "e97c9457e2f4e6733873ea2975d3b90432fdfdc1",
-)
+# original: e97c9457e2f4e6733873ea2975d3b90432fdfdc1
+# new: 7741e806a213cba63c96234f16d712a8aa101a49 # v1.20.1
 
-load("@build_stack_rules_proto//cpp:deps.bzl", "cpp_grpc_compile")
-
-cpp_grpc_compile()
-
-load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
-
-grpc_deps()
+# git_repository(
+#    name = "com_github_grpc_grpc",
+#    remote = "https://github.com/grpc/grpc",
+#    commit = "e97c9457e2f4e6733873ea2975d3b90432fdfdc1",
+# )
+#
+# load("@build_stack_rules_proto//cpp:deps.bzl", "cpp_grpc_compile")
+#
+# cpp_grpc_compile()
+#
+# load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+#
+# grpc_deps()
 
 #######################################
 # Testing dependencies
@@ -95,4 +124,3 @@ go_repository(
     importpath = "github.com/golang/protobuf",
     tag = "v1.3.0",
 )
-

@@ -9,14 +9,20 @@ def lightstep_private_include_copts(includes, is_system=False):
 
     # convert "@" to "external/" unless in the main workspace
     repo_name = native.repository_name()
+
     if repo_name != '@':
         prefix = 'external/{}/'.format(repo_name[1:])
 
-    inc_flag = "-isystem " if is_system else "-I"
+    # TODO: -isystem doesn't work on Windows
+    # inc_flag = "-isystem " if is_system else "-I"
+
+    inc_flag = "/I"
 
     for inc in includes:
         copts.append("{}{}{}".format(inc_flag, prefix, inc))
         copts.append("{}$(GENDIR){}/{}".format(inc_flag, prefix, inc))
+
+    # print(copts)
 
     return copts
 
@@ -26,27 +32,43 @@ def lightstep_include_copts():
       "src",
       "test",
   ]) + lightstep_private_include_copts([
-    "3rd_party/randutils/include", 
-    "3rd_party/base64/include", 
+    "3rd_party/randutils/include",
+    "3rd_party/base64/include",
   ], is_system=True)
 
 def lightstep_copts(is_3rd_party=False):
+# when on Windows, we need to pass /DWIN32 to the compiler so that
+# we use the Windows-compatible version of dynamic_load.h
+# copts = select({
+#   "@bazel_tools//src/conditions:windows": [ "/DWIN32" ],
+#   "//conditions:default": [ ]
+# })
+
+  # if (native.existing_rule(  "@bazel_tools//src/conditions:windows")):
+  #   print("WINDOWS_________________________________________________________________________________________________")
+
+
+
   if is_3rd_party:
     return [
-      "-std=c++11",
+      # "-std=c++14",
     ]
+  # return [
+  #     "-Wall",
+  #     "-Wextra",
+  #     "-Werror",
+  #     "-Wnon-virtual-dtor",
+  #     "-Woverloaded-virtual",
+  #     "-Wold-style-cast",
+  #     "-Wno-overloaded-virtual",
+  #     "-Wvla",
+  #     "-std=c++11",
+  # ]
   return [
-      "-Wall",
-      "-Wextra",
-      "-Werror",
-      "-Wnon-virtual-dtor",
-      "-Woverloaded-virtual",
-      "-Wold-style-cast",
-      "-Wno-overloaded-virtual",
-      "-Wvla",
-      "-std=c++11",
+    # "-Wall",
+    # "-WX", # same as -Werror
+    # "-std:c++11",
   ]
-
 
 def lightstep_include_prefix(path):
     if path.startswith('src/') or path.startswith('include/'):
@@ -65,7 +87,13 @@ def lightstep_cc_library(name,
                      deps = [],
                      data = [],
                      is_3rd_party = False,
-                     strip_include_prefix = None):
+                     strip_include_prefix = None,
+                     defines = []):
+
+  if name == "ares_dns_resolver_lib":
+    print("copts:", lightstep_include_copts() + lightstep_copts(is_3rd_party) + copts)
+    print("includes:", includes)
+
   native.cc_library(
       name = name,
       srcs = srcs + private_hdrs,
@@ -79,6 +107,9 @@ def lightstep_cc_library(name,
       include_prefix = lightstep_include_prefix(native.package_name()),
       visibility = visibility,
       strip_include_prefix = strip_include_prefix,
+
+      # always define OPENTRACING_STATIC because we're basically never going to dynamically link with this
+      defines=defines + ["OPENTRACING_STATIC"],
   )
 
 def lightstep_cc_binary(

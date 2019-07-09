@@ -39,11 +39,12 @@ lightstep_cc_library(
     srcs = [
         "in_memory_collector.cpp",
     ],
-    deps = [
-        "//src/recorder/grpc_transporter:collector_proto_grpc",
-    ],
+#    deps = [
+#        "//src/recorder/grpc_transporter:collector_proto_grpc",
+#    ],
 )
 
+# TODO: modify this so its different for Windows
 cc_binary(
     name = "lightstep_plugin.so",
     linkshared = 1,

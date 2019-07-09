@@ -1,2 +1,5 @@
-build --incompatible_package_name_is_a_function=false
-query --incompatible_package_name_is_a_function=false
+# look here for info: https://docs.bazel.build/versions/master/guide.html
+
+startup --output_user_root=C:/temp/bazel2
+query --incompatible_disable_deprecated_attr_params=false # because protobuf is v jank
+build --incompatible_disable_deprecated_attr_params=false # because protobuf is v jank

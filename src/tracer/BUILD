@@ -46,6 +46,10 @@ lightstep_cc_library(
     deps = [
         ":lightstep_tracer_factory_lib",
     ],
+    copts = select({
+      "@bazel_tools//src/conditions:windows": [ "/DWIN32" ],
+      "//conditions:default": [ ]
+    })
 )
 
 lightstep_cc_library(

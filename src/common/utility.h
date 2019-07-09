@@ -11,7 +11,7 @@
 #include "common/logger.h"
 #include "lightstep-tracer-common/collector.pb.h"
 
-#include <winsock.h> // also has timeval struct with same members
+#include <winsock2.h> // also has timeval struct with same members
 
 #include <google/protobuf/io/zero_copy_stream.h>
 

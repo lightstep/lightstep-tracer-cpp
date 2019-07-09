@@ -46,9 +46,9 @@ include_files = [
 ]
 
 lib_files = [
-    "libevent/lib/libevent.a",
-    "libevent/lib/libevent_core.a",
-    "libevent/lib/libevent_extra.a",
+    "libevent/lib/event.lib",
+    "libevent/lib/event_core.lib",
+    "libevent/lib/event_extra.lib",
 ]
 
 genrule(
@@ -69,6 +69,8 @@ genrule(
         -DEVENT__DISABLE_OPENSSL:BOOL=on \
         -DEVENT__DISABLE_REGRESS:BOOL=on \
         -DCMAKE_BUILD_TYPE=Release \
+        -DEVENT__LIBRARY_TYPE=STATIC \
+        -DEVENT__DISABLE_TESTS=on \
         .
       make
       make install
@@ -79,7 +81,7 @@ genrule(
 cc_library(
     name = "libevent",
     srcs = [
-        "libevent/lib/libevent.a",
+        "libevent/lib/event.lib",
     ],
     hdrs = include_files,
     includes = ["libevent/include"],

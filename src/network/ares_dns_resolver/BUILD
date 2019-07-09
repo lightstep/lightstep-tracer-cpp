@@ -6,6 +6,11 @@ load(
 
 lightstep_package()
 
+# somehow missing these:
+# 'external/com_github_cares_cares/ares.h'
+# 'external/com_github_cares_cares/ares_version.h'
+# 'external/com_github_cares_cares/ares_build.h'
+# 'external/com_github_cares_cares/ares_rules.h'
 lightstep_cc_library(
     name = "ares_dns_resolver_lib",
     srcs = [
@@ -23,4 +28,5 @@ lightstep_cc_library(
     external_deps = [
         "@com_github_cares_cares//:ares",
     ],
+    includes = ["external/com_github_cares_cares/cares/include"]
 )

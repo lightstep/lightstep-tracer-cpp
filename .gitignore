@@ -46,3 +46,6 @@ linux
 
 # compilation database
 compile_commands.json
+
+out
+.vs
