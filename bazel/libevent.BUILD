@@ -72,8 +72,7 @@ genrule(
         -DEVENT__LIBRARY_TYPE=STATIC \
         -DEVENT__DISABLE_TESTS=on \
         .
-      make
-      make install
+      cmake --build . --target install 
       rm -rf $$TMP_DIR
     """,
 )
