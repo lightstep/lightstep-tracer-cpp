@@ -1,11 +1,11 @@
 #include "utility.h"
 
-#include <fstream>
-#include <stdexcept>
 #include <cerrno>
 #include <cstring>
-#include <sstream>
+#include <fstream>
 #include <iterator>
+#include <sstream>
+#include <stdexcept>
 
 #include "tracer/lightstep_tracer_factory.h"
 
@@ -74,6 +74,8 @@ std::tuple<std::shared_ptr<LightStepTracer>, SpanDropCounter*> MakeTracer(
   auto tracer_options = MakeTracerOptions(config.tracer_configuration());
   auto span_drop_counter = new SpanDropCounter{};
   tracer_options.metrics_observer.reset(span_drop_counter);
-  return std::make_tuple(MakeLightStepTracer(std::move(tracer_options)), span_drop_counter);;
+  return std::make_tuple(MakeLightStepTracer(std::move(tracer_options)),
+                         span_drop_counter);
+  ;
 }
-} // namespace lightstep
+}  // namespace lightstep

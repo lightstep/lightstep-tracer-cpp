@@ -1,12 +1,12 @@
 #include "span.h"
 
 #include <array>
+#include <cassert>
 #include <chrono>
-#include <vector>
-#include <thread>
 #include <cstddef>
 #include <cstdio>
-#include <cassert>
+#include <thread>
+#include <vector>
 
 #include "test/recorder/in_memory_recorder.h"
 #include "tracer/lightstep_tracer_impl.h"
@@ -19,7 +19,7 @@ static std::unique_ptr<opentracing::Span> MakeBenchmarkSpan(
     opentracing::Tracer& tracer, const char* payload) {
   static std::atomic<uint32_t> SpanCounter{0};
   auto id = SpanCounter++;
-  std::array<char, 8+1> operation_name;
+  std::array<char, 8 + 1> operation_name;
   auto operation_name_length =
       std::snprintf(operation_name.data(), operation_name.size(), "%08X", id);
   assert(operation_name_length > 0);
@@ -34,9 +34,9 @@ static std::unique_ptr<opentracing::Span> MakeBenchmarkSpan(
 //------------------------------------------------------------------------------
 // GenerateSpansForThread
 //------------------------------------------------------------------------------
-static void GenerateSpansForThread(
-    opentracing::Tracer& tracer, int num_spans,
-    std::chrono::nanoseconds min_span_elapse, const char* payload) {
+static void GenerateSpansForThread(opentracing::Tracer& tracer, int num_spans,
+                                   std::chrono::nanoseconds min_span_elapse,
+                                   const char* payload) {
   auto start_timestamp = std::chrono::system_clock::now();
   for (int i = 0; i < num_spans; ++i) {
     MakeBenchmarkSpan(tracer, payload);
@@ -50,11 +50,11 @@ static void GenerateSpansForThread(
 //--------------------------------------------------------------------------------------------------
 // GenerateSpans
 //--------------------------------------------------------------------------------------------------
-void GenerateSpans(opentracing::Tracer& tracer, const tracer_upload_bench::Configuration& config) {
+void GenerateSpans(opentracing::Tracer& tracer,
+                   const tracer_upload_bench::Configuration& config) {
   auto seconds_per_span = 1.0 / config.spans_per_second();
   auto min_span_elapse =
-          std::chrono::nanoseconds{
-              static_cast<size_t>(seconds_per_span * 1.0e9)};
+      std::chrono::nanoseconds{static_cast<size_t>(seconds_per_span * 1.0e9)};
   std::string payload;
   const char* payload_ptr = nullptr;
   if (config.payload_size() > 0) {
@@ -92,4 +92,4 @@ size_t ComputeSpanSize(const tracer_upload_bench::Configuration& config) {
   tracer->Close();
   return recorder->top().ByteSizeLong();
 }
-} // namespace lightstep
+}  // namespace lightstep

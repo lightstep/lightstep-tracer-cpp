@@ -12,4 +12,4 @@ struct BenchmarkReport {
 };
 
 std::ostream& operator<<(std::ostream& out, const BenchmarkReport& report);
-} // namespace lightstep
+}  // namespace lightstep
