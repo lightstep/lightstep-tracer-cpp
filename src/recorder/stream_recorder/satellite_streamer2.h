@@ -11,6 +11,9 @@
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
 
 namespace lightstep {
+/**
+ * Manages the stream of tracing data sent to a pool of satellite connections.
+ */
 class SatelliteStreamer2 : private Noncopyable {
  public:
   SatelliteStreamer2(Logger& logger, EventBase& event_base,
