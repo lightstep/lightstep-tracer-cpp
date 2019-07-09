@@ -16,7 +16,7 @@ proto_library(
 )
 
 lightstep_portable_cc_binary(
-    name = "tracer-upload-bench",
+    name = "tracer_upload_bench",
     srcs = glob(["*.h", "*.cpp"]),
     deps = [
         "//:tracer_lib",
