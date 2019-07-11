@@ -36,39 +36,11 @@ def lightstep_include_copts():
     "3rd_party/base64/include",
   ], is_system=True)
 
+def lightstep_linkopts():
+  return ["-DEFAULTLIB:ws2_32.lib"]
+
 def lightstep_copts(is_3rd_party=False):
-# when on Windows, we need to pass /DWIN32 to the compiler so that
-# we use the Windows-compatible version of dynamic_load.h
-# copts = select({
-#   "@bazel_tools//src/conditions:windows": [ "/DWIN32" ],
-#   "//conditions:default": [ ]
-# })
-
-  # if (native.existing_rule(  "@bazel_tools//src/conditions:windows")):
-  #   print("WINDOWS_________________________________________________________________________________________________")
-
-
-
-  if is_3rd_party:
-    return [
-      # "-std=c++14",
-    ]
-  # return [
-  #     "-Wall",
-  #     "-Wextra",
-  #     "-Werror",
-  #     "-Wnon-virtual-dtor",
-  #     "-Woverloaded-virtual",
-  #     "-Wold-style-cast",
-  #     "-Wno-overloaded-virtual",
-  #     "-Wvla",
-  #     "-std=c++11",
-  # ]
-  return [
-    # "-Wall",
-    # "-WX", # same as -Werror
-    # "-std:c++11",
-  ]
+  return []
 
 def lightstep_include_prefix(path):
     if path.startswith('src/') or path.startswith('include/'):
@@ -99,7 +71,7 @@ def lightstep_cc_library(name,
       srcs = srcs + private_hdrs,
       hdrs = hdrs,
       copts = lightstep_include_copts() + lightstep_copts(is_3rd_party) + copts,
-      linkopts = linkopts,
+      linkopts = linkopts + lightstep_linkopts(),
       includes = includes,
       deps = external_deps + deps,
       data = data,

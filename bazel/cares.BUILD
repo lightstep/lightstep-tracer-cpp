@@ -7,7 +7,7 @@ filegroup(
 )
 
 cmake_external(
-    name = "ares",
+    name = "cares", # expected output will be lib/cares.lib
     cache_entries = {
       "CMAKE_BUILD_TYPE": "Release",
       "CARES_SHARED": "off",
@@ -17,6 +17,14 @@ cmake_external(
       "CARES_BUILD_TOOLS": "off",
     },
     lib_source = ":srcs",
+
+    # because we're building static
+    defines = ["CARES_STATICLIB"],
+
+    # we need this and for some reason it wasn't included ...
+    linkopts = ["-DEFAULTLIB:advapi32.lib"],
+
+    # since we don't define this, the default
     static_libraries = ["cares.lib"], # used to be libcares.a
     visibility = ["//visibility:public"],
 
