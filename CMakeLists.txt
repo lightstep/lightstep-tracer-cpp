@@ -210,10 +210,14 @@ if (WITH_LIBEVENT)
                              src/recorder/stream_recorder/satellite_dns_resolution_manager.cpp
                              src/recorder/stream_recorder/satellite_endpoint_manager.cpp
                              src/recorder/stream_recorder/satellite_connection.cpp
+                             src/recorder/stream_recorder/satellite_connection2.cpp
                              src/recorder/stream_recorder/satellite_streamer.cpp
+                             src/recorder/stream_recorder/satellite_streamer2.cpp
                              src/recorder/stream_recorder/span_stream.cpp
+                             src/recorder/stream_recorder/span_stream2.cpp
                              src/recorder/stream_recorder/stream_recorder_metrics.cpp
                              src/recorder/stream_recorder/connection_stream.cpp
+                             src/recorder/stream_recorder/connection_stream2.cpp
                              src/recorder/stream_recorder/fragment_span_input_stream.cpp
                              src/recorder/stream_recorder/host_header.cpp
                              src/recorder/stream_recorder/embedded_metrics_message.cpp

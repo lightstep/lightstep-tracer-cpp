@@ -42,6 +42,11 @@ class StreamRecorder2 : public ForkAwareRecorder, private Noncopyable {
   }
 
   /**
+   * @return true if no spans are buffered in the recorder.
+   */
+  bool empty() const noexcept { return span_buffer_.empty(); }
+
+  /**
    * @return the associated Logger.
    */
   Logger& logger() const noexcept { return logger_; }

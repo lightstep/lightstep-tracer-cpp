@@ -47,6 +47,22 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "span_stream2_lib",
+    private_hdrs = [
+        "span_stream2.h",
+    ],
+    srcs = [
+        "span_stream2.cpp",
+    ],
+    deps = [
+        "//src/common:circular_buffer2_lib",
+        "//src/common:serialization_chain_lib",
+        "//src/common:fragment_input_stream_lib",
+        ":stream_recorder_metrics_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "fragment_span_input_stream_lib",
     private_hdrs = [
         "fragment_span_input_stream.h",
@@ -81,6 +97,27 @@ lightstep_cc_library(
     ],
 )
 
+
+lightstep_cc_library(
+    name = "connection_stream2_lib",
+    private_hdrs = [
+        "connection_stream2.h",
+    ],
+    srcs = [
+        "connection_stream2.cpp",
+    ],
+    deps = [
+        "//src/common:function_ref_lib",
+        "//src/common:utility_lib",
+        "//src/common:fragment_input_stream_lib",
+        "//src/common:fragment_array_input_stream_lib",
+        ":embedded_metrics_message_lib",
+        ":span_stream2_lib",
+        ":stream_recorder_metrics_lib",
+        ":fragment_span_input_stream_lib",
+    ],
+)
+
 lightstep_cc_library(
     name = "stream_recorder_lib",
     private_hdrs = [
@@ -109,6 +146,7 @@ lightstep_cc_library(
         ":stream_recorder_options_lib",
         ":stream_recorder_metrics_lib",
         ":satellite_streamer_lib",
+        ":satellite_streamer2_lib",
     ],
 )
 
@@ -173,6 +211,35 @@ lightstep_cc_library(
         ":host_header_lib",
         ":span_stream_lib",
         ":connection_stream_lib",
+        ":status_line_parser_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "satellite_streamer2_lib",
+    private_hdrs = [
+        "satellite_connection2.h",
+        "satellite_streamer2.h",
+    ],
+    srcs = [
+        "satellite_connection2.cpp",
+        "satellite_streamer2.cpp",
+    ],
+    deps = [
+        ":satellite_endpoint_manager_lib",
+        "//src/common:noncopyable_lib",
+        "//src/common:random_lib",
+        "//src/common:random_traverser_lib",
+        "//src/network:socket_lib",
+        "//src/network:event_lib",
+        "//src/network:timer_event_lib",
+        "//src/network:vector_write_lib",
+        ":stream_recorder_metrics_lib",
+        ":embedded_metrics_message_lib",
+        ":utility_lib",
+        ":host_header_lib",
+        ":span_stream2_lib",
+        ":connection_stream2_lib",
         ":status_line_parser_lib",
     ],
 )

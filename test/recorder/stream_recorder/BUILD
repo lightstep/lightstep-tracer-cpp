@@ -14,6 +14,7 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/tracer/legacy:legacy_tracer_impl_lib",
+        "//src/tracer:tracer_impl_lib",
         "//src/recorder/stream_recorder:stream_recorder_lib",
         "//src/network/ares_dns_resolver:ares_dns_resolver_lib",
         "//test/mock_satellite:mock_satellite_lib",
@@ -117,6 +118,17 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "span_stream2_test",
+    srcs = [
+        "span_stream2_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:span_stream2_lib",
+        "//test:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "connection_stream_test",
     srcs = [
         "connection_stream_test.cpp",
@@ -125,6 +137,19 @@ lightstep_catch_test(
         "//src/recorder/stream_recorder:connection_stream_lib",
         "//src/recorder/stream_recorder:utility_lib",
         "//test:number_simulation_lib",
+        "//test:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "connection_stream2_test",
+    srcs = [
+        "connection_stream2_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/stream_recorder:connection_stream2_lib",
+        "//src/recorder/stream_recorder:utility_lib",
+        "//test:number_simulation2_lib",
         "//test:utility_lib",
     ],
 )

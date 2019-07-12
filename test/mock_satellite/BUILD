@@ -106,5 +106,6 @@ lightstep_catch_test(
         ":mock_satellite_lib",
         "//test:http_connection_lib",
         "//test:ports_lib",
+        "//test:utility_lib",
     ],
 )

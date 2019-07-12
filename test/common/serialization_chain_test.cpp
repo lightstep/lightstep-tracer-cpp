@@ -2,33 +2,13 @@
 
 #include <iomanip>
 #include <random>
-#include <sstream>
 
 #include "test/utility.h"
 
 #include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
 
 #include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
-
-static std::string AddFraming(const std::string& s) {
-  auto protobuf_header = [&] {
-    std::ostringstream oss;
-    {
-      google::protobuf::io::OstreamOutputStream zero_copy_stream{&oss};
-      google::protobuf::io::CodedOutputStream stream{&zero_copy_stream};
-      WriteKeyLength<SerializationChain::ReportRequestSpansField>(stream,
-                                                                  s.size());
-    }
-    return oss.str();
-  }();
-  auto message_size = protobuf_header.size() + s.size();
-  std::ostringstream oss;
-  oss << std::hex << std::uppercase << message_size << "\r\n"
-      << protobuf_header << s << "\r\n";
-  return oss.str();
-}
 
 TEST_CASE("SerializationChain") {
   SerializationChain chain;
@@ -47,7 +27,7 @@ TEST_CASE("SerializationChain") {
     stream.reset();
     chain.AddFraming();
     REQUIRE(chain.num_fragments() == 3);
-    REQUIRE(ToString(chain) == AddFraming("abc"));
+    REQUIRE(ToString(chain) == AddSpanChunkFraming("abc"));
   }
 
   SECTION("We can write strings larger than a single block.") {
@@ -56,7 +36,7 @@ TEST_CASE("SerializationChain") {
     stream.reset();
     chain.AddFraming();
     REQUIRE(chain.num_fragments() == 4);
-    REQUIRE(ToString(chain) == AddFraming(s));
+    REQUIRE(ToString(chain) == AddSpanChunkFraming(s));
   }
 
   SECTION("We can seek to any byte in the fragment stream.") {
@@ -64,7 +44,7 @@ TEST_CASE("SerializationChain") {
     stream->WriteString(s);
     stream.reset();
     chain.AddFraming();
-    std::string serialization = AddFraming(s);
+    std::string serialization = AddSpanChunkFraming(s);
     for (size_t i = 1; i <= serialization.size(); ++i) {
       SECTION("cosumption instance " + std::to_string(i)) {
         Consume({&chain}, i);
@@ -78,7 +58,7 @@ TEST_CASE("SerializationChain") {
     stream->WriteString(s);
     stream.reset();
     chain.AddFraming();
-    std::string serialization = AddFraming(s);
+    std::string serialization = AddSpanChunkFraming(s);
     std::mt19937 random_number_generator{0};
     for (int i = 0; i < 100; ++i) {
       size_t num_bytes_consumed = 0;
