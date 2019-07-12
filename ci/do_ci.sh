@@ -116,12 +116,14 @@ elif [[ "$1" == "bazel.coverage" ]]; then
 elif [[ "$1" == "plugin" ]]; then
   bazel build $BAZEL_PLUGIN_OPTIONS \
     //:liblightstep_tracer_plugin.so \
+    //benchmark/tracer_upload_bench:tracer_upload_bench \
     //test/mock_satellite:mock_satellite \
     //test/mock_satellite:mock_satellite_query \
     //test/tracer:span_probe \
     //bridge/python:wheel.tgz
   mkdir -p /plugin
   cp bazel-bin/liblightstep_tracer_plugin.so /plugin
+  cp bazel-bin/benchmark/tracer_upload_bench/tracer_upload_bench /plugin
   cp bazel-bin/test/mock_satellite/mock_satellite /plugin
   cp bazel-bin/test/mock_satellite/mock_satellite_query /plugin
   cp bazel-bin/test/tracer/span_probe /plugin
