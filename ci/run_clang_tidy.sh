@@ -5,6 +5,7 @@ set -e
 CHECKS="\
 -checks=*,\
 -clang-analyzer-core.CallAndMessage,\
+-clang-analyzer-core.NullDereference,\
 -bugprone-use-after-move,\
 -cert-err58-cpp,\
 -fuchsia-*,\
