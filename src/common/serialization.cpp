@@ -167,9 +167,18 @@ size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
 //--------------------------------------------------------------------------------------------------
 // WriteTimestampImpl
 //--------------------------------------------------------------------------------------------------
-void WriteTimestampImpl(google::protobuf::io::CodedOutputStream& stream,
+template <class Stream>
+void WriteTimestampImpl(Stream& stream,
                         uint64_t seconds_since_epoch, uint32_t nano_fraction) {
   WriteVarint<TimestampSecondsSinceEpochField>(stream, seconds_since_epoch);
   WriteVarint<TimestampNanoFractionField>(stream, nano_fraction);
 }
+
+template void WriteTimestampImpl(
+    google::protobuf::io::CodedOutputStream& stream,
+    uint64_t seconds_since_epoch, uint32_t nano_fraction);
+
+template void WriteTimestampImpl(DirectCodedOutputStream& stream,
+                                 uint64_t seconds_since_epoch,
+                                 uint32_t nano_fraction);
 }  // namespace lightstep

@@ -4,6 +4,7 @@
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>
 
+#include "common/direct_coded_output_stream.h"
 #include "common/utility.h"
 
 namespace lightstep {
@@ -85,9 +86,8 @@ size_t ComputeLengthDelimitedSerializationSize(size_t length) noexcept {
  * @param stream the stream to serialize into
  * @param the length for the field
  */
-template <size_t FieldNumber>
-void WriteKeyLength(google::protobuf::io::CodedOutputStream& stream,
-                    size_t length) {
+template <size_t FieldNumber, class Stream>
+void WriteKeyLength(Stream& stream, size_t length) {
   stream.WriteVarint32(
       StaticSerializationKey<FieldNumber, WireType::LengthDelimited>::value);
   stream.WriteVarint64(length);
@@ -98,9 +98,8 @@ void WriteKeyLength(google::protobuf::io::CodedOutputStream& stream,
  * @param stream the stream to serialize into
  * @param data the data to serialize
  */
-template <size_t FieldNumber>
-void WriteFixed64(google::protobuf::io::CodedOutputStream& stream,
-                  const void* data) {
+template <size_t FieldNumber, class Stream>
+void WriteFixed64(Stream& stream, const void* data) {
   stream.WriteVarint32(
       StaticSerializationKey<FieldNumber, WireType::Fixed64>::value);
   stream.WriteRaw(data, sizeof(int64_t));
@@ -111,9 +110,8 @@ void WriteFixed64(google::protobuf::io::CodedOutputStream& stream,
  * @param stream the stream to serialize into
  * @param x the value to serialize
  */
-template <size_t FieldNumber>
-void WriteVarint(google::protobuf::io::CodedOutputStream& stream,
-                 uint64_t x) noexcept {
+template <size_t FieldNumber, class Stream>
+void WriteVarint(Stream& stream, uint64_t x) noexcept {
   stream.WriteVarint32(
       StaticSerializationKey<FieldNumber, WireType::Varint>::value);
   stream.WriteVarint64(x);
@@ -124,74 +122,11 @@ void WriteVarint(google::protobuf::io::CodedOutputStream& stream,
  * @param stream the stream to serialize into
  * @param x the value to serialize
  */
-template <size_t FieldNumber>
-void WriteVarint(google::protobuf::io::CodedOutputStream& stream, uint32_t x) {
+template <size_t FieldNumber, class Stream>
+void WriteVarint(Stream& stream, uint32_t x) {
   stream.WriteVarint32(
       StaticSerializationKey<FieldNumber, WireType::Varint>::value);
   stream.WriteVarint32(x);
-}
-
-/**
- * Serialize a string.
- * @param stream the stream to serialize into
- * @param s the string to serialize
- */
-template <size_t FieldNumber>
-void WriteString(google::protobuf::io::CodedOutputStream& stream,
-                 opentracing::string_view s) {
-  WriteKeyLength<FieldNumber>(stream, s.size());
-  stream.WriteRaw(static_cast<const void*>(s.data()), s.size());
-}
-
-/**
- * Compute the serialization of a timestamp not including its key field.
- * @param seconds_since_epoch the seconds since the epoch
- * @param nano_fraction the fraction of remaining nanoseconds
- */
-size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
-                                         uint32_t nano_fraction) noexcept;
-
-/**
- * Serialize a timestamp not including its key field.
- * @param stream the stream to serialize into
- * @param seconds_since_epoch the seconds since the epoch
- * @param nano_fraction the fraction of remaining nanoseconds
- */
-void WriteTimestampImpl(google::protobuf::io::CodedOutputStream& stream,
-                        uint64_t seconds_since_epoch, uint32_t nano_fraction);
-
-/**
- * Serialize a timestamp including its key field.
- * @param stream the stream to serialize into
- * @param serialization_size the serialization size of the timestamp not
- * including its key field
- * @param seconds_since_epoch the seconds since the epoch
- * @param nano_fraction the fraction of remaining nanoseconds
- */
-template <size_t FieldNumber>
-void WriteTimestamp(google::protobuf::io::CodedOutputStream& stream,
-                    size_t serialization_size, uint64_t seconds_since_epoch,
-                    uint32_t nano_fraction) noexcept {
-  WriteKeyLength<FieldNumber>(stream, serialization_size);
-  WriteTimestampImpl(stream, seconds_since_epoch, nano_fraction);
-}
-
-/**
- * Serialize a timestamp.
- * @param stream the stream to serialize into
- * @param timestamp the timestamp to serialize
- */
-template <size_t FieldNumber>
-void WriteTimestamp(google::protobuf::io::CodedOutputStream& stream,
-                    std::chrono::system_clock::time_point timestamp) {
-  uint64_t seconds_since_epoch;
-  uint32_t nano_fraction;
-  std::tie(seconds_since_epoch, nano_fraction) =
-      ProtobufFormatTimestamp(timestamp);
-  auto serialization_size =
-      ComputeTimestampSerializationSize(seconds_since_epoch, nano_fraction);
-  WriteTimestamp<FieldNumber>(stream, serialization_size, seconds_since_epoch,
-                              nano_fraction);
 }
 
 /**
@@ -255,5 +190,111 @@ void WriteKeyValue(google::protobuf::io::CodedOutputStream& stream,
   json_counter = 0;
   WriteKeyValue<FieldNumber>(stream, serialization_size, key, value, &json,
                              json_counter);
+}
+
+template <size_t FieldNumber, class Serializer>
+void WriteLengthDelimitedField(google::protobuf::io::CodedOutputStream& stream,
+                               size_t serialization_size,
+                               Serializer serializer) {
+  auto total_size =
+      ComputeLengthDelimitedSerializationSize<FieldNumber>(serialization_size);
+  auto buffer = stream.GetDirectBufferForNBytesAndAdvance(total_size);
+  if (buffer != nullptr) {
+    DirectCodedOutputStream direct_stream{buffer};
+    WriteKeyLength<FieldNumber>(direct_stream, serialization_size);
+    serializer(direct_stream);
+  } else {
+    WriteKeyLength<FieldNumber>(stream, serialization_size);
+    serializer(stream);
+  }
+}
+
+template <size_t FieldNumber, class Serializer>
+void WriteLengthDelimitedField(DirectCodedOutputStream& stream,
+                               size_t serialization_size,
+                               Serializer serializer) noexcept {
+  WriteKeyLength<FieldNumber>(stream, serialization_size);
+  serializer(stream);
+}
+
+struct StringSerializer {
+  opentracing::string_view s;
+
+  template <class Stream>
+  void operator()(Stream& stream) const {
+    stream.WriteRaw(static_cast<const void*>(s.data()), s.size());
+  }
+};
+
+/**
+ * Serialize a string.
+ * @param stream the stream to serialize into
+ * @param s the string to serialize
+ */
+template <size_t FieldNumber, class Stream>
+void WriteString(Stream& stream, opentracing::string_view s) {
+  WriteLengthDelimitedField<FieldNumber>(stream, s.size(), StringSerializer{s});
+}
+
+/**
+ * Compute the serialization of a timestamp not including its key field.
+ * @param seconds_since_epoch the seconds since the epoch
+ * @param nano_fraction the fraction of remaining nanoseconds
+ */
+size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
+                                         uint32_t nano_fraction) noexcept;
+
+/**
+ * Serialize a timestamp not including its key field.
+ * @param stream the stream to serialize into
+ * @param seconds_since_epoch the seconds since the epoch
+ * @param nano_fraction the fraction of remaining nanoseconds
+ */
+template <class Stream>
+void WriteTimestampImpl(Stream& stream,
+                        uint64_t seconds_since_epoch, uint32_t nano_fraction);
+
+struct TimestampSerializer {
+  uint64_t seconds_since_epoch;
+  uint32_t nano_fraction;
+
+  template <class Stream>
+  void operator()(Stream& stream) const {
+    WriteTimestampImpl(stream, seconds_since_epoch, nano_fraction);
+  }
+};
+
+/**
+ * Serialize a timestamp including its key field.
+ * @param stream the stream to serialize into
+ * @param serialization_size the serialization size of the timestamp not
+ * including its key field
+ * @param seconds_since_epoch the seconds since the epoch
+ * @param nano_fraction the fraction of remaining nanoseconds
+ */
+template <size_t FieldNumber, class Stream>
+void WriteTimestamp(Stream& stream, size_t serialization_size,
+                    uint64_t seconds_since_epoch,
+                    uint32_t nano_fraction) noexcept {
+  WriteLengthDelimitedField<FieldNumber>(
+      stream, serialization_size,
+      TimestampSerializer{seconds_since_epoch, nano_fraction});
+}
+
+/**
+ * Serialize a timestamp.
+ * @param stream the stream to serialize into
+ * @param timestamp the timestamp to serialize
+ */
+template <size_t FieldNumber>
+void WriteTimestamp(google::protobuf::io::CodedOutputStream& stream,
+                    std::chrono::system_clock::time_point timestamp) {
+  uint64_t seconds_since_epoch;
+  uint32_t nano_fraction;
+  std::tie(seconds_since_epoch, nano_fraction) =
+      ProtobufFormatTimestamp(timestamp);
+  auto serialization_size =
+      ComputeTimestampSerializationSize(seconds_since_epoch, nano_fraction);
+  WriteTimestamp<FieldNumber>(stream, serialization_size, seconds_since_epoch, nano_fraction);
 }
 }  // namespace lightstep
