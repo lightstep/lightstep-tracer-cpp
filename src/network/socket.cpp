@@ -39,7 +39,7 @@ void verifyWinsockVersion() {
     /* WinSock DLL.                                  */
     WSACleanup();
 		throw std::runtime_error{"Could not find a usable version of Winsock.dll"};
-  } 
+  }
 	else {
     std::cout << "The Winsock 2.2 dll was found okay" << std::endl;
   }
@@ -53,18 +53,18 @@ Socket::Socket() : Socket{AF_INET, SOCK_STREAM} {}
 Socket::Socket(int family, int type) {
   verifyWinsockVersion();
 
-	// I'm fairly sure this call is wrong and needs to be changed...
-	// socket() on Windows creates a uint handle, but we can just save this 
-	// in an int and keep the underlying datastructures the same
-  file_descriptor_ = ::socket(family, type, 0);
+  SOCKET sock = INVALID_SOCKET;
+  sock = socket(family, type, 0);
 
-	std::cout << "created socket" << std::endl;
-
-  if (file_descriptor_ < 0) {
-    std::ostringstream oss;
-    oss << "failed to create socket: " << std::strerror(errno);
-    throw std::runtime_error{oss.str()};
+  if (sock == INVALID_SOCKET) {
+    std::cout << "Error at socket(): " << WSAGetLastError() << std::endl;
+    WSACleanup();
+    return;
+  } else {
+    std::cout << "successfully created socket" << std::endl;
   }
+
+  // NOW WE NEED TO BIND
 }
 
 Socket::Socket(int file_descriptor) noexcept

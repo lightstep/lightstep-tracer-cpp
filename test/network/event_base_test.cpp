@@ -26,10 +26,10 @@ TEST_CASE("EventBase") {
 
   SECTION("OnTimeout can be used to schedule a 1-off event.") {
     bool was_called = false;
-    auto callback = [](int /*socket*/, short /*what*/, void* context) {
+    auto callback = [](intptr_t /*socket*/, short /*what*/, void* context) {
       *static_cast<bool*>(context) = true;
     };
-    auto exit_callback = [](int /*socket*/, short /*what*/, void* context) {
+    auto exit_callback = [](intptr_t /*socket*/, short /*what*/, void* context) {
       static_cast<EventBase*>(context)->LoopBreak();
     };
     event_base.OnTimeout(std::chrono::milliseconds{5}, callback,

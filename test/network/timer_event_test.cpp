@@ -17,7 +17,7 @@ struct CallbackContext {
 };
 }  // namespace
 
-static void TimerCallback(int /*socket*/, short /*what*/, void* context) {
+static void TimerCallback(intptr_t /*socket*/, short /*what*/, void* context) {
   auto& callback_context = *static_cast<CallbackContext*>(context);
   callback_context.time_points.push_back(std::chrono::steady_clock::now());
   auto duration = callback_context.time_points.back() -
@@ -31,8 +31,8 @@ TEST_CASE("TimerEvent") {
   EventBase event_base;
   CallbackContext callback_context;
   callback_context.event_base = &event_base;
-  TimerEvent timer_event{event_base, TestingCallbackInterval, TimerCallback,
-                         static_cast<void*>(&callback_context)};
+  TimerEvent timer_event(event_base, TestingCallbackInterval, TimerCallback,
+                         static_cast<void*>(&callback_context));
   SECTION("TimerEvent schedules callbacks at a given interval.") {
     event_base.Dispatch();
     REQUIRE(callback_context.time_points.size() == 5);
@@ -49,7 +49,7 @@ TEST_CASE("TimerEvent") {
       "time point.") {
     event_base.OnTimeout(
         5 * TestingCallbackInterval - TestingEpsilon,
-        [](int /*socket*/, short /*what*/, void* context) {
+        [](intptr_t /*socket*/, short /*what*/, void* context) {
           static_cast<TimerEvent*>(context)->Reset();
         },
         static_cast<void*>(&timer_event));

@@ -3,7 +3,7 @@
 #include <chrono>
 
 // for timeval
-#include "winsock2.h" 
+#include "winsock2.h"
 
 struct event;
 
@@ -16,8 +16,8 @@ class EventBase;
 class Event {
  public:
   //using Callback = void (*)(int socket, short what, void* context);
-	// so this is compatible with 
-	using Callback =  void (*)(intptr_t socket, short what, void* context);;
+	// so this is compatible with
+	using Callback =  void (*)(intptr_t socket, short what, void* context);
 
   Event() noexcept = default;
 
