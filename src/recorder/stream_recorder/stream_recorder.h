@@ -8,23 +8,24 @@
 
 #include "stream_recorder_impl.h"
 
-#include "common/chunk_circular_buffer.h"
+#include "common/circular_buffer.h"
 #include "common/logger.h"
 #include "common/noncopyable.h"
+#include "common/serialization_chain.h"
 #include "lightstep/tracer.h"
 #include "network/event_base.h"
 #include "network/timer_event.h"
 #include "recorder/fork_aware_recorder.h"
 #include "recorder/stream_recorder.h"
-#include "recorder/stream_recorder/satellite_streamer.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
 #include "recorder/stream_recorder/stream_recorder_options.h"
 
 namespace lightstep {
 /**
- * A Recorder that load balances and streams spans to multiple satellites.
+ * TODO(rnburn): this will replace StreamRecorder when the implementation is
+ * finished.
  */
-class StreamRecorder final : public ForkAwareRecorder, private Noncopyable {
+class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
  public:
   StreamRecorder(
       Logger& logger, LightStepTracerOptions&& tracer_options,
@@ -48,7 +49,7 @@ class StreamRecorder final : public ForkAwareRecorder, private Noncopyable {
   /**
    * @return true if no spans are buffered in the recorder.
    */
-  bool empty() const noexcept { return span_buffer_.buffer().empty(); }
+  bool empty() const noexcept { return span_buffer_.empty(); }
 
   /**
    * @return the associated Logger.
@@ -77,10 +78,12 @@ class StreamRecorder final : public ForkAwareRecorder, private Noncopyable {
   /**
    * @return the associated span buffer.
    */
-  ChunkCircularBuffer& span_buffer() noexcept { return span_buffer_; }
+  CircularBuffer<SerializationChain>& span_buffer() noexcept {
+    return span_buffer_;
+  }
 
   // Recorder
-  void RecordSpan(const collector::Span& span) noexcept override;
+  void RecordSpan(std::unique_ptr<SerializationChain>&& span) noexcept override;
 
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;
@@ -97,14 +100,14 @@ class StreamRecorder final : public ForkAwareRecorder, private Noncopyable {
   LightStepTracerOptions tracer_options_;
   StreamRecorderOptions recorder_options_;
   StreamRecorderMetrics metrics_;
-  ChunkCircularBuffer span_buffer_;
+  CircularBuffer<SerializationChain> span_buffer_;
 
   std::atomic<bool> exit_{false};
 
   std::mutex flush_mutex_;
   std::condition_variable flush_condition_variable_;
   std::atomic<int> pending_flush_counter_{0};
-  uint64_t num_bytes_consumed_{0};
+  int64_t num_spans_consumed_{0};
 
   std::unique_ptr<StreamRecorderImpl> stream_recorder_impl_;
 };

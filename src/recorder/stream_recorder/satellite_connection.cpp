@@ -187,7 +187,7 @@ void SatelliteConnection::GracefulShutdownTimeout() noexcept {
 // OnReadable
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::OnReadable(int file_descriptor,
-                                     short /*what*/) noexcept try {
+                                      short /*what*/) noexcept try {
   streamer_.logger().Info("Satellite file_descriptor ", file_descriptor,
                           " is readable");
   std::array<char, 512> buffer;
@@ -236,7 +236,7 @@ void SatelliteConnection::OnReadable(int file_descriptor,
 // OnWritable
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::OnWritable(int file_descriptor,
-                                     short what) noexcept try {
+                                      short what) noexcept try {
   streamer_.logger().Info("Satellite file_descriptor ", file_descriptor,
                           " is writable");
   if ((what & EV_TIMEOUT) != 0) {

@@ -130,11 +130,7 @@ static std::shared_ptr<LightStepTracer> MakeStreamTracer(
   PropagationOptions propagation_options{};
   propagation_options.use_single_key = options.use_single_key_propagation;
   auto recorder = MakeStreamRecorder(*logger, std::move(options));
-  if (options.use_span_v2) {
-    return std::shared_ptr<LightStepTracer>{new TracerImpl{
-        std::move(logger), propagation_options, std::move(recorder)}};
-  }
-  return std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
+  return std::shared_ptr<LightStepTracer>{new TracerImpl{
       std::move(logger), propagation_options, std::move(recorder)}};
 }
 

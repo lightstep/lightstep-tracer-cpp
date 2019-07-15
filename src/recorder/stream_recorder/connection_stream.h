@@ -9,7 +9,6 @@
 #include "common/function_ref.h"
 #include "common/utility.h"
 #include "recorder/stream_recorder/embedded_metrics_message.h"
-#include "recorder/stream_recorder/fragment_span_input_stream.h"
 #include "recorder/stream_recorder/span_stream.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
 
@@ -26,7 +25,7 @@ class ConnectionStream {
       std::initializer_list<FragmentInputStream*> fragment_input_streams)>;
 
   ConnectionStream(Fragment host_header_fragment,
-                   Fragment header_common_fragment, SpanStream& span_stream);
+                    Fragment header_common_fragment, SpanStream& span_stream);
 
   /**
    * Reset so as to begin a new streaming session.
@@ -73,7 +72,7 @@ class ConnectionStream {
   FragmentArrayInputStream header_stream_;
   FragmentArrayInputStream terminal_stream_;
 
-  FragmentSpanInputStream span_remnant_;
+  std::unique_ptr<SerializationChain> span_remnant_;
 
   bool shutting_down_;
 

@@ -1,5 +1,4 @@
 #include "recorder/stream_recorder/stream_recorder.h"
-#include "recorder/stream_recorder/stream_recorder2.h"
 
 #include <exception>
 
@@ -21,17 +20,13 @@ static MetricsObserver& GetMetricsObserver(
 // constructor
 //--------------------------------------------------------------------------------------------------
 StreamRecorder::StreamRecorder(Logger& logger,
-                               LightStepTracerOptions&& tracer_options,
-                               StreamRecorderOptions&& recorder_options)
+                                 LightStepTracerOptions&& tracer_options,
+                                 StreamRecorderOptions&& recorder_options)
     : logger_{logger},
       tracer_options_{std::move(tracer_options)},
       recorder_options_{std::move(recorder_options)},
       metrics_{GetMetricsObserver(tracer_options_)},
-      span_buffer_{recorder_options_.max_span_buffer_bytes} {
-  // If no MetricsObserver was provided, use a default one that does nothing.
-  if (tracer_options_.metrics_observer == nullptr) {
-    tracer_options_.metrics_observer.reset(new MetricsObserver{});
-  }
+      span_buffer_{tracer_options_.max_buffered_spans.value()} {
   stream_recorder_impl_.reset(new StreamRecorderImpl{*this});
 }
 
@@ -49,22 +44,34 @@ StreamRecorder::~StreamRecorder() noexcept {
 //--------------------------------------------------------------------------------------------------
 // RecordSpan
 //--------------------------------------------------------------------------------------------------
-void StreamRecorder::RecordSpan(const collector::Span& span) noexcept {
-  auto span_size = span.ByteSizeLong();
-  auto serialization_callback =
-      [&span, span_size](google::protobuf::io::CodedOutputStream& stream) {
-        WriteEmbeddedMessage(stream,
-                             collector::ReportRequest::kSpansFieldNumber,
-                             span_size, span);
-      };
-  auto was_added = span_buffer_.Add(
-      serialization_callback,
-      ComputeEmbeddedMessageSerializationSize(
-          collector::ReportRequest::kSpansFieldNumber, span_size));
-  if (!was_added) {
-    logger_.Debug("Dropping span ", span.span_context().span_id());
+void StreamRecorder::RecordSpan(
+    std::unique_ptr<SerializationChain>&& span) noexcept {
+  span->AddFraming();
+  if (!span_buffer_.Add(span)) {
+    logger_.Debug("Dropping span");
     metrics_.OnSpansDropped(1);
+    span.reset();
   }
+}
+
+//--------------------------------------------------------------------------------------------------
+// FlushWithTimeout
+//--------------------------------------------------------------------------------------------------
+bool StreamRecorder::FlushWithTimeout(
+    std::chrono::system_clock::duration timeout) noexcept try {
+  auto num_spans_produced = span_buffer_.production_count();
+  std::unique_lock<std::mutex> lock{flush_mutex_};
+  if (num_spans_consumed_ >= num_spans_produced) {
+    return true;
+  }
+  ++pending_flush_counter_;
+  flush_condition_variable_.wait_for(lock, timeout, [this, num_spans_produced] {
+    return exit_ || num_spans_consumed_ >= num_spans_produced;
+  });
+  return num_spans_consumed_ >= num_spans_produced;
+} catch (const std::exception& e) {
+  logger_.Error("StreamRecorder::FlushWithTimeout failed: ", e.what());
+  return false;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -91,41 +98,21 @@ void StreamRecorder::OnForkedChild() noexcept {
   // process.
   metrics_.ConsumeDroppedSpans();
   span_buffer_.Clear();
-  num_bytes_consumed_ = span_buffer_.buffer().num_bytes_produced();
+  num_spans_consumed_ = span_buffer_.production_count();
   pending_flush_counter_ = 0;
 
   stream_recorder_impl_.reset(new StreamRecorderImpl{*this});
 }
 
 //--------------------------------------------------------------------------------------------------
-// FlushWithTimeout
-//--------------------------------------------------------------------------------------------------
-bool StreamRecorder::FlushWithTimeout(
-    std::chrono::system_clock::duration timeout) noexcept try {
-  auto num_bytes_produced = span_buffer_.buffer().num_bytes_produced();
-  std::unique_lock<std::mutex> lock{flush_mutex_};
-  if (num_bytes_consumed_ >= num_bytes_produced) {
-    return true;
-  }
-  ++pending_flush_counter_;
-  flush_condition_variable_.wait_for(lock, timeout, [this, num_bytes_produced] {
-    return exit_ || num_bytes_consumed_ >= num_bytes_produced;
-  });
-  return num_bytes_consumed_ >= num_bytes_produced;
-} catch (const std::exception& e) {
-  logger_.Error("StreamRecorder::FlushWithTimeout failed: ", e.what());
-  return false;
-}
-
-//--------------------------------------------------------------------------------------------------
 // Poll
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::Poll() noexcept {
-  auto num_bytes_consumed = span_buffer_.buffer().num_bytes_consumed();
-  if (num_bytes_consumed > num_bytes_consumed_) {
+  auto num_spans_consumed = span_buffer_.consumption_count();
+  if (num_spans_consumed > num_spans_consumed_) {
     {
       std::lock_guard<std::mutex> lock_guard{flush_mutex_};
-      num_bytes_consumed_ = num_bytes_consumed;
+      num_spans_consumed_ = num_spans_consumed;
     }
     flush_condition_variable_.notify_all();
   }
@@ -136,10 +123,6 @@ void StreamRecorder::Poll() noexcept {
 //--------------------------------------------------------------------------------------------------
 std::unique_ptr<Recorder> MakeStreamRecorder(
     Logger& logger, LightStepTracerOptions&& tracer_options) {
-  if (tracer_options.use_span_v2) {
-    return std::unique_ptr<Recorder>{
-        new StreamRecorder2{logger, std::move(tracer_options)}};
-  }
   return std::unique_ptr<Recorder>{
       new StreamRecorder{logger, std::move(tracer_options)}};
 }
