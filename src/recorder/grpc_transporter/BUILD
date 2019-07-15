@@ -20,14 +20,18 @@ proto_compile(
 
 cc_library(
     name = "collector_proto_grpc",
-    srcs = [
-        "collector_proto_grpc_files",
-    ],
-    deps = [
+    srcs = select({
+      "//:with_grpc": ["collector_proto_grpc_files"],
+      "//conditions:default": [],
+    }),
+    deps = select({
+      "//:with_grpc" : [
         "//lightstep-tracer-common:collector_proto_cc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
     ],
+      "//conditions:default": []}),
+
     includes = ["collector_proto_grpc_files"],
 )
 

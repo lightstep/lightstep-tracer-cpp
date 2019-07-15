@@ -2,6 +2,7 @@ load(
     "//bazel:lightstep_build_system.bzl",
     "lightstep_cc_library",
     "lightstep_package",
+    "lightstep_catch_test"
 )
 
 lightstep_package()
@@ -112,7 +113,17 @@ lightstep_cc_library(
         "child_process_handle.h",
     ],
     srcs = [
-        "child_process_handle.cpp",
+        "child_process_handle_windows.cpp", # make this work for both
+    ],
+)
+
+lightstep_catch_test(
+    name = "child_process_test",
+    srcs = [
+        "child_process_test.cpp",
+    ],
+    deps = [
+        ":child_process_handle_lib",
     ],
 )
 

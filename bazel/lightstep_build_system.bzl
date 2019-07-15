@@ -36,8 +36,9 @@ def lightstep_include_copts():
     "3rd_party/base64/include",
   ], is_system=True)
 
+# TODO: make these only get passed on Windows
 def lightstep_linkopts():
-  return ["-DEFAULTLIB:ws2_32.lib"]
+  return ["-DEFAULTLIB:ws2_32.lib", "-DEFAULTLIB:Advapi32.lib"]
 
 def lightstep_copts(is_3rd_party=False):
   return []
@@ -100,7 +101,7 @@ def lightstep_cc_binary(
         srcs = srcs,
         data = data,
         copts = lightstep_include_copts() + lightstep_copts(),
-        linkopts = linkopts,
+        linkopts = linkopts + lightstep_linkopts(),
         testonly = testonly,
         linkstatic = 1,
         visibility = visibility,

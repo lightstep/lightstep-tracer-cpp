@@ -20,10 +20,7 @@ cmake_external(
 
     # because we're building static
     defines = ["CARES_STATICLIB"],
-
-    # we need this and for some reason it wasn't included ...
-    linkopts = ["-DEFAULTLIB:advapi32.lib"],
-
+    
     # since we don't define this, the default
     static_libraries = ["cares.lib"], # used to be libcares.a
     visibility = ["//visibility:public"],

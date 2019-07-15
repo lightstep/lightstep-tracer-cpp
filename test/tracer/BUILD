@@ -31,20 +31,23 @@ lightstep_catch_test(
     ],
 )
 
+# this can only build if with_grpc is turned on
 lightstep_cc_library(
     name = "in_memory_collector_lib",
     private_hdrs = [
         "in_memory_collector.h",
     ],
-    srcs = [
-        "in_memory_collector.cpp",
-    ],
-#    deps = [
-#        "//src/recorder/grpc_transporter:collector_proto_grpc",
-#    ],
+    srcs = select({
+      "//:with_grpc": ["in_memory_collector.cpp"],
+      "//conditions:default": [],
+    }),
+    deps = select({
+      "//:with_grpc": ["//src/recorder/grpc_transporter:collector_proto_grpc"],
+      "//conditions:default": [],
+    }),
 )
 
-# TODO: modify this so its different for Windows
+# TODO: don't want any of the below code to run on Windows
 cc_binary(
     name = "lightstep_plugin.so",
     linkshared = 1,
