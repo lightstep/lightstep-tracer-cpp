@@ -164,10 +164,7 @@ include(LightStepTracerCommon)
 include(LightStepTracerConfiguration)
 
 set(LIGHTSTEP_SRCS src/common/utility.cpp
-                   src/common/atomic_bit_set.cpp
-                   src/common/bipart_memory_stream.cpp
                    src/common/circular_buffer.cpp
-                   src/common/chunk_circular_buffer.cpp
                    src/common/fragment_input_stream.cpp
                    src/common/fragment_array_input_stream.cpp
                    src/common/protobuf.cpp
