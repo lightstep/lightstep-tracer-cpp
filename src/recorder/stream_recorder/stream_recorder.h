@@ -22,8 +22,7 @@
 
 namespace lightstep {
 /**
- * TODO(rnburn): this will replace StreamRecorder when the implementation is
- * finished.
+ * A Recorder that load balances and streams spans to multiple satellites.
  */
 class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
  public:
