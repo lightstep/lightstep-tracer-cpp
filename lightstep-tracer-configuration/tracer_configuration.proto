@@ -58,4 +58,7 @@ message TracerConfiguration {
 
   // A list of satellite endpoints to upload spans to.
   repeated Endpoint satellite_endpoints = 12; 
+
+  // Log at the debug level.
+  bool verbose = 13;
 }
