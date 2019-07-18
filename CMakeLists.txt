@@ -6,7 +6,7 @@ project(lightstep-tracer)
 # Version information
 
 set(LIGHTSTEP_VERSION_MAJOR "0")
-set(LIGHTSTEP_VERSION_MINOR "10")
+set(LIGHTSTEP_VERSION_MINOR "9")
 set(LIGHTSTEP_VERSION_PATCH "0")
 set(LIGHTSTEP_VERSION_STRING
   "${LIGHTSTEP_VERSION_MAJOR}.${LIGHTSTEP_VERSION_MINOR}.${LIGHTSTEP_VERSION_PATCH}")
@@ -84,12 +84,24 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Allows us to control options via normal variables
+# See https://cmake.org/cmake/help/git-stage/policy/CMP0077.html
+cmake_policy(SET CMP0077 NEW)
+
 # ==============================================================================
 # Find packages
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-find_package(Protobuf REQUIRED)
+# Newer protobuf versions use cmake config files so try that first
+#
+# Note: The non-config protobuf module doesn't find PROTOBUF_PROTOC_EXECUTABLE properly on windows.
+set(protobuf_MODULE_COMPATIBLE ON)
+find_package(Protobuf CONFIG NAMES protobuf)
+if (NOT protobuf_FOUND)
+  # Fall back to the old style protobuf module
+  find_package(Protobuf REQUIRED)
+endif()
 
 if (NOT DEFINED OPENTRACING_INCLUDE_DIR)
   find_path(OPENTRACING_INCLUDE_DIR NAMES opentracing/tracer.h)
@@ -148,6 +160,7 @@ set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
+
 
 # ==============================================================================
 # Build LightStep tracer library
