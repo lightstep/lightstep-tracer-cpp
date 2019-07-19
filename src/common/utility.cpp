@@ -1,10 +1,5 @@
 #include "common/utility.h"
 
-#include <opentracing/string_view.h>
-#include <opentracing/value.h>
-
-#include "lightstep-tracer-common/collector.pb.h"
-
 #include <array>
 #include <cctype>
 #include <cmath>
@@ -14,7 +9,12 @@
 #include <stdexcept>
 #include <system_error>
 
-#include <pthread.h>
+#include "common/system/time.h"
+
+#include <opentracing/string_view.h>
+#include <opentracing/value.h>
+
+#include "lightstep-tracer-common/collector.pb.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -36,9 +36,9 @@ timeval ToTimeval(std::chrono::microseconds microseconds) {
   auto num_microseconds = microseconds.count();
   const size_t microseconds_in_second = 1000000;
   result.tv_sec =
-      static_cast<time_t>(num_microseconds / microseconds_in_second);
+      static_cast<decltype(result.tv_sec)>(num_microseconds / microseconds_in_second);
   result.tv_usec =
-      static_cast<suseconds_t>(num_microseconds % microseconds_in_second);
+      static_cast<decltype(result.tv_usec)>(num_microseconds % microseconds_in_second);
   return result;
 }
 
