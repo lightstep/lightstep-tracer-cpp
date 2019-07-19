@@ -1,9 +1,8 @@
 #pragma once
 
+#include "common/system/time.h"
 #include "network/event.h"
 #include "network/event_base.h"
-
-#include <sys/time.h>
 
 struct event;
 

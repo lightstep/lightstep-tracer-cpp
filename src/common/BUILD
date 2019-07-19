@@ -131,6 +131,7 @@ lightstep_cc_library(
         "utility.cpp",
     ],
     deps = [
+        "//src/common/system:time_lib",
         "//lightstep-tracer-common:collector_proto_cc",
         ":logger_lib",
     ],

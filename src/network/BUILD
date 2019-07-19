@@ -27,6 +27,7 @@ lightstep_cc_library(
         "event_base.cpp",
     ],
     deps = [
+        "//src/common/system:time_lib",
         "//src/common:utility_lib",
     ],
     external_deps = [
@@ -44,6 +45,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:utility_lib",
+        "//src/common/system:time_lib",
         ":event_lib",
     ],
     external_deps = [
