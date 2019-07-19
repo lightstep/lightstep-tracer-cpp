@@ -7,6 +7,16 @@ load(
 lightstep_package()
 
 lightstep_cc_library(
+    name = "error_lib",
+    private_hdrs = [
+        "error.h",
+    ],
+    srcs = [
+        "error_unix.cpp",
+    ],
+)
+
+lightstep_cc_library(
     name = "network_lib",
     private_hdrs = [
         "network.h",
