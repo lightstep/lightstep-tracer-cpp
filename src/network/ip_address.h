@@ -2,9 +2,9 @@
 
 #include <cassert>
 #include <iosfwd>
+#include <string>
 
-#include <arpa/inet.h>
-#include <sys/socket.h>
+#include "common/system/network.h"
 
 namespace lightstep {
 /**

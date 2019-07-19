@@ -14,6 +14,9 @@ lightstep_cc_library(
     srcs = [
         "ip_address.cpp",
     ],
+    deps = [
+        "//src/common/system:network_lib",
+    ],
 )
 
 lightstep_cc_library(

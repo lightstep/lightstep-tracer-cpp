@@ -7,6 +7,13 @@ load(
 lightstep_package()
 
 lightstep_cc_library(
+    name = "network_lib",
+    private_hdrs = [
+        "network.h",
+    ],
+)
+
+lightstep_cc_library(
     name = "fork_lib",
     private_hdrs = [
         "fork.h",
