@@ -92,6 +92,7 @@ lightstep_cc_library(
         "vector_write.cpp",
     ],
     deps = [
+        "//src/common/system:memory_lib",
         ":fragment_input_stream_lib",
     ],
 )

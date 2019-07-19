@@ -17,6 +17,13 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "memory_lib",
+    private_hdrs = [
+        "memory.h",
+    ],
+)
+
+lightstep_cc_library(
     name = "network_lib",
     private_hdrs = [
         "network.h",

@@ -7,7 +7,8 @@
 #include <sstream>
 #include <stdexcept>
 
-#include <alloca.h>
+#include "common/system/memory.h"
+
 #include <sys/uio.h>
 
 namespace lightstep {
