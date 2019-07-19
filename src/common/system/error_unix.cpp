@@ -7,9 +7,9 @@
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
-// GetLastError
+// GetLastErrorCode
 //--------------------------------------------------------------------------------------------------
-ErrorCode GetLastError() noexcept {
+ErrorCode GetLastErrorCode() noexcept {
   return errno;
 }
 

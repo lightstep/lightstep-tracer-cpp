@@ -153,6 +153,8 @@ lightstep_cc_library(
     ],
     deps = [
         ":satellite_endpoint_manager_lib",
+        "//src/common/system:error_lib",
+        "//src/common/system:network_lib",
         "//src/common:chunk_circular_buffer_lib",
         "//src/common:noncopyable_lib",
         "//src/common:random_lib",

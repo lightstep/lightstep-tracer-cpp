@@ -21,6 +21,9 @@ lightstep_cc_library(
     private_hdrs = [
         "network.h",
     ],
+    srcs = [
+        "network_unix.cpp",
+    ],
 )
 
 lightstep_cc_library(

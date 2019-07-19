@@ -12,7 +12,7 @@ using ErrorCode = DWORD;
 using ErrorCode = int;
 #endif
 
-ErrorCode GetLastError() noexcept;
+ErrorCode GetLastErrorCode() noexcept;
 
 std::string GetErrorCodeMessage(ErrorCode error_code);
 
