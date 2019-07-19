@@ -1,9 +1,29 @@
 #include "common/system/error.h"
 
 #include <cerrno>
+#include <cstring>
+
+#include <unistd.h>
 
 namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// GetLastError
+//--------------------------------------------------------------------------------------------------
 ErrorCode GetLastError() noexcept {
   return errno;
+}
+
+//--------------------------------------------------------------------------------------------------
+// GetErrorCodeMessage
+//--------------------------------------------------------------------------------------------------
+std::string GetErrorCodeMessage(ErrorCode error_code) {
+  return std::strerror(error_code);
+}
+
+//--------------------------------------------------------------------------------------------------
+// IsBlockingErrorCode
+//--------------------------------------------------------------------------------------------------
+bool IsBlockingErrorCode(ErrorCode error_code) noexcept {
+  return error_code == EAGAIN || error_code == EWOULDBLOCK;
 }
 } // namespace lightstep
