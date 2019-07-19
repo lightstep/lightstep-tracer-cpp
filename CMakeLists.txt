@@ -201,6 +201,12 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/tracer/tracer.cpp
                    )
 
+if (WIN32)
+  list(APPEND LIGHTSTEP_SRCS src/common/system/utility_windows.cpp)
+else()
+  list(APPEND LIGHTSTEP_SRCS src/common/system/utility_unix.cpp)
+endif()
+
 if (WITH_GRPC)
   list(APPEND LIGHTSTEP_SRCS src/recorder/grpc_transporter/grpc_transporter.cpp)
 else()

@@ -12,3 +12,13 @@ lightstep_cc_library(
       "time.h",
   ],
 )
+
+lightstep_cc_library(
+    name = "utility_lib",
+    private_hdrs = [
+        "utility.h",
+    ],
+    srcs = [
+        "utility_unix.cpp",
+    ],
+)

@@ -32,10 +32,6 @@ inline timeval toTimeval(std::chrono::duration<Rep, Period> duration) {
       std::chrono::duration_cast<std::chrono::microseconds>(duration));
 }
 
-// Attempts to determine the name of the executable invoked.  Returns
-// "c++-program" if unsuccessful.
-std::string GetProgramName();
-
 // Converts an OpenTracing key-value pair to the key-value pair used in the
 // protobuf data structures.
 collector::KeyValue ToKeyValue(opentracing::string_view key,
