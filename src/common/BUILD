@@ -102,6 +102,7 @@ lightstep_cc_library(
         "random.cpp",
     ],
     deps = [
+        "//src/common/system:fork_lib",
         "//3rd_party/randutils:randutils_lib",
     ],
     linkopts = [

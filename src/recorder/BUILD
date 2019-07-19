@@ -49,6 +49,7 @@ lightstep_cc_library(
         "fork_aware_recorder.cpp",
     ],
     deps = [
+        "//src/common/system:fork_lib",
         ":recorder_interface",
     ],
 )

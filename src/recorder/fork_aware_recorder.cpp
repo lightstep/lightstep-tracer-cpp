@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include <pthread.h>
+#include "common/system/fork.h"
 
 namespace lightstep {
 std::mutex ForkAwareRecorder::mutex_;
@@ -90,7 +90,7 @@ void ForkAwareRecorder::ChildForkHandler() noexcept {
 //--------------------------------------------------------------------------------------------------
 void ForkAwareRecorder::SetupForkHandlers() noexcept {
   static bool once = [] {
-    ::pthread_atfork(PrepareForkHandler, ParentForkHandler, ChildForkHandler);
+    AtFork(PrepareForkHandler, ParentForkHandler, ChildForkHandler);
     return true;
   }();
   (void)once;
