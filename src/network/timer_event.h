@@ -48,7 +48,7 @@ class TimerEvent {
  */
 template <class T, void (T::*MemberFunction)()>
 Event::Callback MakeTimerCallback() {
-  return [](int /*socket*/, short /*what*/, void* context) {
+  return [](FileDescriptor /*socket*/, short /*what*/, void* context) {
     (static_cast<T*>(context)->*MemberFunction)();
   };
 }

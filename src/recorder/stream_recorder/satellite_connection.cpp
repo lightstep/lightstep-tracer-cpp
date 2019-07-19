@@ -8,7 +8,6 @@
 
 #include "common/random.h"
 #include "common/system/error.h"
-#include "common/system/network.h"
 #include "network/timer_event.h"
 #include "network/vector_write.h"
 #include "recorder/stream_recorder/satellite_streamer.h"
@@ -187,7 +186,7 @@ void SatelliteConnection::GracefulShutdownTimeout() noexcept {
 //--------------------------------------------------------------------------------------------------
 // OnReadable
 //--------------------------------------------------------------------------------------------------
-void SatelliteConnection::OnReadable(int file_descriptor,
+void SatelliteConnection::OnReadable(FileDescriptor file_descriptor,
                                      short /*what*/) noexcept try {
   streamer_.logger().Info("Satellite file_descriptor ", file_descriptor,
                           " is readable");
@@ -238,7 +237,7 @@ void SatelliteConnection::OnReadable(int file_descriptor,
 //--------------------------------------------------------------------------------------------------
 // OnWritable
 //--------------------------------------------------------------------------------------------------
-void SatelliteConnection::OnWritable(int file_descriptor,
+void SatelliteConnection::OnWritable(FileDescriptor file_descriptor,
                                      short what) noexcept try {
   streamer_.logger().Info("Satellite file_descriptor ", file_descriptor,
                           " is writable");

@@ -30,6 +30,7 @@ lightstep_cc_library(
         "event_base.cpp",
     ],
     deps = [
+        "//src/common/system:network_lib",
         "//src/common/system:time_lib",
         "//src/common:utility_lib",
     ],

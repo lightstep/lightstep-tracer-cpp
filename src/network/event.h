@@ -2,6 +2,7 @@
 
 #include <chrono>
 
+#include "common/system/network.h"
 #include "common/system/time.h"
 
 struct event;
@@ -14,12 +15,12 @@ class EventBase;
  */
 class Event {
  public:
-  using Callback = void (*)(int socket, short what, void* context);
+  using Callback = void (*)(FileDescriptor socket, short what, void* context);
 
   Event() noexcept = default;
 
-  Event(const EventBase& event_base, int file_descriptor, short options,
-        Callback callback, void* context);
+  Event(const EventBase& event_base, FileDescriptor file_descriptor,
+        short options, Callback callback, void* context);
 
   Event(const Event&) = delete;
 
@@ -64,9 +65,9 @@ class Event {
  * libevent.
  * @return a function pointer that can be passed to libevent.
  */
-template <class T, void (T::*MemberFunction)(int, short)>
+template <class T, void (T::*MemberFunction)(FileDescriptor, short)>
 Event::Callback MakeEventCallback() {
-  return [](int socket, short what, void* context) {
+  return [](FileDescriptor socket, short what, void* context) {
     (static_cast<T*>(context)->*MemberFunction)(socket, what);
   };
 }

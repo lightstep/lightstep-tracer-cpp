@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -13,5 +14,11 @@ using sa_family_t = unsigned int;
 #endif
 
 namespace lightstep {
-int Read(int socket, void* data, size_t size) noexcept;
+#ifdef _WIN32
+using FileDescriptor = intptr_t;
+#else
+using FileDescriptor = int;
+#endif
+
+int Read(FileDescriptor socket, void* data, size_t size) noexcept;
 } // namespace lightstep

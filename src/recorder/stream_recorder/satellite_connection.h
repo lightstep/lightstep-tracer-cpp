@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/system/network.h"
 #include "common/noncopyable.h"
 #include "network/event.h"
 #include "network/socket.h"
@@ -59,9 +60,9 @@ class SatelliteConnection : private Noncopyable {
 
   void GracefulShutdownTimeout() noexcept;
 
-  void OnReadable(int file_descriptor, short what) noexcept;
+  void OnReadable(FileDescriptor file_descriptor, short what) noexcept;
 
-  void OnWritable(int file_descriptor, short what) noexcept;
+  void OnWritable(FileDescriptor file_descriptor, short what) noexcept;
 
   void OnSocketError() noexcept;
 };
