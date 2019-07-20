@@ -17,13 +17,21 @@ namespace lightstep {
 #ifdef _WIN32
 using FileDescriptor = intptr_t;
 const FileDescriptor InvalidSocket = INVALID_SOCKET;
+using IoVec = WSABUF;
+// No documented maximum so pick a reasonable value
+const int IoVecMax = 1024;
 #else
 using FileDescriptor = int;
 const FileDescriptor InvalidSocket = -1;
+using IoVec = iovec;
+extern const int IoVecMax;
 #endif
 
+IoVec MakeIoVec(void* data, size_t length) noexcept;
 
 int Read(FileDescriptor socket, void* data, size_t size) noexcept;
+
+int WriteV(FileDescriptor socket, const IoVec* iov, int iovcnt) noexcept; 
 
 int SetSocketNonblocking(FileDescriptor socket) noexcept;
 
