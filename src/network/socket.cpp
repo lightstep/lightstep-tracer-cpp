@@ -1,15 +1,12 @@
 #include "network/socket.h"
 
+#include "common/system/error.h"
+
 #include <cassert>
 #include <cerrno>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
-
-#include <fcntl.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -19,19 +16,19 @@ Socket::Socket() : Socket{AF_INET, SOCK_STREAM} {}
 
 Socket::Socket(int family, int type) {
   file_descriptor_ = ::socket(family, type, 0);
-  if (file_descriptor_ < 0) {
+  if (file_descriptor_ == InvalidSocket) {
     std::ostringstream oss;
     oss << "failed to create socket: " << std::strerror(errno);
     throw std::runtime_error{oss.str()};
   }
 }
 
-Socket::Socket(int file_descriptor) noexcept
+Socket::Socket(FileDescriptor file_descriptor) noexcept
     : file_descriptor_{file_descriptor} {}
 
 Socket::Socket(Socket&& other) noexcept {
   file_descriptor_ = other.file_descriptor_;
-  other.file_descriptor_ = -1;
+  other.file_descriptor_ = InvalidSocket;
 }
 
 //------------------------------------------------------------------------------
@@ -46,7 +43,7 @@ Socket& Socket::operator=(Socket&& other) noexcept {
   assert(this != &other);
   Free();
   file_descriptor_ = other.file_descriptor_;
-  other.file_descriptor_ = -1;
+  other.file_descriptor_ = InvalidSocket;
   return *this;
 }
 
@@ -54,11 +51,11 @@ Socket& Socket::operator=(Socket&& other) noexcept {
 // SetNonblocking
 //------------------------------------------------------------------------------
 void Socket::SetNonblocking() {
-  int rcode = ::fcntl(file_descriptor_, F_SETFL,
-                      ::fcntl(file_descriptor_, F_GETFL, 0) | O_NONBLOCK);
+  auto rcode = SetSocketNonblocking(file_descriptor_);
   if (rcode == -1) {
     std::ostringstream oss;
-    oss << "failed to set the socket as non-blocking: " << std::strerror(errno);
+    oss << "failed to set the socket as non-blocking: "
+        << GetErrorCodeMessage(GetLastErrorCode());
     throw std::runtime_error{oss.str()};
   }
 }
@@ -67,8 +64,8 @@ void Socket::SetNonblocking() {
 // Free
 //--------------------------------------------------------------------------------------------------
 void Socket::Free() noexcept {
-  if (file_descriptor_ != -1) {
-    ::close(file_descriptor_);
+  if (file_descriptor_ != InvalidSocket) {
+    CloseSocket(file_descriptor_);
   }
 }
 
@@ -76,12 +73,11 @@ void Socket::Free() noexcept {
 // SetReuseAddress
 //------------------------------------------------------------------------------
 void Socket::SetReuseAddress() {
-  int optvalue = 1;
-  int rcode = ::setsockopt(file_descriptor_, SOL_SOCKET, SO_REUSEADDR,
-                           static_cast<void*>(&optvalue), sizeof(int));
+  auto rcode = SetSocketReuseAddress(file_descriptor_);
   if (rcode == -1) {
     std::ostringstream oss;
-    oss << "failed to set the socket as reusable: : " << std::strerror(errno);
+    oss << "failed to set the socket as reusable: : "
+        << GetErrorCodeMessage(GetLastErrorCode());
     throw std::runtime_error{oss.str()};
   }
 }
@@ -90,7 +86,7 @@ void Socket::SetReuseAddress() {
 // Connect
 //--------------------------------------------------------------------------------------------------
 int Socket::Connect(const sockaddr& addr, size_t addrlen) noexcept {
-  assert(file_descriptor_ != -1);
+  assert(file_descriptor_ != InvalidSocket);
   return ::connect(file_descriptor_, &addr, static_cast<socklen_t>(addrlen));
 }
 
@@ -114,10 +110,10 @@ Socket Connect(const IpAddress& ip_address) {
   if (rcode == 0) {
     return socket;
   }
-  assert(rcode == -1);
-  if (errno != EINPROGRESS) {
+  auto error_code = GetLastErrorCode();
+  if (!IsInProgressErrorCode(error_code)) {
     std::ostringstream oss;
-    oss << "connect failed: " << std::strerror(errno);
+    oss << "connect failed: " << GetErrorCodeMessage(error_code);
     throw std::runtime_error{oss.str()};
   }
   return socket;

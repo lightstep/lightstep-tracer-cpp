@@ -204,11 +204,13 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
 if (WIN32)
   list(APPEND LIGHTSTEP_SRCS src/common/system/error_windows.cpp
                              src/common/system/network_windows.cpp
+                             src/common/system/network_environment_windows.cpp
                              src/common/system/utility_windows.cpp
                              src/common/system/fork_windows.cpp)
 else()
   list(APPEND LIGHTSTEP_SRCS src/common/system/error_unix.cpp
                              src/common/system/network_unix.cpp
+                             src/common/system/network_environment_unix.cpp
                              src/common/system/utility_unix.cpp
                              src/common/system/fork_unix.cpp)
 endif()

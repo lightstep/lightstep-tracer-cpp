@@ -34,7 +34,7 @@ class IpAddress {
   /**
    * @return the family of the ip address.
    */
-  sa_family_t family() const noexcept { return data_.ss_family; }
+  int family() const noexcept { return static_cast<int>(data_.ss_family); }
 
   /**
    * @returns for an ipv4 address, returns the system sockaddr_in object.

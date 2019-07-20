@@ -34,6 +34,19 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "network_environment_lib",
+    private_hdrs = [
+        "network_environment.h",
+    ],
+    srcs = [
+        "network_environment_unix.cpp",
+    ],
+    deps = [
+        ":error_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "fork_lib",
     private_hdrs = [
         "fork.h",

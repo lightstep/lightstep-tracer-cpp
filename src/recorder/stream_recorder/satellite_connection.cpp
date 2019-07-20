@@ -116,7 +116,7 @@ void SatelliteConnection::Connect() noexcept try {
 // FreeSocket
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::FreeSocket() {
-  socket_ = Socket{-1};
+  socket_ = Socket{InvalidSocket};
   read_event_ = Event{};
   write_event_ = Event{};
   reconnect_timer_.Remove();

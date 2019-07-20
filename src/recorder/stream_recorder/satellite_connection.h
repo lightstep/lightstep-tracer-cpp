@@ -39,7 +39,7 @@ class SatelliteConnection : private Noncopyable {
   HostHeader host_header_;
   ConnectionStream connection_stream_;
   StatusLineParser status_line_parser_;
-  Socket socket_{-1};
+  Socket socket_{InvalidSocket};
   bool writable_{false};
   Event read_event_;
   Event write_event_;

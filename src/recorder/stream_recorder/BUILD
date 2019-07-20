@@ -96,6 +96,7 @@ lightstep_cc_library(
         "//src/common:noncopyable_lib",
         "//src/common:protobuf_lib",
         "//src/common:chunk_circular_buffer_lib",
+        "//src/common/system:network_environment_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",
         "//src/recorder:fork_aware_recorder_lib",

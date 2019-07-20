@@ -42,4 +42,11 @@ std::string GetErrorCodeMessage(ErrorCode error_code) {
 bool IsBlockingErrorCode(ErrorCode error_code) noexcept {
   return error_code == WSAEWOULDBLOCK;
 }
+
+//--------------------------------------------------------------------------------------------------
+// IsInProgressErrorCode
+//--------------------------------------------------------------------------------------------------
+bool IsInProgressErrorCode(ErrorCode error_code) noexcept {
+  return error_code == WSAEINPROGRESS;
+}
 } // namespace lightstep

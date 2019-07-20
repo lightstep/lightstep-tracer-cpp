@@ -132,6 +132,7 @@ lightstep_cc_library(
         "socket.cpp",
     ],
     deps = [
+        "//src/common/system:error_lib",
         ":ip_address_lib",
     ],
 )
