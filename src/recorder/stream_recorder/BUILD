@@ -186,6 +186,7 @@ lightstep_cc_library(
         "//include/lightstep:tracer_interface",
         "//lightstep-tracer-common:collector_proto_cc",
         "//src/common:protobuf_lib",
+        "//src/common/system:string_lib",
         "//src/common:utility_lib",
         "//src/common:circular_buffer_lib",
         "//src/network:fragment_array_input_stream_lib",

@@ -57,6 +57,16 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "string_lib",
+    private_hdrs = [
+        "string.h",
+    ],
+    srcs = [
+        "string_unix.cpp",
+    ],
+)
+
+lightstep_cc_library(
   name = "time_lib",
   private_hdrs = [
       "time.h",
