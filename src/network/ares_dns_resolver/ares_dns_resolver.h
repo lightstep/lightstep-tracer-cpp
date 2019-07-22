@@ -32,12 +32,12 @@ class AresDnsResolver final : public DnsResolver, private Noncopyable {
   EventBase& event_base_;
   ares_channeldata* channel_;
 
-  std::unordered_map<int, Event> socket_events_;
+  std::unordered_map<FileDescriptor, Event> socket_events_;
   TimerEvent timer_;
 
-  void OnSocketStateChange(int file_descriptor, int read, int write) noexcept;
+  void OnSocketStateChange(FileDescriptor file_descriptor, int read, int write) noexcept;
 
-  void OnEvent(int file_descriptor, short what) noexcept;
+  void OnEvent(FileDescriptor file_descriptor, short what) noexcept;
 
   void OnTimeout() noexcept;
 
