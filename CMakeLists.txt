@@ -85,8 +85,11 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Allows us to control options via normal variables
+# this is used for the windows build
 # See https://cmake.org/cmake/help/git-stage/policy/CMP0077.html
-cmake_policy(SET CMP0077 NEW)
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0") 
+  cmake_policy(SET CMP0077 NEW)
+endif()
 
 # ==============================================================================
 # Find packages
