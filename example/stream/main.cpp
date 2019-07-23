@@ -20,7 +20,7 @@ int main() {
   // See https://docs.lightstep.com/docs/developer-mode for instructions on
   // setting up a LightStep developer satellite on localhost:8360.
   options.collector_plaintext = true;
-  options.satellite_endpoints = {{"localhost", 8360}};
+  /* options.satellite_endpoints = {{"localhost", 8360}}; */
   options.use_stream_recorder = true;
   options.verbose = true;
   options.component_name = "Stream";
@@ -39,5 +39,6 @@ int main() {
   }
   std::cout << "Closing tracer\n";
   tracer->Close();
+  std::this_thread::sleep_for(std::chrono::seconds{10});
   return 0;
 }
