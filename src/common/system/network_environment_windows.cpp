@@ -25,7 +25,7 @@ NetworkEnvironment::NetworkEnvironment() {
     oss << "WSAStartup failed: " << GetErrorCodeMessage(static_cast<ErrorCode>(rcode));
     throw std::runtime_error{oss.str()};
   }
-  if (LOBYTE(wsa_data.wVersion != 2)|| HIBYTE(wsa_data.wVersion) != 2) {
+  if (LOBYTE(wsa_data.wVersion) != 2 || HIBYTE(wsa_data.wVersion) != 2) {
     WSACleanup();
     throw std::runtime_error{"Could not find a suitable Winsock.dll"};
   }

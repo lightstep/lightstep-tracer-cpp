@@ -2,8 +2,6 @@
 
 #include <array>
 #include <cassert>
-#include <cerrno>
-#include <cstring>
 #include <exception>
 
 #include "common/random.h"

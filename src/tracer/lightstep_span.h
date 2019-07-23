@@ -12,6 +12,9 @@
 #include <vector>
 
 namespace lightstep {
+// Workaround to https://github.com/opentracing/opentracing-cpp/issues/111
+extern const opentracing::string_view SamplingPriorityKey;
+
 class LightStepSpan final : public opentracing::Span,
                             public LightStepSpanContext {
  public:

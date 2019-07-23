@@ -3,7 +3,6 @@
 #include "common/system/error.h"
 
 #include <cassert>
-#include <cerrno>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
@@ -18,7 +17,7 @@ Socket::Socket(int family, int type) {
   file_descriptor_ = ::socket(family, type, 0);
   if (file_descriptor_ == InvalidSocket) {
     std::ostringstream oss;
-    oss << "failed to create socket: " << std::strerror(errno);
+    oss << "failed to create socket: " << GetErrorCodeMessage(GetLastErrorCode());
     throw std::runtime_error{oss.str()};
   }
 }
@@ -111,7 +110,7 @@ Socket Connect(const IpAddress& ip_address) {
     return socket;
   }
   auto error_code = GetLastErrorCode();
-  if (!IsInProgressErrorCode(error_code)) {
+  if (!IsInProgressErrorCode(error_code) && !IsBlockingErrorCode(error_code)) {
     std::ostringstream oss;
     oss << "connect failed: " << GetErrorCodeMessage(error_code);
     throw std::runtime_error{oss.str()};
