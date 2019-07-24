@@ -56,7 +56,7 @@ class Recorder {
    * @return the timestamp delta
    */
   virtual int64_t ComputeSystemSteadyTimestampDelta() const noexcept {
-    return ComputeSystemSteadyTimestampDelta();
+    return lightstep::ComputeSystemSteadyTimestampDelta();
   }
 
   /**
