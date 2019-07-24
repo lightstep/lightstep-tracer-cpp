@@ -7,4 +7,4 @@ int AtFork(void (*prepare)(), void (*parent)(), void (*child)()) noexcept {
   (void)child;
   return 0;
 }
-} // namespace lightstep
+}  // namespace lightstep

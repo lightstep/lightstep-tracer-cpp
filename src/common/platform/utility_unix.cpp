@@ -20,4 +20,4 @@ std::string GetProgramName() {
   }
   return path;
 }
-} // namespace lightstep
+}  // namespace lightstep

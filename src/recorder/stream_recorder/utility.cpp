@@ -5,8 +5,8 @@
 #include <iterator>
 #include <sstream>
 
-#include "common/protobuf.h"
 #include "common/platform/string.h"
+#include "common/protobuf.h"
 #include "common/utility.h"
 #include "lightstep-tracer-common/collector.pb.h"
 

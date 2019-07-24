@@ -39,6 +39,5 @@ int main() {
   }
   std::cout << "Closing tracer\n";
   tracer->Close();
-  std::this_thread::sleep_for(std::chrono::seconds{10});
   return 0;
 }

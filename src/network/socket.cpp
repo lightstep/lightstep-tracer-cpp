@@ -17,7 +17,8 @@ Socket::Socket(int family, int type) {
   file_descriptor_ = ::socket(family, type, 0);
   if (file_descriptor_ == InvalidSocket) {
     std::ostringstream oss;
-    oss << "failed to create socket: " << GetErrorCodeMessage(GetLastErrorCode());
+    oss << "failed to create socket: "
+        << GetErrorCodeMessage(GetLastErrorCode());
     throw std::runtime_error{oss.str()};
   }
 }

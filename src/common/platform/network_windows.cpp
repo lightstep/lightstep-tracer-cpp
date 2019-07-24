@@ -25,8 +25,8 @@ int Read(FileDescriptor socket, void* data, size_t size) noexcept {
 //--------------------------------------------------------------------------------------------------
 int WriteV(FileDescriptor socket, const IoVec* iov, int iovcnt) noexcept {
   DWORD num_bytes_sent;
-  auto rcode = ::WSASend(socket, const_cast<IoVec*>(iov), iovcnt, &num_bytes_sent, 0,
-                         nullptr, nullptr);
+  auto rcode = ::WSASend(socket, const_cast<IoVec*>(iov), iovcnt,
+                         &num_bytes_sent, 0, nullptr, nullptr);
   if (rcode != 0) {
     return rcode;
   }
@@ -56,4 +56,4 @@ int SetSocketReuseAddress(FileDescriptor socket) noexcept {
 int CloseSocket(FileDescriptor socket) noexcept {
   return ::closesocket(socket);
 }
-} // namespace lightstep
+}  // namespace lightstep

@@ -2,10 +2,10 @@
 
 #include "3rd_party/catch2/catch.hpp"
 #include "common/utility.h"
-#include "tracer/lightstep_span.h"
 #include "lightstep/tracer.h"
 #include "test/recorder/in_memory_recorder.h"
 #include "test/utility.h"
+#include "tracer/lightstep_span.h"
 #include "tracer/lightstep_tracer_impl.h"
 
 using namespace lightstep;
@@ -33,8 +33,7 @@ TEST_CASE("tracer") {
       "Sampling of a span can be turned off by setting the sampling_priority "
       "tag to 0.") {
     {
-      auto span = tracer->StartSpan(
-          "a", {SetTag(SamplingPriorityKey, 0u)});
+      auto span = tracer->StartSpan("a", {SetTag(SamplingPriorityKey, 0u)});
       CHECK(span);
     }
     {
@@ -48,8 +47,8 @@ TEST_CASE("tracer") {
   SECTION(
       "If a span's parent isn't sampled, then it also isn't sampled unless "
       "sampling priority is overwritten.") {
-    auto parent_span = tracer->StartSpan(
-        "a", {SetTag(SamplingPriorityKey, 0u)});
+    auto parent_span =
+        tracer->StartSpan("a", {SetTag(SamplingPriorityKey, 0u)});
     CHECK(parent_span);
     {
       auto child_span = tracer->StartSpan(

@@ -2,11 +2,11 @@
 
 #include <climits>
 
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <unistd.h>
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -39,8 +39,7 @@ int WriteV(FileDescriptor socket, const IoVec* iov, int iovcnt) noexcept {
 // SetSocketNonblocking
 //--------------------------------------------------------------------------------------------------
 int SetSocketNonblocking(FileDescriptor socket) noexcept {
-  return ::fcntl(socket, F_SETFL,
-                      ::fcntl(socket, F_GETFL, 0) | O_NONBLOCK);
+  return ::fcntl(socket, F_SETFL, ::fcntl(socket, F_GETFL, 0) | O_NONBLOCK);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -55,7 +54,5 @@ int SetSocketReuseAddress(FileDescriptor socket) noexcept {
 //--------------------------------------------------------------------------------------------------
 // CloseSocket
 //--------------------------------------------------------------------------------------------------
-int CloseSocket(FileDescriptor socket) noexcept {
-  return ::close(socket);
-}
-} // namespace lightstep
+int CloseSocket(FileDescriptor socket) noexcept { return ::close(socket); }
+}  // namespace lightstep

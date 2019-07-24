@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common/platform/network.h"
 #include "common/noncopyable.h"
+#include "common/platform/network.h"
 #include "network/event.h"
 #include "network/socket.h"
 #include "recorder/stream_recorder/connection_stream.h"

@@ -5,8 +5,8 @@
 #include <limits>
 #include <string>
 
-#include "common/platform/time.h"
 #include "common/logger.h"
+#include "common/platform/time.h"
 #include "lightstep-tracer-common/collector.pb.h"
 
 #include <google/protobuf/io/zero_copy_stream.h>

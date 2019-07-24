@@ -17,9 +17,9 @@ namespace lightstep {
 namespace {
 class TlsRandomNumberGenerator {
  public:
-  TlsRandomNumberGenerator() { 
+  TlsRandomNumberGenerator() {
     AtFork(nullptr, nullptr, OnFork);
-    /* ::pthread_atfork(nullptr, nullptr, OnFork); */ 
+    /* ::pthread_atfork(nullptr, nullptr, OnFork); */
   }
 
   static std::mt19937_64& engine() { return base_generator_.engine(); }

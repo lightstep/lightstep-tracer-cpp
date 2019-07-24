@@ -35,7 +35,8 @@ class AresDnsResolver final : public DnsResolver, private Noncopyable {
   std::unordered_map<FileDescriptor, Event> socket_events_;
   TimerEvent timer_;
 
-  void OnSocketStateChange(FileDescriptor file_descriptor, int read, int write) noexcept;
+  void OnSocketStateChange(FileDescriptor file_descriptor, int read,
+                           int write) noexcept;
 
   void OnEvent(FileDescriptor file_descriptor, short what) noexcept;
 

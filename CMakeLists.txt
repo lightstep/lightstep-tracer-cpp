@@ -111,7 +111,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 set(protobuf_MODULE_COMPATIBLE ON)
 find_package(Protobuf CONFIG NAMES protobuf)
 if (NOT protobuf_FOUND)
-  # else (NOT protobuf_FOUND)
   # Fall back to the old style protobuf module
   find_package(Protobuf REQUIRED)
 endif()

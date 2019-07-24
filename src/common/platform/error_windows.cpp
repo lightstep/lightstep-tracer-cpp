@@ -7,9 +7,7 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // GetLastErrorCode
 //--------------------------------------------------------------------------------------------------
-ErrorCode GetLastErrorCode() noexcept {
-  return GetLastError();
-}
+ErrorCode GetLastErrorCode() noexcept { return GetLastError(); }
 
 //--------------------------------------------------------------------------------------------------
 // GetErrorCodeMessage
@@ -49,4 +47,4 @@ bool IsBlockingErrorCode(ErrorCode error_code) noexcept {
 bool IsInProgressErrorCode(ErrorCode error_code) noexcept {
   return error_code == WSAEINPROGRESS;
 }
-} // namespace lightstep
+}  // namespace lightstep
