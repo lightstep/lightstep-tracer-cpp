@@ -3,6 +3,8 @@
 #include <chrono>
 #include <tuple>
 
+#include "recorder/recorder.h"
+
 #include <opentracing/value.h>
 
 namespace lightstep {
@@ -14,6 +16,6 @@ using SteadyTime = SteadyClock::time_point;
 bool is_sampled(const opentracing::Value& value) noexcept;
 
 std::tuple<SystemTime, SteadyTime> ComputeStartTimestamps(
-    const SystemTime& start_system_timestamp,
+    const Recorder& recorder, const SystemTime& start_system_timestamp,
     const SteadyTime& start_steady_timestamp) noexcept;
 }  // namespace lightstep

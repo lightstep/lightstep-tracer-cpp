@@ -48,4 +48,4 @@ std::chrono::steady_clock::time_point ToSteadyTimestamp(
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(
           time_since_epoch)};
 }
-} // namespace lightstep
+}  // namespace lightstep

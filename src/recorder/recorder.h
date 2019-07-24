@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "common/serialization_chain.h"
+#include "common/timestamp.h"
 
 #include <lightstep/tracer.h>
 #include "lightstep-tracer-common/collector.pb.h"
@@ -45,11 +46,12 @@ class Recorder {
     return true;
   }
 
-  /* virtual std::chrono::duration::nanoseconds system_steady_timestamp_delta() noexcept { */
-  /* } */
+  virtual int64_t ComputeSystemSteadyTimestampDelta() const noexcept {
+    return ComputeSystemSteadyTimestampDelta();
+  }
 
-  virtual std::chrono::system_clock::time_point ComputeCurrentSystemTime(
-      std::chrono::steady_clock::time_point /*steady_now*/) noexcept {
+  virtual std::chrono::system_clock::time_point ComputeCurrentSystemTimestamp(
+      std::chrono::steady_clock::time_point /*steady_now*/) const noexcept {
     return std::chrono::system_clock::now();
   }
 };

@@ -30,6 +30,10 @@ struct StreamRecorderOptions {
       std::chrono::duration_cast<std::chrono::microseconds>(
           std::chrono::milliseconds{1});
 
+  std::chrono::microseconds timestamp_delta_period =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          std::chrono::milliseconds{500});
+
   // The amount of time between flushes of StreamRecorder's span buffer.
   std::chrono::microseconds flushing_period =
       std::chrono::duration_cast<std::chrono::microseconds>(

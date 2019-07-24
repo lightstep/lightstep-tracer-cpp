@@ -76,6 +76,13 @@ void StreamRecorderImpl::Poll() noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
+// ComputeTimestampDelta
+//--------------------------------------------------------------------------------------------------
+void StreamRecorderImpl::ComputeTimestampDelta() noexcept {
+  timestamp_delta_ = ComputeSystemSteadyTimestampDelta();
+}
+
+//--------------------------------------------------------------------------------------------------
 // Flush
 //--------------------------------------------------------------------------------------------------
 void StreamRecorderImpl::Flush() noexcept try {
