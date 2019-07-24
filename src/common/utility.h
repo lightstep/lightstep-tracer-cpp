@@ -5,7 +5,7 @@
 #include <limits>
 #include <string>
 
-#include "common/system/time.h"
+#include "common/platform/time.h"
 #include "common/logger.h"
 #include "lightstep-tracer-common/collector.pb.h"
 

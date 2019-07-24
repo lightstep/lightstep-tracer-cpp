@@ -2,8 +2,8 @@
 
 #include <chrono>
 
-#include "common/system/network.h"
-#include "common/system/time.h"
+#include "common/platform/network.h"
+#include "common/platform/time.h"
 
 struct event;
 

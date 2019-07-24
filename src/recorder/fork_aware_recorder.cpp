@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "common/system/fork.h"
+#include "common/platform/fork.h"
 
 namespace lightstep {
 std::mutex ForkAwareRecorder::mutex_;

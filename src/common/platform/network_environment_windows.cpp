@@ -1,9 +1,9 @@
-#include "common/system/network_environment.h"
+#include "common/platform/network_environment.h"
 
 #include <stdexcept>
 #include <sstream>
 
-#include "common/system/error.h"
+#include "common/platform/error.h"
 
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN

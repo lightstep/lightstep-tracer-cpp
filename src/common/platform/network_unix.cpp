@@ -1,59 +1,61 @@
-#include "common/system/network.h"
+#include "common/platform/network.h"
 
-#include <sstream>
-#include <stdexcept>
+#include <climits>
 
-#include <winsock2.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/uio.h>
 
 namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// IoVecMax
+//--------------------------------------------------------------------------------------------------
+const int IoVecMax = IOV_MAX;
+
 //--------------------------------------------------------------------------------------------------
 // MakeIoVec
 //--------------------------------------------------------------------------------------------------
 IoVec MakeIoVec(void* data, size_t length) noexcept {
-  return IoVec{static_cast<ULONG>(length), static_cast<char*>(data)};
+  return IoVec{data, length};
 }
 
 //--------------------------------------------------------------------------------------------------
 // Read
 //--------------------------------------------------------------------------------------------------
 int Read(FileDescriptor socket, void* data, size_t size) noexcept {
-  return ::recv(socket, static_cast<char*>(data), static_cast<int>(size), 0);
+  return static_cast<int>(::read(socket, data, size));
 }
 
 //--------------------------------------------------------------------------------------------------
 // WriteV
 //--------------------------------------------------------------------------------------------------
 int WriteV(FileDescriptor socket, const IoVec* iov, int iovcnt) noexcept {
-  DWORD num_bytes_sent;
-  auto rcode = ::WSASend(socket, const_cast<IoVec*>(iov), iovcnt, &num_bytes_sent, 0,
-                         nullptr, nullptr);
-  if (rcode != 0) {
-    return rcode;
-  }
-  return static_cast<int>(num_bytes_sent);
+  return ::writev(socket, iov, iovcnt);
 }
 
 //--------------------------------------------------------------------------------------------------
 // SetSocketNonblocking
 //--------------------------------------------------------------------------------------------------
 int SetSocketNonblocking(FileDescriptor socket) noexcept {
-  u_long nonblocking_mode = 1;
-  return ::ioctlsocket(socket, FIONBIO, &nonblocking_mode);
+  return ::fcntl(socket, F_SETFL,
+                      ::fcntl(socket, F_GETFL, 0) | O_NONBLOCK);
 }
 
 //--------------------------------------------------------------------------------------------------
 // SetSocketReuseAddress
 //--------------------------------------------------------------------------------------------------
 int SetSocketReuseAddress(FileDescriptor socket) noexcept {
-  BOOL optvalue = TRUE;
+  int optvalue = 1;
   return ::setsockopt(socket, SOL_SOCKET, SO_REUSEADDR,
-                      reinterpret_cast<char*>(&optvalue), sizeof(optvalue));
+                      static_cast<void*>(&optvalue), sizeof(int));
 }
 
 //--------------------------------------------------------------------------------------------------
 // CloseSocket
 //--------------------------------------------------------------------------------------------------
 int CloseSocket(FileDescriptor socket) noexcept {
-  return ::closesocket(socket);
+  return ::close(socket);
 }
 } // namespace lightstep

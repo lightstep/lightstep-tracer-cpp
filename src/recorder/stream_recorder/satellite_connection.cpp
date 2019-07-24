@@ -5,7 +5,7 @@
 #include <exception>
 
 #include "common/random.h"
-#include "common/system/error.h"
+#include "common/platform/error.h"
 #include "network/timer_event.h"
 #include "network/vector_write.h"
 #include "recorder/stream_recorder/satellite_streamer.h"

@@ -102,7 +102,7 @@ lightstep_cc_library(
         "random.cpp",
     ],
     deps = [
-        "//src/common/system:fork_lib",
+        "//src/common/platform:fork_lib",
         "//3rd_party/randutils:randutils_lib",
     ],
     linkopts = [
@@ -132,7 +132,7 @@ lightstep_cc_library(
         "utility.cpp",
     ],
     deps = [
-        "//src/common/system:time_lib",
+        "//src/common/platform:time_lib",
         "//lightstep-tracer-common:collector_proto_cc",
         ":logger_lib",
     ],

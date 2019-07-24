@@ -1,10 +1,9 @@
-#include "common/system/fork.h"
+#include "common/platform/fork.h"
+
+#include <pthread.h>
 
 namespace lightstep {
 int AtFork(void (*prepare)(), void (*parent)(), void (*child)()) noexcept {
-  (void)prepare;
-  (void)parent;
-  (void)child;
-  return 0;
+  return ::pthread_atfork(prepare, parent, child);
 }
 } // namespace lightstep

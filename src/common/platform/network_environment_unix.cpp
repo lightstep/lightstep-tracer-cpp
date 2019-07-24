@@ -1,4 +1,4 @@
-#include "common/system/network_environment.h"
+#include "common/platform/network_environment.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------

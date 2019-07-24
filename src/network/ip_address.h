@@ -4,7 +4,7 @@
 #include <iosfwd>
 #include <string>
 
-#include "common/system/network.h"
+#include "common/platform/network.h"
 
 namespace lightstep {
 /**

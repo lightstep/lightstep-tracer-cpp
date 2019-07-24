@@ -131,7 +131,7 @@ lightstep_cc_library(
         "tracer.cpp",
     ],
     deps = [
-        "//src/common/system:utility_lib",
+        "//src/common/platform:utility_lib",
         "//src/recorder:auto_recorder_lib",
         "//src/recorder:grpc_transporter_interface",
         "//src/recorder:manual_recorder_lib",

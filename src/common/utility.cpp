@@ -9,7 +9,7 @@
 #include <stdexcept>
 #include <system_error>
 
-#include "common/system/time.h"
+#include "common/platform/time.h"
 
 #include <opentracing/string_view.h>
 #include <opentracing/value.h>

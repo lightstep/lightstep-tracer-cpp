@@ -15,7 +15,7 @@ lightstep_cc_library(
         "ip_address.cpp",
     ],
     deps = [
-        "//src/common/system:network_lib",
+        "//src/common/platform:network_lib",
     ],
 )
 
@@ -30,8 +30,8 @@ lightstep_cc_library(
         "event_base.cpp",
     ],
     deps = [
-        "//src/common/system:network_lib",
-        "//src/common/system:time_lib",
+        "//src/common/platform:network_lib",
+        "//src/common/platform:time_lib",
         "//src/common:utility_lib",
     ],
     external_deps = [
@@ -49,7 +49,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:utility_lib",
-        "//src/common/system:time_lib",
+        "//src/common/platform:time_lib",
         ":event_lib",
     ],
     external_deps = [
@@ -92,9 +92,9 @@ lightstep_cc_library(
         "vector_write.cpp",
     ],
     deps = [
-        "//src/common/system:error_lib",
-        "//src/common/system:memory_lib",
-        "//src/common/system:network_lib",
+        "//src/common/platform:error_lib",
+        "//src/common/platform:memory_lib",
+        "//src/common/platform:network_lib",
         ":fragment_input_stream_lib",
     ],
 )
@@ -134,7 +134,7 @@ lightstep_cc_library(
         "socket.cpp",
     ],
     deps = [
-        "//src/common/system:error_lib",
+        "//src/common/platform:error_lib",
         ":ip_address_lib",
     ],
 )

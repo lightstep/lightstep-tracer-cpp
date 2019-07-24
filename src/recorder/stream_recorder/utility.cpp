@@ -6,7 +6,7 @@
 #include <sstream>
 
 #include "common/protobuf.h"
-#include "common/system/string.h"
+#include "common/platform/string.h"
 #include "common/utility.h"
 #include "lightstep-tracer-common/collector.pb.h"
 

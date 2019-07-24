@@ -4,9 +4,9 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "common/system/error.h"
-#include "common/system/memory.h"
-#include "common/system/network.h"
+#include "common/platform/error.h"
+#include "common/platform/memory.h"
+#include "common/platform/network.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
