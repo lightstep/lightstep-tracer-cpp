@@ -28,9 +28,9 @@ int64_t ComputeSystemSteadyTimestampDelta() noexcept {
 //--------------------------------------------------------------------------------------------------
 std::chrono::system_clock::time_point ToSystemTimestamp(
     int64_t timestamp_delta,
-    std::chrono::steady_clock::time_point steady_time) noexcept {
+    std::chrono::steady_clock::time_point steady_timestamp) noexcept {
   auto time_since_epoch = std::chrono::nanoseconds{
-      ComputeNanosecondsSinceEpoch(steady_time) + timestamp_delta};
+      ComputeNanosecondsSinceEpoch(steady_timestamp) + timestamp_delta};
   return std::chrono::system_clock::time_point{
       std::chrono::duration_cast<std::chrono::system_clock::duration>(
           time_since_epoch)};
@@ -41,9 +41,9 @@ std::chrono::system_clock::time_point ToSystemTimestamp(
 //--------------------------------------------------------------------------------------------------
 std::chrono::steady_clock::time_point ToSteadyTimestamp(
     int64_t timestamp_delta,
-    std::chrono::system_clock::time_point system_time) noexcept {
+    std::chrono::system_clock::time_point system_timestamp) noexcept {
   auto time_since_epoch = std::chrono::nanoseconds{
-      ComputeNanosecondsSinceEpoch(system_time) - timestamp_delta};
+      ComputeNanosecondsSinceEpoch(system_timestamp) - timestamp_delta};
   return std::chrono::steady_clock::time_point{
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(
           time_since_epoch)};
