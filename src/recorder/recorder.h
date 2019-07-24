@@ -44,5 +44,13 @@ class Recorder {
       std::chrono::system_clock::duration /*timeout*/) noexcept {
     return true;
   }
+
+  /* virtual std::chrono::duration::nanoseconds system_steady_timestamp_delta() noexcept { */
+  /* } */
+
+  virtual std::chrono::system_clock::time_point ComputeCurrentSystemTime(
+      std::chrono::steady_clock::time_point /*steady_now*/) noexcept {
+    return std::chrono::system_clock::now();
+  }
 };
 }  // namespace lightstep

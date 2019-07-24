@@ -23,6 +23,8 @@ std::tuple<SystemTime, SteadyTime> ComputeStartTimestamps(
       start_steady_timestamp == SteadyTime()) {
     return std::tuple<SystemTime, SteadyTime>{SystemClock::now(),
                                               SteadyClock::now()};
+    /* return std::tuple<SystemTime, SteadyTime>{SystemTime{}, */
+    /*                                           SteadyClock::now()}; */
   }
   if (start_system_timestamp == SystemTime()) {
     return std::tuple<SystemTime, SteadyTime>{
