@@ -31,7 +31,6 @@ std::string GetErrorCodeMessage(ErrorCode error_code) {
     LocalFree(error_text);
     throw;
   }
-  return {};
 }
 
 //--------------------------------------------------------------------------------------------------

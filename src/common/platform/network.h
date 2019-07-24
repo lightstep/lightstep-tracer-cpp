@@ -28,7 +28,7 @@ extern const int IoVecMax;
 #endif
 
 /**
- * Constructs a segment for a writev system calll.
+ * Constructs a segment for a writev system call.
  * @param data a pointer to the segment start
  * @param length the length of the segment
  * @return a segment for the sepecified region of memory
