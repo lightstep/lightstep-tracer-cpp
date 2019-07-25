@@ -15,6 +15,12 @@ StreamRecorderImpl::StreamRecorderImpl(StreamRecorder& stream_recorder)
           event_base_, stream_recorder_.recorder_options().polling_period,
           MakeTimerCallback<StreamRecorderImpl, &StreamRecorderImpl::Poll>(),
           static_cast<void*>(this)},
+      timestamp_delta_timer_{
+          event_base_,
+          stream_recorder_.recorder_options().timestamp_delta_period,
+          MakeTimerCallback<StreamRecorderImpl,
+                            &StreamRecorderImpl::ComputeTimestampDelta>(),
+          static_cast<void*>(this)},
       flush_timer_{
           event_base_, stream_recorder_.recorder_options().flushing_period,
           MakeTimerCallback<StreamRecorderImpl, &StreamRecorderImpl::Flush>(),
