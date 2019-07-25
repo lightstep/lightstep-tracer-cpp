@@ -25,6 +25,9 @@ class StreamRecorderImpl2 : private Noncopyable {
 
   ~StreamRecorderImpl2() noexcept;
 
+  /**
+   * @return the last system-steady timestamp delta.
+   */
   int64_t timestamp_delta() const noexcept { return timestamp_delta_; }
 
  private:
