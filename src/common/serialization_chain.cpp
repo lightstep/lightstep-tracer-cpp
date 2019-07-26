@@ -20,7 +20,7 @@ static int WriteChunkHeader(char* data, size_t data_length,
   auto chunk_size_str =
       Uint32ToHex(static_cast<uint32_t>(chunk_size), buffer.data());
   assert(chunk_size_str.size() + 2 <= data_length);
-  assert(chunk_size_str.size() > 0);
+  assert(!chunk_size_str.empty());
   auto first = std::find_if(chunk_size_str.begin(), chunk_size_str.end() - 1,
                             [](char c) { return c != '0'; });
   auto iter = std::copy(first, chunk_size_str.end(), data);
