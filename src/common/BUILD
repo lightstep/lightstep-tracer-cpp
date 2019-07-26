@@ -138,6 +138,16 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "fast_random_number_generator_lib",
+    private_hdrs = [
+        "fast_random_number_generator.h",
+    ],
+    srcs = [
+        "fast_random_number_generator.cpp",
+    ],
+)
+
+lightstep_cc_library(
     name = "random_lib",
     private_hdrs = [
         "random.h",
