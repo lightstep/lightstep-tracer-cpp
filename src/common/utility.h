@@ -84,14 +84,16 @@ void LogReportResponse(Logger& logger, bool verbose,
 /**
  * Writes a 64-bit number in hex.
  * @param x the number to write
- * @output where to output the nbumber
+ * @param output where to output the nbumber
+ * @return x as a hex string
  */
 opentracing::string_view Uint64ToHex(uint64_t x, char* output);
 
 /**
  * Writes a 32-bit number in hex.
  * @param x the number to write
- * @output where to output the nbumber
+ * @param output where to output the nbumber
+ * @return x as a hex string
  */
 opentracing::string_view Uint32ToHex(uint32_t x, char* output);
 
