@@ -4,8 +4,9 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // operator()()
 //--------------------------------------------------------------------------------------------------
+#if 0
 uint64_t FastRandomNumberGenerator::operator()() noexcept {
-  // Uses the xorshift128p random number algorithm described in
+  // Uses the xorshift128p random number generation algorithm described in
   // https://en.wikipedia.org/wiki/Xorshift
   auto& state_a = state_[0];
   auto& state_b = state_[1];
@@ -18,4 +19,5 @@ uint64_t FastRandomNumberGenerator::operator()() noexcept {
   state_b = t;
   return t + s;
 }
+#endif
 }  // namespace lightstep

@@ -12,9 +12,8 @@ TEST_CASE("FastRandomNumberGenerator") {
   random_number_generator.seed(seed_sequence);
 
   SECTION(
-      "If seededed FastRandomNumberGenerator, we can expect "
-      "FastRandomNumberGenerator to have a long period before it repeats "
-      "itself") {
+      "If seededed, we can expect FastRandomNumberGenerator to have a long "
+      "period before it repeats itself") {
     std::set<uint64_t> values;
     for (int i = 0; i < 1000; ++i) {
       REQUIRE(values.insert(random_number_generator()).second);
