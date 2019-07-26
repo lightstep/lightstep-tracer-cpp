@@ -39,6 +39,9 @@ lightstep_cc_library(
     srcs = [
         "utility.cpp",
     ],
+    deps = [
+        "//src/recorder:recorder_interface",
+    ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",
     ],

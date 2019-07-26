@@ -83,6 +83,17 @@ class StreamRecorder2 : public ForkAwareRecorder, private Noncopyable {
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;
 
+  int64_t ComputeSystemSteadyTimestampDelta() const noexcept override {
+    return stream_recorder_impl_->timestamp_delta();
+  }
+
+  std::chrono::system_clock::time_point ComputeCurrentSystemTimestamp(
+      std::chrono::steady_clock::time_point steady_now) const
+      noexcept override {
+    return ToSystemTimestamp(stream_recorder_impl_->timestamp_delta(),
+                             steady_now);
+  }
+
   // ForkAwareRecorder
   void PrepareForFork() noexcept override;
 

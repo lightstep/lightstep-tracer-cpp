@@ -255,3 +255,12 @@ lightstep_cc_library(
     ],
 )
 
+lightstep_cc_library(
+    name = "timestamp_lib",
+    private_hdrs = [
+        "timestamp.h",
+    ],
+    srcs = [
+        "timestamp.cpp",
+    ],
+)
