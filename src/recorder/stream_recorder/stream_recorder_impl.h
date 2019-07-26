@@ -46,7 +46,7 @@ class StreamRecorderImpl : private Noncopyable {
 
   void Poll() noexcept;
 
-  void ComputeTimestampDelta() noexcept;
+  void RefreshTimestampDelta() noexcept;
 
   void Flush() noexcept;
 };

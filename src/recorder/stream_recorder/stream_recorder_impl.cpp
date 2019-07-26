@@ -19,7 +19,7 @@ StreamRecorderImpl::StreamRecorderImpl(StreamRecorder& stream_recorder)
           event_base_,
           stream_recorder_.recorder_options().timestamp_delta_period,
           MakeTimerCallback<StreamRecorderImpl,
-                            &StreamRecorderImpl::ComputeTimestampDelta>(),
+                            &StreamRecorderImpl::RefreshTimestampDelta>(),
           static_cast<void*>(this)},
       flush_timer_{
           event_base_, stream_recorder_.recorder_options().flushing_period,
@@ -82,9 +82,9 @@ void StreamRecorderImpl::Poll() noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
-// ComputeTimestampDelta
+// RefreshTimestampDelta
 //--------------------------------------------------------------------------------------------------
-void StreamRecorderImpl::ComputeTimestampDelta() noexcept {
+void StreamRecorderImpl::RefreshTimestampDelta() noexcept {
   timestamp_delta_ = ComputeSystemSteadyTimestampDelta();
 }
 
