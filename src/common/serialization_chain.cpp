@@ -13,6 +13,7 @@ static const char* LineTerminator = "\r\n";
 //--------------------------------------------------------------------------------------------------
 // WriteChunkHeader
 //--------------------------------------------------------------------------------------------------
+#if 0
 static int WriteChunkHeader(char* data, size_t data_length,
                             size_t chunk_size) noexcept {
   (void)data_length;
@@ -24,6 +25,18 @@ static int WriteChunkHeader(char* data, size_t data_length,
   auto first = std::find_if(chunk_size_str.begin(), chunk_size_str.end() - 1,
                             [](char c) { return c != '0'; });
   auto iter = std::copy(first, chunk_size_str.end(), data);
+  *iter++ = '\r';
+  *iter++ = '\n';
+  return static_cast<int>(std::distance(data, iter));
+}
+#endif
+static int WriteChunkHeader(char* data, size_t data_length,
+                            size_t chunk_size) noexcept {
+  (void)data_length;
+  auto chunk_size_str = Uint32ToHex(static_cast<uint32_t>(chunk_size), data);
+  assert(chunk_size_str.size() + 2 <= data_length);
+  assert(!chunk_size_str.empty());
+  auto iter = data + chunk_size_str.size();
   *iter++ = '\r';
   *iter++ = '\n';
   return static_cast<int>(std::distance(data, iter));

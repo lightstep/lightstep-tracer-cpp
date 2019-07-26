@@ -4,6 +4,7 @@
 #include <chrono>
 #include <exception>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 
 #include "common/serialization.h"
@@ -147,7 +148,8 @@ std::string AddSpanChunkFraming(opentracing::string_view s) {
   }();
   auto message_size = protobuf_header.size() + s.size();
   std::ostringstream oss;
-  oss << std::hex << std::uppercase << message_size << "\r\n"
+  oss << std::setfill('0') << std::setw(8) << std::hex << std::uppercase
+      << message_size << "\r\n"
       << protobuf_header << s << "\r\n";
   return oss.str();
 }
