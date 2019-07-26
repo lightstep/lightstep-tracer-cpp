@@ -43,8 +43,10 @@ void RunNumberConsumer(CircularBuffer2<uint32_t>& buffer,
                        std::vector<uint32_t>& numbers) {
   while (true) {
     auto allotment = buffer.Peek();
-    if (exit && allotment.empty()) {
-      return;
+    if (exit) {
+      if (buffer.empty()) {
+        return;
+      }
     }
     auto n = std::uniform_int_distribution<size_t>{
         0, allotment.size()}(RandomNumberGenerator);
