@@ -1,9 +1,33 @@
 #include "common/serialization_chain.h"
 
+#include <algorithm>
+#include <cassert>
+
+#include "common/utility.h"
+
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 
 namespace lightstep {
 static const char* LineTerminator = "\r\n";
+
+//--------------------------------------------------------------------------------------------------
+// WriteChunkHeader
+//--------------------------------------------------------------------------------------------------
+static int WriteChunkHeader(char* data, size_t data_length,
+                            size_t chunk_size) noexcept {
+  (void)data_length;
+  std::array<char, Num32BitHexDigits> buffer;
+  auto chunk_size_str =
+      Uint32ToHex(static_cast<uint32_t>(chunk_size), buffer.data());
+  assert(chunk_size_str.size() + 2 <= data_length);
+  assert(!chunk_size_str.empty());
+  auto first = std::find_if(chunk_size_str.begin(), chunk_size_str.end() - 1,
+                            [](char c) { return c != '0'; });
+  auto iter = std::copy(first, chunk_size_str.end(), data);
+  *iter++ = '\r';
+  *iter++ = '\n';
+  return static_cast<int>(std::distance(data, iter));
+}
 
 //--------------------------------------------------------------------------------------------------
 // constructor
@@ -17,10 +41,10 @@ void SerializationChain::AddFraming() noexcept {
   auto protobuf_header_size =
       ComputeLengthDelimitedHeaderSerializationSize<ReportRequestSpansField>(
           num_bytes_written_);
-  header_size_ = std::snprintf(
-      header_.data(), header_.size(), "%llX\r\n",
-      static_cast<unsigned long long>(static_cast<size_t>(num_bytes_written_) +
-                                      protobuf_header_size));
+  (void)WriteChunkHeader;
+  header_size_ = WriteChunkHeader(
+      header_.data(), header_.size(),
+      static_cast<size_t>(num_bytes_written_) + protobuf_header_size);
   assert(header_size_ > 0);
 
   // Serialize the spans key field and length
