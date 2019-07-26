@@ -251,8 +251,8 @@ size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
  * @param nano_fraction the fraction of remaining nanoseconds
  */
 template <class Stream>
-void WriteTimestampImpl(Stream& stream,
-                        uint64_t seconds_since_epoch, uint32_t nano_fraction);
+void WriteTimestampImpl(Stream& stream, uint64_t seconds_since_epoch,
+                        uint32_t nano_fraction);
 
 struct TimestampSerializer {
   uint64_t seconds_since_epoch;
@@ -295,6 +295,7 @@ void WriteTimestamp(google::protobuf::io::CodedOutputStream& stream,
       ProtobufFormatTimestamp(timestamp);
   auto serialization_size =
       ComputeTimestampSerializationSize(seconds_since_epoch, nano_fraction);
-  WriteTimestamp<FieldNumber>(stream, serialization_size, seconds_since_epoch, nano_fraction);
+  WriteTimestamp<FieldNumber>(stream, serialization_size, seconds_since_epoch,
+                              nano_fraction);
 }
 }  // namespace lightstep

@@ -48,10 +48,8 @@ void SerializationChain::AddFraming() noexcept {
   assert(header_size_ > 0);
 
   // Serialize the spans key field and length
-  google::protobuf::io::ArrayOutputStream zero_copy_stream{
-      static_cast<void*>(header_.data() + header_size_),
-      static_cast<int>(header_.size()) - header_size_};
-  google::protobuf::io::CodedOutputStream stream{&zero_copy_stream};
+  DirectCodedOutputStream stream{reinterpret_cast<google::protobuf::uint8*>(
+      header_.data() + header_size_)};
   WriteKeyLength<ReportRequestSpansField>(
       stream, static_cast<size_t>(num_bytes_written_));
   header_size_ += protobuf_header_size;

@@ -168,8 +168,8 @@ size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
 // WriteTimestampImpl
 //--------------------------------------------------------------------------------------------------
 template <class Stream>
-void WriteTimestampImpl(Stream& stream,
-                        uint64_t seconds_since_epoch, uint32_t nano_fraction) {
+void WriteTimestampImpl(Stream& stream, uint64_t seconds_since_epoch,
+                        uint32_t nano_fraction) {
   WriteVarint<TimestampSecondsSinceEpochField>(stream, seconds_since_epoch);
   WriteVarint<TimestampNanoFractionField>(stream, nano_fraction);
 }
