@@ -4,11 +4,13 @@
 #include <cstdint>
 #include <random>
 
+#include "common/fast_random_number_generator.h"
+
 namespace lightstep {
 /**
  * @return a seeded thread-local random number generator.
  */
-std::mt19937_64& GetRandomNumberGenerator();
+FastRandomNumberGenerator& GetRandomNumberGenerator();
 
 /**
  * @return a random 64-bit number.

@@ -156,6 +156,7 @@ lightstep_cc_library(
         "random.cpp",
     ],
     deps = [
+        ":fast_random_number_generator_lib",
         "//3rd_party/randutils:randutils_lib",
     ],
     linkopts = [

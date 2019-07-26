@@ -18,24 +18,28 @@ namespace lightstep {
 namespace {
 class TlsRandomNumberGenerator {
  public:
+  using BaseGenerator = randutils::random_generator<FastRandomNumberGenerator>;
+
   TlsRandomNumberGenerator() { ::pthread_atfork(nullptr, nullptr, OnFork); }
 
-  static std::mt19937_64& engine() { return base_generator_.engine(); }
+  static FastRandomNumberGenerator& engine() {
+    return base_generator_.engine();
+  }
 
  private:
-  static thread_local lightstep::randutils::mt19937_64_rng base_generator_;
+  static thread_local BaseGenerator base_generator_;
 
   static void OnFork() { base_generator_.seed(); }
 };
 
-thread_local lightstep::randutils::mt19937_64_rng
+thread_local TlsRandomNumberGenerator::BaseGenerator
     TlsRandomNumberGenerator::base_generator_{};
 }  // namespace
 
 //--------------------------------------------------------------------------------------------------
 // GetRandomNumberGenerator
 //--------------------------------------------------------------------------------------------------
-std::mt19937_64& GetRandomNumberGenerator() {
+FastRandomNumberGenerator& GetRandomNumberGenerator() {
   static TlsRandomNumberGenerator random_number_generator;
   return TlsRandomNumberGenerator::engine();
 }
