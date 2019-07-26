@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "common/logger.h"
+#include "common/platform/utility.h"
 #include "common/utility.h"
 #include "lightstep-tracer-common/collector.pb.h"
 #include "lightstep/version.h"

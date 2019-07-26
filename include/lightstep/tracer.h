@@ -60,7 +60,7 @@ struct LightStepTracerOptions {
   //
   // Note: Use `satellite_endpoints` when using the streaming recorder with
   // `use_stream_recorder` == true.
-  std::string collector_host = "collector-grpc.lightstep.com";
+  std::string collector_host = "collector.lightstep.com";
   uint32_t collector_port = 443;
 
   // A list of satellite endpoints to upload spans to.

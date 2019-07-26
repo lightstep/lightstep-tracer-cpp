@@ -1,5 +1,4 @@
 #include "tracer/lightstep_span.h"
-#include <opentracing/ext/tags.h>
 
 #include "common/random.h"
 #include "common/utility.h"
@@ -10,6 +9,11 @@ using opentracing::SystemClock;
 using opentracing::SystemTime;
 
 namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// SamplingPriorityKey
+//--------------------------------------------------------------------------------------------------
+const opentracing::string_view SamplingPriorityKey = "sampling.priority";
+
 //------------------------------------------------------------------------------
 // ToLog
 //------------------------------------------------------------------------------
@@ -150,7 +154,7 @@ LightStepSpan::LightStepSpan(
 
     // If sampling_priority is set, it overrides whatever sampling decision was
     // derived from the referenced spans.
-    if (tag.first == opentracing::ext::sampling_priority) {
+    if (tag.first == SamplingPriorityKey) {
       sampled_ = is_sampled(tag.second);
     }
   }
@@ -234,7 +238,7 @@ void LightStepSpan::SetTag(opentracing::string_view key,
   std::lock_guard<std::mutex> lock_guard{mutex_};
   *span_.mutable_tags()->Add() = ToKeyValue(key, value);
 
-  if (key == opentracing::ext::sampling_priority) {
+  if (key == SamplingPriorityKey) {
     sampled_ = is_sampled(value);
   }
 } catch (const std::exception& e) {

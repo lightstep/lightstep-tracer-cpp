@@ -1,9 +1,8 @@
 #pragma once
 
+#include "common/platform/time.h"
 #include "network/event.h"
 #include "network/event_base.h"
-
-#include <sys/time.h>
 
 struct event;
 
@@ -48,8 +47,8 @@ class TimerEvent {
  * @return a function pointer that can be passed to libevent.
  */
 template <class T, void (T::*MemberFunction)()>
-Event::Callback MakeTimerCallback() {
-  return [](int /*socket*/, short /*what*/, void* context) {
+Event::Callback MakeTimerCallback() noexcept {
+  return [](FileDescriptor /*socket*/, short /*what*/, void* context) noexcept {
     (static_cast<T*>(context)->*MemberFunction)();
   };
 }

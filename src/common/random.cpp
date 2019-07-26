@@ -2,9 +2,8 @@
 
 #include <cassert>
 
+#include "common/platform/fork.h"
 #include "lightstep/randutils.h"
-
-#include <pthread.h>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -18,7 +17,7 @@ namespace lightstep {
 namespace {
 class TlsRandomNumberGenerator {
  public:
-  TlsRandomNumberGenerator() { ::pthread_atfork(nullptr, nullptr, OnFork); }
+  TlsRandomNumberGenerator() { AtFork(nullptr, nullptr, OnFork); }
 
   static std::mt19937_64& engine() { return base_generator_.engine(); }
 

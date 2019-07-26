@@ -1,17 +1,17 @@
 #pragma once
 
-#include <opentracing/string_view.h>
-#include <opentracing/value.h>
 #include <chrono>
 #include <cstdint>
 #include <limits>
 #include <string>
+
 #include "common/logger.h"
+#include "common/platform/time.h"
 #include "lightstep-tracer-common/collector.pb.h"
 
-#include <sys/time.h>
-
 #include <google/protobuf/io/zero_copy_stream.h>
+#include <opentracing/string_view.h>
+#include <opentracing/value.h>
 
 namespace lightstep {
 const size_t Num64BitHexDigits = std::numeric_limits<uint64_t>::digits / 4;
@@ -31,10 +31,6 @@ inline timeval toTimeval(std::chrono::duration<Rep, Period> duration) {
   return toTimeval(
       std::chrono::duration_cast<std::chrono::microseconds>(duration));
 }
-
-// Attempts to determine the name of the executable invoked.  Returns
-// "c++-program" if unsuccessful.
-std::string GetProgramName();
 
 // Converts an OpenTracing key-value pair to the key-value pair used in the
 // protobuf data structures.
