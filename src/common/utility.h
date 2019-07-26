@@ -15,6 +15,7 @@
 
 namespace lightstep {
 const size_t Num64BitHexDigits = std::numeric_limits<uint64_t>::digits / 4;
+const size_t Num32BitHexDigits = std::numeric_limits<uint32_t>::digits / 4;
 
 /**
  * Breaks the timestamp down into seconds past epoch and nanosecond fraction
@@ -80,9 +81,19 @@ collector::Log ToLog(std::chrono::system_clock::time_point timestamp,
 void LogReportResponse(Logger& logger, bool verbose,
                        const collector::ReportResponse& response);
 
-// Converts `x` to a hexidecimal, writes the results into `output` and returns
-// a string_view of the number.
+/**
+ * Writes a 64-bit number in hex.
+ * @param x the number to write
+ * @output where to output the nbumber
+ */
 opentracing::string_view Uint64ToHex(uint64_t x, char* output);
+
+/**
+ * Writes a 32-bit number in hex.
+ * @param x the number to write
+ * @output where to output the nbumber
+ */
+opentracing::string_view Uint32ToHex(uint32_t x, char* output);
 
 // Converts a hexidecimal number to a 64-bit integer. Either returns the number
 // or an error code.
