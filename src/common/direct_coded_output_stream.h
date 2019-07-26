@@ -8,6 +8,10 @@ class DirectCodedOutputStream {
   explicit DirectCodedOutputStream(google::protobuf::uint8* data) noexcept
       : data_{data} {}
 
+  void WriteTag(uint32_t x) noexcept {
+    data_ = google::protobuf::io::CodedOutputStream::WriteTagToArray(x, data_);
+  }
+
   void WriteVarint32(uint32_t x) noexcept {
     data_ =
         google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(x, data_);

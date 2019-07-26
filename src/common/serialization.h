@@ -88,9 +88,9 @@ size_t ComputeLengthDelimitedSerializationSize(size_t length) noexcept {
  */
 template <size_t FieldNumber, class Stream>
 void WriteKeyLength(Stream& stream, size_t length) {
-  stream.WriteVarint32(
+  stream.WriteTag(
       StaticSerializationKey<FieldNumber, WireType::LengthDelimited>::value);
-  stream.WriteVarint64(length);
+  stream.WriteVarint32(static_cast<uint32_t>(length));
 }
 
 /**
@@ -124,8 +124,7 @@ void WriteVarint(Stream& stream, uint64_t x) noexcept {
  */
 template <size_t FieldNumber, class Stream>
 void WriteVarint(Stream& stream, uint32_t x) {
-  stream.WriteVarint32(
-      StaticSerializationKey<FieldNumber, WireType::Varint>::value);
+  stream.WriteTag(StaticSerializationKey<FieldNumber, WireType::Varint>::value);
   stream.WriteVarint32(x);
 }
 
