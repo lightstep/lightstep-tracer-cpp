@@ -29,6 +29,9 @@ class Logger {
 
   template <class... Tx>
   void Log(LogLevel level, const Tx&... tx) noexcept try {
+    if (static_cast<int>(level) < static_cast<int>(level_)) {
+      return;
+    }
     std::ostringstream oss;
     Concatenate(oss, tx...);
     Log(level, opentracing::string_view{oss.str()});

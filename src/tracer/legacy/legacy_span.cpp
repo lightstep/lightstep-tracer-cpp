@@ -68,8 +68,9 @@ LegacySpan::LegacySpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
 
   // Set the start timestamps.
   std::chrono::system_clock::time_point start_timestamp;
-  std::tie(start_timestamp, start_steady_) = ComputeStartTimestamps(
-      options.start_system_timestamp, options.start_steady_timestamp);
+  std::tie(start_timestamp, start_steady_) =
+      ComputeStartTimestamps(recorder_, options.start_system_timestamp,
+                             options.start_steady_timestamp);
   *span_.mutable_start_timestamp() = ToTimestamp(start_timestamp);
 
   // Set any span references.
