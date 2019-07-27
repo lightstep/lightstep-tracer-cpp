@@ -76,6 +76,7 @@ class DirectCodedOutputStream {
   }
 #endif
 
+#if 0
   void WriteBigVarint64(uint64_t x) noexcept {
     static const uint64_t pow_2_56 = (1ull << 56);
     if (x < pow_2_56) {
@@ -87,10 +88,11 @@ class DirectCodedOutputStream {
     for (int i = 0; i < 8; ++i) {
       temp_ptr[i] = static_cast<google::protobuf::uint8>((x >> 7 * i) | 0x80);
     }
-    x >>= 7 * 8;
     for (int i = 0; i < 8; ++i) {
-      *data_++ = temp_ptr[i];
+      data_[i] = temp_ptr[i];
     }
+    data_ += 8;
+    x >>= 56;
     if (x >= 0x80) {
       *data_ = static_cast<google::protobuf::uint8>(x | 0x80);
       x >>= 7;
@@ -98,6 +100,9 @@ class DirectCodedOutputStream {
     }
     *data_++ = static_cast<google::protobuf::uint8>(x);
   }
+#endif
+
+  void WriteBigVarint64(uint64_t x) noexcept;
 
  private:
   google::protobuf::uint8* data_;

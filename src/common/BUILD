@@ -41,6 +41,9 @@ lightstep_cc_library(
     private_hdrs = [
         "direct_coded_output_stream.h",
     ],
+    srcs = [
+        "direct_coded_output_stream.cpp",
+    ],
     external_deps = [
         "@com_google_protobuf//:protobuf",
     ],
