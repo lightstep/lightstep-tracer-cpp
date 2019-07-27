@@ -60,6 +60,9 @@ static inline void WriteSpanContextImpl(
     const std::vector<std::pair<std::string, std::string>>& baggage) {
   WriteBigVarint<SpanContextTraceIdField>(stream, trace_id);
   WriteBigVarint<SpanContextSpanIdField>(stream, span_id);
+  if (__builtin_expect(baggage.empty(), 1)) {
+    return;
+  }
   for (auto& baggage_item : baggage) {
     auto baggage_serialization_size =
         ComputeLengthDelimitedSerializationSize<MapEntryKeyField>(

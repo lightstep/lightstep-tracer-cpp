@@ -214,7 +214,7 @@ void WriteLengthDelimitedField(google::protobuf::io::CodedOutputStream& stream,
   auto total_size =
       ComputeLengthDelimitedSerializationSize<FieldNumber>(serialization_size);
   auto buffer = stream.GetDirectBufferForNBytesAndAdvance(total_size);
-  if (buffer != nullptr) {
+  if (__builtin_expect(buffer != nullptr, 1)) {
     DirectCodedOutputStream direct_stream{buffer};
     WriteKeyLength<FieldNumber>(direct_stream, serialization_size);
     serializer(direct_stream);
