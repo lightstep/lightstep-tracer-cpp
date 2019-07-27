@@ -6,7 +6,7 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 void DirectCodedOutputStream::WriteBigVarint64(uint64_t x) noexcept {
   static const uint64_t pow_2_56 = (1ull << 56);
-  if (x < pow_2_56) {
+  if (__builtin_expect(x < pow_2_56, 0)) {
     WriteVarint64(x);
     return;
   }
