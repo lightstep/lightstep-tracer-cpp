@@ -224,6 +224,24 @@ void WriteLengthDelimitedField(google::protobuf::io::CodedOutputStream& stream,
   }
 }
 
+template <size_t FieldNumber, class Serializer, class... Args>
+void WriteLengthDelimitedField(google::protobuf::io::CodedOutputStream& stream,
+                               size_t serialization_size,
+                               Serializer serializer,
+                               const Args&... args) {
+  auto total_size =
+      ComputeLengthDelimitedSerializationSize<FieldNumber>(serialization_size);
+  auto buffer = stream.GetDirectBufferForNBytesAndAdvance(total_size);
+  if (buffer != nullptr) {
+    DirectCodedOutputStream direct_stream{buffer};
+    WriteKeyLength<FieldNumber>(direct_stream, serialization_size);
+    serializer(direct_stream, args...);
+  } else {
+    WriteKeyLength<FieldNumber>(stream, serialization_size);
+    serializer(stream, args...);
+  }
+}
+
 template <size_t FieldNumber, class Serializer>
 void WriteLengthDelimitedField(DirectCodedOutputStream& stream,
                                size_t serialization_size,
