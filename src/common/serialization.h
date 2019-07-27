@@ -256,8 +256,15 @@ void WriteString(Stream& stream, opentracing::string_view s) {
  * @param seconds_since_epoch the seconds since the epoch
  * @param nano_fraction the fraction of remaining nanoseconds
  */
-size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
-                                         uint32_t nano_fraction) noexcept;
+inline size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
+                                         uint32_t nano_fraction) noexcept {
+  static const size_t TimestampSecondsSinceEpochField = 1;
+  static const size_t TimestampNanoFractionField = 2;
+  return ComputeVarintSerializationSize<TimestampSecondsSinceEpochField>(
+             seconds_since_epoch) +
+         ComputeVarintSerializationSize<TimestampNanoFractionField>(
+             nano_fraction);
+}
 
 /**
  * Serialize a timestamp not including its key field.
@@ -267,7 +274,12 @@ size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
  */
 template <class Stream>
 void WriteTimestampImpl(Stream& stream, uint64_t seconds_since_epoch,
-                        uint32_t nano_fraction);
+                        uint32_t nano_fraction) {
+  static const size_t TimestampSecondsSinceEpochField = 1;
+  static const size_t TimestampNanoFractionField = 2;
+  WriteVarint<TimestampSecondsSinceEpochField>(stream, seconds_since_epoch);
+  WriteVarint<TimestampNanoFractionField>(stream, nano_fraction);
+}
 
 struct TimestampSerializer {
   uint64_t seconds_since_epoch;

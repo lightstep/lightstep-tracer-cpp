@@ -9,8 +9,8 @@ const size_t KeyValueJsonValueField = 6;
 
 // See
 // https://github.com/protocolbuffers/protobuf/blob/8489612dadd3775ffbba029a583b6f00e91d0547/src/google/protobuf/timestamp.proto
-static const size_t TimestampSecondsSinceEpochField = 1;
-static const size_t TimestampNanoFractionField = 2;
+/* static const size_t TimestampSecondsSinceEpochField = 1; */
+/* static const size_t TimestampNanoFractionField = 2; */
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -156,6 +156,7 @@ void WriteKeyValueImpl(google::protobuf::io::CodedOutputStream& stream,
 //--------------------------------------------------------------------------------------------------
 // ComputeTimestampSerializationSize
 //--------------------------------------------------------------------------------------------------
+#if 0
 size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
                                          uint32_t nano_fraction) noexcept {
   return ComputeVarintSerializationSize<TimestampSecondsSinceEpochField>(
@@ -163,10 +164,12 @@ size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
          ComputeVarintSerializationSize<TimestampNanoFractionField>(
              nano_fraction);
 }
+#endif
 
 //--------------------------------------------------------------------------------------------------
 // WriteTimestampImpl
 //--------------------------------------------------------------------------------------------------
+#if 0
 template <class Stream>
 void WriteTimestampImpl(Stream& stream, uint64_t seconds_since_epoch,
                         uint32_t nano_fraction) {
@@ -181,4 +184,5 @@ template void WriteTimestampImpl(
 template void WriteTimestampImpl(DirectCodedOutputStream& stream,
                                  uint64_t seconds_since_epoch,
                                  uint32_t nano_fraction);
+#endif
 }  // namespace lightstep
