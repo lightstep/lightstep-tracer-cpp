@@ -47,7 +47,6 @@ def lightstep_copts(is_3rd_party=False):
       "-Wno-overloaded-virtual",
       "-Wvla",
       "-std=c++11",
-      "-fopenmp-simd",
   ]
 
 def lightstep_linkopts():
