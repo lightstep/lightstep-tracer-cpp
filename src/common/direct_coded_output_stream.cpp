@@ -1,62 +1,32 @@
 #include "common/direct_coded_output_stream.h"
 
 namespace lightstep {
-
-static void WriteBigvarint64Part1(google::protobuf::uint8* data,
-                                  uint64_t x) noexcept
-    __attribute__((noinline));
-
-/* void WriteBigvarint64Part1(google::protobuf::uint8* data, uint64_t x) noexcept { */
-/*     uint64_t temp; */
-/*     auto temp_ptr = reinterpret_cast<google::protobuf::uint8*>(&temp); */
-/*     for (int i = 0; i < 8; ++i) { */
-/*       temp_ptr[i] = static_cast<google::protobuf::uint8>((x >> 7 * i) | 0x80); */
-/*     } */
-/*     for (int i = 0; i < 8; ++i) { */
-/*       data[i] = temp_ptr[i]; */
-/*     } */
-/* } */
-void WriteBigvarint64Part1(google::protobuf::uint8* data, uint64_t x) noexcept {
-#define DO_ITERATION \
-  *data++ = static_cast<google::protobuf::uint8>(x | 0x80); \
-    x >>= 7;
-  DO_ITERATION //1
-  DO_ITERATION //2
-  DO_ITERATION //3
-  DO_ITERATION //4
-  DO_ITERATION //5
-  DO_ITERATION //6
-  DO_ITERATION //7
-  DO_ITERATION //8
-#undef DO_ITERATION
-
-    /* uint64_t temp; */
-    /* auto temp_ptr = reinterpret_cast<google::protobuf::uint8*>(&temp); */
-    /* for (int i = 0; i < 8; ++i) { */
-    /*   temp_ptr[i] = static_cast<google::protobuf::uint8>((x >> 7 * i) | 0x80); */
-    /* } */
-    /* for (int i = 0; i < 8; ++i) { */
-    /*   data[i] = temp_ptr[i]; */
-    /* } */
-}
-
 //--------------------------------------------------------------------------------------------------
 // WriteBigVarint64
 //--------------------------------------------------------------------------------------------------
 void DirectCodedOutputStream::WriteBigVarint64(uint64_t x) noexcept {
-    static const uint64_t pow_2_56 = (1ull << 56);
-    if (x < pow_2_56) {
-      WriteVarint64(x);
-      return;
-    }
-    WriteBigvarint64Part1(data_, x);
-    x >>= 56;
-    data_ += 8;
-    if (x >= 0x80) {
-      *data_ = static_cast<google::protobuf::uint8>(x | 0x80);
-      x >>= 7;
-      ++data_;
-    }
-    *data_++ = static_cast<google::protobuf::uint8>(x);
+  static const uint64_t pow_2_56 = (1ull << 56);
+  if (x < pow_2_56) {
+    WriteVarint64(x);
+    return;
+  }
+#define DO_ITERATION                                           \
+  {                                                            \
+    *data_++ = static_cast<google::protobuf::uint8>(x | 0x80); \
+    x >>= 7;                                                   \
+  }
+  DO_ITERATION;  // 1
+  DO_ITERATION;  // 2
+  DO_ITERATION;  // 3
+  DO_ITERATION;  // 4
+  DO_ITERATION;  // 5
+  DO_ITERATION;  // 6
+  DO_ITERATION;  // 7
+  DO_ITERATION;  // 8
+  if (x >= 0x80) {
+    DO_ITERATION;
+  }
+  *data_++ = static_cast<google::protobuf::uint8>(x);
+#undef DO_ITERATION
 }
 } // namespace lightstep
