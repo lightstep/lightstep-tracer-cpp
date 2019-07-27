@@ -32,7 +32,7 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // ComputeSpanContextSerializationSize
 //--------------------------------------------------------------------------------------------------
-static size_t ComputeSpanContextSerializationSize(
+static inline size_t ComputeSpanContextSerializationSize(
     uint64_t trace_id, uint64_t span_id,
     const std::vector<std::pair<std::string, std::string>>& baggage =
         {}) noexcept {
@@ -55,11 +55,11 @@ static size_t ComputeSpanContextSerializationSize(
 // WriteSpanContextImpl
 //--------------------------------------------------------------------------------------------------
 template <class Stream>
-static void WriteSpanContextImpl(
+static inline void WriteSpanContextImpl(
     Stream& stream, uint64_t trace_id, uint64_t span_id,
     const std::vector<std::pair<std::string, std::string>>& baggage) {
-  WriteVarint<SpanContextTraceIdField>(stream, trace_id);
-  WriteVarint<SpanContextSpanIdField>(stream, span_id);
+  WriteBigVarint<SpanContextTraceIdField>(stream, trace_id);
+  WriteBigVarint<SpanContextSpanIdField>(stream, span_id);
   for (auto& baggage_item : baggage) {
     auto baggage_serialization_size =
         ComputeLengthDelimitedSerializationSize<MapEntryKeyField>(
@@ -81,7 +81,7 @@ struct SpanContextSerializer {
   const std::vector<std::pair<std::string, std::string>>& baggage;
 
   template <class Stream>
-  void operator()(Stream& stream) const {
+  inline void operator()(Stream& stream) const {
     WriteSpanContextImpl(stream, trace_id, span_id, baggage);
   }
 };

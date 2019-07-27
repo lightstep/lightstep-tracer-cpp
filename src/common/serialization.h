@@ -81,6 +81,11 @@ size_t ComputeLengthDelimitedSerializationSize(size_t length) noexcept {
          google::protobuf::io::CodedOutputStream::VarintSize64(length) + length;
 }
 
+inline void WriteBigVarint64(google::protobuf::io::CodedOutputStream& stream,
+                             uint64_t x) {
+  stream.WriteVarint64(x);
+}
+
 /**
  * Serialize a length-delimited key field with its length.
  * @param stream the stream to serialize into
@@ -126,6 +131,17 @@ template <size_t FieldNumber, class Stream>
 void WriteVarint(Stream& stream, uint32_t x) {
   stream.WriteTag(StaticSerializationKey<FieldNumber, WireType::Varint>::value);
   stream.WriteVarint32(x);
+}
+
+/**
+ * Serialize a varint.
+ * @param stream the stream to serialize into
+ * @param x the value to serialize
+ */
+template <size_t FieldNumber, class Stream>
+void WriteBigVarint(Stream& stream, uint64_t x) {
+  stream.WriteTag(StaticSerializationKey<FieldNumber, WireType::Varint>::value);
+  WriteBigVarint64(stream, x);
 }
 
 /**

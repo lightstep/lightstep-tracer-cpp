@@ -27,7 +27,21 @@ class DirectCodedOutputStream {
                                                                      data_);
   }
 
+  void WriteBigVarint64(uint64_t value) noexcept {
+    while (value >= 0x80) {
+      *data_ = static_cast<google::protobuf::uint8>(value | 0x80);
+      value >>= 7;
+      ++data_;
+    }
+    *data_++ = static_cast<google::protobuf::uint8>(value);
+  }
+
  private:
   google::protobuf::uint8* data_;
 };
+
+inline void WriteBigVarint64(DirectCodedOutputStream& stream,
+                             uint64_t x) noexcept {
+  stream.WriteBigVarint64(x);
+}
 }  // namespace lightstep
