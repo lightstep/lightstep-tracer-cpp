@@ -82,7 +82,7 @@ class DirectCodedOutputStream {
       WriteVarint64(x);
       return;
     }
-
+#pragma omp simd
     for (int i=0; i<8; ++i) {
       data_[i] = static_cast<google::protobuf::uint8>((x >> 7*i) | 0x80);
     }
