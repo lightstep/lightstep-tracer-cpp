@@ -6,15 +6,38 @@ static void WriteBigvarint64Part1(google::protobuf::uint8* data,
                                   uint64_t x) noexcept
     __attribute__((noinline));
 
+/* void WriteBigvarint64Part1(google::protobuf::uint8* data, uint64_t x) noexcept { */
+/*     uint64_t temp; */
+/*     auto temp_ptr = reinterpret_cast<google::protobuf::uint8*>(&temp); */
+/*     for (int i = 0; i < 8; ++i) { */
+/*       temp_ptr[i] = static_cast<google::protobuf::uint8>((x >> 7 * i) | 0x80); */
+/*     } */
+/*     for (int i = 0; i < 8; ++i) { */
+/*       data[i] = temp_ptr[i]; */
+/*     } */
+/* } */
 void WriteBigvarint64Part1(google::protobuf::uint8* data, uint64_t x) noexcept {
-    uint64_t temp;
-    auto temp_ptr = reinterpret_cast<google::protobuf::uint8*>(&temp);
-    for (int i = 0; i < 8; ++i) {
-      temp_ptr[i] = static_cast<google::protobuf::uint8>((x >> 7 * i) | 0x80);
-    }
-    for (int i = 0; i < 8; ++i) {
-      data[i] = temp_ptr[i];
-    }
+#define DO_ITERATION \
+  *data++ = static_cast<google::protobuf::uint8>(x | 0x80); \
+    x >>= 7;
+  DO_ITERATION //1
+  DO_ITERATION //2
+  DO_ITERATION //3
+  DO_ITERATION //4
+  DO_ITERATION //5
+  DO_ITERATION //6
+  DO_ITERATION //7
+  DO_ITERATION //8
+#undef DO_ITERATION
+
+    /* uint64_t temp; */
+    /* auto temp_ptr = reinterpret_cast<google::protobuf::uint8*>(&temp); */
+    /* for (int i = 0; i < 8; ++i) { */
+    /*   temp_ptr[i] = static_cast<google::protobuf::uint8>((x >> 7 * i) | 0x80); */
+    /* } */
+    /* for (int i = 0; i < 8; ++i) { */
+    /*   data[i] = temp_ptr[i]; */
+    /* } */
 }
 
 //--------------------------------------------------------------------------------------------------
