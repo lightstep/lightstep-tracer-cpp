@@ -44,15 +44,35 @@ class DirectCodedOutputStream {
       WriteVarint64(x);
       return;
     }
-    for (int i = 0; i < 8; ++i) {
+
+    auto iteration = [&] {
       *data_ = static_cast<google::protobuf::uint8>(x | 0x80);
       x >>= 7;
       ++data_;
-    }
+    };
+
+    /* for (int i = 0; i < 8; ++i) { */
+    /*   *data_ = static_cast<google::protobuf::uint8>(x | 0x80); */
+    /*   x >>= 7; */
+    /*   ++data_; */
+    /* } */
+    iteration(); // 1
+    iteration(); // 2
+    iteration(); // 3
+    iteration(); // 4
+    iteration(); // 5
+    iteration(); // 6
+    iteration(); // 7
+    iteration(); // 8
+
+
+
+
     if (x >= 0x80) {
-      *data_ = static_cast<google::protobuf::uint8>(x | 0x80);
-      x >>= 7;
-      ++data_;
+      iteration();
+      /* *data_ = static_cast<google::protobuf::uint8>(x | 0x80); */
+      /* x >>= 7; */
+      /* ++data_; */
     }
     *data_++ = static_cast<google::protobuf::uint8>(x);
   }
