@@ -72,6 +72,7 @@ jobs:
       - checkout
       - run: echo 'Hello, Windows!'
       - run: ./ci/setup_windows_build_environment.sh
+      - run: ls $HOMEDRIVE
 
   release:
     resource_class: xlarge
