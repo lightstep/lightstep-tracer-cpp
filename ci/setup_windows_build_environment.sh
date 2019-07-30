@@ -4,7 +4,7 @@ set -e
 cd $HOMEDRIVE
 
 # install cmake
-Invoke-WebRequest https://github.com/Kitware/CMake/releases/download/v3.15.1/cmake-3.15.1-win64-x64.zip -OutFile cmake-3.15.1-win64-x64.zip
+curl -O https://github.com/Kitware/CMake/releases/download/v3.15.1/cmake-3.15.1-win64-x64.zip
 
 git clone https://github.com/Microsoft/vcpkg.git
 cd vcpkg
