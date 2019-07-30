@@ -8,7 +8,9 @@ curl -O https://github.com/Kitware/CMake/releases/download/v3.15.1/cmake-3.15.1-
 
 # intall visual studio
 curl -O https://aka.ms/vs/15/release/vs_community.exe
-./vs_community.exe
+./vs_community.exe --installPath C:\minVS \
+  --add Microsoft.VisualStudio.Workload.CoreEditor \
+  --passive --norestart
 
 git clone https://github.com/Microsoft/vcpkg.git
 cd vcpkg
