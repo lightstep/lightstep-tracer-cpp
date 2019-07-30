@@ -203,7 +203,7 @@ template
 opentracing::expected<void> InjectSpanContext(
     const PropagationOptions& /*propagation_options*/, std::ostream& carrier,
     uint64_t trace_id, uint64_t span_id, bool sampled,
-    const ProtobufBaggageMap& baggage);
+    const BaggageProtobufMap& baggage);
 
 template <class BaggageMap>
 opentracing::expected<void> InjectSpanContext(
@@ -222,7 +222,7 @@ template
 opentracing::expected<void> InjectSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
-    uint64_t span_id, bool sampled, const ProtobufBaggageMap& baggage);
+    uint64_t span_id, bool sampled, const BaggageProtobufMap& baggage);
 
 //------------------------------------------------------------------------------
 // ExtractSpanContextMultiKey
@@ -230,7 +230,7 @@ opentracing::expected<void> InjectSpanContext(
 template <class KeyCompare>
 static opentracing::expected<bool> ExtractSpanContextMultiKey(
     const opentracing::TextMapReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, bool& sampled, ProtobufBaggageMap& baggage,
+    uint64_t& span_id, bool& sampled, BaggageProtobufMap& baggage,
     KeyCompare key_compare) {
   int count = 0;
   auto result = carrier.ForeachKey([&](opentracing::string_view key,
@@ -260,7 +260,7 @@ static opentracing::expected<bool> ExtractSpanContextMultiKey(
                  key_compare(
                      opentracing::string_view{key.data(), PrefixBaggage.size()},
                      PrefixBaggage)) {
-        baggage.insert(ProtobufBaggageMap::value_type(
+        baggage.insert(BaggageProtobufMap::value_type(
             std::string{std::begin(key) + PrefixBaggage.size(), std::end(key)},
             value));
       }
@@ -289,7 +289,7 @@ static opentracing::expected<bool> ExtractSpanContextMultiKey(
 template <class KeyCompare>
 static opentracing::expected<bool> ExtractSpanContextSingleKey(
     const opentracing::TextMapReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, bool& sampled, ProtobufBaggageMap& baggage,
+    uint64_t& span_id, bool& sampled, BaggageProtobufMap& baggage,
     KeyCompare key_compare) {
   auto value_maybe = LookupKey(carrier, PropagationSingleKey, key_compare);
   if (!value_maybe) {
@@ -320,7 +320,7 @@ static opentracing::expected<bool> ExtractSpanContextSingleKey(
 //------------------------------------------------------------------------------
 static opentracing::expected<bool> ExtractSpanContext(
     const BinaryCarrier& carrier, uint64_t& trace_id, uint64_t& span_id,
-    bool& sampled, ProtobufBaggageMap& baggage) noexcept try {
+    bool& sampled, BaggageProtobufMap& baggage) noexcept try {
   auto& basic = carrier.basic_ctx();
   trace_id = basic.trace_id();
   span_id = basic.span_id();
@@ -335,7 +335,7 @@ static opentracing::expected<bool> ExtractSpanContext(
 opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& /*propagation_options*/, std::istream& carrier,
     uint64_t& trace_id, uint64_t& span_id, bool& sampled,
-    ProtobufBaggageMap& baggage) try {
+    BaggageProtobufMap& baggage) try {
   // istream::peek returns EOF if it's in an error state, so check for an error
   // state first before checking for an empty stream.
   if (!carrier.good()) {
@@ -364,7 +364,7 @@ template <class KeyCompare>
 static opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, bool& sampled, ProtobufBaggageMap& baggage,
+    uint64_t& span_id, bool& sampled, BaggageProtobufMap& baggage,
     KeyCompare key_compare) {
   if (propagation_options.use_single_key) {
     auto span_context_maybe = ExtractSpanContextSingleKey(
@@ -384,7 +384,7 @@ static opentracing::expected<bool> ExtractSpanContext(
 opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, bool& sampled, ProtobufBaggageMap& baggage) {
+    uint64_t& span_id, bool& sampled, BaggageProtobufMap& baggage) {
   return ExtractSpanContext(propagation_options, carrier, trace_id, span_id,
                             sampled, baggage,
                             std::equal_to<opentracing::string_view>());
@@ -397,7 +397,7 @@ opentracing::expected<bool> ExtractSpanContext(
 opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::HTTPHeadersReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, bool& sampled, ProtobufBaggageMap& baggage) {
+    uint64_t& span_id, bool& sampled, BaggageProtobufMap& baggage) {
   auto iequals = [](opentracing::string_view lhs,
                     opentracing::string_view rhs) {
     return lhs.length() == rhs.length() &&

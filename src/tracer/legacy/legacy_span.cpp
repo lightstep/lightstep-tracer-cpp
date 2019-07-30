@@ -18,7 +18,7 @@ static bool SetSpanReference(
     Logger& logger,
     const std::pair<opentracing::SpanReferenceType,
                     const opentracing::SpanContext*>& reference,
-    ProtobufBaggageMap& baggage, collector::Reference& collector_reference,
+    BaggageProtobufMap& baggage, collector::Reference& collector_reference,
     bool& sampled) {
   collector_reference.Clear();
   switch (reference.first) {
@@ -197,7 +197,7 @@ void LegacySpan::SetBaggageItem(opentracing::string_view restricted_key,
                                 opentracing::string_view value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   auto& baggage = *span_.mutable_span_context()->mutable_baggage();
-  baggage.insert(ProtobufBaggageMap::value_type(restricted_key, value));
+  baggage.insert(BaggageProtobufMap::value_type(restricted_key, value));
 } catch (const std::exception& e) {
   logger_.Error("SetBaggageItem failed: ", e.what());
 }
