@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package lightstep.tracer_upload_bench;
+
+import "lightstep-tracer-configuration/tracer_configuration.proto";
+
+message Configuration {
+  lightstep.tracer_configuration.TracerConfiguration tracer_configuration = 1;
+  int32 num_spans_per_thread = 2;
+  int32 num_threads = 3;
+  double spans_per_second = 4;
+  int32 payload_size = 5;
+  double startup_delay = 6;
+}

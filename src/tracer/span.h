@@ -5,11 +5,11 @@
 #include <memory>
 #include <mutex>
 
+#include "common/serialization_chain.h"
 #include "tracer/baggage_flat_map.h"
 #include "tracer/lightstep_span_context.h"
+#include "tracer/propagation.h"
 #include "tracer/tracer_impl.h"
-
-#include "common/serialization_chain.h"
 
 #include <google/protobuf/io/coded_stream.h>
 #include <opentracing/span.h>
@@ -99,10 +99,9 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
   template <class Carrier>
   opentracing::expected<void> InjectImpl(
       const PropagationOptions& propagation_options, Carrier& writer) const {
-    (void)propagation_options;
-    (void)writer;
-    // TODO(rnburn): Implement new propagation
-    std::terminate();
+    std::lock_guard<std::mutex> lock_guard{mutex_};
+    return InjectSpanContext(propagation_options, writer, trace_id_, span_id_,
+                             sampled_, baggage_);
   }
 
   bool SetSpanReference(

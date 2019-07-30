@@ -7,26 +7,6 @@ load(
 lightstep_package()
 
 lightstep_cc_library(
-    name = "propagation_lib",
-    private_hdrs = [
-        "propagation.h",
-    ],
-    srcs = [
-        "propagation.cpp",
-    ],
-    deps = [
-        "//src/common:utility_lib",
-        "//src/common:in_memory_stream_lib",
-        "//3rd_party/base64:base64_lib",
-        "//lightstep-tracer-common:lightstep_carrier_proto_cc",
-    ],
-    external_deps = [
-        "@com_google_protobuf//:protobuf",
-        "@io_opentracing_cpp//:opentracing",
-    ],
-)
-
-lightstep_cc_library(
     name = "lightstep_span_lib",
     private_hdrs = [
         "legacy_span.h",
@@ -69,7 +49,7 @@ lightstep_cc_library(
         "//src/common:logger_lib",
         "//src/recorder:recorder_interface",
         ":lightstep_span_lib",
-        ":propagation_lib",
+        "//src/tracer:propagation_lib",
         ":legacy_immutable_span_context_lib",
     ],
 )
