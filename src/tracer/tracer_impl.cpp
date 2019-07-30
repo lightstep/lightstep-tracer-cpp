@@ -30,7 +30,7 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
     const PropagationOptions& propagation_options, Carrier& reader) try {
   uint64_t trace_id, span_id;
   bool sampled;
-  BaggageMap baggage;
+  ProtobufBaggageMap baggage;
   auto extract_maybe = ExtractSpanContext(propagation_options, reader, trace_id,
                                           span_id, sampled, baggage);
   if (!extract_maybe) {
