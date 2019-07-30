@@ -4,7 +4,7 @@ set -e
 cd $HOMEDRIVE
 
 # install cmake
-wget.exe https://github.com/Kitware/CMake/releases/download/v3.15.1/cmake-3.15.1-win64-x64.zip
+curl https://github.com/Kitware/CMake/releases/download/v3.15.1/cmake-3.15.1-win64-x64.zip -O cmake-3.15.1-win64-x64.zip
 
 git clone https://github.com/Microsoft/vcpkg.git
 cd vcpkg
