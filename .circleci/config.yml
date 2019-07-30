@@ -70,7 +70,7 @@ jobs:
     executor: win/preview-default
     steps:
       - checkout
-      - run: echo 'Hello, Windows'
+      - run: echo 'Hello, Windows!'
 
   release:
     resource_class: xlarge
