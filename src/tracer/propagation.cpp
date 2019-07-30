@@ -1,4 +1,4 @@
-#include "tracer/legacy/propagation.h"
+#include "tracer/propagation.h"
 #include <lightstep/base64/base64.h>
 #include <algorithm>
 #include <array>
@@ -199,11 +199,15 @@ opentracing::expected<void> InjectSpanContext(
   return {};
 }
 
-template
-opentracing::expected<void> InjectSpanContext(
+template opentracing::expected<void> InjectSpanContext(
     const PropagationOptions& /*propagation_options*/, std::ostream& carrier,
     uint64_t trace_id, uint64_t span_id, bool sampled,
     const BaggageProtobufMap& baggage);
+
+template opentracing::expected<void> InjectSpanContext(
+    const PropagationOptions& /*propagation_options*/, std::ostream& carrier,
+    uint64_t trace_id, uint64_t span_id, bool sampled,
+    const BaggageFlatMap& baggage);
 
 template <class BaggageMap>
 opentracing::expected<void> InjectSpanContext(
@@ -218,11 +222,15 @@ opentracing::expected<void> InjectSpanContext(
                                    baggage);
 }
 
-template 
-opentracing::expected<void> InjectSpanContext(
+template opentracing::expected<void> InjectSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
     uint64_t span_id, bool sampled, const BaggageProtobufMap& baggage);
+
+template opentracing::expected<void> InjectSpanContext(
+    const PropagationOptions& propagation_options,
+    const opentracing::TextMapWriter& carrier, uint64_t trace_id,
+    uint64_t span_id, bool sampled, const BaggageFlatMap& baggage);
 
 //------------------------------------------------------------------------------
 // ExtractSpanContextMultiKey
