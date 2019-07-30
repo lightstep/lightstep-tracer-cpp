@@ -71,6 +71,7 @@ jobs:
     steps:
       - checkout
       - run: echo 'Hello, Windows!'
+      - run: ./ci/setup_windows_build_environment.sh
 
   release:
     resource_class: xlarge
