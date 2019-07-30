@@ -184,10 +184,10 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/recorder/manual_recorder.cpp
                    src/recorder/transporter.cpp
                    src/tracer/binary_carrier.cpp
+                   src/tracer/propagation.cpp
                    src/tracer/legacy/legacy_immutable_span_context.cpp
                    src/tracer/legacy/legacy_span.cpp
                    src/tracer/legacy/legacy_tracer_impl.cpp
-                   src/tracer/legacy/propagation.cpp
                    src/tracer/lightstep_span_context.cpp
                    src/tracer/lightstep_tracer_factory.cpp
                    src/tracer/serialization.cpp
