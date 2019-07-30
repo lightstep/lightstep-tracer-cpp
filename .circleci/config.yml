@@ -71,7 +71,9 @@ jobs:
     steps:
       - checkout
       - run: echo 'Hello, Windows!'
-      - run: ./ci/setup_windows_build_environment.sh
+      - run: 
+          command: ./ci/setup_windows_build_environment.sh
+          shell: bash.exe
       - run: echo "HOMEDRIVE=$HOMEDRIVE"
       - run: echo "HOMEPATH=$HOMEPATH"
       - run: 
