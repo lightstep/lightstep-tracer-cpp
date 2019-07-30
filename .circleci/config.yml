@@ -79,7 +79,9 @@ jobs:
       - run: 
           command: echo "HOMEDRIVE=$HOMEDRIVE"
           shell: bash.exe
-      - run: ls $HOMEDRIVE
+      - run: 
+          command: ls $HOMEDRIVE
+          shell: bash.exe
 
   release:
     resource_class: xlarge
