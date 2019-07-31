@@ -39,8 +39,8 @@ static Fragment WriteChunkHeader(char* buffer, size_t buffer_size,
 // constructor
 //--------------------------------------------------------------------------------------------------
 ConnectionStream::ConnectionStream(Fragment host_header_fragment,
-                                   Fragment header_common_fragment,
-                                   SpanStream& span_stream)
+                                     Fragment header_common_fragment,
+                                     SpanStream& span_stream)
     : host_header_fragment_{std::move(host_header_fragment)},
       header_common_fragment_{std::move(header_common_fragment)},
       span_stream_{span_stream} {
@@ -56,11 +56,10 @@ void ConnectionStream::Reset() {
     span_stream_.metrics().UnconsumeDroppedSpans(
         embedded_metrics_message_.num_dropped_spans());
   }
-  if (!span_remnant_.empty()) {
+  if (span_remnant_ != nullptr && !span_remnant_->empty()) {
     span_stream_.metrics().OnSpansDropped(1);
-    span_stream_.RemoveSpanRemnant(span_remnant_.chunk_start());
-    span_remnant_.Clear();
   }
+  span_remnant_.reset();
   InitializeStream();
 }
 
@@ -76,17 +75,17 @@ bool ConnectionStream::Flush(Writer writer) {
   if (shutting_down_) {
     return FlushShutdown(writer);
   }
-  auto chunk_start = span_remnant_.chunk_start();
   span_stream_.Allot();
-  auto result = writer({&header_stream_, &span_remnant_, &span_stream_});
-  if (span_remnant_.empty()) {
-    if (chunk_start != nullptr) {
-      span_stream_.metrics().OnSpansSent(1);
-      span_stream_.RemoveSpanRemnant(chunk_start);
-    }
-    span_stream_.PopSpanRemnant(span_remnant_);
+  if (span_remnant_ == nullptr) {
+    auto result = writer({&header_stream_, &span_stream_});
+    span_remnant_ = span_stream_.ConsumeRemnant();
+    return result;
   }
-  span_stream_.Consume();
+  auto result = writer({&header_stream_, span_remnant_.get(), &span_stream_});
+  if (span_remnant_->empty()) {
+    span_stream_.metrics().OnSpansSent(1);
+    span_remnant_ = span_stream_.ConsumeRemnant();
+  }
   return result;
 }
 
@@ -127,12 +126,14 @@ int ConnectionStream::first_chunk_position() const noexcept {
 // FlushShutdown
 //--------------------------------------------------------------------------------------------------
 bool ConnectionStream::FlushShutdown(Writer writer) {
-  auto chunk_start = span_remnant_.chunk_start();
-  auto result = writer({&header_stream_, &span_remnant_, &terminal_stream_});
-  if (span_remnant_.empty() && chunk_start != nullptr) {
+  if (span_remnant_ == nullptr) {
+    return writer({&header_stream_, &terminal_stream_});
+  }
+  auto result =
+      writer({&header_stream_, span_remnant_.get(), &terminal_stream_});
+  if (span_remnant_->empty()) {
     span_stream_.metrics().OnSpansSent(1);
-    span_stream_.RemoveSpanRemnant(chunk_start);
-    span_stream_.Consume();
+    span_remnant_.reset();
   }
   return result;
 }

@@ -102,28 +102,12 @@ std::string ToString(const FragmentInputStream& fragment_input_stream) {
   return result;
 }
 
-std::string ToString(const CircularBufferConstPlacement& placement) {
-  std::string result;
-  result.append(placement.data1, placement.size1);
-  result.append(placement.data2, placement.size2);
-  return result;
-}
-
 //--------------------------------------------------------------------------------------------------
 // AddString
 //--------------------------------------------------------------------------------------------------
-bool AddString(ChunkCircularBuffer& buffer, opentracing::string_view s) {
-  return buffer.Add(
-      [s](google::protobuf::io::CodedOutputStream& stream) {
-        stream.WriteRaw(s.data(), s.size());
-      },
-      s.size());
-}
-
-bool AddString(CircularBuffer2<SerializationChain>& buffer,
+bool AddString(CircularBuffer<SerializationChain>& buffer,
                const std::string& s) {
   std::unique_ptr<SerializationChain> chain{new SerializationChain{}};
-  ;
   {
     google::protobuf::io::CodedOutputStream stream{chain.get()};
     stream.WriteString(s);

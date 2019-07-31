@@ -66,7 +66,7 @@ lightstep_cc_library(
         "lightstep_span_context.cpp",
     ],
     deps = [
-        "//src/tracer/legacy:propagation_lib",
+        ":propagation_lib",
     ],
 )
 
@@ -86,10 +86,10 @@ lightstep_cc_library(
         "//src/common:random_lib",
         "//src/common:serialization_chain_lib",
         "//src/recorder:recorder_interface",
-        "//src/tracer/legacy:propagation_lib",
         "//src/tracer/legacy:legacy_immutable_span_context_lib",
         ":baggage_flat_map_lib",
         ":lightstep_span_context_interface",
+        ":propagation_lib",
         ":serialization_lib",
         ":utility_lib",
     ],
@@ -157,3 +157,25 @@ lightstep_cc_library(
         "@com_google_protobuf//:protobuf",
     ],
 )
+
+lightstep_cc_library(
+    name = "propagation_lib",
+    private_hdrs = [
+        "propagation.h",
+    ],
+    srcs = [
+        "propagation.cpp",
+    ],
+    deps = [
+        "//src/common:utility_lib",
+        "//src/common:in_memory_stream_lib",
+        "//3rd_party/base64:base64_lib",
+        "//lightstep-tracer-common:lightstep_carrier_proto_cc",
+        ":baggage_flat_map_lib",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+

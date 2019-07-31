@@ -39,17 +39,6 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
-    name = "fragment_span_input_stream_test",
-    srcs = [
-        "fragment_span_input_stream_test.cpp",
-    ],
-    deps = [
-        "//src/recorder/stream_recorder:fragment_span_input_stream_lib",
-        "//test:utility_lib",
-    ],
-)
-
-lightstep_catch_test(
     name = "utility_test",
     srcs = [
         "utility_test.cpp",
@@ -57,16 +46,6 @@ lightstep_catch_test(
     deps = [
         "//src/recorder/stream_recorder:utility_lib",
         "//lightstep-tracer-common:collector_proto_cc",
-    ],
-)
-
-lightstep_catch_test(
-    name = "satellite_streamer_test",
-    srcs = [
-        "satellite_streamer_test.cpp",
-    ],
-    deps = [
-        "//src/recorder/stream_recorder:satellite_streamer_lib",
     ],
 )
 
@@ -118,17 +97,6 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
-    name = "span_stream2_test",
-    srcs = [
-        "span_stream2_test.cpp",
-    ],
-    deps = [
-        "//src/recorder/stream_recorder:span_stream2_lib",
-        "//test:utility_lib",
-    ],
-)
-
-lightstep_catch_test(
     name = "connection_stream_test",
     srcs = [
         "connection_stream_test.cpp",
@@ -137,19 +105,6 @@ lightstep_catch_test(
         "//src/recorder/stream_recorder:connection_stream_lib",
         "//src/recorder/stream_recorder:utility_lib",
         "//test:number_simulation_lib",
-        "//test:utility_lib",
-    ],
-)
-
-lightstep_catch_test(
-    name = "connection_stream2_test",
-    srcs = [
-        "connection_stream2_test.cpp",
-    ],
-    deps = [
-        "//src/recorder/stream_recorder:connection_stream2_lib",
-        "//src/recorder/stream_recorder:utility_lib",
-        "//test:number_simulation2_lib",
         "//test:utility_lib",
     ],
 )

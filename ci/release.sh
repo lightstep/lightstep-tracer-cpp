@@ -40,4 +40,4 @@ echo "/ghr -t <hidden> \
 echo -e "[pypi]" >> ~/.pypirc
 echo -e "username = $PYPI_USER" >> ~/.pypirc
 echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
-twine upload plugin/*.whl
+twine upload /plugin/*.whl

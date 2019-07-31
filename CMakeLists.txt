@@ -6,8 +6,8 @@ project(lightstep-tracer)
 # Version information
 
 set(LIGHTSTEP_VERSION_MAJOR "0")
-set(LIGHTSTEP_VERSION_MINOR "9")
-set(LIGHTSTEP_VERSION_PATCH "0")
+set(LIGHTSTEP_VERSION_MINOR "10")
+set(LIGHTSTEP_VERSION_PATCH "1")
 set(LIGHTSTEP_VERSION_STRING
   "${LIGHTSTEP_VERSION_MAJOR}.${LIGHTSTEP_VERSION_MINOR}.${LIGHTSTEP_VERSION_PATCH}")
 
@@ -164,10 +164,6 @@ include(LightStepTracerCommon)
 include(LightStepTracerConfiguration)
 
 set(LIGHTSTEP_SRCS src/common/utility.cpp
-                   src/common/atomic_bit_set.cpp
-                   src/common/bipart_memory_stream.cpp
-                   src/common/circular_buffer.cpp
-                   src/common/chunk_circular_buffer.cpp
                    src/common/fragment_input_stream.cpp
                    src/common/fragment_array_input_stream.cpp
                    src/common/protobuf.cpp
@@ -184,10 +180,10 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/recorder/manual_recorder.cpp
                    src/recorder/transporter.cpp
                    src/tracer/binary_carrier.cpp
+                   src/tracer/propagation.cpp
                    src/tracer/legacy/legacy_immutable_span_context.cpp
                    src/tracer/legacy/legacy_span.cpp
                    src/tracer/legacy/legacy_tracer_impl.cpp
-                   src/tracer/legacy/propagation.cpp
                    src/tracer/lightstep_span_context.cpp
                    src/tracer/lightstep_tracer_factory.cpp
                    src/tracer/serialization.cpp
@@ -205,21 +201,14 @@ endif()
 
 if (WITH_LIBEVENT)
   list(APPEND LIGHTSTEP_SRCS src/recorder/stream_recorder/stream_recorder.cpp
-                             src/recorder/stream_recorder/stream_recorder2.cpp
                              src/recorder/stream_recorder/stream_recorder_impl.cpp
-                             src/recorder/stream_recorder/stream_recorder_impl2.cpp
                              src/recorder/stream_recorder/satellite_dns_resolution_manager.cpp
                              src/recorder/stream_recorder/satellite_endpoint_manager.cpp
                              src/recorder/stream_recorder/satellite_connection.cpp
-                             src/recorder/stream_recorder/satellite_connection2.cpp
                              src/recorder/stream_recorder/satellite_streamer.cpp
-                             src/recorder/stream_recorder/satellite_streamer2.cpp
                              src/recorder/stream_recorder/span_stream.cpp
-                             src/recorder/stream_recorder/span_stream2.cpp
                              src/recorder/stream_recorder/stream_recorder_metrics.cpp
                              src/recorder/stream_recorder/connection_stream.cpp
-                             src/recorder/stream_recorder/connection_stream2.cpp
-                             src/recorder/stream_recorder/fragment_span_input_stream.cpp
                              src/recorder/stream_recorder/host_header.cpp
                              src/recorder/stream_recorder/embedded_metrics_message.cpp
                              src/recorder/stream_recorder/status_line_parser.cpp

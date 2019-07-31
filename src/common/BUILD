@@ -7,32 +7,9 @@ load(
 lightstep_package()
 
 lightstep_cc_library(
-  name = "atomic_bit_set_lib",
-  private_hdrs = [
-      "atomic_bit_set.h",
-  ],
-  srcs = [
-      "atomic_bit_set.cpp",
-  ],
-)
-
-lightstep_cc_library(
     name = "atomic_unique_ptr_lib",
     private_hdrs = [
         "atomic_unique_ptr.h",
-    ],
-)
-
-lightstep_cc_library(
-    name = "bipart_memory_stream_lib",
-    private_hdrs = [
-        "bipart_memory_stream.h",
-    ],
-    srcs = [
-        "bipart_memory_stream.cpp",
-    ],
-    external_deps = [
-        "@com_google_protobuf//:protobuf",
     ],
 )
 
@@ -70,36 +47,9 @@ lightstep_cc_library(
     private_hdrs = [
         "circular_buffer.h",
     ],
-    srcs = [
-        "circular_buffer.cpp",
-    ],
-)
-
-lightstep_cc_library(
-    name = "circular_buffer2_lib",
-    private_hdrs = [
-        "circular_buffer2.h",
-    ],
     deps = [
         ":circular_buffer_range_lib",
         ":atomic_unique_ptr_lib",
-    ],
-)
-
-lightstep_cc_library(
-    name = "chunk_circular_buffer_lib",
-    private_hdrs = [
-      "chunk_circular_buffer.h",
-    ],
-    srcs = [
-        "chunk_circular_buffer.cpp",
-    ],
-    deps = [
-        ":atomic_bit_set_lib",
-        ":bipart_memory_stream_lib",
-        ":circular_buffer_lib",
-        ":function_ref_lib",
-        ":utility_lib",
     ],
 )
 

@@ -4,7 +4,7 @@
 
 #include "common/logger.h"
 #include "recorder/recorder.h"
-#include "tracer/legacy/propagation.h"
+#include "tracer/propagation.h"
 
 namespace lightstep {
 class LegacyTracerImpl final

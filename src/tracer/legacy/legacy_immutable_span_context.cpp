@@ -9,14 +9,14 @@ LegacyImmutableSpanContext::LegacyImmutableSpanContext(
     const std::unordered_map<std::string, std::string>& baggage)
     : trace_id_{trace_id}, span_id_{span_id}, sampled_{sampled} {
   for (auto& baggage_item : baggage) {
-    baggage_.insert(
-        BaggageMap::value_type(baggage_item.first, baggage_item.second));
+    baggage_.insert(BaggageProtobufMap::value_type(baggage_item.first,
+                                                   baggage_item.second));
   }
 }
 
 LegacyImmutableSpanContext::LegacyImmutableSpanContext(
     uint64_t trace_id, uint64_t span_id, bool sampled,
-    BaggageMap&& baggage) noexcept
+    BaggageProtobufMap&& baggage) noexcept
     : trace_id_{trace_id},
       span_id_{span_id},
       sampled_{sampled},
