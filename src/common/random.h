@@ -10,12 +10,14 @@ namespace lightstep {
 /**
  * @return a seeded thread-local random number generator.
  */
-FastRandomNumberGenerator& GetRandomNumberGenerator();
+FastRandomNumberGenerator& GetRandomNumberGenerator() noexcept;
 
 /**
  * @return a random 64-bit number.
  */
-uint64_t GenerateId();
+inline uint64_t GenerateId() noexcept {
+  return GetRandomNumberGenerator()(); 
+}
 
 /**
  * Uniformily generates a random duration within a given range.
@@ -24,12 +26,12 @@ uint64_t GenerateId();
  * @return a random duration within [a,b]
  */
 std::chrono::nanoseconds GenerateRandomDuration(std::chrono::nanoseconds a,
-                                                std::chrono::nanoseconds b);
+                                                std::chrono::nanoseconds b) noexcept;
 
 template <class Rep, class Period>
 std::chrono::duration<Rep, Period> GenerateRandomDuration(
     std::chrono::duration<Rep, Period> a,
-    std::chrono::duration<Rep, Period> b) {
+    std::chrono::duration<Rep, Period> b) noexcept {
   return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>(
       GenerateRandomDuration(
           std::chrono::duration_cast<std::chrono::nanoseconds>(a),

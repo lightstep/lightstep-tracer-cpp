@@ -16,7 +16,6 @@ class FastRandomNumberGenerator {
     seed(seed_sequence);
   }
 
-  /* uint64_t operator()() noexcept; */
   uint64_t operator()() noexcept {
     // Uses the xorshift128p random number generation algorithm described in
     // https://en.wikipedia.org/wiki/Xorshift

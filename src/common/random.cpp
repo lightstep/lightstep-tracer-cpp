@@ -20,16 +20,16 @@ class TlsRandomNumberGenerator {
  public:
   using BaseGenerator = randutils::random_generator<FastRandomNumberGenerator>;
 
-  TlsRandomNumberGenerator() { ::pthread_atfork(nullptr, nullptr, OnFork); }
+  TlsRandomNumberGenerator() noexcept { ::pthread_atfork(nullptr, nullptr, OnFork); }
 
-  static FastRandomNumberGenerator& engine() {
+  static FastRandomNumberGenerator& engine() noexcept {
     return base_generator_.engine();
   }
 
  private:
   static thread_local BaseGenerator base_generator_;
 
-  static void OnFork() { base_generator_.seed(); }
+  static void OnFork() noexcept { base_generator_.seed(); }
 };
 
 thread_local TlsRandomNumberGenerator::BaseGenerator
@@ -39,21 +39,16 @@ thread_local TlsRandomNumberGenerator::BaseGenerator
 //--------------------------------------------------------------------------------------------------
 // GetRandomNumberGenerator
 //--------------------------------------------------------------------------------------------------
-FastRandomNumberGenerator& GetRandomNumberGenerator() {
-  static TlsRandomNumberGenerator random_number_generator;
+FastRandomNumberGenerator& GetRandomNumberGenerator() noexcept {
+  static thread_local TlsRandomNumberGenerator random_number_generator{};
   return TlsRandomNumberGenerator::engine();
 }
-
-//--------------------------------------------------------------------------------------------------
-// GenerateId
-//--------------------------------------------------------------------------------------------------
-uint64_t GenerateId() { return GetRandomNumberGenerator()(); }
 
 //--------------------------------------------------------------------------------------------------
 // GenerateRandomDuration
 //--------------------------------------------------------------------------------------------------
 std::chrono::nanoseconds GenerateRandomDuration(std::chrono::nanoseconds a,
-                                                std::chrono::nanoseconds b) {
+                                                std::chrono::nanoseconds b) noexcept {
   assert(a <= b);
   std::uniform_int_distribution<std::chrono::nanoseconds::rep> distribution{
       a.count(), b.count()};
