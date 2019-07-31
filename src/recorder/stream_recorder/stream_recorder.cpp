@@ -48,7 +48,7 @@ void StreamRecorder::RecordSpan(
     std::unique_ptr<SerializationChain>&& span) noexcept {
   span->AddFraming();
   if (!span_buffer_.Add(span)) {
-    if (static_cast<int>(logger_.level()) >=
+    if (static_cast<int>(logger_.level()) <=
         static_cast<int>(LogLevel::debug)) {
       logger_.Debug("Dropping span");
     }
