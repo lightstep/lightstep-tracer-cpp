@@ -67,7 +67,7 @@ vcpkg install opentracing:x64-windows-static
 vcpkg install cares:x64-windows-static
 ```
 
-The lightstep tracer can then be built as a static library with
+The lightstep tracer can then be built with
 
 ```
 cmake -DBUILD_SHARED_LIBS=OFF \
