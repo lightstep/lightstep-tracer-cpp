@@ -18,7 +18,10 @@
 #include <pthread.h>
 
 namespace lightstep {
-static const unsigned char HexDigitLookupTable[513] =
+//--------------------------------------------------------------------------------------------------
+// HexDigitLookupTable
+//--------------------------------------------------------------------------------------------------
+const unsigned char HexDigitLookupTable[513] =
     "000102030405060708090A0B0C0D0E0F"
     "101112131415161718191A1B1C1D1E1F"
     "202122232425262728292A2B2C2D2E2F"
@@ -270,6 +273,7 @@ void LogReportResponse(Logger& logger, bool verbose,
 //------------------------------------------------------------------------------
 // This uses the lookup table solution described on this blog post
 // https://johnnylee-sde.github.io/Fast-unsigned-integer-to-hex-string/
+#if 0
 opentracing::string_view Uint64ToHex(uint64_t x, char* output) {
   for (int i = 8; i-- > 0;) {
     auto lookup_index = (x & 0xFF) * 2;
@@ -279,12 +283,14 @@ opentracing::string_view Uint64ToHex(uint64_t x, char* output) {
   }
   return {output, Num64BitHexDigits};
 }
+#endif
 
 //------------------------------------------------------------------------------
 // Uint32ToHex
 //------------------------------------------------------------------------------
 // This uses the lookup table solution described on this blog post
 // https://johnnylee-sde.github.io/Fast-unsigned-integer-to-hex-string/
+#if 0
 opentracing::string_view Uint32ToHex(uint32_t x, char* output) {
   for (int i = 4; i-- > 0;) {
     auto lookup_index = (x & 0xFF) * 2;
@@ -294,6 +300,7 @@ opentracing::string_view Uint32ToHex(uint32_t x, char* output) {
   }
   return {output, Num32BitHexDigits};
 }
+#endif
 
 //------------------------------------------------------------------------------
 // HexToUint64
