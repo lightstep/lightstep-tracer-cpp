@@ -24,8 +24,15 @@ const size_t Num32BitHexDigits = std::numeric_limits<uint32_t>::digits / 4;
  * https://github.com/protocolbuffers/protobuf/blob/8489612dadd3775ffbba029a583b6f00e91d0547/src/google/protobuf/timestamp.proto
  * @param t the time point to format
  */
-std::tuple<uint64_t, uint32_t> ProtobufFormatTimestamp(
-    const std::chrono::system_clock::time_point& t);
+inline std::tuple<uint64_t, uint32_t> ProtobufFormatTimestamp(
+    const std::chrono::system_clock::time_point& t) {
+  auto nanos =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(t.time_since_epoch())
+          .count();
+  const uint64_t nanosPerSec = 1000000000;
+  return {static_cast<uint64_t>(nanos / nanosPerSec),
+          static_cast<uint32_t>(nanos % nanosPerSec)};
+}
 
 // Convert a std::chrono::system_clock::time_point to the time value used
 // by protobuf.

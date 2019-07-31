@@ -37,19 +37,6 @@ static const unsigned char HexDigitLookupTable[513] =
     "F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF";
 
 //------------------------------------------------------------------------------
-// ProtobufFormatTimestamp
-//------------------------------------------------------------------------------
-std::tuple<uint64_t, uint32_t> ProtobufFormatTimestamp(
-    const std::chrono::system_clock::time_point& t) {
-  auto nanos =
-      std::chrono::duration_cast<std::chrono::nanoseconds>(t.time_since_epoch())
-          .count();
-  const uint64_t nanosPerSec = 1000000000;
-  return {static_cast<uint64_t>(nanos / nanosPerSec),
-          static_cast<uint32_t>(nanos % nanosPerSec)};
-}
-
-//------------------------------------------------------------------------------
 // ToTimestamp
 //------------------------------------------------------------------------------
 google::protobuf::Timestamp ToTimestamp(

@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <chrono>
 #include <exception>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 
 #include "common/serialization.h"

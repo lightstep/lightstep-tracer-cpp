@@ -256,8 +256,8 @@ void WriteString(Stream& stream, opentracing::string_view s) {
  * @param seconds_since_epoch the seconds since the epoch
  * @param nano_fraction the fraction of remaining nanoseconds
  */
-inline size_t ComputeTimestampSerializationSize(uint64_t seconds_since_epoch,
-                                         uint32_t nano_fraction) noexcept {
+inline size_t ComputeTimestampSerializationSize(
+    uint64_t seconds_since_epoch, uint32_t nano_fraction) noexcept {
   static const size_t TimestampSecondsSinceEpochField = 1;
   static const size_t TimestampNanoFractionField = 2;
   return ComputeVarintSerializationSize<TimestampSecondsSinceEpochField>(
