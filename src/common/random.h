@@ -13,32 +13,21 @@ namespace lightstep {
  */
 FastRandomNumberGenerator& GetRandomNumberGenerator() noexcept;
 
-class TlsRandomNumberGenerator {
- public:
-  using BaseGenerator = randutils::random_generator<FastRandomNumberGenerator>;
-
-  /* TlsRandomNumberGenerator() noexcept { ::pthread_atfork(nullptr, nullptr, OnFork); } */
-  TlsRandomNumberGenerator() noexcept;
-
-  static FastRandomNumberGenerator& engine() noexcept {
-    return base_generator_.engine();
-  }
-
- private:
-  static thread_local BaseGenerator base_generator_;
-
-  static void OnFork() noexcept { base_generator_.seed(); }
-};
-
-extern thread_local TlsRandomNumberGenerator RandomNumberGenerator;
-
 /**
  * @return a random 64-bit number.
  */
 inline uint64_t GenerateId() noexcept {
-  return RandomNumberGenerator.engine()();
-  /* return RandomNumberGenerator(); */
-  /* return GetRandomNumberGenerator()(); */ 
+  return GetRandomNumberGenerator()(); 
+}
+
+template <size_t N>
+inline std::array<uint64_t, N> GenerateIds() noexcept {
+  auto& random_number_generator = GetRandomNumberGenerator();
+  std::array<uint64_t, N> result;
+  for (auto& value : result) {
+    value = random_number_generator();
+  }
+  return result;
 }
 
 /**

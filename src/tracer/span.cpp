@@ -1,5 +1,7 @@
 #include "tracer/span.h"
 
+#include <tuple>
+
 #include "common/random.h"
 #include "common/utility.h"
 #include "tracer/serialization.h"
@@ -47,9 +49,12 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
   // references are sampled; with no refences, we set sampled to true.
   if (reference_count == 0) {
     sampled_ = true;
-    trace_id_ = GenerateId();
+    auto ids = GenerateIds<2>();
+    trace_id_ = ids[0];
+    span_id_ = ids[1];
+  } else {
+    span_id_ = GenerateId();
   }
-  span_id_ = GenerateId();
 
   // Set tags.
   for (auto& tag : options.tags) {
