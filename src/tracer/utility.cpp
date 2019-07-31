@@ -6,13 +6,16 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 // is_sampled
 //------------------------------------------------------------------------------
+#if 0
 bool is_sampled(const opentracing::Value& value) noexcept {
   return value != opentracing::Value{0} && value != opentracing::Value{0u};
 }
+#endif
 
 //------------------------------------------------------------------------------
 // ComputeStartTimestamps
 //------------------------------------------------------------------------------
+#if 0
 std::tuple<SystemTime, SteadyTime> ComputeStartTimestamps(
     const Recorder& recorder, const SystemTime& start_system_timestamp,
     const SteadyTime& start_steady_timestamp) noexcept {
@@ -40,4 +43,5 @@ std::tuple<SystemTime, SteadyTime> ComputeStartTimestamps(
   return std::tuple<SystemTime, SteadyTime>{start_system_timestamp,
                                             start_steady_timestamp};
 }
+#endif
 }  // namespace lightstep
