@@ -6,33 +6,23 @@
 #include <tuple>
 #include <vector>
 
-#include "common/chunk_circular_buffer.h"
+#include "common/circular_buffer.h"
+#include "common/serialization_chain.h"
 #include "recorder/stream_recorder/connection_stream.h"
 
-#include <google/protobuf/io/zero_copy_stream.h>
 #include <opentracing/string_view.h>
 
 namespace lightstep {
 /**
- * Randomly writes binary numbers into a given ChunkCircularBuffer.
+ * Randomly writes binary numbers into a given circular buffer.
  * @param buffer the buffer to write numbers into.
  * @param numbers outputs the numbers written.
  * @param num_threads the number of threads to write numbers on.
  * @param n the number of numbers to write.
  */
-void RunBinaryNumberProducer(ChunkCircularBuffer& buffer,
+void RunBinaryNumberProducer(CircularBuffer<SerializationChain>& buffer,
                              std::vector<uint32_t>& numbers, size_t num_threads,
                              size_t n);
-
-/**
- * Reads numbers out of the given ChunkCircularBuffer.
- * @param buffer the buffer to read numbers out of.
- * @param exit indicates that the producer has finished.
- * @param numbers outputs the numbers read.
- */
-void RunBinaryNumberConsumer(ChunkCircularBuffer& buffer,
-                             std::atomic<bool>& exit,
-                             std::vector<uint32_t>& numbers);
 
 /**
  * Reads numbers out of the given ChunkCircularBuffer through the given
@@ -43,6 +33,7 @@ void RunBinaryNumberConsumer(ChunkCircularBuffer& buffer,
  * @param numbers outputs the numbers read.
  */
 void RunBinaryNumberConnectionConsumer(
-    SpanStream& span_stream, std::vector<ConnectionStream>& connection_streams,
-    std::atomic<bool>& exit, std::vector<uint32_t>& numbers);
+    SpanStream& span_stream,
+    std::vector<ConnectionStream>& connection_streams, std::atomic<bool>& exit,
+    std::vector<uint32_t>& numbers);
 }  // namespace lightstep
