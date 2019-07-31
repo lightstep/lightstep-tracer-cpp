@@ -61,6 +61,8 @@ class Logger {
 
   void set_level(LogLevel level) noexcept { level_ = level; }
 
+  LogLevel level() const noexcept { return level_; }
+
  private:
   std::function<void(LogLevel, opentracing::string_view)> logger_sink_;
   LogLevel level_ = LogLevel::error;

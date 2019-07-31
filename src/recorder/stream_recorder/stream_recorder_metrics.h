@@ -16,7 +16,10 @@ class StreamRecorderMetrics {
    * Record dropped spans.
    * @param num_spans the number of spans dropped.
    */
-  void OnSpansDropped(int num_spans) noexcept;
+  inline void OnSpansDropped(int num_spans) noexcept {
+    metrics_observer_.OnSpansDropped(num_spans);
+    num_dropped_spans_ += num_spans;
+  }
 
   /**
    * Record spans sent.

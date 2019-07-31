@@ -9,14 +9,6 @@ StreamRecorderMetrics::StreamRecorderMetrics(
     : metrics_observer_{metrics_observer} {}
 
 //--------------------------------------------------------------------------------------------------
-// OnSpansDropped
-//--------------------------------------------------------------------------------------------------
-void StreamRecorderMetrics::OnSpansDropped(int num_spans) noexcept {
-  metrics_observer_.OnSpansDropped(num_spans);
-  num_dropped_spans_ += num_spans;
-}
-
-//--------------------------------------------------------------------------------------------------
 // OnSpansSent
 //--------------------------------------------------------------------------------------------------
 void StreamRecorderMetrics::OnSpansSent(int num_spans) noexcept {
