@@ -12,11 +12,14 @@ namespace lightstep {
  */
 FastRandomNumberGenerator& GetRandomNumberGenerator() noexcept;
 
+extern thread_local FastRandomNumberGenerator& RandomNumberGenerator;
+
 /**
  * @return a random 64-bit number.
  */
 inline uint64_t GenerateId() noexcept {
-  return GetRandomNumberGenerator()(); 
+  return RandomNumberGenerator();
+  /* return GetRandomNumberGenerator()(); */ 
 }
 
 /**

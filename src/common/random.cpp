@@ -44,6 +44,9 @@ FastRandomNumberGenerator& GetRandomNumberGenerator() noexcept {
   return TlsRandomNumberGenerator::engine();
 }
 
+thread_local FastRandomNumberGenerator& RandomNumberGenerator =
+    GetRandomNumberGenerator();
+
 //--------------------------------------------------------------------------------------------------
 // GenerateRandomDuration
 //--------------------------------------------------------------------------------------------------
