@@ -6,8 +6,8 @@ project(lightstep-tracer)
 # Version information
 
 set(LIGHTSTEP_VERSION_MAJOR "0")
-set(LIGHTSTEP_VERSION_MINOR "9")
-set(LIGHTSTEP_VERSION_PATCH "0")
+set(LIGHTSTEP_VERSION_MINOR "10")
+set(LIGHTSTEP_VERSION_PATCH "1")
 set(LIGHTSTEP_VERSION_STRING
   "${LIGHTSTEP_VERSION_MAJOR}.${LIGHTSTEP_VERSION_MINOR}.${LIGHTSTEP_VERSION_PATCH}")
 
@@ -173,16 +173,17 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/common/random_traverser.cpp
                    src/common/serialization.cpp
                    src/common/serialization_chain.cpp
+                   src/common/timestamp.cpp
                    src/recorder/report_builder.cpp
                    src/recorder/auto_recorder.cpp
                    src/recorder/fork_aware_recorder.cpp
                    src/recorder/manual_recorder.cpp
                    src/recorder/transporter.cpp
                    src/tracer/binary_carrier.cpp
+                   src/tracer/propagation.cpp
                    src/tracer/legacy/legacy_immutable_span_context.cpp
                    src/tracer/legacy/legacy_span.cpp
                    src/tracer/legacy/legacy_tracer_impl.cpp
-                   src/tracer/legacy/propagation.cpp
                    src/tracer/lightstep_span_context.cpp
                    src/tracer/lightstep_tracer_factory.cpp
                    src/tracer/serialization.cpp

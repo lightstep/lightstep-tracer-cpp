@@ -67,6 +67,11 @@
       "type": "array",
       "items": { "$ref": "#/definitions/endpoint" },
       "description": "A list of satellite endpoints to upload spans to."
+    },
+
+    "verbose": {
+      "type": "boolean",
+      "description": "Log at the debug level."
     }
   },
   "definitions": {

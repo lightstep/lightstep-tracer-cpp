@@ -32,3 +32,10 @@ cc_library(
         "-Wl,--allow-multiple-definition", 
     ],
 )
+
+sh_binary(
+    name = "profile_benchmark",
+    srcs = [
+        "profile_benchmark.sh",
+    ],
+)

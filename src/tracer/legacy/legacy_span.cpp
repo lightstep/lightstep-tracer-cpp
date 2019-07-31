@@ -18,7 +18,7 @@ static bool SetSpanReference(
     Logger& logger,
     const std::pair<opentracing::SpanReferenceType,
                     const opentracing::SpanContext*>& reference,
-    BaggageMap& baggage, collector::Reference& collector_reference,
+    BaggageProtobufMap& baggage, collector::Reference& collector_reference,
     bool& sampled) {
   collector_reference.Clear();
   switch (reference.first) {
@@ -68,8 +68,9 @@ LegacySpan::LegacySpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
 
   // Set the start timestamps.
   std::chrono::system_clock::time_point start_timestamp;
-  std::tie(start_timestamp, start_steady_) = ComputeStartTimestamps(
-      options.start_system_timestamp, options.start_steady_timestamp);
+  std::tie(start_timestamp, start_steady_) =
+      ComputeStartTimestamps(recorder_, options.start_system_timestamp,
+                             options.start_steady_timestamp);
   *span_.mutable_start_timestamp() = ToTimestamp(start_timestamp);
 
   // Set any span references.
@@ -196,7 +197,7 @@ void LegacySpan::SetBaggageItem(opentracing::string_view restricted_key,
                                 opentracing::string_view value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   auto& baggage = *span_.mutable_span_context()->mutable_baggage();
-  baggage.insert(BaggageMap::value_type(restricted_key, value));
+  baggage.insert(BaggageProtobufMap::value_type(restricted_key, value));
 } catch (const std::exception& e) {
   logger_.Error("SetBaggageItem failed: ", e.what());
 }

@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "common/serialization_chain.h"
+#include "common/timestamp.h"
 
 #include <lightstep/tracer.h>
 #include "lightstep-tracer-common/collector.pb.h"
@@ -43,6 +44,32 @@ class Recorder {
   virtual bool FlushWithTimeout(
       std::chrono::system_clock::duration /*timeout*/) noexcept {
     return true;
+  }
+
+  /**
+   * Compute a timestamp delta that con be used to convert between system and
+   * steady timestamps.
+   *
+   * Having the the recorder provide this functionality
+   * allows it to cache and regulary refresh the value to avoid the performance
+   * cost of always computing it.
+   * @return the timestamp delta
+   */
+  virtual int64_t ComputeSystemSteadyTimestampDelta() const noexcept {
+    return lightstep::ComputeSystemSteadyTimestampDelta();
+  }
+
+  /**
+   * Compute the current system time from current steady time point.
+   *
+   * If the recorder caches a timestamp delta, it can avoid a call to
+   * system_clock::now.
+   * @param steady_now the current steady timestamp
+   * @return the current system timestamp
+   */
+  virtual std::chrono::system_clock::time_point ComputeCurrentSystemTimestamp(
+      std::chrono::steady_clock::time_point /*steady_now*/) const noexcept {
+    return std::chrono::system_clock::now();
   }
 };
 }  // namespace lightstep

@@ -27,7 +27,8 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
   // Set the start timestamps.
   std::chrono::system_clock::time_point start_timestamp;
   std::tie(start_timestamp, start_steady_) = ComputeStartTimestamps(
-      options.start_system_timestamp, options.start_steady_timestamp);
+      tracer_->recorder(), options.start_system_timestamp,
+      options.start_steady_timestamp);
   WriteStartTimestamp(stream_, start_timestamp);
 
   // Set any span references.

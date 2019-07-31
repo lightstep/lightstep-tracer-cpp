@@ -177,3 +177,13 @@ lightstep_catch_test(
         ":test_proto_cc",
     ],
 )
+
+lightstep_catch_test(
+    name = "timestamp_test",
+    srcs = [
+        "timestamp_test.cpp",
+    ],
+    deps = [
+        "//src/common:timestamp_lib",
+    ],
+)
