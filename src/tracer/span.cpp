@@ -72,9 +72,8 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
 // destructor
 //--------------------------------------------------------------------------------------------------
 Span::~Span() noexcept {
-  if (!is_finished_) {
-    Finish();
-  }
+  opentracing::FinishSpanOptions options;
+  FinishImpl(options);
 }
 
 //------------------------------------------------------------------------------
@@ -82,40 +81,8 @@ Span::~Span() noexcept {
 //------------------------------------------------------------------------------
 void Span::FinishWithOptions(
     const opentracing::FinishSpanOptions& options) noexcept try {
-  // Ensure the span is only finished once.
-  if (is_finished_.exchange(true)) {
-    return;
-  }
-
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  if (!sampled_) {
-    return;
-  }
-
-  auto finish_timestamp = options.finish_steady_timestamp;
-  if (finish_timestamp == SteadyTime()) {
-    finish_timestamp = SteadyClock::now();
-  }
-
-  // Set timing information.
-  auto duration = finish_timestamp - start_steady_;
-  WriteDuration(stream_, duration);
-
-  // Set logs
-  for (auto& log_record : options.log_records) {
-    try {
-      WriteLog(stream_, log_record.timestamp, log_record.fields.data(),
-               log_record.fields.data() + log_record.fields.size());
-    } catch (const std::exception& e) {
-      tracer_->logger().Error("Dropping log record: ", e.what());
-    }
-  }
-
-  WriteSpanContext(stream_, trace_id_, span_id_, baggage_.as_vector());
-
-  // Record the span
-  stream_.Trim();
-  tracer_->recorder().RecordSpan(std::move(serialization_chain_));
+  FinishImpl(options);
 } catch (const std::exception& e) {
   tracer_->logger().Error("FinishWithOptions failed: ", e.what());
 }
@@ -234,5 +201,47 @@ bool Span::SetSpanReference(
         return true;
       });
   return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+// FinishImpl
+//--------------------------------------------------------------------------------------------------
+void Span::FinishImpl(
+    const opentracing::FinishSpanOptions& options) noexcept try {
+  // Ensure the span is only finished once.
+  if (is_finished_.exchange(true)) {
+    return;
+  }
+
+  if (!sampled_) {
+    return;
+  }
+
+  auto finish_timestamp = options.finish_steady_timestamp;
+  if (finish_timestamp == SteadyTime()) {
+    finish_timestamp = SteadyClock::now();
+  }
+
+  // Set timing information.
+  auto duration = finish_timestamp - start_steady_;
+  WriteDuration(stream_, duration);
+
+  // Set logs
+  for (auto& log_record : options.log_records) {
+    try {
+      WriteLog(stream_, log_record.timestamp, log_record.fields.data(),
+               log_record.fields.data() + log_record.fields.size());
+    } catch (const std::exception& e) {
+      tracer_->logger().Error("Dropping log record: ", e.what());
+    }
+  }
+
+  WriteSpanContext(stream_, trace_id_, span_id_, baggage_.as_vector());
+
+  // Record the span
+  stream_.Trim();
+  tracer_->recorder().RecordSpan(std::move(serialization_chain_));
+} catch (const std::exception& e) {
+  tracer_->logger().Error("FinishWithOptions failed: ", e.what());
 }
 }  // namespace lightstep

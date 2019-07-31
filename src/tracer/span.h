@@ -108,5 +108,7 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
       const std::pair<opentracing::SpanReferenceType,
                       const opentracing::SpanContext*>& reference,
       uint64_t& trace_id);
+
+  void FinishImpl(const opentracing::FinishSpanOptions& options) noexcept;
 };
 }  // namespace lightstep
