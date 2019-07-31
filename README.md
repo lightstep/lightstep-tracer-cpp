@@ -72,13 +72,13 @@ The lightstep tracer can then be built with
 ```
 cmake -DBUILD_SHARED_LIBS=OFF \
       -DWITH_DYNAMIC_LOAD=OFF \
-			-DWITH_GRPC=OFF \
-			-DWITH_LIBEVENT=ON \
-			-DWITH_CARES=ON \
-			-DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreadedDebug" \
-			-DCMAKE_INSTALL_PREFIX=<path-to-vcpkg>\installed\x64-windows-static \
-			-DCMAKE_CXX_FLAGS="-DCARES_STATICLIB /EHsc" \
-			<path-to-lightstep>
+      -DWITH_GRPC=OFF \
+      -DWITH_LIBEVENT=ON \
+      -DWITH_CARES=ON \
+      -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreadedDebug" \
+      -DCMAKE_INSTALL_PREFIX=<path-to-vcpkg>\installed\x64-windows-static \
+      -DCMAKE_CXX_FLAGS="-DCARES_STATICLIB /EHsc" \
+      <path-to-lightstep>
 msbuild lightstep-tracer.sln
 ```
 
