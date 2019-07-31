@@ -5,7 +5,6 @@
 #include <random>
 
 #include "common/fast_random_number_generator.h"
-#include "lightstep/randutils.h"
 
 namespace lightstep {
 /**
