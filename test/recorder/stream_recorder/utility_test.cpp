@@ -42,9 +42,3 @@ TEST_CASE("WriteStreamHeaderCommonFragment") {
   REQUIRE(tags[0].key() == "xyz");
   REQUIRE(tags[0].int_value() == 456);
 }
-
-TEST_CASE("Contains") {
-  const char* s = "abc123";
-  REQUIRE(Contains(s, 3, s + 1));
-  REQUIRE(!Contains(s, 3, s + 3));
-}

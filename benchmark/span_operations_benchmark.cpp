@@ -3,7 +3,6 @@
 #include "lightstep/tracer.h"
 
 #include "recorder/stream_recorder/stream_recorder.h"
-#include "recorder/stream_recorder/stream_recorder2.h"
 #include "tracer/legacy/legacy_tracer_impl.h"
 #include "tracer/tracer_impl.h"
 
@@ -112,20 +111,6 @@ static std::shared_ptr<opentracing::Tracer> MakeStreamTracer() {
       *logger, std::move(tracer_options), std::move(recorder_options)};
   std::unique_ptr<lightstep::Recorder> recorder{stream_recorder};
   lightstep::PropagationOptions propagation_options;
-  return std::make_shared<lightstep::LegacyTracerImpl>(
-      logger, propagation_options, std::move(recorder));
-}
-
-static std::shared_ptr<opentracing::Tracer> MakeStreamTracer2() {
-  lightstep::LightStepTracerOptions tracer_options;
-  lightstep::StreamRecorderOptions recorder_options;
-  recorder_options.throw_away_spans = true;
-  auto logger = std::make_shared<lightstep::Logger>();
-  logger->set_level(lightstep::LogLevel::off);
-  auto stream_recorder = new lightstep::StreamRecorder2{
-      *logger, std::move(tracer_options), std::move(recorder_options)};
-  std::unique_ptr<lightstep::Recorder> recorder{stream_recorder};
-  lightstep::PropagationOptions propagation_options;
   return std::make_shared<lightstep::TracerImpl>(logger, propagation_options,
                                                  std::move(recorder));
 }
@@ -140,9 +125,6 @@ static std::shared_ptr<opentracing::Tracer> MakeTracer(
   }
   if (tracer_type == "stream") {
     return MakeStreamTracer();
-  }
-  if (tracer_type == "stream2") {
-    return MakeStreamTracer2();
   }
   std::cerr << "Unknown tracer type: " << tracer_type << "\n";
   std::terminate();
@@ -169,7 +151,6 @@ static void BM_SpanCreation(benchmark::State& state, const char* tracer_type) {
 }
 BENCHMARK_CAPTURE(BM_SpanCreation, rpc, "rpc");
 BENCHMARK_CAPTURE(BM_SpanCreation, stream, "stream");
-BENCHMARK_CAPTURE(BM_SpanCreation, stream2, "stream2");
 
 //------------------------------------------------------------------------------
 // BM_SpanCreationThreaded
@@ -206,11 +187,6 @@ BENCHMARK_CAPTURE(BM_SpanCreationThreaded, stream, "stream")
     ->Arg(2)
     ->Arg(4)
     ->Arg(8);
-BENCHMARK_CAPTURE(BM_SpanCreationThreaded, stream2, "stream2")
-    ->Arg(1)
-    ->Arg(2)
-    ->Arg(4)
-    ->Arg(8);
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanCreationWithParent
@@ -230,7 +206,6 @@ static void BM_SpanCreationWithParent(benchmark::State& state,
 }
 BENCHMARK_CAPTURE(BM_SpanCreationWithParent, rpc, "rpc");
 BENCHMARK_CAPTURE(BM_SpanCreationWithParent, stream, "stream");
-BENCHMARK_CAPTURE(BM_SpanCreationWithParent, stream2, "stream2");
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanSetTag1
@@ -245,7 +220,6 @@ static void BM_SpanSetTag1(benchmark::State& state, const char* tracer_type) {
 }
 BENCHMARK_CAPTURE(BM_SpanSetTag1, rpc, "rpc");
 BENCHMARK_CAPTURE(BM_SpanSetTag1, stream, "stream");
-BENCHMARK_CAPTURE(BM_SpanSetTag1, stream2, "stream2");
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanSetTag2
@@ -269,7 +243,6 @@ static void BM_SpanSetTag2(benchmark::State& state, const char* tracer_type) {
 }
 BENCHMARK_CAPTURE(BM_SpanSetTag2, rpc, "rpc");
 BENCHMARK_CAPTURE(BM_SpanSetTag2, stream, "stream");
-BENCHMARK_CAPTURE(BM_SpanSetTag2, stream2, "stream2");
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanLog1
@@ -284,7 +257,6 @@ static void BM_SpanLog1(benchmark::State& state, const char* tracer_type) {
 }
 BENCHMARK_CAPTURE(BM_SpanLog1, rpc, "rpc");
 BENCHMARK_CAPTURE(BM_SpanLog1, stream, "stream");
-BENCHMARK_CAPTURE(BM_SpanLog1, stream2, "stream2");
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanLog2
@@ -301,7 +273,6 @@ static void BM_SpanLog2(benchmark::State& state, const char* tracer_type) {
 }
 BENCHMARK_CAPTURE(BM_SpanLog2, rpc, "rpc");
 BENCHMARK_CAPTURE(BM_SpanLog2, stream, "stream");
-BENCHMARK_CAPTURE(BM_SpanLog2, stream2, "stream2");
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanContextMultikeyInjection

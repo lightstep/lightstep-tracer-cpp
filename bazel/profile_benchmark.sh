@@ -10,7 +10,9 @@ TEMPDIR=$(mktemp -d)
 echo $TEMPDIR
 pushd $TEMPDIR
 for FILTER in $BENCHMARKS; do
+  echo "Generate profile for $FILTER"
   valgrind --tool=callgrind $BENCHMARK --benchmark_filter=$FILTER$
+  echo "Convert $FILTER to image"
   gprof2dot --format=callgrind --output=out.dot callgrind.out.*
   FILTER_PRIME=$(echo $FILTER | tr / -)
   dot -Tpng out.dot -o "$BENCHMARK_NAME-$FILTER_PRIME.png"

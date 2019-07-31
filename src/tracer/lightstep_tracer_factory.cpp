@@ -3,7 +3,6 @@
 #include <limits>
 
 #include <google/protobuf/util/json_util.h>
-#include <lightstep/tracer.h>
 #include "lightstep-tracer-configuration/tracer_configuration.pb.h"
 
 namespace lightstep {
@@ -29,12 +28,10 @@ static std::vector<std::pair<std::string, uint16_t>> GetSatelliteEndpoints(
 }
 
 //--------------------------------------------------------------------------------------------------
-// MakeTracer
+// MakeTracerOptions
 //--------------------------------------------------------------------------------------------------
-opentracing::expected<std::shared_ptr<opentracing::Tracer>>
-LightStepTracerFactory::MakeTracer(const char* configuration,
-                                   std::string& error_message) const
-    noexcept try {
+opentracing::expected<LightStepTracerOptions> MakeTracerOptions(
+    const char* configuration, std::string& error_message) {
   tracer_configuration::TracerConfiguration tracer_configuration;
   auto parse_result = google::protobuf::util::JsonStringToMessage(
       configuration, &tracer_configuration);
@@ -74,8 +71,24 @@ LightStepTracerFactory::MakeTracer(const char* configuration,
 
   options.satellite_endpoints = GetSatelliteEndpoints(tracer_configuration);
 
+  options.verbose = tracer_configuration.verbose();
+
+  return options;
+}
+
+//--------------------------------------------------------------------------------------------------
+// MakeTracer
+//--------------------------------------------------------------------------------------------------
+opentracing::expected<std::shared_ptr<opentracing::Tracer>>
+LightStepTracerFactory::MakeTracer(const char* configuration,
+                                   std::string& error_message) const
+    noexcept try {
+  auto options_maybe = MakeTracerOptions(configuration, error_message);
+  if (!options_maybe) {
+    return opentracing::make_unexpected(options_maybe.error());
+  }
   auto result = std::shared_ptr<opentracing::Tracer>{
-      MakeLightStepTracer(std::move(options))};
+      MakeLightStepTracer(std::move(*options_maybe))};
   if (result == nullptr) {
     return opentracing::make_unexpected(
         opentracing::invalid_configuration_error);
