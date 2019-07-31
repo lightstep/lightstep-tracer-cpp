@@ -5,6 +5,13 @@
 #include <limits>
 
 namespace lightstep {
+/**
+ * Profiling shows that random number generation can be a significant cost of
+ * span generation. This provides a faster random number generator than
+ * std::mt19937_64; and since we don't care about the other beneficial random
+ * number properties that std:mt19937_64 provides for this application, it's a
+ * entirely appropriate replacement.
+ */
 class FastRandomNumberGenerator {
  public:
   using result_type = uint64_t;
@@ -31,6 +38,8 @@ class FastRandomNumberGenerator {
     return t + s;
   }
 
+  // RandomNumberGenerator concept functions required from standard library.
+  // See http://www.cplusplus.com/reference/random/mt19937/
   template <class SeedSequence>
   void seed(SeedSequence& seed_sequence) noexcept {
     seed_sequence.generate(

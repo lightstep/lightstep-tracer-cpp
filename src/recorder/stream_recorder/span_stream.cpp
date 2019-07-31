@@ -5,7 +5,7 @@ namespace lightstep {
 // constructor
 //--------------------------------------------------------------------------------------------------
 SpanStream::SpanStream(CircularBuffer<SerializationChain>& span_buffer,
-                         StreamRecorderMetrics& metrics) noexcept
+                       StreamRecorderMetrics& metrics) noexcept
     : span_buffer_{span_buffer}, metrics_{metrics} {}
 
 //--------------------------------------------------------------------------------------------------

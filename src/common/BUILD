@@ -92,9 +92,6 @@ lightstep_cc_library(
     private_hdrs = [
         "fast_random_number_generator.h",
     ],
-    srcs = [
-        "fast_random_number_generator.cpp",
-    ],
 )
 
 lightstep_cc_library(

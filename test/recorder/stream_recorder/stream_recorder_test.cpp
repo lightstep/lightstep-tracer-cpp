@@ -59,7 +59,7 @@ TEST_CASE("StreamRecorder") {
           std::chrono::milliseconds{300});
 
   auto stream_recorder = new StreamRecorder{*logger, std::move(tracer_options),
-                                             std::move(recorder_options)};
+                                            std::move(recorder_options)};
   std::unique_ptr<Recorder> recorder{stream_recorder};
   PropagationOptions propagation_options;
   auto tracer = std::make_shared<TracerImpl>(logger, propagation_options,

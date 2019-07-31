@@ -12,7 +12,7 @@ namespace lightstep {
 class SpanStream final : public FragmentInputStream {
  public:
   SpanStream(CircularBuffer<SerializationChain>& span_buffer,
-              StreamRecorderMetrics& metrics) noexcept;
+             StreamRecorderMetrics& metrics) noexcept;
 
   /**
    * Allots spans from the associated circular buffer to stream to satellites.

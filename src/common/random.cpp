@@ -20,7 +20,9 @@ class TlsRandomNumberGenerator {
  public:
   using BaseGenerator = randutils::random_generator<FastRandomNumberGenerator>;
 
-  TlsRandomNumberGenerator() noexcept { ::pthread_atfork(nullptr, nullptr, OnFork); }
+  TlsRandomNumberGenerator() noexcept {
+    ::pthread_atfork(nullptr, nullptr, OnFork);
+  }
 
   static FastRandomNumberGenerator& engine() noexcept {
     return base_generator_.engine();
@@ -47,8 +49,8 @@ FastRandomNumberGenerator& GetRandomNumberGenerator() noexcept {
 //--------------------------------------------------------------------------------------------------
 // GenerateRandomDuration
 //--------------------------------------------------------------------------------------------------
-std::chrono::nanoseconds GenerateRandomDuration(std::chrono::nanoseconds a,
-                                                std::chrono::nanoseconds b) noexcept {
+std::chrono::nanoseconds GenerateRandomDuration(
+    std::chrono::nanoseconds a, std::chrono::nanoseconds b) noexcept {
   assert(a <= b);
   std::uniform_int_distribution<std::chrono::nanoseconds::rep> distribution{
       a.count(), b.count()};

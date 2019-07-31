@@ -20,8 +20,8 @@ static MetricsObserver& GetMetricsObserver(
 // constructor
 //--------------------------------------------------------------------------------------------------
 StreamRecorder::StreamRecorder(Logger& logger,
-                                 LightStepTracerOptions&& tracer_options,
-                                 StreamRecorderOptions&& recorder_options)
+                               LightStepTracerOptions&& tracer_options,
+                               StreamRecorderOptions&& recorder_options)
     : logger_{logger},
       tracer_options_{std::move(tracer_options)},
       recorder_options_{std::move(recorder_options)},
