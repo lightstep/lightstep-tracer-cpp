@@ -15,6 +15,7 @@ namespace lightstep {
 //
 // See https://stackoverflow.com/q/51882689/4447365 and
 //     https://github.com/opentracing-contrib/nginx-opentracing/issues/52
+#if 0
 namespace {
 class TlsRandomNumberGenerator {
  public:
@@ -35,6 +36,11 @@ class TlsRandomNumberGenerator {
 thread_local TlsRandomNumberGenerator::BaseGenerator
     TlsRandomNumberGenerator::base_generator_{};
 }  // namespace
+#endif
+thread_local TlsRandomNumberGenerator::BaseGenerator
+    TlsRandomNumberGenerator::base_generator_{};
+TlsRandomNumberGenerator::TlsRandomNumberGenerator() noexcept { ::pthread_atfork(nullptr, nullptr, OnFork); }
+thread_local TlsRandomNumberGenerator RandomNumberGenerator{};
 
 //--------------------------------------------------------------------------------------------------
 // GetRandomNumberGenerator
@@ -44,8 +50,8 @@ FastRandomNumberGenerator& GetRandomNumberGenerator() noexcept {
   return TlsRandomNumberGenerator::engine();
 }
 
-thread_local FastRandomNumberGenerator& RandomNumberGenerator =
-    GetRandomNumberGenerator();
+/* thread_local FastRandomNumberGenerator& RandomNumberGenerator = */
+/*     GetRandomNumberGenerator(); */
 
 //--------------------------------------------------------------------------------------------------
 // GenerateRandomDuration

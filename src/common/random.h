@@ -5,6 +5,7 @@
 #include <random>
 
 #include "common/fast_random_number_generator.h"
+#include "lightstep/randutils.h"
 
 namespace lightstep {
 /**
@@ -12,13 +13,31 @@ namespace lightstep {
  */
 FastRandomNumberGenerator& GetRandomNumberGenerator() noexcept;
 
-extern thread_local FastRandomNumberGenerator& RandomNumberGenerator;
+class TlsRandomNumberGenerator {
+ public:
+  using BaseGenerator = randutils::random_generator<FastRandomNumberGenerator>;
+
+  /* TlsRandomNumberGenerator() noexcept { ::pthread_atfork(nullptr, nullptr, OnFork); } */
+  TlsRandomNumberGenerator() noexcept;
+
+  static FastRandomNumberGenerator& engine() noexcept {
+    return base_generator_.engine();
+  }
+
+ private:
+  static thread_local BaseGenerator base_generator_;
+
+  static void OnFork() noexcept { base_generator_.seed(); }
+};
+
+extern thread_local TlsRandomNumberGenerator RandomNumberGenerator;
 
 /**
  * @return a random 64-bit number.
  */
 inline uint64_t GenerateId() noexcept {
-  return RandomNumberGenerator();
+  return RandomNumberGenerator.engine()();
+  /* return RandomNumberGenerator(); */
   /* return GetRandomNumberGenerator()(); */ 
 }
 
