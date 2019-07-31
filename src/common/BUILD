@@ -98,6 +98,13 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "fast_random_number_generator_lib",
+    private_hdrs = [
+        "fast_random_number_generator.h",
+    ],
+)
+
+lightstep_cc_library(
     name = "random_lib",
     private_hdrs = [
         "random.h",
@@ -106,6 +113,7 @@ lightstep_cc_library(
         "random.cpp",
     ],
     deps = [
+        ":fast_random_number_generator_lib",
         "//3rd_party/randutils:randutils_lib",
     ],
     linkopts = [

@@ -25,7 +25,7 @@ class ConnectionStream {
       std::initializer_list<FragmentInputStream*> fragment_input_streams)>;
 
   ConnectionStream(Fragment host_header_fragment,
-                    Fragment header_common_fragment, SpanStream& span_stream);
+                   Fragment header_common_fragment, SpanStream& span_stream);
 
   /**
    * Reset so as to begin a new streaming session.
