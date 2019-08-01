@@ -58,10 +58,11 @@ template <class Stream>
 static inline void WriteSpanContextImpl(
     Stream& stream, uint64_t trace_id, uint64_t span_id,
     const std::vector<std::pair<std::string, std::string>>& baggage) {
-  WriteBigVarint<SpanContextTraceIdField>(stream, trace_id);
-  WriteBigVarint<SpanContextSpanIdField>(stream, span_id);
-
-  if (__builtin_expect(baggage.empty(), 1)) {
+  /* WriteBigVarint<SpanContextTraceIdField>(stream, trace_id); */
+  /* WriteBigVarint<SpanContextSpanIdField>(stream, span_id); */
+  WriteVarint<SpanContextTraceIdField>(stream, trace_id);
+  WriteVarint<SpanContextSpanIdField>(stream, span_id);
+  if (static_cast<bool>(__builtin_expect(baggage.empty(), 1))) {
     return;
   }
   for (auto& baggage_item : baggage) {
