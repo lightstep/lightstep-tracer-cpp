@@ -14,6 +14,16 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "direct_coded_output_stream_lib",
+    private_hdrs = [
+        "direct_coded_output_stream.h",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+lightstep_cc_library(
     name = "serialization_chain_lib",
     private_hdrs = [
         "serialization_chain.h",
@@ -206,6 +216,7 @@ lightstep_cc_library(
     ],
     deps = [
         ":utility_lib",
+        ":direct_coded_output_stream_lib",
     ],
     external_deps = [
         "@com_google_protobuf//:protobuf",

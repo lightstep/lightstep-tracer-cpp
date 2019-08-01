@@ -16,6 +16,7 @@
 namespace lightstep {
 const size_t Num64BitHexDigits = std::numeric_limits<uint64_t>::digits / 4;
 const size_t Num32BitHexDigits = std::numeric_limits<uint32_t>::digits / 4;
+extern const unsigned char HexDigitLookupTable[513];
 
 /**
  * Breaks the timestamp down into seconds past epoch and nanosecond fraction
@@ -24,8 +25,15 @@ const size_t Num32BitHexDigits = std::numeric_limits<uint32_t>::digits / 4;
  * https://github.com/protocolbuffers/protobuf/blob/8489612dadd3775ffbba029a583b6f00e91d0547/src/google/protobuf/timestamp.proto
  * @param t the time point to format
  */
-std::tuple<uint64_t, uint32_t> ProtobufFormatTimestamp(
-    const std::chrono::system_clock::time_point& t);
+inline std::tuple<uint64_t, uint32_t> ProtobufFormatTimestamp(
+    const std::chrono::system_clock::time_point& t) {
+  auto nanos =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(t.time_since_epoch())
+          .count();
+  const uint64_t nanosPerSec = 1000000000;
+  return {static_cast<uint64_t>(nanos / nanosPerSec),
+          static_cast<uint32_t>(nanos % nanosPerSec)};
+}
 
 // Convert a std::chrono::system_clock::time_point to the time value used
 // by protobuf.
@@ -87,7 +95,15 @@ void LogReportResponse(Logger& logger, bool verbose,
  * @param output where to output the number
  * @return x as a hex string
  */
-opentracing::string_view Uint64ToHex(uint64_t x, char* output);
+inline opentracing::string_view Uint64ToHex(uint64_t x, char* output) noexcept {
+  for (int i = 8; i-- > 0;) {
+    auto lookup_index = (x & 0xFF) * 2;
+    output[i * 2] = HexDigitLookupTable[lookup_index];
+    output[i * 2 + 1] = HexDigitLookupTable[lookup_index + 1];
+    x >>= 8;
+  }
+  return {output, Num64BitHexDigits};
+}
 
 /**
  * Writes a 32-bit number in hex.
@@ -95,7 +111,15 @@ opentracing::string_view Uint64ToHex(uint64_t x, char* output);
  * @param output where to output the number
  * @return x as a hex string
  */
-opentracing::string_view Uint32ToHex(uint32_t x, char* output);
+inline opentracing::string_view Uint32ToHex(uint32_t x, char* output) noexcept {
+  for (int i = 4; i-- > 0;) {
+    auto lookup_index = (x & 0xFF) * 2;
+    output[i * 2] = HexDigitLookupTable[lookup_index];
+    output[i * 2 + 1] = HexDigitLookupTable[lookup_index + 1];
+    x >>= 8;
+  }
+  return {output, Num32BitHexDigits};
+}
 
 // Converts a hexidecimal number to a 64-bit integer. Either returns the number
 // or an error code.

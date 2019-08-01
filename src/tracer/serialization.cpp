@@ -32,7 +32,7 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // ComputeSpanContextSerializationSize
 //--------------------------------------------------------------------------------------------------
-static size_t ComputeSpanContextSerializationSize(
+static inline size_t ComputeSpanContextSerializationSize(
     uint64_t trace_id, uint64_t span_id,
     const std::vector<std::pair<std::string, std::string>>& baggage =
         {}) noexcept {
@@ -52,16 +52,14 @@ static size_t ComputeSpanContextSerializationSize(
 }
 
 //--------------------------------------------------------------------------------------------------
-// WriteSpanContext
+// WriteSpanContextImpl
 //--------------------------------------------------------------------------------------------------
-template <size_t FieldNumber>
-static void WriteSpanContext(
-    google::protobuf::io::CodedOutputStream& stream, size_t serialization_size,
-    uint64_t trace_id, uint64_t span_id,
-    const std::vector<std::pair<std::string, std::string>>& baggage = {}) {
-  WriteKeyLength<FieldNumber>(stream, serialization_size);
-  WriteVarint<SpanContextTraceIdField>(stream, trace_id);
-  WriteVarint<SpanContextSpanIdField>(stream, span_id);
+template <class Stream>
+static inline void WriteSpanContextImpl(
+    Stream& stream, uint64_t trace_id, uint64_t span_id,
+    const std::vector<std::pair<std::string, std::string>>& baggage) {
+  WriteBigVarint<SpanContextTraceIdField>(stream, trace_id);
+  WriteBigVarint<SpanContextSpanIdField>(stream, span_id);
   for (auto& baggage_item : baggage) {
     auto baggage_serialization_size =
         ComputeLengthDelimitedSerializationSize<MapEntryKeyField>(
@@ -72,6 +70,31 @@ static void WriteSpanContext(
     WriteString<MapEntryKeyField>(stream, baggage_item.first);
     WriteString<MapEntryValueField>(stream, baggage_item.second);
   }
+}
+
+//--------------------------------------------------------------------------------------------------
+// SpanContextSerializer
+//--------------------------------------------------------------------------------------------------
+struct SpanContextSerializer {
+  template <class Stream>
+  inline void operator()(
+      Stream& stream, uint64_t trace_id, uint64_t span_id,
+      const std::vector<std::pair<std::string, std::string>>& baggage) const {
+    WriteSpanContextImpl(stream, trace_id, span_id, baggage);
+  }
+};
+
+//--------------------------------------------------------------------------------------------------
+// WriteSpanContext
+//--------------------------------------------------------------------------------------------------
+template <size_t FieldNumber, class Stream>
+static void WriteSpanContext(
+    Stream& stream, size_t serialization_size, uint64_t trace_id,
+    uint64_t span_id,
+    const std::vector<std::pair<std::string, std::string>>& baggage = {}) {
+  WriteLengthDelimitedField<FieldNumber>(stream, serialization_size,
+                                         SpanContextSerializer{}, trace_id,
+                                         span_id, baggage);
 }
 
 template <size_t FieldNumber>
@@ -191,11 +214,16 @@ void WriteSpanReference(google::protobuf::io::CodedOutputStream& stream,
 //--------------------------------------------------------------------------------------------------
 void WriteDuration(google::protobuf::io::CodedOutputStream& stream,
                    std::chrono::steady_clock::duration duration) {
-  WriteVarint<DurationField>(
-      stream,
-      static_cast<uint64_t>(
-          std::chrono::duration_cast<std::chrono::microseconds>(duration)
-              .count()));
+  auto elapse = static_cast<uint64_t>(
+      std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
+  auto total_size = ComputeVarintSerializationSize<DurationField>(elapse);
+  auto buffer = stream.GetDirectBufferForNBytesAndAdvance(total_size);
+  if (buffer != nullptr) {
+    DirectCodedOutputStream direct_stream{buffer};
+    WriteVarint<DurationField>(direct_stream, elapse);
+  } else {
+    WriteVarint<DurationField>(stream, elapse);
+  }
 }
 
 //--------------------------------------------------------------------------------------------------

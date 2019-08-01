@@ -107,6 +107,7 @@ class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
 
  private:
   Logger& logger_;
+
   LightStepTracerOptions tracer_options_;
   StreamRecorderOptions recorder_options_;
   StreamRecorderMetrics metrics_;
