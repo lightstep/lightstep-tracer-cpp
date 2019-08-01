@@ -29,7 +29,8 @@ class DirectCodedOutputStream {
 
   void WriteBigVarint64(uint64_t x) noexcept {
     static const uint64_t pow_2_56 = (1ull << 56);
-    if (static_cast<bool>(__builtin_expect(x < pow_2_56, 0))) {
+    /* if (static_cast<bool>(__builtin_expect(x < pow_2_56, 0))) { */
+    if (x < pow_2_56) {
       WriteVarint64(x);
       return;
     }

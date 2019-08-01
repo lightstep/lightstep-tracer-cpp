@@ -215,7 +215,8 @@ inline void WriteLengthDelimitedField(
   auto total_size =
       ComputeLengthDelimitedSerializationSize<FieldNumber>(serialization_size);
   auto buffer = stream.GetDirectBufferForNBytesAndAdvance(total_size);
-  if (__builtin_expect(buffer != nullptr, 1)) {
+  /* if (__builtin_expect(buffer != nullptr, 1)) { */
+  if (buffer != nullptr) {
     DirectCodedOutputStream direct_stream{buffer};
     WriteKeyLength<FieldNumber>(direct_stream, serialization_size);
     serializer(direct_stream, args...);
