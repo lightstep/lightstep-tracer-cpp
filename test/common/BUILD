@@ -69,6 +69,16 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "fast_random_number_generator_test",
+    srcs = [
+        "fast_random_number_generator_test.cpp",
+    ],
+    deps = [
+        "//src/common:fast_random_number_generator_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "random_test",
     srcs = [
         "random_test.cpp",
