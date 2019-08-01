@@ -60,6 +60,7 @@ static inline void WriteSpanContextImpl(
     const std::vector<std::pair<std::string, std::string>>& baggage) {
   WriteBigVarint<SpanContextTraceIdField>(stream, trace_id);
   WriteBigVarint<SpanContextSpanIdField>(stream, span_id);
+
   if (__builtin_expect(baggage.empty(), 1)) {
     return;
   }

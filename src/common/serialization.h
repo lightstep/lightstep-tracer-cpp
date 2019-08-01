@@ -106,7 +106,7 @@ inline void WriteKeyLength(Stream& stream, size_t length) {
  */
 template <size_t FieldNumber, class Stream>
 inline void WriteFixed64(Stream& stream, const void* data) {
-  stream.WriteVarint32(
+  stream.WriteTag(
       StaticSerializationKey<FieldNumber, WireType::Fixed64>::value);
   stream.WriteRaw(data, sizeof(int64_t));
 }
@@ -118,8 +118,7 @@ inline void WriteFixed64(Stream& stream, const void* data) {
  */
 template <size_t FieldNumber, class Stream>
 inline void WriteVarint(Stream& stream, uint64_t x) noexcept {
-  stream.WriteVarint32(
-      StaticSerializationKey<FieldNumber, WireType::Varint>::value);
+  stream.WriteTag(StaticSerializationKey<FieldNumber, WireType::Varint>::value);
   stream.WriteVarint64(x);
 }
 
