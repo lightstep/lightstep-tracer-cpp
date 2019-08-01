@@ -203,6 +203,16 @@ TEST_CASE("tracer") {
       span->FinishWithOptions(options);
       REQUIRE(recorder->top().logs().size() == 1);
     }
+
+    SECTION(tracer_type +
+            ": calling operations that modify a span after it's been finished "
+            "don't do anything catastrophic") {
+      auto span = tracer->StartSpan("a");
+      REQUIRE(span);
+      span->Finish();
+      span->SetTag("abc", 123);
+      span->Log({{"abc", 123}});
+    }
   }
 }
 

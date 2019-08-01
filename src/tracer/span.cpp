@@ -92,6 +92,9 @@ void Span::FinishWithOptions(
 //------------------------------------------------------------------------------
 void Span::SetOperationName(opentracing::string_view name) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
+  if (is_finished_) {
+    return;
+  }
   WriteOperationName(stream_, name);
 } catch (const std::exception& e) {
   tracer_->logger().Error("SetOperationName failed: ", e.what());
@@ -103,6 +106,9 @@ void Span::SetOperationName(opentracing::string_view name) noexcept try {
 void Span::SetTag(opentracing::string_view key,
                   const opentracing::Value& value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
+  if (is_finished_) {
+    return;
+  }
   WriteTag(stream_, key, value);
   if (key == opentracing::ext::sampling_priority) {
     sampled_ = is_sampled(value);
@@ -117,6 +123,9 @@ void Span::SetTag(opentracing::string_view key,
 void Span::SetBaggageItem(opentracing::string_view restricted_key,
                           opentracing::string_view value) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
+  if (is_finished_) {
+    return;
+  }
   baggage_.insert_or_assign(std::string{restricted_key}, std::string{value});
 } catch (const std::exception& e) {
   tracer_->logger().Error("SetBaggageItem failed: ", e.what());
@@ -147,6 +156,9 @@ void Span::Log(std::initializer_list<
                    fields) noexcept try {
   auto timestamp = SystemClock::now();
   std::lock_guard<std::mutex> lock_guard{mutex_};
+  if (is_finished_) {
+    return;
+  }
   WriteLog(stream_, timestamp, fields.begin(), fields.end());
 } catch (const std::exception& e) {
   tracer_->logger().Error("Log failed: ", e.what());
