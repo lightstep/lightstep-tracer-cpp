@@ -79,12 +79,10 @@ static inline void WriteSpanContextImpl(
 // SpanContextSerializer
 //--------------------------------------------------------------------------------------------------
 struct SpanContextSerializer {
-  uint64_t trace_id;
-  uint64_t span_id;
-  const std::vector<std::pair<std::string, std::string>>& baggage;
-
   template <class Stream>
-  inline void operator()(Stream& stream) const {
+  inline void operator()(
+      Stream& stream, uint64_t trace_id, uint64_t span_id,
+      const std::vector<std::pair<std::string, std::string>>& baggage) const {
     WriteSpanContextImpl(stream, trace_id, span_id, baggage);
   }
 };
@@ -97,9 +95,9 @@ static void WriteSpanContext(
     Stream& stream, size_t serialization_size, uint64_t trace_id,
     uint64_t span_id,
     const std::vector<std::pair<std::string, std::string>>& baggage = {}) {
-  WriteLengthDelimitedField<FieldNumber>(
-      stream, serialization_size,
-      SpanContextSerializer{trace_id, span_id, baggage});
+  WriteLengthDelimitedField<FieldNumber>(stream, serialization_size,
+                                         SpanContextSerializer{}, trace_id,
+                                         span_id, baggage);
 }
 
 template <size_t FieldNumber>
