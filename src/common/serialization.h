@@ -208,6 +208,13 @@ inline void WriteKeyValue(google::protobuf::io::CodedOutputStream& stream,
                              json_counter);
 }
 
+/**
+ * Serialize a length-delimited field and value into a stream.
+ * @param stream the stream to serialize into
+ * @param serialization_size the size of the serialization excluding the field header
+ * @param serializer a functor that performs the serialization
+ * @param ...args arguments to forward to the serializer
+ */
 template <size_t FieldNumber, class Serializer, class... Args>
 inline void WriteLengthDelimitedField(
     google::protobuf::io::CodedOutputStream& stream, size_t serialization_size,
@@ -225,6 +232,13 @@ inline void WriteLengthDelimitedField(
   }
 }
 
+/**
+ * Serialize a length-delimited field and value into a stream.
+ * @param stream the stream to serialize into
+ * @param serialization_size the size of the serialization excluding the field header
+ * @param serializer a functor that performs the serialization
+ * @param ...args arguments to forward to the serializer
+ */
 template <size_t FieldNumber, class Serializer, class... Args>
 inline void WriteLengthDelimitedField(DirectCodedOutputStream& stream,
                                       size_t serialization_size,
@@ -234,6 +248,9 @@ inline void WriteLengthDelimitedField(DirectCodedOutputStream& stream,
   serializer(stream, args...);
 }
 
+/**
+ * Serialize the contents of a string into an arbitrary Stream.
+ */
 struct StringSerializer {
   template <class Stream>
   inline void operator()(Stream& stream, opentracing::string_view s) const {
@@ -282,6 +299,9 @@ inline void WriteTimestampImpl(Stream& stream, uint64_t seconds_since_epoch,
   WriteVarint<TimestampNanoFractionField>(stream, nano_fraction);
 }
 
+/**
+ * Serialize a timestamp into an arbitrary stream.
+ */
 struct TimestampSerializer {
   template <class Stream>
   void operator()(Stream& stream, uint64_t seconds_since_epoch,
