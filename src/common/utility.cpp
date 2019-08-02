@@ -269,40 +269,6 @@ void LogReportResponse(Logger& logger, bool verbose,
 }
 
 //------------------------------------------------------------------------------
-// Uint64ToHex
-//------------------------------------------------------------------------------
-// This uses the lookup table solution described on this blog post
-// https://johnnylee-sde.github.io/Fast-unsigned-integer-to-hex-string/
-#if 0
-opentracing::string_view Uint64ToHex(uint64_t x, char* output) {
-  for (int i = 8; i-- > 0;) {
-    auto lookup_index = (x & 0xFF) * 2;
-    output[i * 2] = HexDigitLookupTable[lookup_index];
-    output[i * 2 + 1] = HexDigitLookupTable[lookup_index + 1];
-    x >>= 8;
-  }
-  return {output, Num64BitHexDigits};
-}
-#endif
-
-//------------------------------------------------------------------------------
-// Uint32ToHex
-//------------------------------------------------------------------------------
-// This uses the lookup table solution described on this blog post
-// https://johnnylee-sde.github.io/Fast-unsigned-integer-to-hex-string/
-#if 0
-opentracing::string_view Uint32ToHex(uint32_t x, char* output) {
-  for (int i = 4; i-- > 0;) {
-    auto lookup_index = (x & 0xFF) * 2;
-    output[i * 2] = HexDigitLookupTable[lookup_index];
-    output[i * 2 + 1] = HexDigitLookupTable[lookup_index + 1];
-    x >>= 8;
-  }
-  return {output, Num32BitHexDigits};
-}
-#endif
-
-//------------------------------------------------------------------------------
 // HexToUint64
 //------------------------------------------------------------------------------
 // Adopted from https://stackoverflow.com/a/11068850/4447365
