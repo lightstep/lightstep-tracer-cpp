@@ -177,6 +177,16 @@ cc_proto_library(
 )
 
 lightstep_catch_test(
+    name = "direct_coded_output_stream_test",
+    srcs = [
+        "direct_coded_output_stream_test.cpp",
+    ],
+    deps = [
+        "//src/common:direct_coded_output_stream_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "serialization_test",
     srcs = [
         "serialization_test.cpp",

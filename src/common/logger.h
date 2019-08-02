@@ -21,14 +21,21 @@ class Logger {
   explicit Logger(
       std::function<void(LogLevel, opentracing::string_view)>&& logger_sink);
 
-  void Log(LogLevel level, opentracing::string_view message) noexcept;
+  inline void Log(LogLevel level,
+                  opentracing::string_view message) noexcept try {
+    if (static_cast<int>(level) >= static_cast<int>(level_)) {
+      logger_sink_(level, message);
+    }
+  } catch (const std::exception& /*e*/) {
+    // Ignore exceptions.
+  }
 
-  void log(LogLevel level, const char* message) noexcept {
+  inline void log(LogLevel level, const char* message) noexcept {
     Log(level, opentracing::string_view{message});
   }
 
   template <class... Tx>
-  void Log(LogLevel level, const Tx&... tx) noexcept try {
+  inline void Log(LogLevel level, const Tx&... tx) noexcept try {
     if (static_cast<int>(level) < static_cast<int>(level_)) {
       return;
     }
@@ -40,26 +47,28 @@ class Logger {
   }
 
   template <class... Tx>
-  void Debug(const Tx&... tx) noexcept {
+  inline void Debug(const Tx&... tx) noexcept {
     Log(LogLevel::debug, tx...);
   }
 
   template <class... Tx>
-  void Info(const Tx&... tx) noexcept {
+  inline void Info(const Tx&... tx) noexcept {
     Log(LogLevel::info, tx...);
   }
 
   template <class... Tx>
-  void Warn(const Tx&... tx) noexcept {
+  inline void Warn(const Tx&... tx) noexcept {
     Log(LogLevel::warn, tx...);
   }
 
   template <class... Tx>
-  void Error(const Tx&... tx) noexcept {
+  inline void Error(const Tx&... tx) noexcept {
     Log(LogLevel::error, tx...);
   }
 
-  void set_level(LogLevel level) noexcept { level_ = level; }
+  inline void set_level(LogLevel level) noexcept { level_ = level; }
+
+  inline LogLevel level() const noexcept { return level_; }
 
  private:
   std::function<void(LogLevel, opentracing::string_view)> logger_sink_;

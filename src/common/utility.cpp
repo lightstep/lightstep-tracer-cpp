@@ -18,7 +18,10 @@
 #include <pthread.h>
 
 namespace lightstep {
-static const unsigned char HexDigitLookupTable[513] =
+//--------------------------------------------------------------------------------------------------
+// HexDigitLookupTable
+//--------------------------------------------------------------------------------------------------
+const unsigned char HexDigitLookupTable[513] =
     "000102030405060708090A0B0C0D0E0F"
     "101112131415161718191A1B1C1D1E1F"
     "202122232425262728292A2B2C2D2E2F"
@@ -35,19 +38,6 @@ static const unsigned char HexDigitLookupTable[513] =
     "D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF"
     "E0E1E2E3E4E5E6E7E8E9EAEBECEDEEEF"
     "F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF";
-
-//------------------------------------------------------------------------------
-// ProtobufFormatTimestamp
-//------------------------------------------------------------------------------
-std::tuple<uint64_t, uint32_t> ProtobufFormatTimestamp(
-    const std::chrono::system_clock::time_point& t) {
-  auto nanos =
-      std::chrono::duration_cast<std::chrono::nanoseconds>(t.time_since_epoch())
-          .count();
-  const uint64_t nanosPerSec = 1000000000;
-  return {static_cast<uint64_t>(nanos / nanosPerSec),
-          static_cast<uint32_t>(nanos % nanosPerSec)};
-}
 
 //------------------------------------------------------------------------------
 // ToTimestamp
@@ -276,36 +266,6 @@ void LogReportResponse(Logger& logger, bool verbose,
       logger.Info(message);
     }
   }
-}
-
-//------------------------------------------------------------------------------
-// Uint64ToHex
-//------------------------------------------------------------------------------
-// This uses the lookup table solution described on this blog post
-// https://johnnylee-sde.github.io/Fast-unsigned-integer-to-hex-string/
-opentracing::string_view Uint64ToHex(uint64_t x, char* output) {
-  for (int i = 8; i-- > 0;) {
-    auto lookup_index = (x & 0xFF) * 2;
-    output[i * 2] = HexDigitLookupTable[lookup_index];
-    output[i * 2 + 1] = HexDigitLookupTable[lookup_index + 1];
-    x >>= 8;
-  }
-  return {output, Num64BitHexDigits};
-}
-
-//------------------------------------------------------------------------------
-// Uint32ToHex
-//------------------------------------------------------------------------------
-// This uses the lookup table solution described on this blog post
-// https://johnnylee-sde.github.io/Fast-unsigned-integer-to-hex-string/
-opentracing::string_view Uint32ToHex(uint32_t x, char* output) {
-  for (int i = 4; i-- > 0;) {
-    auto lookup_index = (x & 0xFF) * 2;
-    output[i * 2] = HexDigitLookupTable[lookup_index];
-    output[i * 2 + 1] = HexDigitLookupTable[lookup_index + 1];
-    x >>= 8;
-  }
-  return {output, Num32BitHexDigits};
 }
 
 //------------------------------------------------------------------------------
