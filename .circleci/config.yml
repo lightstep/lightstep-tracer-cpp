@@ -71,7 +71,7 @@ jobs:
     steps:
       - checkout
       - run: echo 'Hello, Windows!'
-      - run: docker build -t lightstep-windows:latest -m 2GB -f Dockerfile-windows ci
+      - run: docker build -t lightstep-windows:latest -m 2GB -f ci/Dockerfile-windows ci
       # - run: Get-Content ci/Dockerfile-windows | docker build -t lightstep-windows:latest -m 2GB -
       # - run: 
       #     command: ./ci/setup_windows_build_environment.sh
@@ -186,22 +186,22 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - cmake_no_grpc
-      - cmake_with_grpc
-      - test
-      - asan
-      - tsan
+      # - cmake_no_grpc
+      # - cmake_with_grpc
+      # - test
+      # - asan
+      # - tsan
       - windows
-      - benchmark
-      - coverage
-      - build_plugin
-      - clang_tidy
-      - plugin_test:
-          requires: 
-            - build_plugin
-      - python_wheel_test:
-          requires: 
-            - build_plugin
+      # - benchmark
+      # - coverage
+      # - build_plugin
+      # - clang_tidy
+      # - plugin_test:
+      #     requires: 
+      #       - build_plugin
+      # - python_wheel_test:
+      #     requires: 
+      #       - build_plugin
   deploy:
     jobs:
       - build_plugin:
