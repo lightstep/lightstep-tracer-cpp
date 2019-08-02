@@ -6,6 +6,7 @@
 #include "test/http_connection.h"
 #include "test/mock_satellite/mock_satellite_handle.h"
 #include "test/ports.h"
+#include "test/utility.h"
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
@@ -47,7 +48,8 @@ TEST_CASE("MockSatellite") {
     *report.mutable_spans()->Add() = span1;
     collector::ReportResponse response;
     connection.Post("/api/v2/reports", report, response);
-    REQUIRE(mock_satellite.spans().size() == 1);
+    REQUIRE(
+        IsEventuallyTrue([&] { return mock_satellite.spans().size() == 1; }));
   }
 
   SECTION("ReportRequests can be streamed to a MockSatellite") {
@@ -68,7 +70,9 @@ TEST_CASE("MockSatellite") {
 
     collector::ReportResponse response;
     connection.Post("/report-mock-streaming", s, response);
-    REQUIRE(mock_satellite.spans().size() == 2);
-    REQUIRE(mock_satellite.reports().size() == 3);
+    REQUIRE(
+        IsEventuallyTrue([&] { return mock_satellite.spans().size() == 2; }));
+    REQUIRE(
+        IsEventuallyTrue([&] { return mock_satellite.reports().size() == 3; }));
   }
 }

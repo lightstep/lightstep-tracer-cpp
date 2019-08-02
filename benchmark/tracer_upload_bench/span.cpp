@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "test/recorder/in_memory_recorder.h"
-#include "tracer/lightstep_tracer_impl.h"
+#include "tracer/legacy/legacy_tracer_impl.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ void GenerateSpans(opentracing::Tracer& tracer,
 //--------------------------------------------------------------------------------------------------
 size_t ComputeSpanSize(const tracer_upload_bench::Configuration& config) {
   auto recorder = new InMemoryRecorder{};
-  auto tracer = std::shared_ptr<opentracing::Tracer>{new LightStepTracerImpl{
+  auto tracer = std::shared_ptr<opentracing::Tracer>{new LegacyTracerImpl{
       PropagationOptions{}, std::unique_ptr<Recorder>{recorder}}};
   std::string payload;
   if (config.payload_size() > 0) {

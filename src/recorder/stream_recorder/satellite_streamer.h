@@ -3,7 +3,6 @@
 #include <memory>
 #include <vector>
 
-#include "common/chunk_circular_buffer.h"
 #include "common/noncopyable.h"
 #include "common/random_traverser.h"
 #include "recorder/stream_recorder/satellite_connection.h"
@@ -12,13 +11,16 @@
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
 
 namespace lightstep {
+/**
+ * Manages the stream of tracing data sent to a pool of satellite connections.
+ */
 class SatelliteStreamer : private Noncopyable {
  public:
   SatelliteStreamer(Logger& logger, EventBase& event_base,
                     const LightStepTracerOptions& tracer_options,
                     const StreamRecorderOptions& recorder_options,
                     StreamRecorderMetrics& metrics,
-                    ChunkCircularBuffer& span_buffer);
+                    CircularBuffer<SerializationChain>& span_buffer);
 
   /**
    * @return the associated Logger.
@@ -78,7 +80,7 @@ class SatelliteStreamer : private Noncopyable {
   const StreamRecorderOptions& recorder_options_;
   std::string header_common_fragment_;
   SatelliteEndpointManager endpoint_manager_;
-  ChunkCircularBuffer& span_buffer_;
+  CircularBuffer<SerializationChain>& span_buffer_;
   SpanStream span_stream_;
   std::vector<std::unique_ptr<SatelliteConnection>> connections_;
   RandomTraverser connection_traverser_;

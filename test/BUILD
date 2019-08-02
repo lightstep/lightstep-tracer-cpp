@@ -17,9 +17,11 @@ lightstep_cc_library(
     deps = [
         "//lightstep-tracer-common:collector_proto_cc",
         "//src/common:utility_lib",
-        "//src/common:chunk_circular_buffer_lib",
         "//src/network:socket_lib",
-        "//src/network:fragment_input_stream_lib",
+        "//src/common:fragment_input_stream_lib",
+        "//src/common:serialization_lib",
+        "//src/common:serialization_chain_lib",
+        "//src/common:circular_buffer_lib",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",
@@ -52,9 +54,9 @@ lightstep_cc_library(
         "number_simulation.cpp",
     ],
     deps = [
-        "//src/common:chunk_circular_buffer_lib",
-        "//src/common:bipart_memory_stream_lib",
+        "//src/common:circular_buffer_lib",
         "//src/common:utility_lib",
+        "//src/recorder/stream_recorder:connection_stream_lib",
         ":utility_lib",
         ":zero_copy_connection_input_stream_lib",
     ],

@@ -1,13 +1,20 @@
 #include "test/utility.h"
 
-#include <google/protobuf/util/message_differencer.h>
 #include <algorithm>
 #include <chrono>
 #include <exception>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 
+#include "common/serialization.h"
+#include "common/serialization_chain.h"
 #include "common/utility.h"
 #include "network/socket.h"
+
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/util/message_differencer.h>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -95,21 +102,39 @@ std::string ToString(const FragmentInputStream& fragment_input_stream) {
   return result;
 }
 
-std::string ToString(const CircularBufferConstPlacement& placement) {
-  std::string result;
-  result.append(placement.data1, placement.size1);
-  result.append(placement.data2, placement.size2);
-  return result;
-}
-
 //--------------------------------------------------------------------------------------------------
 // AddString
 //--------------------------------------------------------------------------------------------------
-bool AddString(ChunkCircularBuffer& buffer, opentracing::string_view s) {
-  return buffer.Add(
-      [s](google::protobuf::io::CodedOutputStream& stream) {
-        stream.WriteRaw(s.data(), s.size());
-      },
-      s.size());
+bool AddString(CircularBuffer<SerializationChain>& buffer,
+               const std::string& s) {
+  std::unique_ptr<SerializationChain> chain{new SerializationChain{}};
+  {
+    google::protobuf::io::CodedOutputStream stream{chain.get()};
+    stream.WriteString(s);
+  }
+  chain->AddFraming();
+  return buffer.Add(chain);
+}
+
+//--------------------------------------------------------------------------------------------------
+// AddSpanChunkFraming
+//--------------------------------------------------------------------------------------------------
+std::string AddSpanChunkFraming(opentracing::string_view s) {
+  auto protobuf_header = [&] {
+    std::ostringstream oss;
+    {
+      google::protobuf::io::OstreamOutputStream zero_copy_stream{&oss};
+      google::protobuf::io::CodedOutputStream stream{&zero_copy_stream};
+      WriteKeyLength<SerializationChain::ReportRequestSpansField>(stream,
+                                                                  s.size());
+    }
+    return oss.str();
+  }();
+  auto message_size = protobuf_header.size() + s.size();
+  std::ostringstream oss;
+  oss << std::setfill('0') << std::setw(8) << std::hex << std::uppercase
+      << message_size << "\r\n"
+      << protobuf_header << s << "\r\n";
+  return oss.str();
 }
 }  // namespace lightstep

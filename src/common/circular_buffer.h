@@ -1,109 +1,115 @@
 #pragma once
 
 #include <atomic>
-#include <cstddef>
 #include <cstdint>
 #include <memory>
 
+#include "common/atomic_unique_ptr.h"
+#include "common/circular_buffer_range.h"
+
 namespace lightstep {
-/**
- * Represents a block of data in a circular buffer.
- *
- * If the data is contiguous in memory, data1 points to the area its area in
- * memory and size1 equals the total size. Otherwise, if the data wraps the ends
- * around the ends of the circular buffer, data1, size1 represents the first
- * block and data2, size2 represents the second block.
- */
-struct CircularBufferPlacement {
-  char* data1;
-  size_t size1;
-  char* data2;
-  size_t size2;
-};
-
-/**
- * Represents a const block of data in a circular buffer.
- *
- * See CircularBufferPlacement.
- */
-struct CircularBufferConstPlacement {
-  CircularBufferConstPlacement() noexcept = default;
-
-  CircularBufferConstPlacement(const char* data1_, size_t size1_,
-                               const char* data2_, size_t size2_) noexcept
-      : data1{data1_}, size1{size1_}, data2{data2_}, size2{size2_} {}
-
-  CircularBufferConstPlacement(CircularBufferPlacement placement) noexcept
-      : CircularBufferConstPlacement{placement.data1, placement.size1,
-                                     placement.data2, placement.size2} {}
-
-  const char* data1;
-  size_t size1;
-  const char* data2;
-  size_t size2;
-};
-
 /*
  * A lock-free circular buffer that supports multiple concurrent producers
  * and a single consumer.
  */
+template <class T>
 class CircularBuffer {
  public:
-  explicit CircularBuffer(size_t max_size);
+  explicit CircularBuffer(size_t max_size) noexcept
+      : data_{new AtomicUniquePtr<T>[max_size + 1]}, capacity_{max_size + 1} {}
 
   /**
-   * Atomically reserves space in the buffer.
-   * @param num_bytes supplies the number of bytes to reserve.
-   * @return a CircularBufferPlacement for the reserved space if successful;
-   * otherwise, a placement with data1 == nullptr if there is not enough space
-   * available.
-   */
-  CircularBufferPlacement Reserve(size_t num_bytes) noexcept;
-
-  /**
-   * Peeks at memory stored within the buffer.
-   * @param index supplies the position from the tail to take memory from.
-   * @param num_bytes supplies the number of bytes to peek at.
-   * @return a placement pointing to the requested memory.
+   * @return a range of the elements in the circular buffer
    *
-   * Note: This function cannot be called concurrently with Consume.
+   * Note: This method must only be called from the consumer thread.
    */
-  CircularBufferConstPlacement Peek(size_t index, size_t num_bytes) const
-      noexcept;
-
-  /**
-   * Peeks at all memory stored in the buffer starting at a given position.
-   * @param index supplies the position from the tail to take memory from.
-   * @return a placement pointing to the requested memory.
-   *
-   * Note: This function cannot be called concurrently with Consume.
-   */
-  CircularBufferConstPlacement PeekFromPosition(size_t index) const noexcept {
-    return Peek(index, size() - index);
+  CircularBufferRange<const AtomicUniquePtr<T>> Peek() const noexcept {
+    return const_cast<CircularBuffer*>(this)->PeekImpl();
   }
 
   /**
-   * Frees reserved space in the buffer starting from the tail.
-   * @param num_bytes supplies the number of bytes to consume.
+   * Consume elements from the circular buffer's tail.
+   * @param n the number of elements to consume
+   * @param callback the callback to invoke with a AtomicUniquePtr to each
+   * consumed element.
+   *
+   * Note: The callback must set the passed AtomicUniquePtr to null.
+   *
+   * Note: This method must only be called from the consumer thread.
    */
-  void Consume(size_t num_bytes) noexcept;
+  template <class Callback>
+  void Consume(size_t n, Callback callback) noexcept {
+    assert(n <= static_cast<size_t>(head_ - tail_));
+    auto range = PeekImpl().Take(n);
+    static_assert(noexcept(callback(range)), "callback not allowed to throw");
+    tail_ += n;
+    callback(range);
+  }
 
   /**
-   * Determine how far a pointer is from the tail of the circular buffer.
-   * @param ptr the pointer to compute the position of.
-   * @return the number of bytes ptr is from the tail of the circular buffer.
+   * Consume elements from the circular buffer's tail.
+   * @param n the number of elements to consume
+   *
+   * Note: This method must only be called from the consumer thread.
    */
-  size_t ComputePosition(const char* ptr) const noexcept;
+  void Consume(size_t n) noexcept {
+    Consume(
+        n, [](CircularBufferRange<AtomicUniquePtr<T>> & range) noexcept {
+          range.ForEach([](AtomicUniquePtr<T> & ptr) noexcept {
+            ptr.Reset();
+            return true;
+          });
+        });
+  }
+
+  /**
+   * Adds an element into the circular buffer.
+   * @param ptr a pointer to the element to add
+   * @return true if the element was successfully added; false, otherwise.
+   */
+  bool Add(std::unique_ptr<T>& ptr) noexcept {
+    while (true) {
+      int64_t tail = tail_;
+      int64_t head = head_;
+
+      // The circular buffer is full, so return false.
+      if (static_cast<size_t>(head - tail) >= capacity_ - 1) {
+        return false;
+      }
+
+      int64_t head_index = head % capacity_;
+      if (data_[head_index].SwapIfNull(ptr)) {
+        auto new_head = head + 1;
+        auto expected_head = head;
+        if (head_.compare_exchange_weak(expected_head, new_head,
+                                        std::memory_order_release,
+                                        std::memory_order_relaxed)) {
+          // free the swapped out value
+          ptr.reset();
+
+          return true;
+        }
+
+        // If we reached this point (unlikely), it means that between the last
+        // iteration elements were added and then consumed from the circular
+        // buffer, so we undo the swap and attempt to add again.
+        data_[head_index].Swap(ptr);
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Clear the circular buffer.
+   *
+   * Note: This method must only be called from the consumer thread.
+   */
+  void Clear() noexcept { Consume(size()); }
 
   /**
    * @return the maximum number of bytes that can be stored in the buffer.
    */
   size_t max_size() const noexcept { return capacity_ - 1; }
-
-  /**
-   * @return the number of bytes of free space available in the buffer.
-   */
-  size_t free_space() const noexcept { return max_size() - size(); }
 
   /**
    * @return true if the buffer is empty.
@@ -112,35 +118,44 @@ class CircularBuffer {
 
   /**
    * @return the number of bytes stored in the circular buffer.
+   *
+   * Note: this method will only return a correct snapshot of the size if called
+   * from the consumer thread.
    */
-  size_t size() const noexcept;
+  size_t size() const noexcept {
+    uint64_t tail = tail_;
+    uint64_t head = head_;
+    assert(tail <= head);
+    return head - tail;
+  }
 
   /**
-   * @return a pointer to the buffer's memory.
+   * @return the number of elements consumed from the circular buffer.
    */
-  const char* data() const noexcept { return data_.get(); }
+  int64_t consumption_count() const noexcept { return tail_; }
 
   /**
-   * @return the number of bytes consumed from the circular buffer.
+   * @return the number of elements added to the circular buffer.
    */
-  uint64_t num_bytes_consumed() const noexcept { return tail_; }
-
-  /**
-   * @return the number of bytes added to the circular buffer.
-   */
-  uint64_t num_bytes_produced() const noexcept { return head_; }
+  int64_t production_count() const noexcept { return head_; }
 
  private:
-  std::unique_ptr<char[]> data_;
+  std::unique_ptr<AtomicUniquePtr<T>[]> data_;
   size_t capacity_;
-  std::atomic<uint64_t> head_{0};
-  std::atomic<uint64_t> tail_{0};
+  std::atomic<int64_t> head_{0};
+  std::atomic<int64_t> tail_{0};
 
-  CircularBufferPlacement getPlacement(size_t index, size_t num_bytes) noexcept;
-
-  CircularBufferConstPlacement getPlacement(size_t index,
-                                            size_t num_bytes) const noexcept {
-    return const_cast<CircularBuffer*>(this)->getPlacement(index, num_bytes);
+  CircularBufferRange<AtomicUniquePtr<T>> PeekImpl() noexcept {
+    int64_t tail_index = tail_ % capacity_;
+    int64_t head_index = head_ % capacity_;
+    if (head_index == tail_index) {
+      return {};
+    }
+    auto data = data_.get();
+    if (tail_index < head_index) {
+      return {data + tail_index, data + head_index, nullptr, nullptr};
+    }
+    return {data + tail_index, data + capacity_, data, data + head_index};
   }
 };
 }  // namespace lightstep

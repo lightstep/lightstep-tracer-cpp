@@ -3,35 +3,22 @@
 #include "recorder/recorder.h"
 
 #include <mutex>
-#include <stdexcept>
 #include <vector>
 
 namespace lightstep {
 // InMemoryRecorder is used for testing only.
 class InMemoryRecorder final : public Recorder {
  public:
-  void RecordSpan(const collector::Span& span) noexcept override {
-    std::lock_guard<std::mutex> lock_guard{mutex_};
-    spans_.emplace_back(span);
-  }
+  std::vector<collector::Span> spans() const;
 
-  std::vector<collector::Span> spans() const {
-    std::lock_guard<std::mutex> lock_guard{mutex_};
-    return spans_;
-  }
+  size_t size() const;
 
-  size_t size() const {
-    std::lock_guard<std::mutex> lock_guard{mutex_};
-    return spans_.size();
-  }
+  collector::Span top() const;
 
-  collector::Span top() const {
-    std::lock_guard<std::mutex> lock_guard{mutex_};
-    if (spans_.empty()) {
-      throw std::runtime_error("no spans");
-    }
-    return spans_.back();
-  }
+  // Recorder
+  void RecordSpan(const collector::Span& span) noexcept override;
+
+  void RecordSpan(std::unique_ptr<SerializationChain>&& span) noexcept override;
 
  private:
   mutable std::mutex mutex_;

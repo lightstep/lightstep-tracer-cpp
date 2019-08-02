@@ -10,6 +10,9 @@
 namespace lightstep {
 class SatelliteStreamer;
 
+/**
+ * Manages a connection to an individual statellite.
+ */
 class SatelliteConnection : private Noncopyable {
  public:
   explicit SatelliteConnection(SatelliteStreamer& streamer);

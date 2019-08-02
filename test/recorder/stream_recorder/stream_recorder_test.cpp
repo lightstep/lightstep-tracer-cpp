@@ -10,7 +10,8 @@
 #include "test/ports.h"
 #include "test/string_logger_sink.h"
 #include "test/utility.h"
-#include "tracer/lightstep_tracer_impl.h"
+#include "tracer/legacy/legacy_tracer_impl.h"
+#include "tracer/tracer_impl.h"
 
 #include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
@@ -28,7 +29,6 @@ TEST_CASE("StreamRecorder") {
   std::unique_ptr<MockSatelliteHandle> mock_satellite{new MockSatelliteHandle{
       static_cast<uint16_t>(PortAssignments::StreamRecorderTest)}};
 
-  // Testing stub. More will be added when StreamRecorder is filled out.
   auto logger_sink = std::make_shared<StringLoggerSink>();
   auto logger = std::make_shared<Logger>(
       [logger_sink](LogLevel log_level, opentracing::string_view message) {
@@ -62,8 +62,8 @@ TEST_CASE("StreamRecorder") {
                                             std::move(recorder_options)};
   std::unique_ptr<Recorder> recorder{stream_recorder};
   PropagationOptions propagation_options;
-  auto tracer = std::make_shared<LightStepTracerImpl>(
-      logger, propagation_options, std::move(recorder));
+  auto tracer = std::make_shared<TracerImpl>(logger, propagation_options,
+                                             std::move(recorder));
 
   SECTION("Spans are consumed from the buffer and sent to the satellite.") {
     auto span = tracer->StartSpan("abc");

@@ -2,7 +2,7 @@
 
 #include <tuple>
 
-#include "network/fragment_input_stream.h"
+#include "common/fragment_input_stream.h"
 
 namespace lightstep {
 /**
