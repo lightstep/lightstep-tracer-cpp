@@ -211,7 +211,8 @@ inline void WriteKeyValue(google::protobuf::io::CodedOutputStream& stream,
 /**
  * Serialize a length-delimited field and value into a stream.
  * @param stream the stream to serialize into
- * @param serialization_size the size of the serialization excluding the field header
+ * @param serialization_size the size of the serialization excluding the field
+ * header
  * @param serializer a functor that performs the serialization
  * @param ...args arguments to forward to the serializer
  */
@@ -235,7 +236,8 @@ inline void WriteLengthDelimitedField(
 /**
  * Serialize a length-delimited field and value into a stream.
  * @param stream the stream to serialize into
- * @param serialization_size the size of the serialization excluding the field header
+ * @param serialization_size the size of the serialization excluding the field
+ * header
  * @param serializer a functor that performs the serialization
  * @param ...args arguments to forward to the serializer
  */

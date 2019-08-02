@@ -17,20 +17,26 @@ class DirectCodedOutputStream {
    */
   const google::protobuf::uint8* data() const noexcept { return data_; }
 
-  // Profiling shows that serializing random ids is costly (which are
-  // unfortunately coded as varints).
-  //
-  // CodedOutputStream optimizes for writing smaller integers and since random
-  // 64-bit numbers are most likely larger, it's a bad fit.
-  //
-  // This provides alternative serialization code that's faster for large
-  // integers.
+  /**
+   * Profiling shows that serializing random ids is costly (which are
+   * unfortunately coded as varints).
+   *
+   * CodedOutputStream optimizes for writing smaller integers and since random
+   * 64-bit numbers are most likely larger, it's a bad fit.
+   *
+   * This provides alternative serialization code that's faster for large
+   * integers.
+   *
+   * @param x the number to serialize
+   */
   void WriteBigVarint64(uint64_t x) noexcept {
     static const uint64_t pow_2_56 = (1ull << 56);
     if (x < pow_2_56) {
       WriteVarint64(x);
       return;
     }
+    // Make sure we get an unrolled loop. There are pragmas that would make this
+    // easier, but this ensures there won't be any portability issues.
 #define DO_ITERATION                                           \
   {                                                            \
     *data_++ = static_cast<google::protobuf::uint8>(x | 0x80); \
