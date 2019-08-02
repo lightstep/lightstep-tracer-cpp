@@ -82,6 +82,12 @@ inline size_t ComputeLengthDelimitedSerializationSize(size_t length) noexcept {
          google::protobuf::io::CodedOutputStream::VarintSize64(length) + length;
 }
 
+/**
+ * Wrapper function that allows us to optimize the case of serializing a big
+ * varint for DirectCodedOutputStream.
+ * @param stream the stream to serialize into
+ * @param x the integer to serialize
+ */
 inline void WriteBigVarint64(google::protobuf::io::CodedOutputStream& stream,
                              uint64_t x) {
   stream.WriteVarint64(x);

@@ -190,7 +190,6 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/tracer/span.cpp
                    src/tracer/tracer_impl.cpp
                    src/tracer/tracer.cpp
-                   src/tracer/utility.cpp
                    )
 
 if (WITH_GRPC)
