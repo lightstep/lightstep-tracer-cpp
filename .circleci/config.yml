@@ -71,17 +71,18 @@ jobs:
     steps:
       - checkout
       - run: echo 'Hello, Windows!'
-      - run: 
-          command: ./ci/setup_windows_build_environment.sh
-          shell: bash.exe
-      - run: echo "HOMEDRIVE=$HOMEDRIVE"
-      - run: echo "HOMEPATH=$HOMEPATH"
-      - run: 
-          command: echo "HOMEDRIVE=$HOMEDRIVE"
-          shell: bash.exe
-      - run: 
-          command: ls $HOMEDRIVE
-          shell: bash.exe
+      - run: docker build -t lightstep-windows:latest -m 2GB -f ci/Dockerfile-windows
+      # - run: 
+      #     command: ./ci/setup_windows_build_environment.sh
+      #     shell: bash.exe
+      # - run: echo "HOMEDRIVE=$HOMEDRIVE"
+      # - run: echo "HOMEPATH=$HOMEPATH"
+      # - run: 
+      #     command: echo "HOMEDRIVE=$HOMEDRIVE"
+      #     shell: bash.exe
+      # - run: 
+      #     command: ls $HOMEDRIVE
+      #     shell: bash.exe
 
   release:
     resource_class: xlarge
