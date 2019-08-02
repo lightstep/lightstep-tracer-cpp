@@ -21,7 +21,8 @@ class Logger {
   explicit Logger(
       std::function<void(LogLevel, opentracing::string_view)>&& logger_sink);
 
-  inline void Log(LogLevel level, opentracing::string_view message) noexcept try {
+  inline void Log(LogLevel level,
+                  opentracing::string_view message) noexcept try {
     if (static_cast<int>(level) >= static_cast<int>(level_)) {
       logger_sink_(level, message);
     }
