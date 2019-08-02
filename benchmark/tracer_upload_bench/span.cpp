@@ -78,7 +78,11 @@ void GenerateSpans(opentracing::Tracer& tracer,
 //--------------------------------------------------------------------------------------------------
 size_t ComputeSpanSize(const tracer_upload_bench::Configuration& config) {
   auto recorder = new InMemoryRecorder{};
+<<<<<<< HEAD
   auto tracer = std::shared_ptr<opentracing::Tracer>{new LegacyTracerImpl{
+=======
+  auto tracer = std::shared_ptr<opentracing::Tracer>{new LightStepTracerImpl{
+>>>>>>> a6f221ccece8017959285a7f2f029164ae49f9b0
       PropagationOptions{}, std::unique_ptr<Recorder>{recorder}}};
   std::string payload;
   if (config.payload_size() > 0) {
