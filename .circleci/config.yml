@@ -71,7 +71,7 @@ jobs:
     steps:
       - checkout
       - run: echo 'Hello, Windows!'
-      - run: docker build -t lightstep-windows:latest -m 2GB -f ci/Dockerfile-windows
+      - run: Get-Content ci/Dockerfile-windows | docker build -t lightstep-windows:latest -m 2GB -
       # - run: 
       #     command: ./ci/setup_windows_build_environment.sh
       #     shell: bash.exe
