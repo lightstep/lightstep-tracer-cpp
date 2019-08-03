@@ -14,6 +14,26 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "lock_free_list_lib",
+    private_hdrs = [
+        "lock_free_list.h",
+    ],
+)
+
+lightstep_cc_library(
+    name = "block_allocator_lib",
+    private_hdrs = [
+        "block_allocator.h",
+    ],
+    srcs = [
+        "block_allocator.cpp",
+    ],
+    deps = [
+        ":lock_free_list_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "direct_coded_output_stream_lib",
     private_hdrs = [
         "direct_coded_output_stream.h",
