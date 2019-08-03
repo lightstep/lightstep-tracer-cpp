@@ -28,7 +28,24 @@ static int WriteChunkHeader(char* data, size_t data_length,
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-SerializationChain::SerializationChain() noexcept : current_block_{&head_} {}
+SerializationChain:: SerializationChain(BlockAllocator& allocator) noexcept
+  : allocator_{allocator}, current_block_{&head_} {
+    head_.next = nullptr;
+    head_.size = FirstBlockSize;
+    head_.max_size = head_.size;
+}
+
+static BlockAllocator HeapBlockAllocator{sizeof(SerializationChain), 0};
+
+SerializationChain::SerializationChain() noexcept
+    : SerializationChain{HeapBlockAllocator} {}
+
+//--------------------------------------------------------------------------------------------------
+// destructor
+//--------------------------------------------------------------------------------------------------
+SerializationChain::~SerializationChain() noexcept {
+  FreeBlocks(head_.next);
+}
 
 //--------------------------------------------------------------------------------------------------
 // AddFraming
@@ -58,22 +75,21 @@ void SerializationChain::AddFraming() noexcept {
 // Next
 //--------------------------------------------------------------------------------------------------
 bool SerializationChain::Next(void** data, int* size) {
-  if (current_block_position_ < BlockSize) {
-    *size = BlockSize - current_block_position_;
-    *data = static_cast<void*>(current_block_->data.data() +
+  if (current_block_position_ < current_block_->max_size) {
+    *size = current_block_->max_size - current_block_position_;
+    *data = static_cast<void*>(current_block_->data() +
                                current_block_position_);
     num_bytes_written_ += *size;
-    current_block_position_ = BlockSize;
-    current_block_->size = BlockSize;
+    current_block_position_ = current_block_->max_size;
+    current_block_->size = current_block_->max_size;
     return true;
   }
-  current_block_->next.reset(new Block{});
-  current_block_ = current_block_->next.get();
-  current_block_->size = BlockSize;
-  current_block_position_ = BlockSize;
-  *size = BlockSize;
+  current_block_->next = AllocateNewBlock();
+  current_block_ = current_block_->next;
+  current_block_position_ = current_block_->size;
+  *size = current_block_->size;
   num_bytes_written_ += *size;
-  *data = static_cast<void*>(current_block_->data.data());
+  *data = static_cast<void*>(current_block_->data());
   ++num_blocks_;
   return true;
 }
@@ -122,19 +138,19 @@ bool SerializationChain::ForEachFragment(Callback callback) const noexcept {
   if (fragment_index_ > 0 && fragment_index_ <= num_blocks_) {
     auto block_size = block->size;
     assert(block_size >= fragment_position_);
-    if (!callback(static_cast<void*>(const_cast<char*>(block->data.data()) +
+    if (!callback(static_cast<void*>(const_cast<char*>(block->data()) +
                                      fragment_position_),
                   block_size - fragment_position_)) {
       return false;
     }
-    block = block->next.get();
+    block = block->next;
   }
   while (block != nullptr) {
-    if (!callback(static_cast<void*>(const_cast<char*>(block->data.data())),
+    if (!callback(static_cast<void*>(const_cast<char*>(block->data())),
                   block->size)) {
       return false;
     }
-    block = block->next.get();
+    block = block->next;
   }
 
   // chunk trailer
@@ -178,8 +194,31 @@ void SerializationChain::Seek(int fragment_index, int position) noexcept {
   int prev_block_index = std::max(prev_fragment_index - 1, 0);
   int block_index = fragment_index_ - 1;
   for (int i = prev_block_index; i < block_index; ++i) {
-    current_block_ = current_block_->next.get();
+    current_block_ = current_block_->next;
   }
   fragment_position_ = position;
+}
+
+//--------------------------------------------------------------------------------------------------
+// AllocateNewBlock
+//--------------------------------------------------------------------------------------------------
+SerializationChain::Block* SerializationChain::AllocateNewBlock() {
+  auto result = static_cast<Block*>(allocator_.allocate());
+  result->next = nullptr;
+  result->size = static_cast<int>(allocator_.block_size() - sizeof(Block));
+  result->max_size = result->size;
+  return result;
+}
+
+//--------------------------------------------------------------------------------------------------
+// FreeBlocks
+//--------------------------------------------------------------------------------------------------
+void SerializationChain::FreeBlocks(Block* block) noexcept {
+  if (block == nullptr) {
+    return;
+  }
+  auto next_block = block->next;
+  allocator_.deallocate(static_cast<void*>(block));
+  FreeBlocks(next_block);
 }
 }  // namespace lightstep

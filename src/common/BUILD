@@ -56,6 +56,7 @@ lightstep_cc_library(
         ":noncopyable_lib",
         ":utility_lib",
         ":serialization_lib",
+        ":block_allocator_lib",
     ],
     external_deps = [
         "@com_google_protobuf//:protobuf",

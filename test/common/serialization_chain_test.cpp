@@ -31,7 +31,7 @@ TEST_CASE("SerializationChain") {
   }
 
   SECTION("We can write strings larger than a single block.") {
-    std::string s(SerializationChain::BlockSize + 1, 'X');
+    std::string s(SerializationChain::FirstBlockSize + 1, 'X');
     stream->WriteString(s);
     stream.reset();
     chain.AddFraming();
@@ -40,7 +40,7 @@ TEST_CASE("SerializationChain") {
   }
 
   SECTION("We can seek to any byte in the fragment stream.") {
-    std::string s(SerializationChain::BlockSize + 2, 'X');
+    std::string s(SerializationChain::FirstBlockSize + 2, 'X');
     stream->WriteString(s);
     stream.reset();
     chain.AddFraming();
@@ -54,7 +54,7 @@ TEST_CASE("SerializationChain") {
   }
 
   SECTION("We can advance to any byte in the fragment stream randomly.") {
-    std::string s(3 * SerializationChain::BlockSize + 10, 'X');
+    std::string s(3 * SerializationChain::FirstBlockSize + 10, 'X');
     stream->WriteString(s);
     stream.reset();
     chain.AddFraming();
