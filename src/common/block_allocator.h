@@ -17,6 +17,8 @@ class BlockAllocator {
   void deallocate(void* ptr) noexcept;
 
   size_t block_size() const noexcept { return block_size_; }
+
+  size_t max_blocks() const noexcept { return max_blocks_; }
  private:
   size_t block_size_;
   size_t max_blocks_;

@@ -70,10 +70,12 @@ lightstep_cc_library(
 lightstep_cc_library(
     name = "tracer_impl_lib",
     private_hdrs = [
+        "allocator_manager.h",
         "tracer_impl.h",
         "span.h",
     ],
     srcs = [
+        "allocator_manager.cpp",
         "tracer_impl.cpp",
         "span.cpp",
     ],
