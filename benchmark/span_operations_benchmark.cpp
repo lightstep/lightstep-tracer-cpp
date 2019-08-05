@@ -101,8 +101,10 @@ static std::shared_ptr<opentracing::Tracer> MakeRpcTracer() {
 //--------------------------------------------------------------------------------------------------
 // MakeStreamTracer
 //--------------------------------------------------------------------------------------------------
-static std::shared_ptr<opentracing::Tracer> MakeStreamTracer() {
+static std::shared_ptr<opentracing::Tracer> MakeStreamTracer(
+    size_t memory_limit) {
   lightstep::LightStepTracerOptions tracer_options;
+  tracer_options.memory_limit = memory_limit;
   lightstep::StreamRecorderOptions recorder_options;
   recorder_options.throw_away_spans = true;
   auto logger = std::make_shared<lightstep::Logger>();
@@ -123,8 +125,11 @@ static std::shared_ptr<opentracing::Tracer> MakeTracer(
   if (tracer_type == "rpc") {
     return MakeRpcTracer();
   }
-  if (tracer_type == "stream") {
-    return MakeStreamTracer();
+  if (tracer_type == "stream_heap") {
+    return MakeStreamTracer(0);
+  }
+  if (tracer_type == "stream_arena") {
+    return MakeStreamTracer(4 * 1024 * 1024);
   }
   std::cerr << "Unknown tracer type: " << tracer_type << "\n";
   std::terminate();
@@ -150,7 +155,8 @@ static void BM_SpanCreation(benchmark::State& state, const char* tracer_type) {
   }
 }
 BENCHMARK_CAPTURE(BM_SpanCreation, rpc, "rpc");
-BENCHMARK_CAPTURE(BM_SpanCreation, stream, "stream");
+BENCHMARK_CAPTURE(BM_SpanCreation, stream_heap, "stream_heap");
+BENCHMARK_CAPTURE(BM_SpanCreation, stream_arena, "stream_arena");
 
 //------------------------------------------------------------------------------
 // BM_SpanCreationThreaded
@@ -182,7 +188,12 @@ BENCHMARK_CAPTURE(BM_SpanCreationThreaded, rpc, "rpc")
     ->Arg(2)
     ->Arg(4)
     ->Arg(8);
-BENCHMARK_CAPTURE(BM_SpanCreationThreaded, stream, "stream")
+BENCHMARK_CAPTURE(BM_SpanCreationThreaded, stream_heap, "stream_heap")
+    ->Arg(1)
+    ->Arg(2)
+    ->Arg(4)
+    ->Arg(8);
+BENCHMARK_CAPTURE(BM_SpanCreationThreaded, stream_arena, "stream_arena")
     ->Arg(1)
     ->Arg(2)
     ->Arg(4)
@@ -205,7 +216,8 @@ static void BM_SpanCreationWithParent(benchmark::State& state,
   }
 }
 BENCHMARK_CAPTURE(BM_SpanCreationWithParent, rpc, "rpc");
-BENCHMARK_CAPTURE(BM_SpanCreationWithParent, stream, "stream");
+BENCHMARK_CAPTURE(BM_SpanCreationWithParent, stream_heap, "stream_heap");
+BENCHMARK_CAPTURE(BM_SpanCreationWithParent, stream_arena, "stream_arena");
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanSetTag1
@@ -219,7 +231,8 @@ static void BM_SpanSetTag1(benchmark::State& state, const char* tracer_type) {
   }
 }
 BENCHMARK_CAPTURE(BM_SpanSetTag1, rpc, "rpc");
-BENCHMARK_CAPTURE(BM_SpanSetTag1, stream, "stream");
+BENCHMARK_CAPTURE(BM_SpanSetTag1, stream_heap, "stream_heap");
+BENCHMARK_CAPTURE(BM_SpanSetTag1, stream_arena, "stream_arena");
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanSetTag2
@@ -242,7 +255,8 @@ static void BM_SpanSetTag2(benchmark::State& state, const char* tracer_type) {
   }
 }
 BENCHMARK_CAPTURE(BM_SpanSetTag2, rpc, "rpc");
-BENCHMARK_CAPTURE(BM_SpanSetTag2, stream, "stream");
+BENCHMARK_CAPTURE(BM_SpanSetTag2, stream_heap, "stream_heap");
+BENCHMARK_CAPTURE(BM_SpanSetTag2, stream_arena, "stream_arena");
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanLog1
@@ -256,7 +270,8 @@ static void BM_SpanLog1(benchmark::State& state, const char* tracer_type) {
   }
 }
 BENCHMARK_CAPTURE(BM_SpanLog1, rpc, "rpc");
-BENCHMARK_CAPTURE(BM_SpanLog1, stream, "stream");
+BENCHMARK_CAPTURE(BM_SpanLog1, stream_heap, "stream_heap");
+BENCHMARK_CAPTURE(BM_SpanLog1, stream_arena, "stream_arnea");
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanLog2
@@ -272,7 +287,8 @@ static void BM_SpanLog2(benchmark::State& state, const char* tracer_type) {
   }
 }
 BENCHMARK_CAPTURE(BM_SpanLog2, rpc, "rpc");
-BENCHMARK_CAPTURE(BM_SpanLog2, stream, "stream");
+BENCHMARK_CAPTURE(BM_SpanLog2, stream_heap, "stream_heap");
+BENCHMARK_CAPTURE(BM_SpanLog2, stream_arena, "stream_arena");
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanContextMultikeyInjection
