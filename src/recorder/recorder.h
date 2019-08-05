@@ -71,5 +71,7 @@ class Recorder {
       std::chrono::steady_clock::time_point /*steady_now*/) const noexcept {
     return std::chrono::system_clock::now();
   }
+
+  virtual const LightStepTracerOptions& tracer_options() const noexcept = 0;
 };
 }  // namespace lightstep

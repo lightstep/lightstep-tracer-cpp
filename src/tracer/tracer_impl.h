@@ -4,6 +4,7 @@
 
 #include "common/logger.h"
 #include "recorder/recorder.h"
+#include "tracer/allocator_manager.h"
 #include "tracer/propagation.h"
 
 namespace lightstep {
@@ -24,6 +25,8 @@ class TracerImpl final : public LightStepTracer,
    * @return the associated Logger.
    */
   Logger& logger() const noexcept { return *logger_; }
+
+  AllocatorManager& allocator_manager() const noexcept { return allocator_manager_; }
 
   /**
    * @return the associated Recorder
@@ -67,6 +70,7 @@ class TracerImpl final : public LightStepTracer,
  private:
   std::shared_ptr<Logger> logger_;
   PropagationOptions propagation_options_;
+  mutable AllocatorManager allocator_manager_;
   std::unique_ptr<Recorder> recorder_;
 };
 }  // namespace lightstep

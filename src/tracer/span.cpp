@@ -74,6 +74,8 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
 Span::~Span() noexcept {
   opentracing::FinishSpanOptions options;
   FinishImpl(options);
+  tracer_->allocator_manager().span_allocator().deallocate(
+      static_cast<void*>(this));
 }
 
 //------------------------------------------------------------------------------

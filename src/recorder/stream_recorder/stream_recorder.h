@@ -58,7 +58,7 @@ class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
   /**
    * @return the associated LightStepTracerOptions
    */
-  const LightStepTracerOptions& tracer_options() const noexcept {
+  const LightStepTracerOptions& tracer_options() const noexcept override {
     return tracer_options_;
   }
 

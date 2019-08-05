@@ -34,6 +34,8 @@ class AutoRecorder final : public Recorder, private Noncopyable {
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;
 
+  const LightStepTracerOptions& tracer_options() const noexcept override { return options_; }
+
   // used for testing only.
   bool is_writer_running() const {
     std::lock_guard<std::mutex> lock_guard{write_mutex_};

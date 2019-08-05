@@ -55,6 +55,7 @@ TracerImpl::TracerImpl(const PropagationOptions& propagation_options,
                        std::unique_ptr<Recorder>&& recorder) noexcept
     : logger_{std::make_shared<Logger>()},
       propagation_options_{propagation_options},
+      allocator_manager_{recorder->tracer_options().memory_limit},
       recorder_{std::move(recorder)} {}
 
 TracerImpl::TracerImpl(std::shared_ptr<Logger> logger,
@@ -62,6 +63,7 @@ TracerImpl::TracerImpl(std::shared_ptr<Logger> logger,
                        std::unique_ptr<Recorder>&& recorder) noexcept
     : logger_{std::move(logger)},
       propagation_options_{propagation_options},
+      allocator_manager_{recorder->tracer_options().memory_limit},
       recorder_{std::move(recorder)} {}
 
 //------------------------------------------------------------------------------
@@ -70,8 +72,11 @@ TracerImpl::TracerImpl(std::shared_ptr<Logger> logger,
 std::unique_ptr<opentracing::Span> TracerImpl::StartSpanWithOptions(
     opentracing::string_view operation_name,
     const opentracing::StartSpanOptions& options) const noexcept try {
-  return std::unique_ptr<opentracing::Span>{
-      new Span{shared_from_this(), operation_name, options}};
+  auto span = static_cast<Span*>(allocator_manager_.span_allocator().allocate());
+  ::new (span) Span{shared_from_this(), operation_name, options};
+  return std::unique_ptr<opentracing::Span>{span};
+  /* return std::unique_ptr<opentracing::Span>{ */
+  /*     new Span{shared_from_this(), operation_name, options}}; */
 } catch (const std::exception& e) {
   logger_->Error("StartSpanWithOptions failed: ", e.what());
   return nullptr;

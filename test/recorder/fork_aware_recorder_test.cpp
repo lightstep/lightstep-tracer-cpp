@@ -9,6 +9,12 @@ using namespace lightstep;
 class DummyRecorder final : public ForkAwareRecorder {
  public:
   void RecordSpan(const collector::Span& /*span*/) noexcept override {}
+
+  const LightStepTracerOptions& tracer_options() const noexcept override {
+    return tracer_options_;
+  }
+ private:
+  LightStepTracerOptions tracer_options_;
 };
 
 TEST_CASE("ForkAwareRecorder") {

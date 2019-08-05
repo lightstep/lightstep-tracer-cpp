@@ -20,8 +20,10 @@ class InMemoryRecorder final : public Recorder {
 
   void RecordSpan(std::unique_ptr<SerializationChain>&& span) noexcept override;
 
+  const LightStepTracerOptions& tracer_options() const noexcept { return tracer_options_; }
  private:
   mutable std::mutex mutex_;
   std::vector<collector::Span> spans_;
+  LightStepTracerOptions tracer_options_;
 };
 }  // namespace lightstep

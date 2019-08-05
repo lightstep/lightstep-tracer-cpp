@@ -130,6 +130,8 @@ struct LightStepTracerOptions {
   // `metrics_observer` can be optionally provided to track LightStep tracer
   // events. See MetricsObserver.
   std::unique_ptr<MetricsObserver> metrics_observer;
+
+  size_t memory_limit = 2*1024*1024;
 };
 
 // The LightStepTracer interface can be used by custom carriers that need more
