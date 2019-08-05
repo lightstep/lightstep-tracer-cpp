@@ -13,7 +13,9 @@ namespace lightstep {
 BlockAllocator::BlockAllocator(size_t block_size, size_t max_blocks)
     : block_size_{block_size},
       max_blocks_{max_blocks},
-      data_{static_cast<char*>(std::malloc(block_size_ * max_blocks_))} {}
+      data_{static_cast<char*>(std::malloc(block_size_ * max_blocks_))} {
+        assert(block_size >= sizeof(Node));
+}
 
 //--------------------------------------------------------------------------------------------------
 // destructor

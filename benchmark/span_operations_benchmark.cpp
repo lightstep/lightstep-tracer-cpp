@@ -271,7 +271,7 @@ static void BM_SpanLog1(benchmark::State& state, const char* tracer_type) {
 }
 BENCHMARK_CAPTURE(BM_SpanLog1, rpc, "rpc");
 BENCHMARK_CAPTURE(BM_SpanLog1, stream_heap, "stream_heap");
-BENCHMARK_CAPTURE(BM_SpanLog1, stream_arena, "stream_arnea");
+BENCHMARK_CAPTURE(BM_SpanLog1, stream_arena, "stream_arena");
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanLog2
