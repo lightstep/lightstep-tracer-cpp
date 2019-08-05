@@ -30,6 +30,7 @@ class Span final : public BlockAllocatable,
 
   void* operator new(size_t /*size*/) noexcept {
     assert(0 && "new cannot be used directly");
+    std::terminate();
   }
 
   void operator delete(void* /*ptr*/) noexcept {

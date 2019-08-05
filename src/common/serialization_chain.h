@@ -3,6 +3,7 @@
 #include <array>
 #include <limits>
 #include <memory>
+#include <exception>
 
 #include "common/block_allocator.h"
 #include "common/fragment_input_stream.h"
@@ -33,6 +34,7 @@ class SerializationChain final
 
   void* operator new(size_t /*size*/) noexcept {
     assert(0 && "new cannot be used directly");
+    std::terminate();
   }
 
   void operator delete(void* /*ptr*/) noexcept {
