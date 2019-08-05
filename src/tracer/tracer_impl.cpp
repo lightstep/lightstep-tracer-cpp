@@ -72,7 +72,8 @@ TracerImpl::TracerImpl(std::shared_ptr<Logger> logger,
 std::unique_ptr<opentracing::Span> TracerImpl::StartSpanWithOptions(
     opentracing::string_view operation_name,
     const opentracing::StartSpanOptions& options) const noexcept try {
-  auto span = static_cast<Span*>(allocator_manager_.span_allocator().allocate());
+  auto span =
+      static_cast<Span*>(allocator_manager_.span_allocator().allocate());
   ::new (span) Span{shared_from_this(), operation_name, options};
   return std::unique_ptr<opentracing::Span>{span};
   /* return std::unique_ptr<opentracing::Span>{ */

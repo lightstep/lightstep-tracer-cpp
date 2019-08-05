@@ -13,6 +13,7 @@ class DummyRecorder final : public ForkAwareRecorder {
   const LightStepTracerOptions& tracer_options() const noexcept override {
     return tracer_options_;
   }
+
  private:
   LightStepTracerOptions tracer_options_;
 };

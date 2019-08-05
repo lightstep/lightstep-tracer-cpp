@@ -36,6 +36,7 @@ TEST_CASE("StreamRecorder") {
       });
   logger->set_level(LogLevel::debug);
   LightStepTracerOptions tracer_options;
+  tracer_options.memory_limit = 0;
   tracer_options.satellite_endpoints = {
       {"localhost",
        static_cast<uint16_t>(PortAssignments::StreamRecorderTest)}};

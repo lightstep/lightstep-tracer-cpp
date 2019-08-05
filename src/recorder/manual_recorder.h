@@ -21,7 +21,9 @@ class ManualRecorder final : public Recorder,
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;
 
-  const LightStepTracerOptions& tracer_options() const noexcept override { return options_; }
+  const LightStepTracerOptions& tracer_options() const noexcept override {
+    return options_;
+  }
 
  private:
   bool IsReportInProgress() const noexcept;

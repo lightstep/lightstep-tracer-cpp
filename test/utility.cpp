@@ -107,7 +107,7 @@ std::string ToString(const FragmentInputStream& fragment_input_stream) {
 //--------------------------------------------------------------------------------------------------
 bool AddString(CircularBuffer<SerializationChain>& buffer,
                const std::string& s) {
-  std::unique_ptr<SerializationChain> chain{new SerializationChain{}};
+  auto chain = MakeSerializationChainForTesting();
   {
     google::protobuf::io::CodedOutputStream stream{chain.get()};
     stream.WriteString(s);

@@ -24,7 +24,7 @@ static size_t ComputeMaxSpans(size_t memory_limit) {
 // constructor
 //--------------------------------------------------------------------------------------------------
 AllocatorManager::AllocatorManager(size_t memory_limit)
-    : span_allocator_{ComputeMaxSpans(memory_limit), sizeof(Span)},
-      serialization_chain_allocator_{span_allocator_.max_blocks(),
-                                     sizeof(SerializationChain)} {}
+    : span_allocator_{sizeof(Span), ComputeMaxSpans(memory_limit)},
+      serialization_chain_allocator_{sizeof(SerializationChain),
+                                     span_allocator_.max_blocks()} {}
 }  // namespace lightstep

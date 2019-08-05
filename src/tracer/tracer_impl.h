@@ -26,7 +26,9 @@ class TracerImpl final : public LightStepTracer,
    */
   Logger& logger() const noexcept { return *logger_; }
 
-  AllocatorManager& allocator_manager() const noexcept { return allocator_manager_; }
+  AllocatorManager& allocator_manager() const noexcept {
+    return allocator_manager_;
+  }
 
   /**
    * @return the associated Recorder

@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <new>
 
 #include "common/lock_free_list.h"
 
@@ -17,16 +18,18 @@ BlockAllocator::BlockAllocator(size_t block_size, size_t max_blocks)
 //--------------------------------------------------------------------------------------------------
 // destructor
 //--------------------------------------------------------------------------------------------------
-BlockAllocator::~BlockAllocator() noexcept {
-  std::free(data_);
-}
+BlockAllocator::~BlockAllocator() noexcept { std::free(data_); }
 
 //--------------------------------------------------------------------------------------------------
 // allocate
 //--------------------------------------------------------------------------------------------------
-void* BlockAllocator::allocate() noexcept {
+void* BlockAllocator::allocate() {
   if (max_blocks_ == 0) {
-    return std::malloc(block_size_);
+    auto result = std::malloc(block_size_);
+    if (result == nullptr) {
+      throw std::bad_alloc{};
+    }
+    return result;
   }
   auto node = ListPopFront(free_list_);
   if (node != nullptr) {
@@ -34,7 +37,7 @@ void* BlockAllocator::allocate() noexcept {
   }
   int64_t index = reserve_index_++;
   if (index >= static_cast<int64_t>(max_blocks_)) {
-    return nullptr;
+    throw std::bad_alloc{};
   }
   return static_cast<void*>(data_ + index * block_size_);
 }
@@ -49,4 +52,4 @@ void BlockAllocator::deallocate(void* ptr) noexcept {
   }
   ListPushFront(free_list_, *reinterpret_cast<Node*>(ptr));
 }
-} // namespace lightstep
+}  // namespace lightstep

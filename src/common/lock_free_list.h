@@ -31,4 +31,4 @@ Node* ListPopFront(std::atomic<Node*>& head) noexcept {
     }
   }
 }
-} // namespace lightstep
+}  // namespace lightstep

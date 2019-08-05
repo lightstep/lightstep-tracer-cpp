@@ -21,7 +21,9 @@ namespace lightstep {
 Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
            opentracing::string_view operation_name,
            const opentracing::StartSpanOptions& options)
-    : serialization_chain_{new SerializationChain{}},
+    : BlockAllocatable{tracer->allocator_manager().span_allocator()},
+      serialization_chain_{MakeSerializationChain(
+          tracer->allocator_manager().serialization_chain_allocator())},
       stream_{serialization_chain_.get()},
       tracer_{std::move(tracer)} {
   WriteOperationName(stream_, operation_name);
@@ -74,8 +76,6 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
 Span::~Span() noexcept {
   opentracing::FinishSpanOptions options;
   FinishImpl(options);
-  tracer_->allocator_manager().span_allocator().deallocate(
-      static_cast<void*>(this));
 }
 
 //------------------------------------------------------------------------------

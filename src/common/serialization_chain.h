@@ -17,7 +17,8 @@ namespace lightstep {
  * Maintains a linked chain of blocks for a serialization.
  */
 class SerializationChain final
-    : public google::protobuf::io::ZeroCopyOutputStream,
+    : public BlockAllocatable,
+      public google::protobuf::io::ZeroCopyOutputStream,
       public FragmentInputStream,
       private Noncopyable {
  public:
@@ -29,6 +30,14 @@ class SerializationChain final
   SerializationChain() noexcept;
 
   ~SerializationChain() noexcept;
+
+  void* operator new(size_t /*size*/) noexcept {
+    assert(0 && "new cannot be used directly");
+  }
+
+  void operator delete(void* /*ptr*/) noexcept {
+    // Span is freed from destructor
+  }
 
   /**
    * Adds http/1.1 chunk framing and a message header so that the data can be
@@ -55,8 +64,6 @@ class SerializationChain final
   void Seek(int fragment_index, int position) noexcept override;
 
  private:
-  BlockAllocator& allocator_;
-
   struct Block {
     Block* next;
     int max_size;
@@ -97,4 +104,9 @@ class SerializationChain final
 
   void FreeBlocks(Block* block) noexcept;
 };
+
+std::unique_ptr<SerializationChain> MakeSerializationChain(
+    BlockAllocator& allocator);
+
+std::unique_ptr<SerializationChain> MakeSerializationChainForTesting();
 }  // namespace lightstep

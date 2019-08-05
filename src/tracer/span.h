@@ -18,7 +18,9 @@ namespace lightstep {
 /**
  * LightStep's implementation of the OpenTracing Span class.
  */
-class Span final : public opentracing::Span, public LightStepSpanContext {
+class Span final : public BlockAllocatable,
+                   public opentracing::Span,
+                   public LightStepSpanContext {
  public:
   Span(std::shared_ptr<const TracerImpl>&& tracer,
        opentracing::string_view operation_name,

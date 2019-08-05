@@ -11,44 +11,44 @@
 using namespace lightstep;
 
 TEST_CASE("SerializationChain") {
-  SerializationChain chain;
+  auto chain = MakeSerializationChainForTesting();
 
   std::unique_ptr<google::protobuf::io::CodedOutputStream> stream{
-      new google::protobuf::io::CodedOutputStream{&chain}};
+      new google::protobuf::io::CodedOutputStream{chain.get()}};
 
   SECTION("An empty chain has no fragments.") {
     stream.reset();
-    chain.AddFraming();
-    REQUIRE(chain.num_fragments() == 0);
+    chain->AddFraming();
+    REQUIRE(chain->num_fragments() == 0);
   }
 
   SECTION("We can write a string smaller than the block size.") {
     stream->WriteString("abc");
     stream.reset();
-    chain.AddFraming();
-    REQUIRE(chain.num_fragments() == 3);
-    REQUIRE(ToString(chain) == AddSpanChunkFraming("abc"));
+    chain->AddFraming();
+    REQUIRE(chain->num_fragments() == 3);
+    REQUIRE(ToString(*chain) == AddSpanChunkFraming("abc"));
   }
 
   SECTION("We can write strings larger than a single block.") {
     std::string s(SerializationChain::FirstBlockSize + 1, 'X');
     stream->WriteString(s);
     stream.reset();
-    chain.AddFraming();
-    REQUIRE(chain.num_fragments() == 4);
-    REQUIRE(ToString(chain) == AddSpanChunkFraming(s));
+    chain->AddFraming();
+    REQUIRE(chain->num_fragments() == 4);
+    REQUIRE(ToString(*chain) == AddSpanChunkFraming(s));
   }
 
   SECTION("We can seek to any byte in the fragment stream.") {
     std::string s(SerializationChain::FirstBlockSize + 2, 'X');
     stream->WriteString(s);
     stream.reset();
-    chain.AddFraming();
+    chain->AddFraming();
     std::string serialization = AddSpanChunkFraming(s);
     for (size_t i = 1; i <= serialization.size(); ++i) {
       SECTION("cosumption instance " + std::to_string(i)) {
-        Consume({&chain}, i);
-        REQUIRE(ToString(chain) == serialization.substr(i));
+        Consume({chain.get()}, i);
+        REQUIRE(ToString(*chain) == serialization.substr(i));
       }
     }
   }
@@ -57,7 +57,7 @@ TEST_CASE("SerializationChain") {
     std::string s(3 * SerializationChain::FirstBlockSize + 10, 'X');
     stream->WriteString(s);
     stream.reset();
-    chain.AddFraming();
+    chain->AddFraming();
     std::string serialization = AddSpanChunkFraming(s);
     std::mt19937 random_number_generator{0};
     for (int i = 0; i < 100; ++i) {
@@ -67,9 +67,9 @@ TEST_CASE("SerializationChain") {
           std::uniform_int_distribution<size_t> distribution{
               1, static_cast<int>(serialization.size()) - num_bytes_consumed};
           auto n = distribution(random_number_generator);
-          Consume({&chain}, n);
+          Consume({chain.get()}, n);
           num_bytes_consumed += n;
-          REQUIRE(ToString(chain) == serialization.substr(num_bytes_consumed));
+          REQUIRE(ToString(*chain) == serialization.substr(num_bytes_consumed));
         }
       }
     }
