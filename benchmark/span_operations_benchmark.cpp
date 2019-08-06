@@ -138,11 +138,13 @@ static std::shared_ptr<opentracing::Tracer> MakeTracer(
 //------------------------------------------------------------------------------
 // MakeSpans
 //------------------------------------------------------------------------------
+#if 0
 static void MakeSpans(const opentracing::Tracer& tracer, int n) {
   for (int i = 0; i < n; ++i) {
     auto span = tracer.StartSpan("abc123");
   }
 }
+#endif
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanCreation
