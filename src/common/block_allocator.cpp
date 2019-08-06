@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <new>
+#include <iostream>
 
 #include "common/lock_free_list.h"
 
@@ -34,6 +35,13 @@ void* BlockAllocator::allocate() {
     return result;
   }
   auto node = ListPopFront(free_list_);
+  /* auto cptr = reinterpret_cast<char*>(node); */
+  /* if (cptr != nullptr && (cptr < data_ || cptr >= data_ + max_blocks_ * block_size_)) { */
+  /*   std::cerr << "pop: invalid ptr\n"; */
+  /*   std::cerr << "cptr = " << static_cast<void*>(cptr) << std::endl; */
+  /*   std::cerr << "delta = " << std::distance(data_, cptr) << "\n"; */
+  /*   std::terminate(); */
+  /* } */
   if (node != nullptr) {
     return static_cast<void*>(node);
   }
@@ -52,6 +60,11 @@ void BlockAllocator::deallocate(void* ptr) noexcept {
   if (max_blocks_ == 0) {
     return std::free(ptr);
   }
+  /* auto cptr = reinterpret_cast<char*>(ptr); */
+  /* if (cptr < data_ || cptr >= data_ + max_blocks_ * block_size_) { */
+  /*   std::cerr << "push: invalid ptr\n"; */
+  /*   std::terminate(); */
+  /* } */
   ListPushFront(free_list_, *reinterpret_cast<Node*>(ptr));
 }
 }  // namespace lightstep

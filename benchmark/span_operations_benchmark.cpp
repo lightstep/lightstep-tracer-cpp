@@ -161,6 +161,7 @@ BENCHMARK_CAPTURE(BM_SpanCreation, stream_arena, "stream_arena");
 //------------------------------------------------------------------------------
 // BM_SpanCreationThreaded
 //------------------------------------------------------------------------------
+#if 0
 static void BM_SpanCreationThreaded(benchmark::State& state,
                                     const char* tracer_type) {
   const int num_spans_for_span_creation_threaded_benchmark = 4000;
@@ -198,6 +199,7 @@ BENCHMARK_CAPTURE(BM_SpanCreationThreaded, stream_arena, "stream_arena")
     ->Arg(2)
     ->Arg(4)
     ->Arg(8);
+#endif
 
 //--------------------------------------------------------------------------------------------------
 // BM_SpanCreationWithParent
