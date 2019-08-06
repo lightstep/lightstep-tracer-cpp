@@ -1,5 +1,6 @@
 #include "common/block_allocator.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <new>
@@ -16,6 +17,7 @@ BlockAllocator::BlockAllocator(size_t block_size, size_t max_blocks)
       max_blocks_{max_blocks},
       data_{static_cast<char*>(std::malloc(block_size_ * max_blocks_))} {
         assert(block_size >= sizeof(Node));
+        std::fill(data_, data_ + block_size_*max_blocks_, 0);
 }
 
 //--------------------------------------------------------------------------------------------------
