@@ -17,7 +17,11 @@ BlockAllocator::BlockAllocator(size_t block_size, size_t max_blocks)
       max_blocks_{max_blocks},
       data_{static_cast<char*>(std::malloc(block_size_ * max_blocks_))} {
         assert(block_size >= sizeof(Node));
-        std::fill(data_, data_ + block_size_*max_blocks_, 0);
+    for (int i=0; i<static_cast<int>(max_blocks_); ++i) {
+      auto ptr = data_ + i * block_size_;
+      ListPushFront(free_list_, *reinterpret_cast<Node*>(ptr));
+    }
+        /* std::fill(data_, data_ + block_size_*max_blocks_, 0); */
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -37,6 +41,7 @@ void* BlockAllocator::allocate() {
     return result;
   }
   auto node = ListPopFront(free_list_);
+  return static_cast<void*>(node);
   /* auto cptr = reinterpret_cast<char*>(node); */
   /* if (cptr != nullptr && (cptr < data_ || cptr >= data_ + max_blocks_ * block_size_)) { */
   /*   std::cerr << "pop: invalid ptr\n"; */
@@ -44,6 +49,7 @@ void* BlockAllocator::allocate() {
   /*   std::cerr << "delta = " << std::distance(data_, cptr) << "\n"; */
   /*   std::terminate(); */
   /* } */
+#if 0
   if (node != nullptr) {
     return static_cast<void*>(node);
   }
@@ -52,6 +58,7 @@ void* BlockAllocator::allocate() {
     throw std::bad_alloc{};
   }
   return static_cast<void*>(data_ + index * block_size_);
+#endif
 }
 
 //--------------------------------------------------------------------------------------------------
