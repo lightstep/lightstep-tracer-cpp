@@ -194,7 +194,7 @@ jobs:
       - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
-      - run: pip install ~/plugin/*.whl
+      - run: pip install --user ~/plugin/*.whl
       - run: pytest --client_name python-cpp test_client.py
       - store_artifacts:
           path: logs
@@ -210,7 +210,7 @@ jobs:
       - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
-      - run: pip install ~/plugin/*.whl
+      - run: pip install --user ~/plugin/*.whl
       - run: mkdir graphs
       - run: python memory_graphs.py python-cpp
       - store_artifacts:
