@@ -212,7 +212,11 @@ jobs:
           at: ~/plugin
       - run: sudo pip install ~/plugin/*.whl
       - run: mkdir graphs
+      - run: python cpu_graphs.py python-cpp --runtime 10 --trials 10
       - run: python memory_graphs.py python-cpp
+      - run: python dropped_graphs.py python-cpp
+      - run: python disconnect_graphs.py python-cpp
+
       - store_artifacts:
           path: logs
           destination: logs
