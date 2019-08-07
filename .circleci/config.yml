@@ -96,7 +96,7 @@ jobs:
       - run: ./ci/setup_build_environment.sh
       - run: ./ci/install_clang.sh
       - run: ./ci/install_bazel.sh
-      - run: 
+      - run:
           command: ./ci/do_ci.sh clang_tidy
           no_output_timeout: 1800
       - store_artifacts:
@@ -159,6 +159,32 @@ jobs:
           path: /coverage
           desination: coverage
 
+  regression_test:
+    docker:
+      - image: circleci/python:3.7.4
+    working_directory: ~/repo
+
+    steps:
+      - run:
+          name: clone
+          command: |
+            git clone https://github.com/isaaczinda/tracer-benchmark.git
+            cd tracer-benchmark
+
+      - attach_workspace:
+          at: /plugin
+
+      - run:
+          name: build & test
+          command: |
+            cd tracer-benchmark
+            python -m venv venv
+            source venv/bin/activate
+            source ./scripts/setup_environment.sh
+            pip install /plugin/*.whl
+            ./scripts/generate_proto.sh
+            pytest test_python_cpp.py
+
 workflows:
   version: 2
   build_and_test:
@@ -173,10 +199,13 @@ workflows:
       - build_plugin
       - clang_tidy
       - plugin_test:
-          requires: 
+          requires:
             - build_plugin
       - python_wheel_test:
-          requires: 
+          requires:
+            - build_plugin
+      - regression_test:
+          requires:
             - build_plugin
   deploy:
     jobs:
