@@ -191,7 +191,7 @@ jobs:
 
     steps:
       - run: cd ~; git clone https://github.com/isaaczinda/tracer-benchmark.git repo
-      - run: sudo ./scripts/ci_setup.sh
+      - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
       - run: pip install ~/plugin/*.whl
@@ -207,7 +207,7 @@ jobs:
 
     steps:
       - run: cd ~; git clone https://github.com/isaaczinda/tracer-benchmark.git repo
-      - run: sudo ./scripts/ci_setup.sh
+      - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
       - run: pip install ~/plugin/*.whl
