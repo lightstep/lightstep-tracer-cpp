@@ -143,6 +143,7 @@ jobs:
       - store_artifacts:
           path: /plugin
           destination: plugin
+
       - persist_to_workspace:
           root: /plugin
           paths:
@@ -196,7 +197,7 @@ jobs:
             git clone https://github.com/isaaczinda/tracer-benchmark.git repo
 
       - attach_workspace:
-          at: /plugin
+          at: ~/plugin
 
       - run:
           name: build & test
@@ -204,7 +205,7 @@ jobs:
             python -m venv venv
             source venv/bin/activate
             source ./scripts/setup_environment.sh
-            pip install /plugin/*.whl
+            pip install ~/plugin/*.whl
             ./scripts/generate_proto.sh
             pytest --client_name python-cpp test_client.py
 
