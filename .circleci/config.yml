@@ -244,6 +244,7 @@ workflows:
           requires:
             - build_plugin
       - make_graphs:
+          type: approval
           requires:
             - build_plugin
   deploy:
