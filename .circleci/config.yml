@@ -190,24 +190,31 @@ jobs:
     working_directory: ~/repo
 
     steps:
-      - run:
-          name: clone
-          command: |
-            cd ..
-            git clone https://github.com/isaaczinda/tracer-benchmark.git repo
-
+      - run: cd ~; git clone https://github.com/isaaczinda/tracer-benchmark.git repo
+      - run: ./ci/setup.sh
       - attach_workspace:
           at: ~/plugin
+      - run: pip install ~/plugin/*.whl
+      - run: pytest --client_name python-cpp test_client.py
 
-      - run:
-          name: build & test
-          command: |
-            python -m venv venv
-            source venv/bin/activate
-            source ./scripts/setup_environment.sh
-            pip install ~/plugin/*.whl
-            ./scripts/generate_proto.sh
-            pytest --client_name python-cpp test_client.py
+  make_graphs:
+    docker:
+      - image: circleci/python:3.7.4
+    working_directory: ~/repo
+
+    steps:
+      - run: cd ~; git clone https://github.com/isaaczinda/tracer-benchmark.git repo
+      - run: ./ci/setup.sh
+      - attach_workspace:
+          at: ~/plugin
+      - run: pip install ~/plugin/*.whl
+      - run: mkdir graphs; python memory_graphs.py python-cpp
+      - store_artifacts:
+          path: logs
+          destination: logs
+      - store_artifacts:
+          path: graphs
+          destination: graphs
 
 workflows:
   version: 2
@@ -227,6 +234,12 @@ workflows:
           requires:
             - build_plugin
       - python_wheel_test:
+          requires:
+            - build_plugin
+      - regression_test:
+          requires:
+            - build_plugin
+      - make_graphs:
           requires:
             - build_plugin
   deploy:
