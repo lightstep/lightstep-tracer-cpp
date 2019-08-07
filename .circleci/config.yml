@@ -127,7 +127,10 @@ jobs:
       - checkout
       - run: ./ci/setup_build_environment.sh
       - run: ./ci/install_bazel.sh
-      - run: ./ci/do_ci.sh plugin
+      - run:
+          command: ./ci/do_ci.sh plugin
+          no_output_timeout: 30m
+
       - store_artifacts:
           path: /plugin
           destination: plugin
