@@ -191,7 +191,7 @@ jobs:
 
     steps:
       - run: cd ~; git clone https://github.com/isaaczinda/tracer-benchmark.git repo
-      - run: ./scripts/ci_setup.sh
+      - run: sudo ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
       - run: pip install ~/plugin/*.whl
@@ -207,11 +207,12 @@ jobs:
 
     steps:
       - run: cd ~; git clone https://github.com/isaaczinda/tracer-benchmark.git repo
-      - run: ./scripts/ci_setup.sh
+      - run: sudo ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
       - run: pip install ~/plugin/*.whl
-      - run: mkdir graphs; python memory_graphs.py python-cpp
+      - run: mkdir graphs
+      - run: python memory_graphs.py python-cpp
       - store_artifacts:
           path: logs
           destination: logs
