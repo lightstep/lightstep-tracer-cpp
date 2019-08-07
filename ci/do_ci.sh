@@ -13,6 +13,7 @@ BAZEL_PLUGIN_OPTIONS="$BAZEL_OPTIONS \
               --copt=-march=x86-64 \
               --config=portable_glibc \
               --config=static_libcpp \
+              --jobs 4 \
   "
 
 function copy_benchmark_results() {
