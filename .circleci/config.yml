@@ -200,7 +200,7 @@ jobs:
           path: logs
           destination: logs
 
-  make_graphs:
+  make_cpu_graphs:
     docker:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
@@ -213,6 +213,26 @@ jobs:
       - run: sudo pip install ~/plugin/*.whl
       - run: mkdir graphs
       - run: python cpu_graphs.py python-cpp --runtime 10 --trials 10
+
+      - store_artifacts:
+          path: logs
+          destination: logs
+      - store_artifacts:
+          path: graphs
+          destination: graphs
+
+  make_other_graphs:
+    docker:
+      - image: circleci/python:3.7.4
+    working_directory: ~/repo
+
+    steps:
+      - run: cd ~; git clone https://github.com/isaaczinda/tracer-benchmark.git repo
+      - run: ./scripts/ci_setup.sh
+      - attach_workspace:
+          at: ~/plugin
+      - run: sudo pip install ~/plugin/*.whl
+      - run: mkdir graphs
       - run: python memory_graphs.py python-cpp
       - run: python dropped_graphs.py python-cpp
       - run: python disconnect_graphs.py python-cpp
@@ -251,7 +271,10 @@ workflows:
           type: approval
           requires:
             - build_plugin
-      - make_graphs:
+      - make_cpu_graphs:
+          requires:
+            - approve_make_graphs
+      - make_other_graphs:
           requires:
             - approve_make_graphs
   deploy:
