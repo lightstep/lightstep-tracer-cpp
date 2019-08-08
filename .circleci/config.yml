@@ -247,9 +247,9 @@ workflows:
       - regression_test:
           requires:
             - build_plugin
-      - approve_make_graphs: # <<< A job that will require manual approval in the CircleCI web application.
-          type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"
-          requires: # We only run the "hold" job when test2 has succeeded
+      - approve_make_graphs:
+          type: approval
+          requires:
             - build_plugin
       - make_graphs:
           requires:
