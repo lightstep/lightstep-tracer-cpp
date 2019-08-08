@@ -67,7 +67,7 @@ jobs:
       - run: ./ci/do_ci.sh bazel.tsan
 
   windows:
-    executor: win/preview-default
+    executor: win/vs2019
     steps:
       - checkout
       - run: echo 'Hello, Windows!'
