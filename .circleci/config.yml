@@ -211,7 +211,6 @@ jobs:
       - attach_workspace:
           at: ~/plugin
       - run: sudo pip install ~/plugin/*.whl
-      - run: mkdir graphs
       - run: python cpu_graphs.py python-cpp --runtime 10 --trials 10
 
       - store_artifacts:
@@ -232,7 +231,6 @@ jobs:
       - attach_workspace:
           at: ~/plugin
       - run: sudo pip install ~/plugin/*.whl
-      - run: mkdir graphs
       - run: python memory_graphs.py python-cpp
       - run: python dropped_graphs.py python-cpp
       - run: python disconnect_graphs.py python-cpp
