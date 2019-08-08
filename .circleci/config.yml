@@ -195,7 +195,7 @@ jobs:
       - attach_workspace:
           at: ~/plugin
       - run: sudo pip install ~/plugin/*.whl
-      - run: pytest --client_name python-cpp test_client.py
+      - run: pytest -s --client_name python-cpp test_client.py
       - store_artifacts:
           path: logs
           destination: logs
