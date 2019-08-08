@@ -71,7 +71,19 @@ jobs:
     steps:
       - checkout
       - run: echo 'Hello, Windows!'
-      - run: docker build -t lightstep-windows:latest -m 2GB -f ci/Dockerfile-windows ci
+      - run: |
+          net stop docker
+          dockerd --unregister-service
+          dockerd --register-service --storage-opt size=120G
+          net start docker
+      - run: docker build -t windows-base:latest -m 2GB -f ci/Dockerfile-windows ci
+      - run: |
+          net stop docker
+          dockerd --unregister-service
+          dockerd --register-service
+          net start docker
+      - run: docker build -t lightstep-windows:latest -m 2GB -f ci/Dockerfile-microsoft ci
+      # - run: docker build -t lightstep-windows:latest -m 2GB -f ci/Dockerfile-windows ci
       - run: docker run lightstep-windows ls
       # - run: Get-Content ci/Dockerfile-windows | docker build -t lightstep-windows:latest -m 2GB -
       # - run: 
