@@ -76,7 +76,7 @@ jobs:
           dockerd --unregister-service
           dockerd --register-service --storage-opt size=120G
           net start docker
-      - run: docker build -t windows-base:latest -m 2GB -f ci/Dockerfile-windows ci
+      - run: docker build -t windows-base:latest -m 2GB -f ci/Dockerfile-windows-base ci
       - run: |
           net stop docker
           dockerd --unregister-service
