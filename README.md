@@ -71,12 +71,12 @@ The lightstep tracer can then be built with
 
 ```
 $VCPKG_DIR=<path to where vcpkg was installed>
-cmake -DBUILD_SHARED_LIBS=OFF \
-      -DWITH_DYNAMIC_LOAD=OFF \
-      -DWITH_GRPC=OFF \
-      -DWITH_LIBEVENT=ON \
-      -DWITH_CARES=ON \
-			"-DCMAKE_TOOLCHAIN_FILE=$VCPKG_DIR\scripts\buildsystems\vcpkg.cmake" `
+cmake -DBUILD_SHARED_LIBS=OFF `
+      -DWITH_DYNAMIC_LOAD=OFF `
+      -DWITH_GRPC=OFF `
+      -DWITH_LIBEVENT=ON `
+      -DWITH_CARES=ON `
+      "-DCMAKE_TOOLCHAIN_FILE=$VCPKG_DIR\scripts\buildsystems\vcpkg.cmake" `
       <path-to-lightstep>
 cmake --build .
 ```
