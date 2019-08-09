@@ -71,6 +71,7 @@ jobs:
     steps:
       - checkout
       - run: echo 'Hello, Windows!'
+      - run: ./ci/install_cmake.ps1
       # - run: |
       #     net stop docker
       #     dockerd --unregister-service
