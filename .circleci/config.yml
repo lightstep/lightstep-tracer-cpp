@@ -72,7 +72,7 @@ jobs:
       - checkout
       - run: ./ci/install_cmake.ps1
       - run: ./ci/setup_windows_build_environment.ps1
-			- run: ./ci/do_ci.ps1 build
+      - run: ./ci/do_ci.ps1 build
 
   release:
     resource_class: xlarge
