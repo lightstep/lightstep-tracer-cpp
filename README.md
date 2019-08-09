@@ -64,7 +64,7 @@ Basic support is available for windows. Dependencies can be installed with [vcpk
 vcpkg install libevent:x64-windows-static
 vcpkg install protobuf:x64-windows-static
 vcpkg install opentracing:x64-windows-static
-vcpkg install cares:x64-windows-static
+vcpkg install c-ares:x64-windows-static
 ```
 
 The lightstep tracer can then be built with
