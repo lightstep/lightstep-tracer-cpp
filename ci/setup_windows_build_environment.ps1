@@ -2,6 +2,7 @@ $ErrorActionPreference = "Stop"
 
 git clone https://github.com/Microsoft/vcpkg.git
 cd vcpkg
+$VCPKG_DIR=(Get-Item -Path ".\").FullName
 ./bootstrap-vcpkg.bat
 ./vcpkg integrate install
 ./vcpkg install libevent:x64-windows-static
