@@ -13,7 +13,7 @@ switch ($action) {
 		cd "$BUILD_DIR"
 		cmake $SRC_DIR `
 			    "-DCMAKE_TOOLCHAIN_FILE=$VCPKG_DIR\scripts\buildsystems\vcpkg.cmake" `
-					-DWITH_DYNAMIC_LOAD=OFF `	
+					-DWITH_DYNAMIC_LOAD=OFF `
 					-DWITH_GRPC=OFF `
 					-DWITH_LIBEVENT=ON
 		cmake --build .
