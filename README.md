@@ -56,6 +56,34 @@ brew install libevent     # for Streaming HTTP
 brew install pkg-config
 ```
 
+### Windows specific steps
+
+Basic support is available for windows. Dependencies can be installed with [vcpkg](https://github.com/microsoft/vcpkg).
+
+```
+vcpkg install libevent:x64-windows-static
+vcpkg install protobuf:x64-windows-static
+vcpkg install opentracing:x64-windows-static
+vcpkg install cares:x64-windows-static
+```
+
+The lightstep tracer can then be built with
+
+```
+cmake -DBUILD_SHARED_LIBS=OFF \
+      -DWITH_DYNAMIC_LOAD=OFF \
+      -DWITH_GRPC=OFF \
+      -DWITH_LIBEVENT=ON \
+      -DWITH_CARES=ON \
+      -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreadedDebug" \
+      -DCMAKE_INSTALL_PREFIX=<path-to-vcpkg>\installed\x64-windows-static \
+      -DCMAKE_CXX_FLAGS="-DCARES_STATICLIB /EHsc" \
+      <path-to-lightstep>
+msbuild lightstep-tracer.sln
+```
+
+The [streaming example](example/stream/main.cpp) can  be run with `.\example\stream\Debug\stream.exe`.
+
 ## Getting started
 
 To initialize the LightStep tracer, configure the options and
