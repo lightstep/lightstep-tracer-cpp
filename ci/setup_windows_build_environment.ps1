@@ -1,4 +1,5 @@
 $ErrorActionPreference = "Stop"
+trap { $host.SetShouldExit(1) }
 
 git clone https://github.com/Microsoft/vcpkg.git
 cd vcpkg
