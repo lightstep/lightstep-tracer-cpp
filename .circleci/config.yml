@@ -70,16 +70,9 @@ jobs:
     executor: win/vs2019
     steps:
       - checkout
-      - run: echo 'Hello, Windows!'
       - run: ./ci/install_cmake.ps1
       - run: ./ci/setup_windows_build_environment.ps1
-      - run: |
-          $SRC_DIR=(Get-Item -Path ".\").FullName
-          mkdir build
-          cd build
-          cmake $SRC_DIR\windows-ci "-DCMAKE_TOOLCHAIN_FILE=$VCPKG_DIR\scripts\buildsystems\vcpkg.cmake"
-          cmake --build .
-          .\Debug\main.exe
+			- run: ./ci/do_ci.ps1 build
 
   release:
     resource_class: xlarge
