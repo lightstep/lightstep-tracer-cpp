@@ -73,8 +73,9 @@ struct SerializationSizeValueVisitor {
 // SerializationValueVisitor
 //--------------------------------------------------------------------------------------------------
 namespace {
+template <class Stream>
 struct SerializationValueVisitor {
-  google::protobuf::io::CodedOutputStream& stream;
+  Stream& stream;
   const std::string* json_values;
   int& json_counter;
 
@@ -139,12 +140,25 @@ size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
 //--------------------------------------------------------------------------------------------------
 // WriteKeyValueImpl
 //--------------------------------------------------------------------------------------------------
-void WriteKeyValueImpl(google::protobuf::io::CodedOutputStream& stream,
-                       opentracing::string_view key,
+template <class Stream>
+void WriteKeyValueImpl(Stream& stream, opentracing::string_view key,
                        const opentracing::Value& value,
                        const std::string* json_values, int& json_counter) {
   WriteString<KeyValueKeyField>(stream, key);
-  SerializationValueVisitor value_visitor{stream, json_values, json_counter};
+  SerializationValueVisitor<Stream> value_visitor{stream, json_values,
+                                                  json_counter};
   apply_visitor(value_visitor, value);
 }
+
+template void WriteKeyValueImpl(google::protobuf::io::CodedOutputStream& stream,
+                                opentracing::string_view key,
+                                const opentracing::Value& value,
+                                const std::string* json_values,
+                                int& json_counter);
+
+template void WriteKeyValueImpl(DirectCodedOutputStream& stream,
+                                opentracing::string_view key,
+                                const opentracing::Value& value,
+                                const std::string* json_values,
+                                int& json_counter);
 }  // namespace lightstep

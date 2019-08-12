@@ -151,70 +151,6 @@ void WriteBigVarint(Stream& stream, uint64_t x) {
 }
 
 /**
- * Compute the serialization size of a key-value not including its key field.
- * @param key the key of the serialization
- * @param value the value of the serialization
- * @param json the string to write json into if the value requires conversion
- * @param json_counter an integer to increment if json is set
- * @return the serialization size
- */
-size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
-                                        const opentracing::Value& value,
-                                        std::string& json, int& json_counter);
-
-/**
- * Serialize a key-value not including its key field.
- * @param stream the stream to serialize into
- * @param key the key of the serialization
- * @param value the value of the serialization
- * @param json_values an array of json values where json_values[json_counter]
- * references the json for this field if it's used.
- * @param json_counter an integer to increment if json is referenced
- */
-void WriteKeyValueImpl(google::protobuf::io::CodedOutputStream& stream,
-                       opentracing::string_view key,
-                       const opentracing::Value& value,
-                       const std::string* json_values, int& json_counter);
-
-/**
- * Serialize a key-value with its key field.
- * @param stream the stream to serialize into
- * @param key the key of the serialization
- * @param value the value of the serialization
- * @param json_values an array of json values where json_values[json_counter]
- * references the json for this field if it's used.
- * @param json_counter an integer to increment if json is referenced
- */
-template <size_t FieldNumber>
-inline void WriteKeyValue(google::protobuf::io::CodedOutputStream& stream,
-                          size_t serialization_size,
-                          opentracing::string_view key,
-                          const opentracing::Value& value,
-                          const std::string* json_values, int& json_counter) {
-  WriteKeyLength<FieldNumber>(stream, serialization_size);
-  WriteKeyValueImpl(stream, key, value, json_values, json_counter);
-}
-
-/**
- * Serialize a key-value with its key field.
- * @param stream the stream to serialize into
- * @param key the key of the serialization
- * @param value the value of the serialization
- */
-template <size_t FieldNumber>
-inline void WriteKeyValue(google::protobuf::io::CodedOutputStream& stream,
-                          opentracing::string_view key,
-                          const opentracing::Value& value) {
-  std::string json;
-  int json_counter = 0;
-  auto serialization_size =
-      ComputeKeyValueSerializationSize(key, value, json, json_counter);
-  json_counter = 0;
-  WriteKeyValue<FieldNumber>(stream, serialization_size, key, value, &json,
-                             json_counter);
-}
-
-/**
  * Serialize a length-delimited field and value into a stream.
  * @param stream the stream to serialize into
  * @param serialization_size the size of the serialization excluding the field
@@ -225,17 +161,17 @@ inline void WriteKeyValue(google::protobuf::io::CodedOutputStream& stream,
 template <size_t FieldNumber, class Serializer, class... Args>
 inline void WriteLengthDelimitedField(
     google::protobuf::io::CodedOutputStream& stream, size_t serialization_size,
-    Serializer serializer, const Args&... args) {
+    Serializer serializer, Args&&... args) {
   auto total_size =
       ComputeLengthDelimitedSerializationSize<FieldNumber>(serialization_size);
   auto buffer = stream.GetDirectBufferForNBytesAndAdvance(total_size);
   if (buffer != nullptr) {
     DirectCodedOutputStream direct_stream{buffer};
     WriteKeyLength<FieldNumber>(direct_stream, serialization_size);
-    serializer(direct_stream, args...);
+    serializer(direct_stream, std::forward<Args>(args)...);
   } else {
     WriteKeyLength<FieldNumber>(stream, serialization_size);
-    serializer(stream, args...);
+    serializer(stream, std::forward<Args>(args)...);
   }
 }
 
@@ -351,5 +287,85 @@ inline void WriteTimestamp(google::protobuf::io::CodedOutputStream& stream,
       ComputeTimestampSerializationSize(seconds_since_epoch, nano_fraction);
   WriteTimestamp<FieldNumber>(stream, serialization_size, seconds_since_epoch,
                               nano_fraction);
+}
+
+/**
+ * Compute the serialization size of a key-value not including its key field.
+ * @param key the key of the serialization
+ * @param value the value of the serialization
+ * @param json the string to write json into if the value requires conversion
+ * @param json_counter an integer to increment if json is set
+ * @return the serialization size
+ */
+size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
+                                        const opentracing::Value& value,
+                                        std::string& json, int& json_counter);
+
+/**
+ * Serialize a key-value not including its key field.
+ * @param stream the stream to serialize into
+ * @param key the key of the serialization
+ * @param value the value of the serialization
+ * @param json_values an array of json values where json_values[json_counter]
+ * references the json for this field if it's used.
+ * @param json_counter an integer to increment if json is referenced
+ */
+template <class Stream>
+void WriteKeyValueImpl(Stream& stream, opentracing::string_view key,
+                       const opentracing::Value& value,
+                       const std::string* json_values, int& json_counter);
+
+/**
+ * Serialize a key-value into an arbitrary Stream.
+ */
+struct KeyValueSerializer {
+  template <class Stream>
+  inline void operator()(Stream& stream, opentracing::string_view key,
+                         const opentracing::Value& value,
+                         const std::string* json_values,
+                         int& json_counter) const {
+    WriteKeyValueImpl(stream, key, value, json_values, json_counter);
+  }
+};
+
+/**
+ * Serialize a key-value with its key field.
+ * @param stream the stream to serialize into
+ * @param key the key of the serialization
+ * @param value the value of the serialization
+ * @param json_values an array of json values where json_values[json_counter]
+ * references the json for this field if it's used.
+ * @param json_counter an integer to increment if json is referenced
+ */
+template <size_t FieldNumber>
+inline void WriteKeyValue(google::protobuf::io::CodedOutputStream& stream,
+                          size_t serialization_size,
+                          opentracing::string_view key,
+                          const opentracing::Value& value,
+                          const std::string* json_values, int& json_counter) {
+  WriteLengthDelimitedField<FieldNumber>(stream, serialization_size,
+                                         KeyValueSerializer{}, key, value,
+                                         json_values, json_counter);
+  /* WriteKeyLength<FieldNumber>(stream, serialization_size); */
+  /* WriteKeyValueImpl(stream, key, value, json_values, json_counter); */
+}
+
+/**
+ * Serialize a key-value with its key field.
+ * @param stream the stream to serialize into
+ * @param key the key of the serialization
+ * @param value the value of the serialization
+ */
+template <size_t FieldNumber>
+inline void WriteKeyValue(google::protobuf::io::CodedOutputStream& stream,
+                          opentracing::string_view key,
+                          const opentracing::Value& value) {
+  std::string json;
+  int json_counter = 0;
+  auto serialization_size =
+      ComputeKeyValueSerializationSize(key, value, json, json_counter);
+  json_counter = 0;
+  WriteKeyValue<FieldNumber>(stream, serialization_size, key, value, &json,
+                             json_counter);
 }
 }  // namespace lightstep
