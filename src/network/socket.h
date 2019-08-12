@@ -27,7 +27,7 @@ class Socket {
   /**
    * @return the file descriptor for this socket.
    */
-  int file_descriptor() const noexcept { return file_descriptor_; }
+  FileDescriptor file_descriptor() const noexcept { return file_descriptor_; }
 
   /**
    * Makes the socket non-blocking.
