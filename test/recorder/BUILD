@@ -12,8 +12,12 @@ lightstep_cc_library(
     private_hdrs = [
         "in_memory_recorder.h",
     ],
+    srcs = [
+        "in_memory_recorder.cpp",
+    ],
     deps = [
         "//src/recorder:recorder_interface",
+        "//test:utility_lib",
     ],
 )
 

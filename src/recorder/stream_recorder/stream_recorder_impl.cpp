@@ -15,6 +15,12 @@ StreamRecorderImpl::StreamRecorderImpl(StreamRecorder& stream_recorder)
           event_base_, stream_recorder_.recorder_options().polling_period,
           MakeTimerCallback<StreamRecorderImpl, &StreamRecorderImpl::Poll>(),
           static_cast<void*>(this)},
+      timestamp_delta_timer_{
+          event_base_,
+          stream_recorder_.recorder_options().timestamp_delta_period,
+          MakeTimerCallback<StreamRecorderImpl,
+                            &StreamRecorderImpl::RefreshTimestampDelta>(),
+          static_cast<void*>(this)},
       flush_timer_{
           event_base_, stream_recorder_.recorder_options().flushing_period,
           MakeTimerCallback<StreamRecorderImpl, &StreamRecorderImpl::Flush>(),
@@ -68,11 +74,18 @@ void StreamRecorderImpl::Poll() noexcept {
 
   auto pending_flush_count = stream_recorder_.ConsumePendingFlushCount();
   if (pending_flush_count > 0 ||
-      stream_recorder_.span_buffer().buffer().size() > early_flush_marker_) {
+      stream_recorder_.span_buffer().size() > early_flush_marker_) {
     Flush();
   }
 
   stream_recorder_.Poll();
+}
+
+//--------------------------------------------------------------------------------------------------
+// RefreshTimestampDelta
+//--------------------------------------------------------------------------------------------------
+void StreamRecorderImpl::RefreshTimestampDelta() noexcept {
+  timestamp_delta_ = ComputeSystemSteadyTimestampDelta();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -81,8 +94,7 @@ void StreamRecorderImpl::Poll() noexcept {
 void StreamRecorderImpl::Flush() noexcept try {
   auto& span_buffer = stream_recorder_.span_buffer();
   if (stream_recorder_.recorder_options().throw_away_spans) {
-    span_buffer.Allot();
-    span_buffer.Consume(span_buffer.num_bytes_allotted());
+    span_buffer.Clear();
   } else {
     streamer_.Flush();
   }

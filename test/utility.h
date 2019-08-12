@@ -3,8 +3,9 @@
 #include <chrono>
 #include <thread>
 
-#include "common/chunk_circular_buffer.h"
-#include "network/fragment_input_stream.h"
+#include "common/circular_buffer.h"
+#include "common/fragment_input_stream.h"
+#include "common/serialization_chain.h"
 
 #include <opentracing/tracer.h>
 #include "lightstep-tracer-common/collector.pb.h"
@@ -60,17 +61,19 @@ inline bool IsEventuallyTrue(
 std::string ToString(const FragmentInputStream& fragment_input_stream);
 
 /**
- * Converts a CircularBufferConstPlacement to a string.
- * @param placement the placement to convert.
- * @return a string with the contents of placement.
- */
-std::string ToString(const CircularBufferConstPlacement& placement);
-
-/**
- * Adds a string to a ChunkCircularBuffer.
+ * Adds a string to a circular buffer.
  * @param buffer the buffer to add the string to.
  * @param s the string to add.
  * @return true if the string was succesfully added.
  */
-bool AddString(ChunkCircularBuffer& buffer, opentracing::string_view s);
+bool AddString(CircularBuffer<SerializationChain>& buffer,
+               const std::string& s);
+
+/**
+ * Adds http/1.1 chunk framing and ReportRequest embedded span framing to a
+ * string.
+ * @param s the string to add framing to
+ * @return the original string wrapped with framing
+ */
+std::string AddSpanChunkFraming(opentracing::string_view s);
 }  // namespace lightstep

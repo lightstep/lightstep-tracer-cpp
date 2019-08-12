@@ -14,7 +14,8 @@ SatelliteStreamer::SatelliteStreamer(
     Logger& logger, EventBase& event_base,
     const LightStepTracerOptions& tracer_options,
     const StreamRecorderOptions& recorder_options,
-    StreamRecorderMetrics& metrics, ChunkCircularBuffer& span_buffer)
+    StreamRecorderMetrics& metrics,
+    CircularBuffer<SerializationChain>& span_buffer)
     : logger_{logger},
       event_base_{event_base},
       tracer_options_{tracer_options},
@@ -24,8 +25,7 @@ SatelliteStreamer::SatelliteStreamer(
       endpoint_manager_{logger, event_base, tracer_options, recorder_options,
                         [this] { this->OnEndpointManagerReady(); }},
       span_buffer_{span_buffer},
-      span_stream_{span_buffer, metrics,
-                   recorder_options_.num_satellite_connections},
+      span_stream_{span_buffer, metrics},
       connection_traverser_{recorder_options_.num_satellite_connections} {
   connections_.reserve(recorder_options.num_satellite_connections);
   for (int i = 0; i < recorder_options.num_satellite_connections; ++i) {
@@ -38,7 +38,7 @@ SatelliteStreamer::SatelliteStreamer(
 // Flush
 //--------------------------------------------------------------------------------------------------
 void SatelliteStreamer::Flush() noexcept {
-  if (span_buffer_.buffer().empty()) {
+  if (span_buffer_.empty()) {
     return;
   }
   connection_traverser_.ForEachIndex([this](int index) {

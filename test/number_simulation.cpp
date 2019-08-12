@@ -9,11 +9,11 @@
 #include <random>
 #include <thread>
 
-#include "common/bipart_memory_stream.h"
 #include "common/utility.h"
 #include "test/utility.h"
 #include "test/zero_copy_connection_input_stream.h"
 
+#include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
 static thread_local std::mt19937 RandomNumberGenerator{std::random_device{}()};
@@ -46,15 +46,13 @@ GenerateRandomBinaryNumber(size_t max_digits) {
 //--------------------------------------------------------------------------------------------------
 // GenerateRandomBinaryNumbers
 //--------------------------------------------------------------------------------------------------
-static void GenerateRandomBinaryNumbers(ChunkCircularBuffer& buffer,
-                                        std::vector<uint32_t>& numbers,
-                                        size_t n) {
-  assert(buffer.buffer().max_size() > 5);
-  size_t max_digits = std::min<size_t>(buffer.buffer().max_size() - 5, 32);
+static void GenerateRandomBinaryNumbers(
+    CircularBuffer<SerializationChain>& buffer, std::vector<uint32_t>& numbers,
+    size_t n) {
   while (n-- != 0) {
     uint32_t x;
     opentracing::string_view s;
-    std::tie(x, s) = GenerateRandomBinaryNumber(max_digits);
+    std::tie(x, s) = GenerateRandomBinaryNumber(32);
     if (AddString(buffer, s)) {
       numbers.push_back(x);
     }
@@ -113,16 +111,31 @@ static uint32_t ReadBinaryNumber(
 //--------------------------------------------------------------------------------------------------
 static bool ReadBinaryNumberChunk(
     google::protobuf::io::ZeroCopyInputStream& stream, uint32_t& x) {
-  size_t num_digits;
-  if (!ReadChunkHeader(stream, num_digits)) {
+  size_t chunk_size;
+  if (!ReadChunkHeader(stream, chunk_size)) {
     return false;
   }
 
-  if (num_digits == 0) {
+  if (chunk_size == 0) {
     // We reached the terminal chunk
     stream.Skip(2);
     return false;
   }
+
+  size_t num_digits = [&] {
+    google::protobuf::io::CodedInputStream coded_stream{&stream};
+    google::protobuf::uint32 field_number;
+    if (!coded_stream.ReadVarint32(&field_number)) {
+      std::cerr << "ReadVarint32 failed\n";
+      std::terminate();
+    }
+    google::protobuf::uint64 num_digits;
+    if (!coded_stream.ReadVarint64(&num_digits)) {
+      std::cerr << "ReadVarint64 failed\n";
+      std::terminate();
+    }
+    return static_cast<size_t>(num_digits);
+  }();
 
   x = ReadBinaryNumber(stream, num_digits);
   stream.Skip(2);
@@ -150,7 +163,7 @@ static bool HasPendingData(ConnectionStream& connection_stream) {
 //--------------------------------------------------------------------------------------------------
 // RunBinaryNumberProducer
 //--------------------------------------------------------------------------------------------------
-void RunBinaryNumberProducer(ChunkCircularBuffer& buffer,
+void RunBinaryNumberProducer(CircularBuffer<SerializationChain>& buffer,
                              std::vector<uint32_t>& numbers, size_t num_threads,
                              size_t n) {
   std::vector<std::vector<uint32_t>> thread_numbers(num_threads);
@@ -166,25 +179,6 @@ void RunBinaryNumberProducer(ChunkCircularBuffer& buffer,
   for (size_t thread_index = 0; thread_index < num_threads; ++thread_index) {
     numbers.insert(numbers.end(), thread_numbers[thread_index].begin(),
                    thread_numbers[thread_index].end());
-  }
-}
-
-//--------------------------------------------------------------------------------------------------
-// RunBinaryNumberConsumer
-//--------------------------------------------------------------------------------------------------
-void RunBinaryNumberConsumer(ChunkCircularBuffer& buffer,
-                             std::atomic<bool>& exit,
-                             std::vector<uint32_t>& numbers) {
-  while (!exit || !buffer.buffer().empty()) {
-    buffer.Allot();
-    auto allotment = buffer.allotment();
-    BipartMemoryInputStream stream{allotment.data1, allotment.size1,
-                                   allotment.data2, allotment.size2};
-    uint32_t x;
-    while (ReadBinaryNumberChunk(stream, x)) {
-      numbers.push_back(x);
-    }
-    buffer.Consume(buffer.num_bytes_allotted());
   }
 }
 

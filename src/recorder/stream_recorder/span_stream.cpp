@@ -1,164 +1,99 @@
 #include "recorder/stream_recorder/span_stream.h"
 
-#include <algorithm>
-#include <cassert>
-#include <iterator>
-
-#include "recorder/stream_recorder/utility.h"
-
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-SpanStream::SpanStream(ChunkCircularBuffer& span_buffer,
-                       StreamRecorderMetrics& metrics, int max_connections)
-    : span_buffer_{span_buffer}, metrics_{metrics} {
-  span_remnants_.reserve(static_cast<size_t>(max_connections));
-}
+SpanStream::SpanStream(CircularBuffer<SerializationChain>& span_buffer,
+                       StreamRecorderMetrics& metrics) noexcept
+    : span_buffer_{span_buffer}, metrics_{metrics} {}
 
 //--------------------------------------------------------------------------------------------------
 // Allot
 //--------------------------------------------------------------------------------------------------
-void SpanStream::Allot() noexcept {
-  num_spans_pending_ += span_buffer_.Allot();
-  allotment_ = span_buffer_.allotment();
-  if (stream_position_ == nullptr) {
-    stream_position_ = allotment_.data1;
-  }
+void SpanStream::Allot() noexcept { allotment_ = span_buffer_.Peek(); }
+
+//--------------------------------------------------------------------------------------------------
+// ConsumeRemnant
+//--------------------------------------------------------------------------------------------------
+std::unique_ptr<SerializationChain> SpanStream::ConsumeRemnant() noexcept {
+  return std::unique_ptr<SerializationChain>{remnant_.release()};
 }
 
 //--------------------------------------------------------------------------------------------------
 // num_fragments
 //--------------------------------------------------------------------------------------------------
 int SpanStream::num_fragments() const noexcept {
-  if (Contains(allotment_.data1, allotment_.size1, stream_position_)) {
-    return 1 + static_cast<int>(allotment_.size2 > 0);
-  }
-  return static_cast<int>(
-      Contains(allotment_.data2, allotment_.size2, stream_position_));
-}
-
-//--------------------------------------------------------------------------------------------------
-// RemoveSpanRemnant
-//--------------------------------------------------------------------------------------------------
-void SpanStream::RemoveSpanRemnant(const char* remnant) noexcept {
-  auto last =
-      std::remove(span_remnants_.begin(), span_remnants_.end(), remnant);
-  assert(last != span_remnants_.end());
-  span_remnants_.erase(last, span_remnants_.end());
-}
-
-//--------------------------------------------------------------------------------------------------
-// PopSpanRemnant
-//--------------------------------------------------------------------------------------------------
-void SpanStream::PopSpanRemnant(FragmentSpanInputStream& remnant) noexcept {
-  std::swap(remnant, span_remnant_);
-  span_remnant_.Clear();
-}
-
-//--------------------------------------------------------------------------------------------------
-// Consume
-//--------------------------------------------------------------------------------------------------
-void SpanStream::Consume() noexcept {
-  auto num_bytes = span_buffer_.buffer().ComputePosition(stream_position_);
-  for (auto remnant : span_remnants_) {
-    num_bytes =
-        std::min(span_buffer_.buffer().ComputePosition(remnant), num_bytes);
-  }
-  span_buffer_.Consume(num_bytes);
+  int result = 0;
+  allotment_.ForEach([&result](
+      const AtomicUniquePtr<SerializationChain>& span) noexcept {
+    result += span->num_fragments();
+    return true;
+  });
+  return result;
 }
 
 //--------------------------------------------------------------------------------------------------
 // ForEachFragment
 //--------------------------------------------------------------------------------------------------
 bool SpanStream::ForEachFragment(Callback callback) const noexcept {
-  if (Contains(allotment_.data1, allotment_.size1, stream_position_)) {
-    auto result =
-        callback(static_cast<void*>(const_cast<char*>(stream_position_)),
-                 static_cast<int>(std::distance(
-                     stream_position_, allotment_.data1 + allotment_.size1)));
-    if (!result) {
-      return false;
-    }
-    if (allotment_.size2 > 0) {
-      return callback(static_cast<void*>(const_cast<char*>(allotment_.data2)),
-                      static_cast<int>(allotment_.size2));
-    }
-    return true;
-  }
-  if (Contains(allotment_.data2, allotment_.size2, stream_position_)) {
-    return callback(
-        static_cast<void*>(const_cast<char*>(stream_position_)),
-        static_cast<int>(std::distance(stream_position_,
-                                       allotment_.data2 + allotment_.size2)));
-  }
-  return true;
+  return allotment_.ForEach(
+      [callback](const AtomicUniquePtr<SerializationChain>& span) {
+        return span->ForEachFragment(callback);
+      });
 }
 
 //--------------------------------------------------------------------------------------------------
 // Clear
 //--------------------------------------------------------------------------------------------------
 void SpanStream::Clear() noexcept {
-  metrics_.OnSpansSent(num_spans_pending_);
-  num_spans_pending_ = 0;
-  SetPositionAfter(allotment_);
-  span_remnant_.Clear();
+  remnant_.reset();
+  metrics_.OnSpansSent(allotment_.size());
+  span_buffer_.Consume(allotment_.size());
+  allotment_ = CircularBufferRange<const AtomicUniquePtr<SerializationChain>>{};
 }
 
 //--------------------------------------------------------------------------------------------------
 // Seek
 //--------------------------------------------------------------------------------------------------
 void SpanStream::Seek(int fragment_index, int position) noexcept {
-  const char* last;
-  if (fragment_index == 0) {
-    last = stream_position_ + position;
-  } else {
-    assert(fragment_index == 1);
-    assert(Contains(allotment_.data1, allotment_.size1, stream_position_));
-    last = allotment_.data2 + position;
-    assert(Contains(allotment_.data2, allotment_.size2, last));
-  }
-  CircularBufferConstPlacement chunk;
-  int num_spans_sent;
-  std::tie(chunk, num_spans_sent) =
-      span_buffer_.FindChunk(stream_position_, last);
-  metrics_.OnSpansSent(num_spans_sent);
-  num_spans_pending_ -= num_spans_sent;
-
-  span_remnant_.Clear();
-
-  // If last is at the start of the next chunk, we don't end up with any partial
-  // span that we need to track.
-  if (chunk.data1 == last) {
-    stream_position_ = last;
-    return;
-  }
-
-  num_spans_pending_ -= 1;
-  span_remnants_.emplace_back(chunk.data1);
-  span_remnant_.Set(chunk, last);
-  SetPositionAfter(chunk);
-}
-
-//--------------------------------------------------------------------------------------------------
-// SetPositionAfter
-//--------------------------------------------------------------------------------------------------
-void SpanStream::SetPositionAfter(
-    const CircularBufferConstPlacement& placement) noexcept {
-  if (placement.size2 > 0) {
-    stream_position_ = placement.data2 + placement.size2;
-  } else {
-    stream_position_ = placement.data1 + placement.size1;
-  }
-
-  // Handle the case when stream_position_ would wrap the end of the circular
-  // buffer.
-  //
-  // Note that max_size is one less than the actual amount of memory allocated
-  // for the circular buffer.
-  if (stream_position_ ==
-      span_buffer_.buffer().data() + span_buffer_.buffer().max_size() + 1) {
-    stream_position_ = span_buffer_.buffer().data();
-  }
+  remnant_.reset();
+  int full_span_count = 0;
+  int span_count = 0;
+  allotment_.ForEach([&, fragment_index ](
+      const AtomicUniquePtr<SerializationChain>& span) mutable noexcept {
+    auto num_fragments = span->num_fragments();
+    if (num_fragments <= fragment_index) {
+      fragment_index -= num_fragments;
+      ++span_count;
+      return true;
+    }
+    full_span_count = span_count;
+    // Check to see if we seek onto a span boundary -- in which case, we don't
+    // consume the the next span.
+    if (fragment_index == 0 && position == 0) {
+      return false;
+    }
+    ++span_count;
+    return false;
+  });
+  span_buffer_.Consume(
+      span_count, [ this, fragment_index, position ](
+                      CircularBufferRange<AtomicUniquePtr<SerializationChain>>
+                          range) mutable noexcept {
+        range.ForEach([&](AtomicUniquePtr<SerializationChain> & span) noexcept {
+          auto num_fragments = span->num_fragments();
+          if (num_fragments <= fragment_index) {
+            fragment_index -= num_fragments;
+            span.Reset();
+            return true;
+          }
+          span->Seek(fragment_index, position);
+          span.Swap(remnant_);
+          return true;
+        });
+      });
+  metrics_.OnSpansSent(full_span_count);
+  allotment_ = CircularBufferRange<const AtomicUniquePtr<SerializationChain>>{};
 }
 }  // namespace lightstep

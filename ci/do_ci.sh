@@ -17,10 +17,20 @@ BAZEL_PLUGIN_OPTIONS="$BAZEL_OPTIONS \
 
 function copy_benchmark_results() {
   mkdir -p "${BENCHMARK_DST_DIR}"
-  cd "${BENCHMARK_SRC_DIR}"
+  pushd "${BENCHMARK_SRC_DIR}"
   find . -name '*_result.txt' -exec bash -c \
     'echo "$@" && mkdir -p "${BENCHMARK_DST_DIR}"/$(dirname "$@") && \
      cp "$@" "${BENCHMARK_DST_DIR}"/"$@"' _ {} \;
+  popd
+}
+
+function copy_benchmark_profiles() {
+  mkdir -p "${BENCHMARK_DST_DIR}"
+  pushd "${BENCHMARK_SRC_DIR}"
+  find . -name '*_profile.tgz' -exec bash -c \
+    'echo "$@" && mkdir -p "${BENCHMARK_DST_DIR}"/$(dirname "$@") && \
+     tar zxf "$@" -C "${BENCHMARK_DST_DIR}"/$(dirname "$@")' _ {} \;
+  popd
 }
 
 function setup_clang_toolchain() {
@@ -55,7 +65,7 @@ elif [[ "$1" == "clang_tidy" ]]; then
   setup_clang_toolchain
   bazel build \
         $BAZEL_OPTIONS \
-        //src/... //test/... //benchmark/... //include/...
+        -- //src/... //test/... //include/... //benchmark/...
   ./ci/gen_compilation_database.sh
   ./ci/fix_compilation_database.py
   ./ci/run_clang_tidy.sh |& tee /clang-tidy-result.txt
@@ -66,7 +76,7 @@ elif [[ "$1" == "clang_tidy" ]]; then
   fi
   exit 0
 elif [[ "$1" == "bazel.test" ]]; then
-  bazel build -c dbg $BAZEL_OPTIONS //...
+  bazel build -c dbg $BAZEL_OPTIONS -- //... -//benchmark/...
   bazel test -c dbg $BAZEL_TEST_OPTIONS //...
   exit 0
 elif [[ "$1" == "bazel.asan" ]]; then
@@ -95,6 +105,7 @@ elif [[ "$1" == "bazel.benchmark" ]]; then
         $BAZEL_OPTIONS \
         //benchmark/...
   copy_benchmark_results
+  copy_benchmark_profiles
   exit 0
 elif [[ "$1" == "bazel.coverage" ]]; then
   mkdir -p /coverage

@@ -3,7 +3,8 @@
 #include "lightstep/tracer.h"
 
 #include "recorder/stream_recorder/stream_recorder.h"
-#include "tracer/lightstep_tracer_impl.h"
+#include "tracer/legacy/legacy_tracer_impl.h"
+#include "tracer/tracer_impl.h"
 
 #include "benchmark/benchmark.h"
 
@@ -110,8 +111,8 @@ static std::shared_ptr<opentracing::Tracer> MakeStreamTracer() {
       *logger, std::move(tracer_options), std::move(recorder_options)};
   std::unique_ptr<lightstep::Recorder> recorder{stream_recorder};
   lightstep::PropagationOptions propagation_options;
-  return std::make_shared<lightstep::LightStepTracerImpl>(
-      logger, propagation_options, std::move(recorder));
+  return std::make_shared<lightstep::TracerImpl>(logger, propagation_options,
+                                                 std::move(recorder));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -156,7 +157,7 @@ BENCHMARK_CAPTURE(BM_SpanCreation, stream, "stream");
 //------------------------------------------------------------------------------
 static void BM_SpanCreationThreaded(benchmark::State& state,
                                     const char* tracer_type) {
-  const int num_spans_for_span_creation_threaded_benchmark = 2000;
+  const int num_spans_for_span_creation_threaded_benchmark = 4000;
   auto tracer = MakeTracer(tracer_type);
   assert(tracer != nullptr);
   auto num_threads = state.range(0);

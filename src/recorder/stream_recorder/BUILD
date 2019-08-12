@@ -38,26 +38,10 @@ lightstep_cc_library(
         "span_stream.cpp",
     ],
     deps = [
-        "//src/common:chunk_circular_buffer_lib",
-        "//src/network:fragment_array_input_stream_lib",
-        ":utility_lib",
-        ":fragment_span_input_stream_lib",
-        ":stream_recorder_metrics_lib",
-    ],
-)
-
-lightstep_cc_library(
-    name = "fragment_span_input_stream_lib",
-    private_hdrs = [
-        "fragment_span_input_stream.h",
-    ],
-    srcs = [
-        "fragment_span_input_stream.cpp",
-    ],
-    deps = [
         "//src/common:circular_buffer_lib",
-        "//src/network:fragment_array_input_stream_lib",
-        ":utility_lib",
+        "//src/common:serialization_chain_lib",
+        "//src/common:fragment_input_stream_lib",
+        ":stream_recorder_metrics_lib",
     ],
 )
 
@@ -72,12 +56,11 @@ lightstep_cc_library(
     deps = [
         "//src/common:function_ref_lib",
         "//src/common:utility_lib",
-        "//src/network:fragment_input_stream_lib",
-        "//src/network:fragment_array_input_stream_lib",
+        "//src/common:fragment_input_stream_lib",
+        "//src/common:fragment_array_input_stream_lib",
         ":embedded_metrics_message_lib",
         ":span_stream_lib",
         ":stream_recorder_metrics_lib",
-        ":fragment_span_input_stream_lib",
     ],
 )
 
@@ -92,10 +75,11 @@ lightstep_cc_library(
         "stream_recorder_impl.cpp",
     ],
     deps = [
+        "//src/common:circular_buffer_lib",
         "//src/common:logger_lib",
         "//src/common:noncopyable_lib",
         "//src/common:protobuf_lib",
-        "//src/common:chunk_circular_buffer_lib",
+        "//src/common:serialization_chain_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",
         "//src/recorder:fork_aware_recorder_lib",
@@ -153,7 +137,6 @@ lightstep_cc_library(
     ],
     deps = [
         ":satellite_endpoint_manager_lib",
-        "//src/common:chunk_circular_buffer_lib",
         "//src/common:noncopyable_lib",
         "//src/common:random_lib",
         "//src/common:random_traverser_lib",
@@ -184,8 +167,7 @@ lightstep_cc_library(
         "//lightstep-tracer-common:collector_proto_cc",
         "//src/common:protobuf_lib",
         "//src/common:utility_lib",
-        "//src/common:circular_buffer_lib",
-        "//src/network:fragment_array_input_stream_lib",
+        "//src/common:fragment_array_input_stream_lib",
     ],
 )
 

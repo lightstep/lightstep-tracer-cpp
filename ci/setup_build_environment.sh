@@ -24,4 +24,8 @@ apt-get install --no-install-recommends --no-install-suggests -y \
                 libffi-dev \
                 python3 \
                 zip \
-                gettext-base
+                gettext-base \
+                valgrind \
+                graphviz
+pip install wheel
+pip install gprof2dot

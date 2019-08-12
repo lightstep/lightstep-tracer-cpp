@@ -18,38 +18,39 @@ namespace lightstep {
 namespace {
 class TlsRandomNumberGenerator {
  public:
-  TlsRandomNumberGenerator() { ::pthread_atfork(nullptr, nullptr, OnFork); }
+  using BaseGenerator = randutils::random_generator<FastRandomNumberGenerator>;
 
-  static std::mt19937_64& engine() { return base_generator_.engine(); }
+  TlsRandomNumberGenerator() noexcept {
+    ::pthread_atfork(nullptr, nullptr, OnFork);
+  }
+
+  static FastRandomNumberGenerator& engine() noexcept {
+    return base_generator_.engine();
+  }
 
  private:
-  static thread_local lightstep::randutils::mt19937_64_rng base_generator_;
+  static thread_local BaseGenerator base_generator_;
 
-  static void OnFork() { base_generator_.seed(); }
+  static void OnFork() noexcept { base_generator_.seed(); }
 };
 
-thread_local lightstep::randutils::mt19937_64_rng
+thread_local TlsRandomNumberGenerator::BaseGenerator
     TlsRandomNumberGenerator::base_generator_{};
 }  // namespace
 
 //--------------------------------------------------------------------------------------------------
 // GetRandomNumberGenerator
 //--------------------------------------------------------------------------------------------------
-std::mt19937_64& GetRandomNumberGenerator() {
-  static TlsRandomNumberGenerator random_number_generator;
+FastRandomNumberGenerator& GetRandomNumberGenerator() noexcept {
+  static thread_local TlsRandomNumberGenerator random_number_generator{};
   return TlsRandomNumberGenerator::engine();
 }
 
 //--------------------------------------------------------------------------------------------------
-// GenerateId
-//--------------------------------------------------------------------------------------------------
-uint64_t GenerateId() { return GetRandomNumberGenerator()(); }
-
-//--------------------------------------------------------------------------------------------------
 // GenerateRandomDuration
 //--------------------------------------------------------------------------------------------------
-std::chrono::nanoseconds GenerateRandomDuration(std::chrono::nanoseconds a,
-                                                std::chrono::nanoseconds b) {
+std::chrono::nanoseconds GenerateRandomDuration(
+    std::chrono::nanoseconds a, std::chrono::nanoseconds b) noexcept {
   assert(a <= b);
   std::uniform_int_distribution<std::chrono::nanoseconds::rep> distribution{
       a.count(), b.count()};

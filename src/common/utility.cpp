@@ -18,18 +18,39 @@
 #include <pthread.h>
 
 namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// HexDigitLookupTable
+//--------------------------------------------------------------------------------------------------
+const unsigned char HexDigitLookupTable[513] =
+    "000102030405060708090A0B0C0D0E0F"
+    "101112131415161718191A1B1C1D1E1F"
+    "202122232425262728292A2B2C2D2E2F"
+    "303132333435363738393A3B3C3D3E3F"
+    "404142434445464748494A4B4C4D4E4F"
+    "505152535455565758595A5B5C5D5E5F"
+    "606162636465666768696A6B6C6D6E6F"
+    "707172737475767778797A7B7C7D7E7F"
+    "808182838485868788898A8B8C8D8E8F"
+    "909192939495969798999A9B9C9D9E9F"
+    "A0A1A2A3A4A5A6A7A8A9AAABACADAEAF"
+    "B0B1B2B3B4B5B6B7B8B9BABBBCBDBEBF"
+    "C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"
+    "D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF"
+    "E0E1E2E3E4E5E6E7E8E9EAEBECEDEEEF"
+    "F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF";
+
 //------------------------------------------------------------------------------
 // ToTimestamp
 //------------------------------------------------------------------------------
 google::protobuf::Timestamp ToTimestamp(
     const std::chrono::system_clock::time_point& t) {
-  using namespace std::chrono;
-  auto nanos = duration_cast<nanoseconds>(t.time_since_epoch()).count();
-  google::protobuf::Timestamp ts;
-  const uint64_t nanosPerSec = 1000000000;
-  ts.set_seconds(nanos / nanosPerSec);
-  ts.set_nanos(nanos % nanosPerSec);
-  return ts;
+  uint64_t seconds_since_epoch;
+  uint32_t nano_fraction;
+  std::tie(seconds_since_epoch, nano_fraction) = ProtobufFormatTimestamp(t);
+  google::protobuf::Timestamp result;
+  result.set_seconds(seconds_since_epoch);
+  result.set_nanos(nano_fraction);
+  return result;
 }
 
 timeval ToTimeval(std::chrono::microseconds microseconds) {
@@ -177,7 +198,7 @@ static void ToJson(std::ostringstream& writer,
   apply_visitor(value_visitor, value);
 }
 
-static std::string ToJson(const opentracing::Value& value) {
+std::string ToJson(const opentracing::Value& value) {
   std::ostringstream writer;
   writer.exceptions(std::ios::badbit | std::ios::failbit);
   ToJson(writer, value);
@@ -245,38 +266,6 @@ void LogReportResponse(Logger& logger, bool verbose,
       logger.Info(message);
     }
   }
-}
-
-//------------------------------------------------------------------------------
-// Uint64ToHex
-//------------------------------------------------------------------------------
-// This uses the lookup table solution described on this blog post
-// https://johnnylee-sde.github.io/Fast-unsigned-integer-to-hex-string/
-opentracing::string_view Uint64ToHex(uint64_t x, char* output) {
-  static const unsigned char digits[513] =
-      "000102030405060708090A0B0C0D0E0F"
-      "101112131415161718191A1B1C1D1E1F"
-      "202122232425262728292A2B2C2D2E2F"
-      "303132333435363738393A3B3C3D3E3F"
-      "404142434445464748494A4B4C4D4E4F"
-      "505152535455565758595A5B5C5D5E5F"
-      "606162636465666768696A6B6C6D6E6F"
-      "707172737475767778797A7B7C7D7E7F"
-      "808182838485868788898A8B8C8D8E8F"
-      "909192939495969798999A9B9C9D9E9F"
-      "A0A1A2A3A4A5A6A7A8A9AAABACADAEAF"
-      "B0B1B2B3B4B5B6B7B8B9BABBBCBDBEBF"
-      "C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"
-      "D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF"
-      "E0E1E2E3E4E5E6E7E8E9EAEBECEDEEEF"
-      "F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF";
-  for (int i = 8; i-- > 0;) {
-    auto lookup_index = (x & 0xFF) * 2;
-    output[i * 2] = digits[lookup_index];
-    output[i * 2 + 1] = digits[lookup_index + 1];
-    x >>= 8;
-  }
-  return {output, Num64BitHexDigits};
 }
 
 //------------------------------------------------------------------------------

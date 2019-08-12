@@ -45,16 +45,4 @@ Logger::Logger(
     logger_sink_ = LogDefault;
   }
 }
-
-//------------------------------------------------------------------------------
-// Log
-//------------------------------------------------------------------------------
-void Logger::Log(LogLevel level,
-                 opentracing::string_view message) noexcept try {
-  if (static_cast<int>(level) >= static_cast<int>(level_)) {
-    logger_sink_(level, message);
-  }
-} catch (const std::exception& /*e*/) {
-  // Ignore exceptions.
-}
 }  // namespace lightstep
