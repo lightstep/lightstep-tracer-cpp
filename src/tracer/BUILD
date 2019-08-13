@@ -7,21 +7,14 @@ load(
 lightstep_package()
 
 lightstep_cc_library(
-    name = "propagation_lib",
+    name = "baggage_flat_map_lib",
     private_hdrs = [
-        "propagation.h",
-    ],
-    srcs = [
-        "propagation.cpp",
+        "baggage_flat_map.h",
     ],
     deps = [
-        "//src/common:utility_lib",
-        "//src/common:in_memory_stream_lib",
-        "//3rd_party/base64:base64_lib",
-        "//lightstep-tracer-common:lightstep_carrier_proto_cc",
+        "//src/common:flat_map_lib",
     ],
     external_deps = [
-        "@com_google_protobuf//:protobuf",
         "@io_opentracing_cpp//:opentracing",
     ],
 )
@@ -35,6 +28,19 @@ lightstep_cc_library(
         "//include/lightstep:binary_carrier_interface",
         "//include/lightstep:tracer_interface",
         ":tracer_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "utility_lib",
+    private_hdrs = [
+        "utility.h",
+    ],
+    deps = [
+        "//src/recorder:recorder_interface",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
     ],
 )
 
@@ -62,51 +68,31 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "lightstep_immutable_span_context_lib",
+    name = "tracer_impl_lib",
     private_hdrs = [
-        "lightstep_immutable_span_context.h",
+        "tracer_impl.h",
+        "span.h",
     ],
     srcs = [
-        "lightstep_immutable_span_context.cpp",
-    ],
-    deps = [
-        ":lightstep_span_context_interface",
-    ],
-)
-
-lightstep_cc_library(
-    name = "lightstep_span_lib",
-    private_hdrs = [
-        "lightstep_span.h",
-    ],
-    srcs = [
-        "lightstep_span.cpp",
+        "tracer_impl.cpp",
+        "span.cpp",
     ],
     deps = [
         "//src/common:logger_lib",
         "//src/common:utility_lib",
         "//src/common:random_lib",
+        "//src/common:serialization_chain_lib",
         "//src/recorder:recorder_interface",
+        "//src/tracer/legacy:legacy_immutable_span_context_lib",
+        ":baggage_flat_map_lib",
         ":lightstep_span_context_interface",
+        ":propagation_lib",
+        ":serialization_lib",
+        ":utility_lib",
+        ":tag_lib",
     ],
 )
 
-lightstep_cc_library(
-    name = "lightstep_tracer_impl_lib",
-    private_hdrs = [
-        "lightstep_tracer_impl.h",
-    ],
-    srcs = [
-        "lightstep_tracer_impl.cpp",
-    ],
-    deps = [
-        "//src/common:logger_lib",
-        "//src/recorder:recorder_interface",
-        ":propagation_lib",
-        ":lightstep_span_lib",
-        ":lightstep_immutable_span_context_lib",
-    ],
-)
 
 lightstep_cc_library(
     name = "lightstep_tracer_factory_lib",
@@ -136,9 +122,23 @@ lightstep_cc_library(
         "//src/recorder:grpc_transporter_interface",
         "//src/recorder:manual_recorder_lib",
         "//src/recorder:stream_recorder_interface",
+        "//src/tracer/legacy:legacy_tracer_impl_lib",
         "//lightstep-tracer-common:collector_proto_cc",
         "//:config_lib",
-        ":lightstep_tracer_impl_lib",
+        ":tracer_impl_lib",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_cc_library(
+    name = "tag_lib",
+    private_hdrs = [
+        "tag.h",
+    ],
+    srcs = [
+        "tag.cpp",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",
@@ -151,3 +151,43 @@ lightstep_cc_library(
       "no_default_ssl_roots_pem.cpp",
     ],
 )
+
+lightstep_cc_library(
+    name = "serialization_lib",
+    private_hdrs = [
+        "serialization.h",
+    ],
+    srcs = [
+        "serialization.cpp",
+    ],
+    deps = [
+        "//src/common:serialization_lib",
+        "//src/common:utility_lib",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+lightstep_cc_library(
+    name = "propagation_lib",
+    private_hdrs = [
+        "propagation.h",
+    ],
+    srcs = [
+        "propagation.cpp",
+    ],
+    deps = [
+        "//src/common:utility_lib",
+        "//src/common:in_memory_stream_lib",
+        "//3rd_party/base64:base64_lib",
+        "//lightstep-tracer-common:lightstep_carrier_proto_cc",
+        ":baggage_flat_map_lib",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+

@@ -7,22 +7,35 @@ load(
 lightstep_package()
 
 lightstep_cc_library(
-  name = "atomic_bit_set_lib",
-  private_hdrs = [
-      "atomic_bit_set.h",
-  ],
-  srcs = [
-      "atomic_bit_set.cpp",
-  ],
+    name = "atomic_unique_ptr_lib",
+    private_hdrs = [
+        "atomic_unique_ptr.h",
+    ],
 )
 
 lightstep_cc_library(
-    name = "bipart_memory_stream_lib",
+    name = "direct_coded_output_stream_lib",
     private_hdrs = [
-        "bipart_memory_stream.h",
+        "direct_coded_output_stream.h",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+lightstep_cc_library(
+    name = "serialization_chain_lib",
+    private_hdrs = [
+        "serialization_chain.h",
     ],
     srcs = [
-        "bipart_memory_stream.cpp",
+        "serialization_chain.cpp",
+    ],
+    deps = [
+        ":fragment_input_stream_lib",
+        ":noncopyable_lib",
+        ":utility_lib",
+        ":serialization_lib",
     ],
     external_deps = [
         "@com_google_protobuf//:protobuf",
@@ -34,25 +47,16 @@ lightstep_cc_library(
     private_hdrs = [
         "circular_buffer.h",
     ],
-    srcs = [
-        "circular_buffer.cpp",
+    deps = [
+        ":circular_buffer_range_lib",
+        ":atomic_unique_ptr_lib",
     ],
 )
 
 lightstep_cc_library(
-    name = "chunk_circular_buffer_lib",
+    name = "circular_buffer_range_lib",
     private_hdrs = [
-      "chunk_circular_buffer.h",
-    ],
-    srcs = [
-        "chunk_circular_buffer.cpp",
-    ],
-    deps = [
-        ":atomic_bit_set_lib",
-        ":bipart_memory_stream_lib",
-        ":circular_buffer_lib",
-        ":function_ref_lib",
-        ":utility_lib",
+        "circular_buffer_range.h",
     ],
 )
 
@@ -94,6 +98,13 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "fast_random_number_generator_lib",
+    private_hdrs = [
+        "fast_random_number_generator.h",
+    ],
+)
+
+lightstep_cc_library(
     name = "random_lib",
     private_hdrs = [
         "random.h",
@@ -103,10 +114,18 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common/platform:fork_lib",
+        ":fast_random_number_generator_lib",
         "//3rd_party/randutils:randutils_lib",
     ],
     linkopts = [
         "-pthread",
+    ],
+)
+
+lightstep_cc_library(
+    name = "flat_map_lib",
+    private_hdrs = [
+        "flat_map.h",
     ],
 )
 
@@ -160,5 +179,59 @@ lightstep_cc_library(
     deps = [
         ":function_ref_lib",
         ":random_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "fragment_input_stream_lib",
+    private_hdrs = [
+        "fragment_input_stream.h",
+    ],
+    srcs = [
+        "fragment_input_stream.cpp",
+    ],
+    deps = [
+        "//src/common:function_ref_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "fragment_array_input_stream_lib",
+    private_hdrs = [
+        "fragment_array_input_stream.h",
+    ],
+    srcs = [
+        "fragment_array_input_stream.cpp",
+    ],
+    deps = [
+        ":fragment_input_stream_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "serialization_lib",
+    private_hdrs = [
+        "serialization.h",
+    ],
+    srcs = [
+        "serialization.cpp",
+    ],
+    deps = [
+        ":utility_lib",
+        ":direct_coded_output_stream_lib",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_cc_library(
+    name = "timestamp_lib",
+    private_hdrs = [
+        "timestamp.h",
+    ],
+    srcs = [
+        "timestamp.cpp",
     ],
 )

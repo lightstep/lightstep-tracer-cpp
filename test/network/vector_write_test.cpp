@@ -3,11 +3,13 @@
 #include <vector>
 
 #include "3rd_party/catch2/catch.hpp"
-#include "network/fragment_array_input_stream.h"
+#include "common/fragment_array_input_stream.h"
 #include "network/socket.h"
 #include "test/echo_server/echo_server_handle.h"
 #include "test/ports.h"
 #include "test/utility.h"
+
+#include <sys/uio.h>
 using namespace lightstep;
 
 const auto TcpPort = static_cast<uint16_t>(PortAssignments::VectorWriteTestTcp);
@@ -58,6 +60,27 @@ TEST_CASE("VectorWrite") {
       }
     }
     REQUIRE(i < max_iterations);
+  }
+
+  SECTION("We can write more fragments than IOV_MAX.") {
+    for (int num_fragments :
+         {static_cast<int>(IOV_MAX) - 1, static_cast<int>(IOV_MAX),
+          static_cast<int>(IOV_MAX) + 1, 2 * static_cast<int>(IOV_MAX),
+          3 * static_cast<int>(IOV_MAX) / 2}) {
+      SECTION("num_fragments = " + std::to_string(num_fragments)) {
+        FragmentArrayInputStream fragments;
+        std::array<char, 1> data = {'X'};
+        for (int i = 0; i < num_fragments; ++i) {
+          fragments.Add(Fragment{static_cast<void*>(data.data()), 1});
+        }
+        auto result = Write(socket.file_descriptor(), {&fragments});
+        socket = Socket{};
+        REQUIRE(result);
+        REQUIRE(IsEventuallyTrue([&] {
+          return echo_server.data() == std::string(num_fragments, 'X');
+        }));
+      }
+    }
   }
 
   SECTION("Write throws an exception when there's an error.") {

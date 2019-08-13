@@ -1,6 +1,10 @@
 #include "network/vector_write.h"
 
 #include <cassert>
+#include <cerrno>
+#include <climits>
+#include <cstring>
+#include <iterator>
 #include <sstream>
 #include <stdexcept>
 
@@ -21,27 +25,60 @@ bool Write(int socket,
   if (num_fragments == 0) {
     return true;
   }
-  assert(num_fragments < IoVecMax);
-  auto fragments = static_cast<IoVec*>(alloca(sizeof(IoVec) * num_fragments));
+  const auto max_batch_size =
+      std::min(static_cast<int>(IoVecMax), num_fragments);
+  auto fragments = static_cast<IoVec*>(alloca(sizeof(IoVec) * max_batch_size));
   auto fragment_iter = fragments;
-  for (auto fragment_input_stream : fragment_input_streams) {
-    fragment_input_stream->ForEachFragment(
-        [&fragment_iter](void* data, int size) {
-          *fragment_iter++ = MakeIoVec(data, static_cast<size_t>(size));
-          return true;
-        });
-  }
-  assert(fragment_iter == fragments + num_fragments);
-  auto rcode = WriteV(socket, fragments, num_fragments);
-  if (rcode < 0) {
-    auto error_code = GetLastErrorCode();
-    if (IsBlockingErrorCode(error_code)) {
-      return false;
+  const auto fragment_last = fragments + max_batch_size;
+  int num_bytes_written = 0;
+  int batch_num_bytes = 0;
+  bool error = false;
+  bool blocked = false;
+  ErrorCode error_code;
+
+  auto do_write = [&]() noexcept {
+    auto rcode =
+        WriteV(socket, fragments,
+               static_cast<int>(std::distance(fragments, fragment_iter)));
+    if (rcode < 0) {
+      error_code = GetLastErrorCode();
+      if (IsBlockingErrorCode(error_code)) {
+        blocked = true;
+      } else {
+        error = true;
+      }
+      return;
     }
+    auto num_batch_bytes_written = static_cast<int>(rcode);
+    assert(num_batch_bytes_written <= batch_num_bytes);
+    num_bytes_written += num_batch_bytes_written;
+    if (num_batch_bytes_written < batch_num_bytes) {
+      blocked = true;
+    }
+  };
+
+  for (auto fragment_input_stream : fragment_input_streams) {
+    fragment_input_stream->ForEachFragment([&](void* data, int size) {
+      *fragment_iter++ = MakeIoVec(data, static_cast<size_t>(size));
+      batch_num_bytes += size;
+      if (fragment_iter != fragment_last) {
+        return true;
+      }
+      do_write();
+      fragment_iter = fragments;
+      batch_num_bytes = 0;
+      return !(error || blocked);
+    });
+  }
+  if (batch_num_bytes > 0) {
+    do_write();
+  }
+  auto result = Consume(fragment_input_streams, num_bytes_written);
+  if (error) {
     std::ostringstream oss;
     oss << "writev failed: " << GetErrorCodeMessage(error_code);
     throw std::runtime_error{oss.str()};
   }
-  return Consume(fragment_input_streams, static_cast<int>(rcode));
+  return result;
 }
 }  // namespace lightstep

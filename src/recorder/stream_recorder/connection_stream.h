@@ -4,12 +4,11 @@
 #include <initializer_list>
 #include <tuple>
 
+#include "common/fragment_array_input_stream.h"
+#include "common/fragment_input_stream.h"
 #include "common/function_ref.h"
 #include "common/utility.h"
-#include "network/fragment_array_input_stream.h"
-#include "network/fragment_input_stream.h"
 #include "recorder/stream_recorder/embedded_metrics_message.h"
-#include "recorder/stream_recorder/fragment_span_input_stream.h"
 #include "recorder/stream_recorder/span_stream.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
 
@@ -73,7 +72,7 @@ class ConnectionStream {
   FragmentArrayInputStream header_stream_;
   FragmentArrayInputStream terminal_stream_;
 
-  FragmentSpanInputStream span_remnant_;
+  std::unique_ptr<SerializationChain> span_remnant_;
 
   bool shutting_down_;
 

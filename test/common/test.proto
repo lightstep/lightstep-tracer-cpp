@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package lightstep.test;
+
+import "google/protobuf/timestamp.proto";
+import "lightstep-tracer-common/collector.proto";
+
+message KeyValueTest {
+  lightstep.collector.KeyValue key_value = 1;
+}
+
+message TimestampTest {
+    google.protobuf.Timestamp timestamp = 1;
+}

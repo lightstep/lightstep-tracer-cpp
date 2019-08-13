@@ -23,7 +23,7 @@ project(lightstep-tracer)
 
 set(LIGHTSTEP_VERSION_MAJOR "0")
 set(LIGHTSTEP_VERSION_MINOR "10")
-set(LIGHTSTEP_VERSION_PATCH "0")
+set(LIGHTSTEP_VERSION_PATCH "1")
 set(LIGHTSTEP_VERSION_STRING
   "${LIGHTSTEP_VERSION_MAJOR}.${LIGHTSTEP_VERSION_MINOR}.${LIGHTSTEP_VERSION_PATCH}")
 
@@ -193,28 +193,33 @@ include(LightStepTracerCommon)
 include(LightStepTracerConfiguration)
 
 set(LIGHTSTEP_SRCS src/common/utility.cpp
-                   src/common/atomic_bit_set.cpp
-                   src/common/bipart_memory_stream.cpp
-                   src/common/circular_buffer.cpp
-                   src/common/chunk_circular_buffer.cpp
+                   src/common/fragment_input_stream.cpp
+                   src/common/fragment_array_input_stream.cpp
                    src/common/protobuf.cpp
                    src/common/in_memory_stream.cpp
                    src/common/logger.cpp
                    src/common/random.cpp
                    src/common/random_traverser.cpp
+                   src/common/serialization.cpp
+                   src/common/serialization_chain.cpp
+                   src/common/timestamp.cpp
                    src/recorder/report_builder.cpp
                    src/recorder/auto_recorder.cpp
                    src/recorder/fork_aware_recorder.cpp
                    src/recorder/manual_recorder.cpp
                    src/recorder/transporter.cpp
-                   src/tracer/propagation.cpp
                    src/tracer/binary_carrier.cpp
+                   src/tracer/propagation.cpp
+                   src/tracer/legacy/legacy_immutable_span_context.cpp
+                   src/tracer/legacy/legacy_span.cpp
+                   src/tracer/legacy/legacy_tracer_impl.cpp
                    src/tracer/lightstep_span_context.cpp
-                   src/tracer/lightstep_immutable_span_context.cpp
-                   src/tracer/lightstep_span.cpp
-                   src/tracer/lightstep_tracer_impl.cpp
                    src/tracer/lightstep_tracer_factory.cpp
+                   src/tracer/serialization.cpp
+                   src/tracer/span.cpp
+                   src/tracer/tracer_impl.cpp
                    src/tracer/tracer.cpp
+                   src/tracer/tag.cpp
                    )
 
 if (WIN32)
@@ -249,15 +254,12 @@ if (WITH_LIBEVENT)
                              src/recorder/stream_recorder/span_stream.cpp
                              src/recorder/stream_recorder/stream_recorder_metrics.cpp
                              src/recorder/stream_recorder/connection_stream.cpp
-                             src/recorder/stream_recorder/fragment_span_input_stream.cpp
                              src/recorder/stream_recorder/host_header.cpp
                              src/recorder/stream_recorder/embedded_metrics_message.cpp
                              src/recorder/stream_recorder/status_line_parser.cpp
                              src/recorder/stream_recorder/utility.cpp
                              src/network/event.cpp
                              src/network/event_base.cpp
-                             src/network/fragment_input_stream.cpp
-                             src/network/fragment_array_input_stream.cpp
                              src/network/timer_event.cpp
                              src/network/ip_address.cpp
                              src/network/socket.cpp

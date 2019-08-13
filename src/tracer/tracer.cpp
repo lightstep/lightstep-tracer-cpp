@@ -16,8 +16,9 @@
 #include "recorder/grpc_transporter.h"
 #include "recorder/manual_recorder.h"
 #include "recorder/stream_recorder.h"
-#include "tracer/lightstep_immutable_span_context.h"
-#include "tracer/lightstep_tracer_impl.h"
+#include "tracer/legacy/legacy_immutable_span_context.h"
+#include "tracer/legacy/legacy_tracer_impl.h"
+#include "tracer/tracer_impl.h"
 
 #include "opentracing/string_view.h"
 #include "opentracing/value.h"
@@ -89,7 +90,7 @@ LightStepTracer::MakeSpanContext(
     uint64_t trace_id, uint64_t span_id, bool sampled,
     std::unordered_map<std::string, std::string>&& baggage) const noexcept try {
   std::unique_ptr<opentracing::SpanContext> result{
-      new LightStepImmutableSpanContext{trace_id, span_id, sampled, baggage}};
+      new LegacyImmutableSpanContext{trace_id, span_id, sampled, baggage}};
   return std::move(result);
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(
@@ -118,7 +119,7 @@ static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
   propagation_options.use_single_key = options.use_single_key_propagation;
   auto recorder = std::unique_ptr<Recorder>{
       new AutoRecorder{*logger, std::move(options), std::move(transporter)}};
-  return std::shared_ptr<LightStepTracer>{new LightStepTracerImpl{
+  return std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
       std::move(logger), propagation_options, std::move(recorder)}};
 }
 
@@ -130,7 +131,7 @@ static std::shared_ptr<LightStepTracer> MakeStreamTracer(
   PropagationOptions propagation_options{};
   propagation_options.use_single_key = options.use_single_key_propagation;
   auto recorder = MakeStreamRecorder(*logger, std::move(options));
-  return std::shared_ptr<LightStepTracer>{new LightStepTracerImpl{
+  return std::shared_ptr<LightStepTracer>{new TracerImpl{
       std::move(logger), propagation_options, std::move(recorder)}};
 }
 
@@ -158,7 +159,7 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
   propagation_options.use_single_key = options.use_single_key_propagation;
   auto recorder = std::unique_ptr<Recorder>{
       new ManualRecorder{*logger, std::move(options), std::move(transporter)}};
-  return std::shared_ptr<LightStepTracer>{new LightStepTracerImpl{
+  return std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
       std::move(logger), propagation_options, std::move(recorder)}};
 }
 

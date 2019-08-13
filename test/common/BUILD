@@ -8,22 +8,12 @@ load(
 lightstep_package()
 
 lightstep_catch_test(
-    name = "atomic_bit_set_test",
+    name = "atomic_unique_ptr_test",
     srcs = [
-        "atomic_bit_set_test.cpp",
+        "atomic_unique_ptr_test.cpp",
     ],
     deps = [
-        "//src/common:atomic_bit_set_lib",
-    ],
-)
-
-lightstep_catch_test(
-    name = "bipart_memory_stream_test",
-    srcs = [
-        "bipart_memory_stream_test.cpp",
-    ],
-    deps = [
-        "//src/common:bipart_memory_stream_lib",
+        "//src/common:atomic_unique_ptr_lib",
     ],
 )
 
@@ -32,21 +22,19 @@ lightstep_catch_test(
     srcs = [
         "circular_buffer_test.cpp",
     ],
+    linkopts = ["-pthread"],
     deps = [
         "//src/common:circular_buffer_lib",
     ],
 )
 
 lightstep_catch_test(
-    name = "chunk_circular_buffer_test",
+    name = "circular_buffer_range_test",
     srcs = [
-        "chunk_circular_buffer_test.cpp",
+        "circular_buffer_range_test.cpp",
     ],
     deps = [
-        "//src/common:chunk_circular_buffer_lib",
-        "//src/common:utility_lib",
-        "//test:utility_lib",
-        "//test:number_simulation_lib",
+        "//src/common:circular_buffer_range_lib",
     ],
 )
 
@@ -67,7 +55,6 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/common:utility_lib",
-        "//src/common:bipart_memory_stream_lib",
     ],
 )
 
@@ -78,6 +65,16 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/common:logger_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "fast_random_number_generator_test",
+    srcs = [
+        "fast_random_number_generator_test.cpp",
+    ],
+    deps = [
+        "//src/common:fast_random_number_generator_lib",
     ],
 )
 
@@ -113,11 +110,100 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "flat_map_test",
+    srcs = [
+        "flat_map_test.cpp",
+    ],
+    deps = [
+        "//src/common:flat_map_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "random_traverser_test",
     srcs = [
         "random_traverser_test.cpp",
     ],
     deps = [
       "//src/common:random_traverser_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "fragment_input_stream_test",
+    srcs = [
+        "fragment_input_stream_test.cpp",
+    ],
+    deps = [
+        "//src/common:fragment_array_input_stream_lib",
+        "//test:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "fragment_array_input_stream_test",
+    srcs = [
+        "fragment_array_input_stream_test.cpp",
+    ],
+    deps = [
+        "//src/common:fragment_array_input_stream_lib",
+        "//test:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "serialization_chain_test",
+    srcs = [
+        "serialization_chain_test.cpp",
+    ],
+    deps = [
+        "//src/common:serialization_chain_lib",
+        "//test:utility_lib",
+    ],
+)
+
+proto_library(
+  name = "test_proto",    
+  srcs = ["test.proto"],
+  deps = [
+      "//lightstep-tracer-common:collector_proto",
+        "@com_google_protobuf//:timestamp_proto",
+  ],
+)
+
+cc_proto_library(
+    name = "test_proto_cc",
+    deps = [":test_proto"],
+)
+
+lightstep_catch_test(
+    name = "direct_coded_output_stream_test",
+    srcs = [
+        "direct_coded_output_stream_test.cpp",
+    ],
+    deps = [
+        "//src/common:direct_coded_output_stream_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "serialization_test",
+    srcs = [
+        "serialization_test.cpp",
+    ],
+    deps = [
+        "//src/common:serialization_lib",
+        "//src/common:utility_lib",
+        ":test_proto_cc",
+    ],
+)
+
+lightstep_catch_test(
+    name = "timestamp_test",
+    srcs = [
+        "timestamp_test.cpp",
+    ],
+    deps = [
+        "//src/common:timestamp_lib",
     ],
 )

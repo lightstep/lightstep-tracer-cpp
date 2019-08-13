@@ -13,7 +13,8 @@ lightstep_catch_test(
         "stream_recorder_test.cpp",
     ],
     deps = [
-        "//src/tracer:lightstep_tracer_impl_lib",
+        "//src/tracer/legacy:legacy_tracer_impl_lib",
+        "//src/tracer:tracer_impl_lib",
         "//src/recorder/stream_recorder:stream_recorder_lib",
         "//src/network/ares_dns_resolver:ares_dns_resolver_lib",
         "//test/mock_satellite:mock_satellite_lib",
@@ -38,17 +39,6 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
-    name = "fragment_span_input_stream_test",
-    srcs = [
-        "fragment_span_input_stream_test.cpp",
-    ],
-    deps = [
-        "//src/recorder/stream_recorder:fragment_span_input_stream_lib",
-        "//test:utility_lib",
-    ],
-)
-
-lightstep_catch_test(
     name = "utility_test",
     srcs = [
         "utility_test.cpp",
@@ -56,16 +46,6 @@ lightstep_catch_test(
     deps = [
         "//src/recorder/stream_recorder:utility_lib",
         "//lightstep-tracer-common:collector_proto_cc",
-    ],
-)
-
-lightstep_catch_test(
-    name = "satellite_streamer_test",
-    srcs = [
-        "satellite_streamer_test.cpp",
-    ],
-    deps = [
-        "//src/recorder/stream_recorder:satellite_streamer_lib",
     ],
 )
 

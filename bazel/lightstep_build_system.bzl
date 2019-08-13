@@ -92,8 +92,8 @@ def lightstep_cc_binary(
         data = [],
         copts = [],
         linkopts = [],
-        linkshared = False,
         testonly = 0,
+        linkshared = 0,
         visibility = None,
         external_deps = [],
         deps = []):
@@ -224,7 +224,19 @@ def lightstep_google_benchmark(
       tools = [":" + name] + data,
       testonly = 1,
       cmd = "$(location :%s) --benchmark_color=false --benchmark_min_time=.01 &> $@" % name,
-)
+  )
+  native.genrule(
+      name = name + "_profile",
+      outs = [
+          name + "_profile.tgz",
+      ],
+      tools = [
+          ":" + name,
+          "//bazel:profile_benchmark",
+      ] + data,
+      testonly = 1,
+      cmd = "$(location //bazel:profile_benchmark) $$PWD/$(location :%s) $@" % name,
+  )
 
 def lightstep_go_binary(
     name,
