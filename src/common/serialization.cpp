@@ -70,6 +70,73 @@ struct SerializationSizeValueVisitor {
 }  // namespace
 
 //--------------------------------------------------------------------------------------------------
+// SerializationSizeValueVisitor2
+//--------------------------------------------------------------------------------------------------
+namespace {
+struct SerializationSizeValueVisitor2 {
+  const opentracing::Value& original_value;
+  std::string& json;
+  int& json_counter;
+  ValueSerializer& value_serializer;
+  size_t& result;
+
+  void operator()(bool value) const noexcept {
+    value_serializer = ValueSerializer{value};
+    result += ComputeVarintSerializationSize<KeyValueBoolValueField>(
+        static_cast<uint32_t>(value));
+  }
+
+  void operator()(double value) const noexcept {
+    value_serializer = ValueSerializer{value};
+    result += StaticKeySerializationSize<KeyValueDoubleValueField,
+                                         WireType::Fixed64>::value +
+              sizeof(int64_t);
+  }
+
+  void operator()(int64_t value) const noexcept {
+    value_serializer = ValueSerializer{value};
+    result += ComputeVarintSerializationSize<KeyValueIntValueField>(
+        static_cast<uint64_t>(value));
+  }
+
+  void operator()(uint64_t value) const noexcept {
+    // There's no uint64_t value type so cast to an int64_t.
+    this->operator()(static_cast<int64_t>(value));
+  }
+
+  void operator()(opentracing::string_view s) const noexcept {
+    value_serializer = ValueSerializer{s};
+    result += ComputeLengthDelimitedSerializationSize<KeyValueStringValueField>(
+        s.size());
+  }
+
+  void operator()(const std::string& s) const noexcept {
+    this->operator()(opentracing::string_view{s});
+  }
+
+  void operator()(std::nullptr_t) const noexcept { this->operator()(false); }
+
+  void operator()(const char* s) const noexcept {
+    this->operator()(opentracing::string_view{s});
+  }
+
+  void operator()(const opentracing::Values& /*unused*/) const { do_json(); }
+
+  void operator()(const opentracing::Dictionary& /*unused*/) const {
+    do_json();
+  }
+
+  void do_json() const {
+    json = ToJson(original_value);
+    ++json_counter;
+    value_serializer = ValueSerializer{ValueSerializer::json_tag{}, json};
+    result += ComputeLengthDelimitedSerializationSize<KeyValueJsonValueField>(
+        json.size());
+  }
+};
+}  // namespace
+
+//--------------------------------------------------------------------------------------------------
 // SerializationValueVisitor
 //--------------------------------------------------------------------------------------------------
 namespace {
@@ -133,6 +200,18 @@ size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
       ComputeLengthDelimitedSerializationSize<KeyValueKeyField>(key.size());
   SerializationSizeValueVisitor value_visitor{value, json, json_counter,
                                               result};
+  apply_visitor(value_visitor, value);
+  return result;
+}
+
+size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
+                                        const opentracing::Value& value,
+                                        std::string& json, int& json_counter,
+                                        ValueSerializer& value_serializer) {
+  size_t result =
+      ComputeLengthDelimitedSerializationSize<KeyValueKeyField>(key.size());
+  SerializationSizeValueVisitor2 value_visitor{value, json, json_counter,
+                                               value_serializer, result};
   apply_visitor(value_visitor, value);
   return result;
 }

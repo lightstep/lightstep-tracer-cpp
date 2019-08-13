@@ -6,6 +6,7 @@
 
 #include "common/direct_coded_output_stream.h"
 #include "common/utility.h"
+#include "common/value_serializer.h"
 
 namespace lightstep {
 // Wire type values that matches those used by protobuf.
@@ -301,6 +302,11 @@ size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
                                         const opentracing::Value& value,
                                         std::string& json, int& json_counter);
 
+size_t ComputeKeyValueSerializationSize(opentracing::string_view key,
+                                        const opentracing::Value& value,
+                                        std::string& json, int& json_counter,
+                                        ValueSerializer& value_serializer);
+
 /**
  * Serialize a key-value not including its key field.
  * @param stream the stream to serialize into
@@ -326,6 +332,14 @@ struct KeyValueSerializer {
                          int& json_counter) const {
     WriteKeyValueImpl(stream, key, value, json_values, json_counter);
   }
+
+  template <class Stream>
+  inline void operator()(Stream& stream, opentracing::string_view key,
+                         const ValueSerializer& value_serializer) const {
+    const size_t KeyValueKeyField = 1;
+    WriteString<KeyValueKeyField>(stream, key);
+    value_serializer(stream);
+  }
 };
 
 /**
@@ -346,8 +360,15 @@ inline void WriteKeyValue(google::protobuf::io::CodedOutputStream& stream,
   WriteLengthDelimitedField<FieldNumber>(stream, serialization_size,
                                          KeyValueSerializer{}, key, value,
                                          json_values, json_counter);
-  /* WriteKeyLength<FieldNumber>(stream, serialization_size); */
-  /* WriteKeyValueImpl(stream, key, value, json_values, json_counter); */
+}
+
+template <size_t FieldNumber>
+inline void WriteKeyValue(google::protobuf::io::CodedOutputStream& stream,
+                          size_t serialization_size,
+                          opentracing::string_view key,
+                          const ValueSerializer& value_serializer) {
+  WriteLengthDelimitedField<FieldNumber>(
+      stream, serialization_size, KeyValueSerializer{}, key, value_serializer);
 }
 
 /**
@@ -360,12 +381,21 @@ template <size_t FieldNumber>
 inline void WriteKeyValue(google::protobuf::io::CodedOutputStream& stream,
                           opentracing::string_view key,
                           const opentracing::Value& value) {
+  /* std::string json; */
+  /* int json_counter = 0; */
+  /* auto serialization_size = */
+  /*     ComputeKeyValueSerializationSize(key, value, json, json_counter); */
+  /* json_counter = 0; */
+  /* WriteKeyValue<FieldNumber>(stream, serialization_size, key, value, &json,
+   */
+  /*                            json_counter); */
+
   std::string json;
   int json_counter = 0;
-  auto serialization_size =
-      ComputeKeyValueSerializationSize(key, value, json, json_counter);
+  ValueSerializer value_serializer;
+  auto serialization_size = ComputeKeyValueSerializationSize(
+      key, value, json, json_counter, value_serializer);
   json_counter = 0;
-  WriteKeyValue<FieldNumber>(stream, serialization_size, key, value, &json,
-                             json_counter);
+  WriteKeyValue<FieldNumber>(stream, serialization_size, key, value_serializer);
 }
 }  // namespace lightstep

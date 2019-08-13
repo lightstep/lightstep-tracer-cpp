@@ -212,6 +212,8 @@ lightstep_cc_library(
         "serialization.h",
     ],
     srcs = [
+        "value_serializer.h",
+        "value_serializer.cpp",
         "serialization.cpp",
     ],
     deps = [
