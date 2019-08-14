@@ -98,8 +98,8 @@ AresDnsResolver::AresDnsResolver(Logger& logger, EventBase& event_base,
     throw std::runtime_error{"ares failed to initialize"};
   }
   struct ares_options options = {};
-  options.sock_state_cb = [](void* context, int file_descriptor, int read,
-                             int write) {
+  options.sock_state_cb = [](void* context, ares_socket_t file_descriptor,
+                             int read, int write) noexcept {
     static_cast<AresDnsResolver*>(context)->OnSocketStateChange(file_descriptor,
                                                                 read, write);
   };
@@ -131,8 +131,8 @@ void AresDnsResolver::Resolve(const char* name, int family,
 //--------------------------------------------------------------------------------------------------
 // OnSocketStateChange
 //--------------------------------------------------------------------------------------------------
-void AresDnsResolver::OnSocketStateChange(int file_descriptor, int read,
-                                          int write) noexcept try {
+void AresDnsResolver::OnSocketStateChange(FileDescriptor file_descriptor,
+                                          int read, int write) noexcept try {
   if (read == 0 && write == 0) {
     socket_events_.erase(file_descriptor);
     return;
@@ -156,7 +156,8 @@ void AresDnsResolver::OnSocketStateChange(int file_descriptor, int read,
 //--------------------------------------------------------------------------------------------------
 // OnEvent
 //--------------------------------------------------------------------------------------------------
-void AresDnsResolver::OnEvent(int file_descriptor, short what) noexcept try {
+void AresDnsResolver::OnEvent(FileDescriptor file_descriptor,
+                              short what) noexcept try {
   auto read_file_descriptor =
       (what & EV_READ) != 0 ? file_descriptor : ARES_SOCKET_BAD;
   auto write_file_descriptor =

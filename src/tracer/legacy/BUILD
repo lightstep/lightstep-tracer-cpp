@@ -21,6 +21,7 @@ lightstep_cc_library(
         "//src/recorder:recorder_interface",
         "//src/tracer:lightstep_span_context_interface",
         "//src/tracer:utility_lib",
+        "//src/tracer:tag_lib",
     ],
 )
 

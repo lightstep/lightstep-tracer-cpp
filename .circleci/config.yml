@@ -1,4 +1,8 @@
-version: 2
+version: 2.1
+
+orbs:
+  win: circleci/windows@1.0.0
+
 jobs:
   cmake_no_grpc:
     resource_class: xlarge
@@ -61,6 +65,14 @@ jobs:
       - run: ./ci/install_clang.sh
       - run: ./ci/install_bazel.sh
       - run: ./ci/do_ci.sh bazel.tsan
+
+  windows:
+    executor: win/vs2019
+    steps:
+      - checkout
+      - run: ./ci/install_cmake.ps1
+      - run: ./ci/setup_windows_build_environment.ps1
+      - run: ./ci/do_ci.ps1 build
 
   release:
     resource_class: xlarge
@@ -168,6 +180,7 @@ workflows:
       - test
       - asan
       - tsan
+      - windows
       - benchmark
       - coverage
       - build_plugin

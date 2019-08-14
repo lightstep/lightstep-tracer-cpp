@@ -2,9 +2,8 @@
 
 #include <cassert>
 
+#include "common/platform/fork.h"
 #include "lightstep/randutils.h"
-
-#include <pthread.h>
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -20,9 +19,7 @@ class TlsRandomNumberGenerator {
  public:
   using BaseGenerator = randutils::random_generator<FastRandomNumberGenerator>;
 
-  TlsRandomNumberGenerator() noexcept {
-    ::pthread_atfork(nullptr, nullptr, OnFork);
-  }
+  TlsRandomNumberGenerator() { AtFork(nullptr, nullptr, OnFork); }
 
   static FastRandomNumberGenerator& engine() noexcept {
     return base_generator_.engine();

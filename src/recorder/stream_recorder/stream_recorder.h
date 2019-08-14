@@ -11,6 +11,7 @@
 #include "common/circular_buffer.h"
 #include "common/logger.h"
 #include "common/noncopyable.h"
+#include "common/platform/network_environment.h"
 #include "common/serialization_chain.h"
 #include "lightstep/tracer.h"
 #include "network/event_base.h"
@@ -107,6 +108,7 @@ class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
 
  private:
   Logger& logger_;
+  NetworkEnvironment network_environment_;
 
   LightStepTracerOptions tracer_options_;
   StreamRecorderOptions recorder_options_;

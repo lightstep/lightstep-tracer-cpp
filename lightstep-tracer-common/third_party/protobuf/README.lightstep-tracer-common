@@ -1,0 +1,13 @@
+protobuf
+============
+
+Project: protobuf
+URL: https://github.com/protocolbuffers/protobuf
+Revision: a03d332aca5d33c5d4b2cd25037c9e37d57eff02
+License: Google license
+
+
+Imported Files
+---------------
+- src/google/protobuf/descriptor.proto
+- src/google/protobuf/timestamp.proto

@@ -12,7 +12,7 @@ class Socket {
 
   Socket(int family, int type);
 
-  explicit Socket(int file_descriptor) noexcept;
+  explicit Socket(FileDescriptor file_descriptor) noexcept;
 
   Socket(const Socket&) = delete;
 
@@ -27,7 +27,7 @@ class Socket {
   /**
    * @return the file descriptor for this socket.
    */
-  int file_descriptor() const noexcept { return file_descriptor_; }
+  FileDescriptor file_descriptor() const noexcept { return file_descriptor_; }
 
   /**
    * Makes the socket non-blocking.
@@ -48,7 +48,7 @@ class Socket {
   int Connect(const sockaddr& addr, size_t addrlen) noexcept;
 
  private:
-  int file_descriptor_{-1};
+  FileDescriptor file_descriptor_{InvalidSocket};
 
   void Free() noexcept;
 };

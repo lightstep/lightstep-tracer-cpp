@@ -1,17 +1,17 @@
 #pragma once
 
-#include <opentracing/string_view.h>
-#include <opentracing/value.h>
 #include <chrono>
 #include <cstdint>
 #include <limits>
 #include <string>
+
 #include "common/logger.h"
+#include "common/platform/time.h"
 #include "lightstep-tracer-common/collector.pb.h"
 
-#include <sys/time.h>
-
 #include <google/protobuf/io/zero_copy_stream.h>
+#include <opentracing/string_view.h>
+#include <opentracing/value.h>
 
 namespace lightstep {
 const size_t Num64BitHexDigits = std::numeric_limits<uint64_t>::digits / 4;

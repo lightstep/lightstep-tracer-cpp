@@ -5,6 +5,7 @@
 #include "common/random.h"
 #include "common/utility.h"
 #include "tracer/serialization.h"
+#include "tracer/tag.h"
 #include "tracer/utility.h"
 
 #include <opentracing/ext/tags.h>
@@ -62,7 +63,7 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
 
     // If sampling_priority is set, it overrides whatever sampling decision was
     // derived from the referenced spans.
-    if (tag.first == opentracing::ext::sampling_priority) {
+    if (tag.first == SamplingPriorityKey) {
       sampled_ = is_sampled(tag.second);
     }
   }
@@ -110,7 +111,7 @@ void Span::SetTag(opentracing::string_view key,
     return;
   }
   WriteTag(stream_, key, value);
-  if (key == opentracing::ext::sampling_priority) {
+  if (key == SamplingPriorityKey) {
     sampled_ = is_sampled(value);
   }
 } catch (const std::exception& e) {

@@ -5,13 +5,13 @@
 #include <iterator>
 #include <sstream>
 
+#include "common/platform/string.h"
 #include "common/protobuf.h"
 #include "common/utility.h"
 #include "lightstep-tracer-common/collector.pb.h"
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
-#include <strings.h>
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -26,10 +26,10 @@ SeparateEndpoints(
     hosts.emplace_back(endpoint.first.c_str());
   }
   auto less_than = [](const char* lhs, const char* rhs) {
-    return strcasecmp(lhs, rhs) < 0;
+    return StrCaseCmp(lhs, rhs) < 0;
   };
   auto equal_to = [](const char* lhs, const char* rhs) {
-    return strcasecmp(lhs, rhs) == 0;
+    return StrCaseCmp(lhs, rhs) == 0;
   };
   std::sort(hosts.begin(), hosts.end(), less_than);
   hosts.erase(std::unique(hosts.begin(), hosts.end(), equal_to), hosts.end());

@@ -89,6 +89,7 @@ lightstep_cc_library(
         ":propagation_lib",
         ":serialization_lib",
         ":utility_lib",
+        ":tag_lib",
     ],
 )
 
@@ -116,6 +117,7 @@ lightstep_cc_library(
         "tracer.cpp",
     ],
     deps = [
+        "//src/common/platform:utility_lib",
         "//src/recorder:auto_recorder_lib",
         "//src/recorder:grpc_transporter_interface",
         "//src/recorder:manual_recorder_lib",
@@ -124,6 +126,19 @@ lightstep_cc_library(
         "//lightstep-tracer-common:collector_proto_cc",
         "//:config_lib",
         ":tracer_impl_lib",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_cc_library(
+    name = "tag_lib",
+    private_hdrs = [
+        "tag.h",
+    ],
+    srcs = [
+        "tag.cpp",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",

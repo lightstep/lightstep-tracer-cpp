@@ -1,5 +1,21 @@
 cmake_minimum_required(VERSION 3.1)
 
+# ==============================================================================
+# Set policies
+
+# Allows us to control options via normal variables
+# this is used for the windows build
+# See https://cmake.org/cmake/help/git-stage/policy/CMP0077.html
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0") 
+  cmake_policy(SET CMP0077 NEW)
+endif()
+
+# Allows us to specify the MSVC runtime via cmake variables
+# See https://cmake.org/cmake/help/git-stage/policy/CMP0091.html
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.15.0") 
+  cmake_policy(SET CMP0091 NEW)
+endif()
+
 project(lightstep-tracer)
 
 # ==============================================================================
@@ -89,7 +105,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-find_package(Protobuf REQUIRED)
+# Newer protobuf versions use cmake config files so try that first
+#
+# Note: The non-config protobuf module doesn't find PROTOBUF_PROTOC_EXECUTABLE properly on windows.
+set(protobuf_MODULE_COMPATIBLE ON)
+find_package(Protobuf CONFIG NAMES protobuf)
+if (NOT protobuf_FOUND)
+  # Fall back to the old style protobuf module
+  find_package(Protobuf REQUIRED)
+endif()
 
 if (NOT DEFINED OPENTRACING_INCLUDE_DIR)
   find_path(OPENTRACING_INCLUDE_DIR NAMES opentracing/tracer.h)
@@ -149,6 +173,11 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
 
+if (WIN32) 
+  list(APPEND LIGHTSTEP_LINK_LIBRARIES "wsock32" "ws2_32")
+endif()
+
+
 # ==============================================================================
 # Build LightStep tracer library
 
@@ -190,7 +219,24 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/tracer/span.cpp
                    src/tracer/tracer_impl.cpp
                    src/tracer/tracer.cpp
+                   src/tracer/tag.cpp
                    )
+
+if (WIN32)
+  list(APPEND LIGHTSTEP_SRCS src/common/platform/error_windows.cpp
+                             src/common/platform/network_windows.cpp
+                             src/common/platform/network_environment_windows.cpp
+                             src/common/platform/utility_windows.cpp
+                             src/common/platform/string_windows.cpp
+                             src/common/platform/fork_windows.cpp)
+else()
+  list(APPEND LIGHTSTEP_SRCS src/common/platform/error_unix.cpp
+                             src/common/platform/network_unix.cpp
+                             src/common/platform/network_environment_unix.cpp
+                             src/common/platform/utility_unix.cpp
+                             src/common/platform/string_unix.cpp
+                             src/common/platform/fork_unix.cpp)
+endif()
 
 if (WITH_GRPC)
   list(APPEND LIGHTSTEP_SRCS src/recorder/grpc_transporter/grpc_transporter.cpp)
@@ -273,8 +319,14 @@ endif()
 
 # ==============================================================================
 # Build tests and examples
+if (BUILD_SHARED_LIBS)
+  set(LIGHTSTEP_LIBRARY "lightstep_tracer")
+else()
+  set(LIGHTSTEP_LIBRARY "lightstep_tracer-static")
+endif()
+
 include(CTest)
-if (BUILD_TESTING AND BUILD_SHARED_LIBS)
+if (BUILD_TESTING)
   add_subdirectory(test/cmake)
   add_subdirectory(example)
 endif()

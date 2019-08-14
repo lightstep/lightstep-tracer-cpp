@@ -2,17 +2,15 @@
 
 #include <array>
 #include <cassert>
-#include <cerrno>
-#include <cstring>
 #include <exception>
 
+#include "common/platform/error.h"
 #include "common/random.h"
 #include "network/timer_event.h"
 #include "network/vector_write.h"
 #include "recorder/stream_recorder/satellite_streamer.h"
 
 #include <event2/event.h>
-#include <unistd.h>
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -116,7 +114,7 @@ void SatelliteConnection::Connect() noexcept try {
 // FreeSocket
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::FreeSocket() {
-  socket_ = Socket{-1};
+  socket_ = Socket{InvalidSocket};
   read_event_ = Event{};
   write_event_ = Event{};
   reconnect_timer_.Remove();
@@ -186,17 +184,17 @@ void SatelliteConnection::GracefulShutdownTimeout() noexcept {
 //--------------------------------------------------------------------------------------------------
 // OnReadable
 //--------------------------------------------------------------------------------------------------
-void SatelliteConnection::OnReadable(int file_descriptor,
+void SatelliteConnection::OnReadable(FileDescriptor file_descriptor,
                                      short /*what*/) noexcept try {
   streamer_.logger().Info("Satellite file_descriptor ", file_descriptor,
                           " is readable");
   std::array<char, 512> buffer;
-  ssize_t rcode;
+  int rcode;
 
   // Read satellite response
   while (true) {
-    rcode = ::read(file_descriptor, static_cast<void*>(buffer.data()),
-                   buffer.size());
+    rcode =
+        Read(file_descriptor, static_cast<void*>(buffer.data()), buffer.size());
     if (rcode <= 0) {
       break;
     }
@@ -221,11 +219,13 @@ void SatelliteConnection::OnReadable(int file_descriptor,
     }
     return Reconnect();
   }
-  assert(rcode == -1);
-  if (errno == EAGAIN || errno == EWOULDBLOCK) {
+  assert(rcode < 0);
+  auto error_code = GetLastErrorCode();
+  if (IsBlockingErrorCode(error_code)) {
     return read_event_.Add(nullptr);
   }
-  streamer_.logger().Error("Satellite socket error: ", std::strerror(errno));
+  streamer_.logger().Error("Satellite socket error: ",
+                           GetErrorCodeMessage(error_code));
   return OnSocketError();
 } catch (const std::exception& e) {
   streamer_.logger().Error("OnReadable failed: ", e.what());
@@ -235,7 +235,7 @@ void SatelliteConnection::OnReadable(int file_descriptor,
 //--------------------------------------------------------------------------------------------------
 // OnWritable
 //--------------------------------------------------------------------------------------------------
-void SatelliteConnection::OnWritable(int file_descriptor,
+void SatelliteConnection::OnWritable(FileDescriptor file_descriptor,
                                      short what) noexcept try {
   streamer_.logger().Info("Satellite file_descriptor ", file_descriptor,
                           " is writable");

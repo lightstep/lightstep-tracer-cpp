@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/noncopyable.h"
+#include "common/platform/network.h"
 #include "network/event.h"
 #include "network/socket.h"
 #include "recorder/stream_recorder/connection_stream.h"
@@ -41,7 +42,7 @@ class SatelliteConnection : private Noncopyable {
   HostHeader host_header_;
   ConnectionStream connection_stream_;
   StatusLineParser status_line_parser_;
-  Socket socket_{-1};
+  Socket socket_{InvalidSocket};
   bool writable_{false};
   Event read_event_;
   Event write_event_;
@@ -62,9 +63,9 @@ class SatelliteConnection : private Noncopyable {
 
   void GracefulShutdownTimeout() noexcept;
 
-  void OnReadable(int file_descriptor, short what) noexcept;
+  void OnReadable(FileDescriptor file_descriptor, short what) noexcept;
 
-  void OnWritable(int file_descriptor, short what) noexcept;
+  void OnWritable(FileDescriptor file_descriptor, short what) noexcept;
 
   void OnSocketError() noexcept;
 };

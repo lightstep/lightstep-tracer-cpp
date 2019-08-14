@@ -1,4 +1,3 @@
-#include <opentracing/ext/tags.h>
 #include <opentracing/noop.h>
 
 #include "3rd_party/catch2/catch.hpp"
@@ -7,6 +6,7 @@
 #include "test/recorder/in_memory_recorder.h"
 #include "test/utility.h"
 #include "tracer/legacy/legacy_tracer_impl.h"
+#include "tracer/tag.h"
 #include "tracer/tracer_impl.h"
 
 using namespace lightstep;
@@ -45,13 +45,12 @@ TEST_CASE("tracer") {
             "sampling_priority "
             "tag to 0.") {
       {
-        auto span = tracer->StartSpan(
-            "a", {SetTag(opentracing::ext::sampling_priority, 0u)});
+        auto span = tracer->StartSpan("a", {SetTag(SamplingPriorityKey, 0u)});
         REQUIRE(span);
       }
       {
         auto span = tracer->StartSpan("a");
-        span->SetTag(opentracing::ext::sampling_priority, 0);
+        span->SetTag(SamplingPriorityKey, 0);
         REQUIRE(span);
       }
       REQUIRE(recorder->size() == 0);
@@ -61,8 +60,8 @@ TEST_CASE("tracer") {
         tracer_type +
         ": If a span's parent isn't sampled, then it also isn't sampled unless "
         "sampling priority is overwritten.") {
-      auto parent_span = tracer->StartSpan(
-          "a", {SetTag(opentracing::ext::sampling_priority, 0u)});
+      auto parent_span =
+          tracer->StartSpan("a", {SetTag(SamplingPriorityKey, 0u)});
       REQUIRE(parent_span);
       {
         auto child_span = tracer->StartSpan(
@@ -74,7 +73,7 @@ TEST_CASE("tracer") {
         auto child_span = tracer->StartSpan(
             "b", {opentracing::ChildOf(&parent_span->context())});
         REQUIRE(child_span);
-        child_span->SetTag(opentracing::ext::sampling_priority, 1);
+        child_span->SetTag(SamplingPriorityKey, 1);
       }
       REQUIRE(recorder->size() == 1);
     }
