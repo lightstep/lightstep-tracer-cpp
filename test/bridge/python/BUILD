@@ -1,5 +1,4 @@
-load("@python_pip_deps//:requirements.bzl", "requirement")
-
+load("@python_pip_deps//:requirements.bzl", "requirement") 
 load(
     "//bazel:lightstep_build_system.bzl",
     "lightstep_cc_library",
@@ -17,6 +16,6 @@ py_test(
         requirement("opentracing"),
     ],
     data = [
-        "//bridge/python:lightstep_native.so",
+        "//bridge/python/binary/py27mu:lightstep_native.so",
     ],
 )

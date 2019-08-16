@@ -1,7 +1,9 @@
 import sys
+import os
 import unittest
 
-sys.path.append('bridge/python')
+for pyversion in os.listdir('bridge/python/binary'):
+    sys.path.append('bridge/python/binary/' + pyversion)
 import lightstep_native
 
 class TestTracer(unittest.TestCase):

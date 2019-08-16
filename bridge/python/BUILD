@@ -1,25 +1,16 @@
 load(
     "//bazel:lightstep_build_system.bzl",
     "lightstep_portable_cc_binary",
+    "lightstep_cc_library",
+    "lightstep_python_wheel",
     "lightstep_package",
 )
 
 lightstep_package()
 
-lightstep_portable_cc_binary(
-    name = "lightstep_native.so",
-    linkshared = True,
-    srcs = [
-        "src/module.cpp",
-    ],
-    copts = [
-        "-Wno-missing-field-initializers",
-    ],
-    linkopts = [
-        "-Wl,--version-script=$(location :lightstep-export-map.ld)",
-    ],
+lightstep_cc_library(
+    name = "python_tracer_lib",
     deps = [
-      ":lightstep-export-map.ld",
       "//src/tracer:lightstep_tracer_factory_lib",
       "//src/tracer:tracer_lib",
       "//src/tracer:binary_carrier_lib",
@@ -29,12 +20,80 @@ lightstep_portable_cc_binary(
       "//src/recorder/stream_recorder:stream_recorder_lib",
       "//src/network/ares_dns_resolver:ares_dns_resolver_lib",
     ],
+)
+
+lightstep_portable_cc_binary(
+    name = "lightstep_native.so",
+    linkshared = True,
+    srcs = [
+        "//bridge/python/src:module.cpp",
+        # "src/module.cpp",
+    ],
+    copts = [
+        "-Wno-missing-field-initializers",
+    ],
+    linkopts = [
+        "-Wl,--version-script=$(location :lightstep-export-map.ld)",
+    ],
+    deps = [
+      ":lightstep-export-map.ld",
+      ":python_tracer_lib",
+    ],
     external_deps = [
-      "@com_github_lightstep_python_bridge_tracer//:bridge_tracer_lib",
+      "@com_github_lightstep_python_bridge_tracer//:bridge_tracer_lib_py3",
     ],
     visibility = [
         "//visibility:public",
     ],
+)
+
+filegroup(
+    name = "wheel_files",
+    srcs = glob(["wheel/*"]),
+)
+
+lightstep_python_wheel(
+  python_tag = "cp32",
+  abi_tag = "abi3",
+  binary = "//bridge/python/binary/py3:lightstep_native.so",
+)
+
+lightstep_python_wheel(
+  python_tag = "cp27",
+  abi_tag = "cp27m",
+  binary = "//bridge/python/binary/py27m:lightstep_native.so",
+)
+
+lightstep_python_wheel(
+  python_tag = "cp27",
+  abi_tag = "cp27mu",
+  binary = "//bridge/python/binary/py27mu:lightstep_native.so",
+)
+
+genrule(
+    name = "generate_wheels2",
+    srcs = [
+        ":wheel-cp32-abi3.tgz",
+        ":wheel-cp27-cp27m.tgz",
+        ":wheel-cp27-cp27mu.tgz",
+    ],
+    outs = [
+        "wheel2.tgz",
+    ],
+    cmd = """
+    WORK_DIR=`mktemp -d`
+    cp $(location :wheel-cp32-abi3.tgz) $$WORK_DIR
+    cp $(location :wheel-cp27-cp27m.tgz) $$WORK_DIR
+    cp $(location :wheel-cp27-cp27mu.tgz) $$WORK_DIR
+    pushd $$WORK_DIR    
+    for file in *.tgz; do
+      tar zxf $$file
+    done
+    tar czf wheel2.tgz wheel
+    popd
+    cp $$WORK_DIR/wheel2.tgz $${PWD}/$(location :wheel2.tgz)
+    rm -rf $$WORK_DIR
+    """,
 )
 
 # Generates a wheel format suitable for uploading to Pypi
@@ -47,15 +106,19 @@ genrule(
         "//3rd_party/base64:LICENSE",
         "//3rd_party/randutils:LICENSE",
         ":lightstep_native.so",
-    ] + glob(["wheel/*"]),
+        ":wheel_files",
+    ],
     outs = [
         "wheel.tgz",
     ],
     cmd = """
+    for file in $(locations :wheel_files); do
+      WHEEL_FILES=$${PWD}/`dirname $$file`
+    done
     WORK_DIR=`mktemp -d`
     WHEEL_DIR=$$WORK_DIR/wheel
     mkdir $$WHEEL_DIR
-    GENERATE_RECORD=$${PWD}/$(location wheel/generate_record.py)
+    GENERATE_RECORD=$$WHEEL_FILES/generate_record.py
     VERSION_H=$(location //:gen-config/lightstep/version.h)
     VERSION_=`grep LIGHTSTEP_VERSION $$VERSION_H | cut -d ' ' -f3`
     export VERSION=`eval echo $$VERSION_`
@@ -65,14 +128,14 @@ genrule(
     DISTINFO_NAME=lightstep_native-$$VERSION.dist-info
     DISTINFO_DIR=$$WORK_DIR/$$DISTINFO_NAME
     mkdir $$DISTINFO_DIR
-    cp $(location wheel/WHEEL) $$DISTINFO_DIR
-    cat $(location wheel/METADATA.in) | envsubst > $$DISTINFO_DIR/METADATA
+    cp $$WHEEL_FILES/WHEEL $$DISTINFO_DIR
+    cat $$WHEEL_FILES/METADATA.in | envsubst > $$DISTINFO_DIR/METADATA
     echo lightstep_native > $$DISTINFO_DIR/top_level.txt
 
     # Set up the source directory
     SRC_DIR=$$WORK_DIR/lightstep_native
     mkdir $$SRC_DIR
-    cp $(location wheel/__init__.py) $$SRC_DIR
+    cp $$WHEEL_FILES/__init__.py $$SRC_DIR
     cp $(location :lightstep_native.so) $$SRC_DIR
     cp $(location //:LICENSE) $$SRC_DIR
     mkdir -p $$SRC_DIR/3rd_party/base64

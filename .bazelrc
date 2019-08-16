@@ -27,8 +27,3 @@ build:portable_glibc --define LIGHTSTEP_PORTABLE_GLIBC=1
 
 build:static_libcpp --linkopt -static-libstdc++
 build:static_libcpp --linkopt -static-libgcc
-
-# Ensure we use python3
-build --python_top=//ci:python-3
-run --python_top=//ci:python-3
-test --python_top=//ci:python-3

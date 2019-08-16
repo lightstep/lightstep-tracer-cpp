@@ -76,13 +76,6 @@ static PyMethodDef ModuleMethods[] = {
     {nullptr, nullptr}};
 
 //--------------------------------------------------------------------------------------------------
-// ModuleDefinition
-//--------------------------------------------------------------------------------------------------
-static PyModuleDef ModuleDefinition = {
-    PyModuleDef_HEAD_INIT, "lightstep_native",
-    PyDoc_STR("LightStep Python tracer"), -1, ModuleMethods};
-
-//--------------------------------------------------------------------------------------------------
 // flush
 //--------------------------------------------------------------------------------------------------
 namespace python_bridge_tracer {
@@ -104,15 +97,16 @@ void flush(opentracing::Tracer& tracer,
 // PyInit_lightstep_native
 //--------------------------------------------------------------------------------------------------
 extern "C" {
-PyMODINIT_FUNC PyInit_lightstep_native() noexcept {
-  python_bridge_tracer::PythonObjectWrapper module =
-      PyModule_Create(&ModuleDefinition);
-  if (module.error()) {
-    return nullptr;
+PYTHON_BRIDGE_TRACER_DEFINE_MODULE(lightstep_native) {
+  auto module = python_bridge_tracer::makeModule(
+      "lightstep_native", "bridge to LightStep's C++ tracer", ModuleMethods);
+  if (module == nullptr) {
+    PYTHON_BRIDGE_TRACER_MODULE_RETURN(nullptr);
   }
   if (!python_bridge_tracer::setupClasses(module)) {
-    return nullptr;
+    Py_DECREF(module);
+    PYTHON_BRIDGE_TRACER_MODULE_RETURN(nullptr);
   }
-  return module.release();
+  PYTHON_BRIDGE_TRACER_MODULE_RETURN(module);
 }
 }  // extern "C"
