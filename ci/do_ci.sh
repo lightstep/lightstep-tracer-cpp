@@ -65,7 +65,7 @@ elif [[ "$1" == "clang_tidy" ]]; then
   setup_clang_toolchain
   bazel build \
         $BAZEL_OPTIONS \
-        -- //src/... //test/... //include/... //benchmark/...
+        -- //src/... //bridge/... //test/... //include/... //benchmark/...
   ./ci/gen_compilation_database.sh
   ./ci/fix_compilation_database.py
   ./ci/run_clang_tidy.sh |& tee /clang-tidy-result.txt
