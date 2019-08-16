@@ -1,5 +1,8 @@
 #include <Python.h>
 
+#include <exception>
+#include <iostream>
+
 #include "lightstep/tracer.h"
 #include "python_bridge_tracer/module.h"
 #include "python_bridge_tracer/python_object_wrapper.h"
@@ -104,8 +107,8 @@ PYTHON_BRIDGE_TRACER_DEFINE_MODULE(lightstep_native) {
     PYTHON_BRIDGE_TRACER_MODULE_RETURN(nullptr);
   }
   if (!python_bridge_tracer::setupClasses(module)) {
-    Py_DECREF(module);
-    PYTHON_BRIDGE_TRACER_MODULE_RETURN(nullptr);
+    std::cerr << "Failed to set up python classes\n";
+    std::terminate();
   }
   PYTHON_BRIDGE_TRACER_MODULE_RETURN(module);
 }
