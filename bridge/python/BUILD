@@ -46,14 +46,14 @@ lightstep_python_wheel(
 )
 
 genrule(
-    name = "generate_wheels2",
+    name = "generate_wheels",
     srcs = [
         ":wheel-cp32-abi3.tgz",
         ":wheel-cp27-cp27m.tgz",
         ":wheel-cp27-cp27mu.tgz",
     ],
     outs = [
-        "wheel2.tgz",
+        "wheel.tgz",
     ],
     cmd = """
     WORK_DIR=`mktemp -d`
@@ -64,9 +64,9 @@ genrule(
     for file in *.tgz; do
       tar zxf $$file
     done
-    tar czf wheel2.tgz wheel
+    tar czf wheel.tgz wheel
     popd
-    cp $$WORK_DIR/wheel2.tgz $${PWD}/$(location :wheel2.tgz)
+    cp $$WORK_DIR/wheel.tgz $${PWD}/$(location :wheel.tgz)
     rm -rf $$WORK_DIR
     """,
 )
