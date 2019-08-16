@@ -1,6 +1,5 @@
 load(
     "//bazel:lightstep_build_system.bzl",
-    "lightstep_portable_cc_binary",
     "lightstep_cc_library",
     "lightstep_python_wheel",
     "lightstep_package",

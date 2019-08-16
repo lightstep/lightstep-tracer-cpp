@@ -11,7 +11,6 @@ lightstep_portable_cc_binary(
     linkshared = True,
     srcs = [
         "//bridge/python/src:module.cpp",
-        # "src/module.cpp",
     ],
     copts = [
         "-Wno-missing-field-initializers",

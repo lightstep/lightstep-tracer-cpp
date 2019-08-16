@@ -9,8 +9,12 @@ License: MIT
 Keywords: opentracing,lightstep,traceguide,tracing,microservices,distributed
 Platform: Linux
 Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Python :: 3
 Requires-Dist: opentracing (>=2.2.0)
+Requires-Python: >=2.7,!=3.0.*,!=3.1.*
 
 UNKNOWN
 
