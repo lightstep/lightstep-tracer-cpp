@@ -85,10 +85,8 @@ grpc_deps()
 
 git_repository(
     name = "com_github_lightstep_python_bridge_tracer",
-    # remote = "https://github.com/lightstep/python-bridge-tracer.git",
-    # commit = "d3c78c9376007d66ca3b5c81aa06e9e76633001b",
-    remote = "https://github.com/rnburn/python-bridge-tracer.git",
-    commit = "7f92f1928bcc4725a843fdbf88b06aeaac289bf8",
+    remote = "https://github.com/lightstep/python-bridge-tracer.git",
+    commit = "02908b06a2509f27fbb910244470f3fc70a5d2a3",
 ) 
 
 http_archive(
@@ -112,28 +110,22 @@ http_archive(
 
 new_git_repository(
     name = "vendored_pyconfig3",
-    # remote = "https://github.com/rnburn/python-bridge-tracer.git",
-    # commit = "9c14ba0add5db148f5736a60b15e96b7afc3ba19",
-    remote = "https://github.com/rnburn/python-bridge-tracer.git",
-    commit = "7f92f1928bcc4725a843fdbf88b06aeaac289bf8",
+    remote = "https://github.com/lightstep/python-bridge-tracer.git",
+    commit = "02908b06a2509f27fbb910244470f3fc70a5d2a3",
     build_file = "@com_github_lightstep_python_bridge_tracer//bazel:vendored_pyconfig3.BUILD",
 ) 
 
 new_git_repository(
     name = "vendored_pyconfig27m",
-    # remote = "https://github.com/rnburn/python-bridge-tracer.git",
-    # commit = "9c14ba0add5db148f5736a60b15e96b7afc3ba19",
-    remote = "https://github.com/rnburn/python-bridge-tracer.git",
-    commit = "7f92f1928bcc4725a843fdbf88b06aeaac289bf8",
+    remote = "https://github.com/lightstep/python-bridge-tracer.git",
+    commit = "02908b06a2509f27fbb910244470f3fc70a5d2a3",
     build_file = "@com_github_lightstep_python_bridge_tracer//bazel:vendored_pyconfig27m.BUILD",
 ) 
 
 new_git_repository(
     name = "vendored_pyconfig27mu",
-    # remote = "https://github.com/rnburn/python-bridge-tracer.git",
-    # commit = "9c14ba0add5db148f5736a60b15e96b7afc3ba19",
-    remote = "https://github.com/rnburn/python-bridge-tracer.git",
-    commit = "7f92f1928bcc4725a843fdbf88b06aeaac289bf8",
+    remote = "https://github.com/lightstep/python-bridge-tracer.git",
+    commit = "02908b06a2509f27fbb910244470f3fc70a5d2a3",
     build_file = "@com_github_lightstep_python_bridge_tracer//bazel:vendored_pyconfig27mu.BUILD",
 ) 
 
