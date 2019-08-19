@@ -264,3 +264,71 @@ def lightstep_go_binary(
       out = out,
       deps = deps + external_deps,
   )
+
+def lightstep_python_wheel(
+    python_tag,
+    abi_tag,
+    binary):
+  outfile = "wheel-%s-%s.tgz" % (python_tag, abi_tag)
+  native.genrule(
+      name = "gen_wheel-%s-%s" % (python_tag, abi_tag),
+      srcs = [
+        "//:gen-config/lightstep/version.h",
+        "//:LICENSE",
+        "//3rd_party/base64:LICENSE",
+        "//3rd_party/randutils:LICENSE",
+        "//bridge/python:wheel_files",
+        binary,
+      ],
+      outs = [
+          outfile,
+      ],
+      cmd = """
+      PYTHON_TAG=%s
+      ABI_TAG=%s
+      for file in $(locations //bridge/python:wheel_files); do
+        WHEEL_FILES=$${PWD}/`dirname $$file`
+      done
+      WORK_DIR=`mktemp -d`
+      WHEEL_DIR=$$WORK_DIR/wheel
+      mkdir $$WHEEL_DIR
+      GENERATE_RECORD=$$WHEEL_FILES/generate_record.py
+      VERSION_H=$(location //:gen-config/lightstep/version.h)
+      VERSION_=`grep LIGHTSTEP_VERSION $$VERSION_H | cut -d ' ' -f3`
+      export VERSION=`eval echo $$VERSION_`
+      WHEEL_NAME=lightstep_native-$$VERSION-$$PYTHON_TAG-$$ABI_TAG-manylinux1_x86_64
+
+      # Set up the dist-info directory
+      DISTINFO_NAME=lightstep_native-$$VERSION.dist-info
+      DISTINFO_DIR=$$WORK_DIR/$$DISTINFO_NAME
+      mkdir $$DISTINFO_DIR
+      cat $$WHEEL_FILES/WHEEL.in > $$DISTINFO_DIR/WHEEL
+      echo "Tag: $$PYTHON_TAG-$$ABI_TAG-manylinux1_x86_64" >> $$DISTINFO_DIR/WHEEL
+      cat $$WHEEL_FILES/METADATA.in | envsubst > $$DISTINFO_DIR/METADATA
+      echo lightstep_native > $$DISTINFO_DIR/top_level.txt
+
+      # Set up the source directory
+      SRC_DIR=$$WORK_DIR/lightstep_native
+      mkdir $$SRC_DIR
+      cp $$WHEEL_FILES/__init__.py $$SRC_DIR
+      cp $(location %s) $$SRC_DIR
+      cp $(location //:LICENSE) $$SRC_DIR
+      mkdir -p $$SRC_DIR/3rd_party/base64
+      cp $(location //3rd_party/base64:LICENSE) $$SRC_DIR/3rd_party/base64
+      mkdir -p $$SRC_DIR/3rd_party/randutils
+      cp $(location //3rd_party/randutils:LICENSE) $$SRC_DIR/3rd_party/randutils
+
+      # Generate the record file
+      python $$GENERATE_RECORD $$WORK_DIR > $$DISTINFO_DIR/RECORD
+      echo "$$DISTINFO_NAME/RECORD,," >> $$DISTINFO_DIR/RECORD
+      
+      # zip up our wheel
+      pushd $$WORK_DIR
+      zip -r wheel/$$WHEEL_NAME.whl $$DISTINFO_NAME lightstep_native
+      tar czf wheel.tgz wheel
+      popd
+      cp $$WORK_DIR/wheel.tgz $${PWD}/$(location :%s)
+
+      rm -rf $$WORK_DIR
+      """% (python_tag, abi_tag, binary, outfile),
+  )

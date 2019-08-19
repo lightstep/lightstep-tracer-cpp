@@ -86,11 +86,11 @@ grpc_deps()
 git_repository(
     name = "com_github_lightstep_python_bridge_tracer",
     remote = "https://github.com/lightstep/python-bridge-tracer.git",
-    commit = "d3c78c9376007d66ca3b5c81aa06e9e76633001b",
+    commit = "02908b06a2509f27fbb910244470f3fc70a5d2a3",
 ) 
 
 http_archive(
-    name = "com_github_python_cpython",
+    name = "com_github_python_cpython3",
     build_file = "@com_github_lightstep_python_bridge_tracer//bazel:cpython.BUILD",
     strip_prefix = "cpython-3.7.3",
     urls = [
@@ -98,12 +98,35 @@ http_archive(
     ],
 )
 
+http_archive(
+    name = "com_github_python_cpython27",
+    build_file = "@com_github_lightstep_python_bridge_tracer//bazel:cpython.BUILD",
+    strip_prefix = "cpython-2.7.16",
+    urls = [
+        "https://github.com/python/cpython/archive/v2.7.16.tar.gz",
+    ],
+)
+
 
 new_git_repository(
-    name = "vendored_pyconfig",
-    remote = "https://github.com/rnburn/python-bridge-tracer.git",
-    commit = "9c14ba0add5db148f5736a60b15e96b7afc3ba19",
-    build_file = "@com_github_lightstep_python_bridge_tracer//bazel:vendored_pyconfig.BUILD",
+    name = "vendored_pyconfig3",
+    remote = "https://github.com/lightstep/python-bridge-tracer.git",
+    commit = "02908b06a2509f27fbb910244470f3fc70a5d2a3",
+    build_file = "@com_github_lightstep_python_bridge_tracer//bazel:vendored_pyconfig3.BUILD",
+) 
+
+new_git_repository(
+    name = "vendored_pyconfig27m",
+    remote = "https://github.com/lightstep/python-bridge-tracer.git",
+    commit = "02908b06a2509f27fbb910244470f3fc70a5d2a3",
+    build_file = "@com_github_lightstep_python_bridge_tracer//bazel:vendored_pyconfig27m.BUILD",
+) 
+
+new_git_repository(
+    name = "vendored_pyconfig27mu",
+    remote = "https://github.com/lightstep/python-bridge-tracer.git",
+    commit = "02908b06a2509f27fbb910244470f3fc70a5d2a3",
+    build_file = "@com_github_lightstep_python_bridge_tracer//bazel:vendored_pyconfig27mu.BUILD",
 ) 
 
 #######################################
