@@ -11,6 +11,7 @@ namespace lightstep {
  */
 class SpinLockMutex {
  public:
+  // std Mutex requirements
   inline void lock() noexcept {
     while (locked_.test_and_set(std::memory_order_acquire)) {
     }

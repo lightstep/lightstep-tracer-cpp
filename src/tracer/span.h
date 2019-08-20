@@ -84,11 +84,12 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
   uint64_t span_id() const noexcept override { return span_id_; }
 
  private:
-  // Profiling shows that even with no contention, lock and unlocking a standard
-  // mutex represents a significant portion of the cost of instrumentation.
+  // Profiling shows that even with no contention, locking and unlocking a
+  // standard mutex represents a significant portion of the cost of
+  // instrumentation.
   //
   // Even if there is contention, the span operations are cheap, so it makes
-  // more sense to use a spin lock here.
+  // more sense to use a spin lock for this use case.
   mutable SpinLockMutex mutex_;
 
   std::unique_ptr<SerializationChain> serialization_chain_;
