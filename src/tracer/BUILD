@@ -82,6 +82,7 @@ lightstep_cc_library(
         "//src/common:utility_lib",
         "//src/common:random_lib",
         "//src/common:serialization_chain_lib",
+        "//src/common:spin_lock_mutex_lib",
         "//src/recorder:recorder_interface",
         "//src/tracer/legacy:legacy_immutable_span_context_lib",
         ":baggage_flat_map_lib",

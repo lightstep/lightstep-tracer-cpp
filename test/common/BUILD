@@ -18,6 +18,17 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "spin_lock_mute_test",
+    srcs = [
+        "spin_lock_mutex_test.cpp",
+    ],
+    linkopts = ["-pthread"],
+    deps = [
+        "//src/common:spin_lock_mutex_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "circular_buffer_test",
     srcs = [
         "circular_buffer_test.cpp",

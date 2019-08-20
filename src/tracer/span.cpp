@@ -82,7 +82,7 @@ Span::~Span() noexcept {
 //------------------------------------------------------------------------------
 void Span::FinishWithOptions(
     const opentracing::FinishSpanOptions& options) noexcept try {
-  std::lock_guard<std::mutex> lock_guard{mutex_};
+  SpinLockGuard lock_guard{mutex_};
   FinishImpl(options);
 } catch (const std::exception& e) {
   tracer_->logger().Error("FinishWithOptions failed: ", e.what());
@@ -92,7 +92,7 @@ void Span::FinishWithOptions(
 // SetOperationName
 //------------------------------------------------------------------------------
 void Span::SetOperationName(opentracing::string_view name) noexcept try {
-  std::lock_guard<std::mutex> lock_guard{mutex_};
+  SpinLockGuard lock_guard{mutex_};
   if (is_finished_) {
     return;
   }
@@ -106,7 +106,7 @@ void Span::SetOperationName(opentracing::string_view name) noexcept try {
 //------------------------------------------------------------------------------
 void Span::SetTag(opentracing::string_view key,
                   const opentracing::Value& value) noexcept try {
-  std::lock_guard<std::mutex> lock_guard{mutex_};
+  SpinLockGuard lock_guard{mutex_};
   if (is_finished_) {
     return;
   }
@@ -123,7 +123,7 @@ void Span::SetTag(opentracing::string_view key,
 //------------------------------------------------------------------------------
 void Span::SetBaggageItem(opentracing::string_view restricted_key,
                           opentracing::string_view value) noexcept try {
-  std::lock_guard<std::mutex> lock_guard{mutex_};
+  SpinLockGuard lock_guard{mutex_};
   if (is_finished_) {
     return;
   }
@@ -137,7 +137,7 @@ void Span::SetBaggageItem(opentracing::string_view restricted_key,
 //------------------------------------------------------------------------------
 std::string Span::BaggageItem(opentracing::string_view restricted_key) const
     noexcept try {
-  std::lock_guard<std::mutex> lock_guard{mutex_};
+  SpinLockGuard lock_guard{mutex_};
   auto iter = baggage_.find(restricted_key);
   if (iter != baggage_.end()) {
     return iter->second;
@@ -156,7 +156,7 @@ void Span::Log(std::initializer_list<
                std::pair<opentracing::string_view, opentracing::Value>>
                    fields) noexcept try {
   auto timestamp = SystemClock::now();
-  std::lock_guard<std::mutex> lock_guard{mutex_};
+  SpinLockGuard lock_guard{mutex_};
   if (is_finished_) {
     return;
   }
@@ -171,7 +171,7 @@ void Span::Log(std::initializer_list<
 void Span::ForeachBaggageItem(
     std::function<bool(const std::string& key, const std::string& value)> f)
     const {
-  std::lock_guard<std::mutex> lock_guard{mutex_};
+  SpinLockGuard lock_guard{mutex_};
   for (const auto& baggage_item : baggage_) {
     if (!f(baggage_item.first, baggage_item.second)) {
       return;
@@ -183,7 +183,7 @@ void Span::ForeachBaggageItem(
 // sampled
 //------------------------------------------------------------------------------
 bool Span::sampled() const noexcept {
-  std::lock_guard<std::mutex> lock_guard{mutex_};
+  SpinLockGuard lock_guard{mutex_};
   return sampled_;
 }
 
