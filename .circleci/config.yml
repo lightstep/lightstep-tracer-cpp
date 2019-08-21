@@ -193,7 +193,7 @@ jobs:
       - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
-      - run: sudo pip install ~/plugin/*.whl
+      - run: sudo pip install ~/plugin/*cp3*.whl
       - run: pytest -s --client_name python-cpp regression_tests.py
       - store_artifacts:
           path: logs
@@ -208,7 +208,7 @@ jobs:
       - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
-      - run: sudo pip install ~/plugin/*.whl
+      - run: sudo pip install ~/plugin/*cp3*.whl
       - run: python cpu_graphs.py python-cpp --runtime 10 --trials 10
 
       - store_artifacts:
@@ -227,7 +227,7 @@ jobs:
       - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
-      - run: sudo pip install ~/plugin/*.whl
+      - run: sudo pip install ~/plugin/*cp3*.whl
       - run: python memory_graphs.py python-cpp
 
       - store_artifacts:
@@ -246,7 +246,7 @@ jobs:
       - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
-      - run: sudo pip install ~/plugin/*.whl
+      - run: sudo pip install ~/plugin/*cp3*.whl
       - run: python dropped_graphs.py python-cpp
 
       - store_artifacts:
@@ -265,7 +265,7 @@ jobs:
       - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
-      - run: sudo pip install ~/plugin/*.whl
+      - run: sudo pip install ~/plugin/*cp3*.whl
       - run: python disconnect_graphs.py python-cpp
 
       - store_artifacts:
