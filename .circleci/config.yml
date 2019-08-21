@@ -185,6 +185,7 @@ jobs:
           desination: coverage
 
   regression_test:
+    resource_class: xlarge
     docker:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
@@ -203,6 +204,7 @@ jobs:
           destination: logs
 
   make_cpu_graphs:
+    resource_class: xlarge
     docker:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
@@ -223,6 +225,7 @@ jobs:
           destination: graphs
 
   make_memory_graphs:
+    resource_class: xlarge
     docker:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
@@ -243,6 +246,7 @@ jobs:
           destination: graphs
 
   make_dropped_graphs:
+    resource_class: xlarge
     docker:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
@@ -263,6 +267,7 @@ jobs:
           destination: graphs
 
   make_disconnect_graphs:
+    resource_class: xlarge
     docker:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
