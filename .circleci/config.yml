@@ -200,7 +200,7 @@ jobs:
           cd ~/lightstep-benchmarks
           pytest -s --client_name python-cpp regression_tests.py
       - store_artifacts:
-          path: logs
+          path: ~/lightstep-benchmarks/logs
           destination: logs
 
   make_cpu_graphs:
