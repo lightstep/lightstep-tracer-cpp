@@ -8,15 +8,11 @@ mkdir -p "${BUILD_DIR}"
 
 BAZEL_OPTIONS=""
 BAZEL_TEST_OPTIONS="$BAZEL_OPTIONS --test_output=errors"
-
-# --jobs 4 slows the build down a bit, but allows it to run
-# on machines with fewer cores without simply hanging.
 BAZEL_PLUGIN_OPTIONS="$BAZEL_OPTIONS \
               -c opt \
               --copt=-march=x86-64 \
               --config=portable_glibc \
               --config=static_libcpp \
-              --jobs 4 \
   "
 
 function copy_benchmark_results() {

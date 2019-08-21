@@ -119,7 +119,7 @@ jobs:
           destination: /clang-tidy-errors.txt
 
   build_plugin:
-    # resource_class: xlarge
+    resource_class: xlarge
     docker:
       - image: ubuntu:18.04
     steps:
