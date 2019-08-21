@@ -188,9 +188,8 @@ jobs:
     docker:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
-
     steps:
-      - run: cd ~; git clone https://github.com/isaaczinda/tracer-benchmark.git repo
+      - run: cd ~; git clone https://github.com/lightstep/lightstep-benchmarks.git repo
       - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
@@ -204,9 +203,8 @@ jobs:
     docker:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
-
     steps:
-      - run: cd ~; git clone https://github.com/isaaczinda/tracer-benchmark.git repo
+      - run: cd ~; git clone https://github.com/lightstep/lightstep-benchmarks.git repo
       - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
@@ -224,9 +222,8 @@ jobs:
     docker:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
-
     steps:
-      - run: cd ~; git clone https://github.com/isaaczinda/tracer-benchmark.git repo
+      - run: cd ~; git clone https://github.com/lightstep/lightstep-benchmarks.git repo
       - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
@@ -244,9 +241,8 @@ jobs:
     docker:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
-
     steps:
-      - run: cd ~; git clone https://github.com/isaaczinda/tracer-benchmark.git repo
+      - run: cd ~; git clone https://github.com/lightstep/lightstep-benchmarks.git repo
       - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
@@ -264,9 +260,8 @@ jobs:
     docker:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
-
     steps:
-      - run: cd ~; git clone https://github.com/isaaczinda/tracer-benchmark.git repo
+      - run: cd ~; git clone https://github.com/lightstep/lightstep-benchmarks.git repo
       - run: ./scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
