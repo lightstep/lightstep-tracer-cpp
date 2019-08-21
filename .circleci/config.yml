@@ -189,12 +189,15 @@ jobs:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
     steps:
-      - run: cd ~; git clone https://github.com/lightstep/lightstep-benchmarks.git repo
-      - run: ./scripts/ci_setup.sh
+      - checkout
+      - run: cd ~; ~/repo/ci/clone_lightstep_benchmarks.sh
+      - run: ~/lightstep-benchmarks/scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
       - run: sudo pip install ~/plugin/*cp3*.whl
-      - run: pytest -s --client_name python-cpp regression_tests.py
+      - run: |
+          cd ~/lightstep-benchmarks
+          pytest -s --client_name python-cpp regression_tests.py
       - store_artifacts:
           path: logs
           destination: logs
@@ -204,18 +207,19 @@ jobs:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
     steps:
-      - run: cd ~; git clone https://github.com/lightstep/lightstep-benchmarks.git repo
-      - run: ./scripts/ci_setup.sh
+      - checkout
+      - run: cd ~; ~/repo/ci/clone_lightstep_benchmarks.sh
+      - run: ~/lightstep-benchmarks/scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
       - run: sudo pip install ~/plugin/*cp3*.whl
-      - run: python cpu_graphs.py python-cpp --runtime 10 --trials 10
+      - run: python ~/lightstep-benchmarks/cpu_graphs.py python-cpp --runtime 10 --trials 10
 
       - store_artifacts:
-          path: logs
+          path: ~/lightstep-benchmarks/logs
           destination: logs
       - store_artifacts:
-          path: graphs
+          path: ~/lightstep-benchmarks/graphs
           destination: graphs
 
   make_memory_graphs:
@@ -223,18 +227,19 @@ jobs:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
     steps:
-      - run: cd ~; git clone https://github.com/lightstep/lightstep-benchmarks.git repo
-      - run: ./scripts/ci_setup.sh
+      - checkout
+      - run: cd ~; ~/repo/ci/clone_lightstep_benchmarks.sh
+      - run: ~/lightstep-benchmarks/scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
       - run: sudo pip install ~/plugin/*cp3*.whl
-      - run: python memory_graphs.py python-cpp
+      - run: python ~/lightstep-benchmarks/memory_graphs.py python-cpp
 
       - store_artifacts:
-          path: logs
+          path: ~/lightstep-benchmarks/logs
           destination: logs
       - store_artifacts:
-          path: graphs
+          path: ~/lightstep-benchmarks/graphs
           destination: graphs
 
   make_dropped_graphs:
@@ -242,18 +247,19 @@ jobs:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
     steps:
-      - run: cd ~; git clone https://github.com/lightstep/lightstep-benchmarks.git repo
-      - run: ./scripts/ci_setup.sh
+      - checkout
+      - run: cd ~; ~/repo/ci/clone_lightstep_benchmarks.sh
+      - run: ~/lightstep-benchmarks/scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
       - run: sudo pip install ~/plugin/*cp3*.whl
-      - run: python dropped_graphs.py python-cpp
+      - run: python ~/lightstep-benchmarks/dropped_graphs.py python-cpp
 
       - store_artifacts:
-          path: logs
+          path: ~/lightstep-benchmarks/logs
           destination: logs
       - store_artifacts:
-          path: graphs
+          path: ~/lightstep-benchmarks/graphs
           destination: graphs
 
   make_disconnect_graphs:
@@ -261,18 +267,19 @@ jobs:
       - image: circleci/python:3.7.4
     working_directory: ~/repo
     steps:
-      - run: cd ~; git clone https://github.com/lightstep/lightstep-benchmarks.git repo
-      - run: ./scripts/ci_setup.sh
+      - checkout
+      - run: cd ~; ~/repo/ci/clone_lightstep_benchmarks.sh
+      - run: ~/lightstep-benchmarks/scripts/ci_setup.sh
       - attach_workspace:
           at: ~/plugin
       - run: sudo pip install ~/plugin/*cp3*.whl
-      - run: python disconnect_graphs.py python-cpp
+      - run: python ~/lightstep-benchmarks/disconnect_graphs.py python-cpp
 
       - store_artifacts:
-          path: logs
+          path: ~/lightstep-benchmarks/logs
           destination: logs
       - store_artifacts:
-          path: graphs
+          path: ~/lightstep-benchmarks/graphs
           destination: graphs
 
 workflows:
