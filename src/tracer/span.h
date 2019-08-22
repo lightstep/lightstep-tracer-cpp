@@ -6,6 +6,7 @@
 #include <mutex>
 
 #include "common/serialization_chain.h"
+#include "common/spin_lock_mutex.h"
 #include "tracer/baggage_flat_map.h"
 #include "tracer/lightstep_span_context.h"
 #include "tracer/propagation.h"
@@ -83,7 +84,14 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
   uint64_t span_id() const noexcept override { return span_id_; }
 
  private:
-  mutable std::mutex mutex_;
+  // Profiling shows that even with no contention, locking and unlocking a
+  // standard mutex represents a significant portion of the cost of
+  // instrumentation.
+  //
+  // Even if there is contention, the span operations are cheap, so it makes
+  // more sense to use a spin lock for this use case.
+  mutable SpinLockMutex mutex_;
+
   std::unique_ptr<SerializationChain> serialization_chain_;
   google::protobuf::io::CodedOutputStream stream_;
 
@@ -99,7 +107,7 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
   template <class Carrier>
   opentracing::expected<void> InjectImpl(
       const PropagationOptions& propagation_options, Carrier& writer) const {
-    std::lock_guard<std::mutex> lock_guard{mutex_};
+    SpinLockGuard lock_guard{mutex_};
     return InjectSpanContext(propagation_options, writer, trace_id_, span_id_,
                              sampled_, baggage_);
   }

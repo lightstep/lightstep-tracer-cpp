@@ -14,6 +14,13 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "spin_lock_mutex_lib",
+    private_hdrs = [
+        "spin_lock_mutex.h",
+    ],
+)
+
+lightstep_cc_library(
     name = "direct_coded_output_stream_lib",
     private_hdrs = [
         "direct_coded_output_stream.h",
