@@ -13,6 +13,7 @@ lightstep_cc_library(
       "//src/tracer:lightstep_tracer_factory_lib",
       "//src/tracer:tracer_lib",
       "//src/tracer:binary_carrier_lib",
+      "//src/tracer:counting_metrics_observer_lib",
       "//src/tracer:no_default_ssl_roots_pem_lib",
       "//src/recorder:transporter_lib",
       "//src/recorder:no_grpc_transporter_lib",

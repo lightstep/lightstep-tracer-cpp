@@ -99,6 +99,10 @@ class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
                              steady_now);
   }
 
+  const MetricsObserver* metrics_observer() const noexcept override {
+    return tracer_options_.metrics_observer.get();
+  }
+
   // ForkAwareRecorder
   void PrepareForFork() noexcept override;
 

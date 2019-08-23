@@ -15,13 +15,13 @@ lightstep_catch_test(
     deps = [
         "//src/tracer/legacy:legacy_tracer_impl_lib",
         "//src/tracer:tracer_impl_lib",
+        "//src/tracer:counting_metrics_observer_lib",
         "//src/recorder/stream_recorder:stream_recorder_lib",
         "//src/network/ares_dns_resolver:ares_dns_resolver_lib",
         "//test/mock_satellite:mock_satellite_lib",
         "//test:ports_lib",
         "//test:string_logger_sink_lib",
         "//test:utility_lib",
-        "//test:counting_metrics_observer_lib",
     ],
 )
 

@@ -8,7 +8,9 @@
 #include "python_bridge_tracer/python_object_wrapper.h"
 #include "python_bridge_tracer/python_string_wrapper.h"
 #include "python_bridge_tracer/utility.h"
+#include "tracer/counting_metrics_observer.h"
 #include "tracer/lightstep_tracer_factory.h"
+#include "tracer/tracer_impl.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -53,20 +55,52 @@ static PyObject* MakeTracer(PyObject* /*self*/, PyObject* /*args*/,
     return nullptr;
   }
   std::string error_message;
-  LightStepTracerFactory tracer_factory;
-  auto tracer_maybe = tracer_factory.MakeTracer(
+  auto tracer_options_maybe = MakeTracerOptions(
       static_cast<opentracing::string_view>(json_config).data(), error_message);
-  if (!tracer_maybe) {
+  if (!tracer_options_maybe) {
     PyErr_Format(PyExc_RuntimeError, "failed to construct tracer: %s",
                  error_message.c_str());
     return nullptr;
   }
-  if (*tracer_maybe == nullptr) {
+  auto& tracer_options = *tracer_options_maybe;
+  tracer_options.metrics_observer.reset(new CountingMetricsObserver{});
+  auto tracer = MakeLightStepTracer(std::move(tracer_options));
+  if (tracer == nullptr) {
     PyErr_Format(PyExc_RuntimeError, "failed to construct tracer");
     return nullptr;
   }
-  return python_bridge_tracer::makeTracer(std::move(*tracer_maybe),
-                                          scope_manager);
+  return python_bridge_tracer::makeTracer(std::move(tracer), scope_manager);
+}
+
+//--------------------------------------------------------------------------------------------------
+// GetNumSpansSent
+//--------------------------------------------------------------------------------------------------
+static PyObject* GetNumSpansSent(PyObject* self, void* /*ignored*/) noexcept {
+  auto& tracer = python_bridge_tracer::extractTracer(self);
+  auto metrics_observer =
+      static_cast<lightstep::TracerImpl&>(tracer).recorder().metrics_observer();
+  if (metrics_observer == nullptr) {
+    Py_RETURN_NONE;
+  }
+  return PyLong_FromLong(
+      static_cast<const CountingMetricsObserver*>(metrics_observer)
+          ->num_spans_sent);
+}
+
+//--------------------------------------------------------------------------------------------------
+// GetNumSpansDropped
+//--------------------------------------------------------------------------------------------------
+static PyObject* GetNumSpansDropped(PyObject* self,
+                                    void* /*ignored*/) noexcept {
+  auto& tracer = python_bridge_tracer::extractTracer(self);
+  auto metrics_observer =
+      static_cast<lightstep::TracerImpl&>(tracer).recorder().metrics_observer();
+  if (metrics_observer == nullptr) {
+    Py_RETURN_NONE;
+  }
+  return PyLong_FromLong(
+      static_cast<const CountingMetricsObserver*>(metrics_observer)
+          ->num_spans_dropped);
 }
 }  // namespace lightstep
 
@@ -106,7 +140,14 @@ PYTHON_BRIDGE_TRACER_DEFINE_MODULE(lightstep_native) {
   if (module == nullptr) {
     PYTHON_BRIDGE_TRACER_MODULE_RETURN(nullptr);
   }
-  if (!python_bridge_tracer::setupClasses(module)) {
+  std::vector<PyGetSetDef> tracer_getsets = {
+      {const_cast<char*>("num_spans_sent"),
+       reinterpret_cast<getter>(lightstep::GetNumSpansSent), nullptr,
+       const_cast<char*>(PyDoc_STR("Returns the number of spans sent"))},
+      {const_cast<char*>("num_spans_dropped"),
+       reinterpret_cast<getter>(lightstep::GetNumSpansDropped), nullptr,
+       const_cast<char*>(PyDoc_STR("Returns the number of spans dropped"))}};
+  if (!python_bridge_tracer::setupClasses(module, {}, tracer_getsets)) {
     std::cerr << "Failed to set up python classes\n";
     std::terminate();
   }

@@ -54,9 +54,9 @@ lightstep_catch_test(
     ],
     deps = [
         "//:manual_tracer_lib",
+        "//src/tracer:counting_metrics_observer_lib",
         "//test:utility_lib",
         "//test:testing_condition_variable_wrapper_lib",
-        "//test:counting_metrics_observer_lib",
         ":in_memory_async_transporter_lib",
     ],
 )
@@ -68,10 +68,10 @@ lightstep_catch_test(
     ],
     deps = [
         "//:manual_tracer_lib",
+        ":in_memory_sync_transporter_lib",
+        "//src/tracer:counting_metrics_observer_lib",
         "//test:utility_lib",
         "//test:testing_condition_variable_wrapper_lib",
-        "//test:counting_metrics_observer_lib",
-        ":in_memory_sync_transporter_lib",
     ],
 )
 
