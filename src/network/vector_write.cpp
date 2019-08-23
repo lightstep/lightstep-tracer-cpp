@@ -56,19 +56,21 @@ bool Write(int socket,
       blocked = true;
     }
   };
-
+  auto do_fragment = [&](void* data, int size) noexcept {
+    *fragment_iter++ = MakeIoVec(data, static_cast<size_t>(size));
+    batch_num_bytes += size;
+    if (fragment_iter != fragment_last) {
+      return true;
+    }
+    do_write();
+    fragment_iter = fragments;
+    batch_num_bytes = 0;
+    return !(error || blocked);
+  };
   for (auto fragment_input_stream : fragment_input_streams) {
-    fragment_input_stream->ForEachFragment([&](void* data, int size) {
-      *fragment_iter++ = MakeIoVec(data, static_cast<size_t>(size));
-      batch_num_bytes += size;
-      if (fragment_iter != fragment_last) {
-        return true;
-      }
-      do_write();
-      fragment_iter = fragments;
-      batch_num_bytes = 0;
-      return !(error || blocked);
-    });
+    if (!fragment_input_stream->ForEachFragment(do_fragment)) {
+      break;
+    }
   }
   if (batch_num_bytes > 0) {
     do_write();
