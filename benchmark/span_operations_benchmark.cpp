@@ -133,9 +133,9 @@ static std::shared_ptr<opentracing::Tracer> MakeTracer(
 //------------------------------------------------------------------------------
 // MakeSpans
 //------------------------------------------------------------------------------
-static void MakeSpans(const std::shared_ptr<opentracing::Tracer> tracer, int n) {
+static void MakeSpans(const opentracing::Tracer& tracer, int n) {
   for (int i = 0; i < n; ++i) {
-    auto span = tracer->StartSpan("abc123");
+    auto span = tracer.StartSpan("abc123");
   }
 }
 
@@ -170,7 +170,7 @@ static void BM_SpanCreationThreaded(benchmark::State& state,
       auto num_spans_for_this_thread =
           num_spans_per_thread + static_cast<int>(i < remainder);
       threads[i] =
-          std::thread{&MakeSpans, tracer, num_spans_for_this_thread};
+          std::thread{&MakeSpans, std::ref(*tracer), num_spans_for_this_thread};
     }
     for (auto& thread : threads) {
       thread.join();
@@ -198,15 +198,18 @@ static void BM_SpanCreationThreadedIndependent(benchmark::State& state,
   auto n = static_cast<int>(num_spans_for_span_creation_threaded_benchmark);
   auto num_spans_per_thread = n / num_threads;
   auto remainder = n - num_spans_per_thread * num_threads;
+  std::vector<std::shared_ptr<opentracing::Tracer>> tracers(num_threads);
+  for (auto& tracer : tracers) {
+    tracer = MakeTracer(tracer_type);
+  }
   for (auto _ : state) {
-    auto tracer = MakeTracer(tracer_type);
     assert(tracer != nullptr);
     std::vector<std::thread> threads(num_threads);
     for (int i = 0; i < num_threads; ++i) {
       auto num_spans_for_this_thread =
           num_spans_per_thread + static_cast<int>(i < remainder);
-      threads[i] =
-          std::thread{&MakeSpans, tracer, num_spans_for_this_thread};
+      threads[i] = std::thread{&MakeSpans, std::ref(*tracers[i]),
+                               num_spans_for_this_thread};
     }
     for (auto& thread : threads) {
       thread.join();
