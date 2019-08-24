@@ -133,9 +133,9 @@ static std::shared_ptr<opentracing::Tracer> MakeTracer(
 //------------------------------------------------------------------------------
 // MakeSpans
 //------------------------------------------------------------------------------
-static void MakeSpans(const opentracing::Tracer& tracer, int n) {
+static void MakeSpans(const std::shared_ptr<opentracing::Tracer> tracer, int n) {
   for (int i = 0; i < n; ++i) {
-    auto span = tracer.StartSpan("abc123");
+    auto span = tracer->StartSpan("abc123");
   }
 }
 
@@ -170,7 +170,7 @@ static void BM_SpanCreationThreaded(benchmark::State& state,
       auto num_spans_for_this_thread =
           num_spans_per_thread + static_cast<int>(i < remainder);
       threads[i] =
-          std::thread{&MakeSpans, std::ref(*tracer), num_spans_for_this_thread};
+          std::thread{&MakeSpans, tracer, num_spans_for_this_thread};
     }
     for (auto& thread : threads) {
       thread.join();
@@ -183,6 +183,42 @@ BENCHMARK_CAPTURE(BM_SpanCreationThreaded, rpc, "rpc")
     ->Arg(4)
     ->Arg(8);
 BENCHMARK_CAPTURE(BM_SpanCreationThreaded, stream, "stream")
+    ->Arg(1)
+    ->Arg(2)
+    ->Arg(4)
+    ->Arg(8);
+
+//------------------------------------------------------------------------------
+// BM_SpanCreationThreadedIndependent
+//------------------------------------------------------------------------------
+static void BM_SpanCreationThreadedIndependent(benchmark::State& state,
+                                               const char* tracer_type) {
+  const int num_spans_for_span_creation_threaded_benchmark = 4000;
+  auto num_threads = state.range(0);
+  auto n = static_cast<int>(num_spans_for_span_creation_threaded_benchmark);
+  auto num_spans_per_thread = n / num_threads;
+  auto remainder = n - num_spans_per_thread * num_threads;
+  for (auto _ : state) {
+    auto tracer = MakeTracer(tracer_type);
+    assert(tracer != nullptr);
+    std::vector<std::thread> threads(num_threads);
+    for (int i = 0; i < num_threads; ++i) {
+      auto num_spans_for_this_thread =
+          num_spans_per_thread + static_cast<int>(i < remainder);
+      threads[i] =
+          std::thread{&MakeSpans, tracer, num_spans_for_this_thread};
+    }
+    for (auto& thread : threads) {
+      thread.join();
+    }
+  }
+}
+BENCHMARK_CAPTURE(BM_SpanCreationThreadedIndependent, rpc, "rpc")
+    ->Arg(1)
+    ->Arg(2)
+    ->Arg(4)
+    ->Arg(8);
+BENCHMARK_CAPTURE(BM_SpanCreationThreadedIndependent, stream, "stream")
     ->Arg(1)
     ->Arg(2)
     ->Arg(4)
