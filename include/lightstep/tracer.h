@@ -114,7 +114,8 @@ struct LightStepTracerOptions {
   // to a collector.  If zero, the default will be used; and ignored if
   // `use_thread` is false.
   std::chrono::steady_clock::duration reporting_period =
-      std::chrono::milliseconds{500};
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+          std::chrono::milliseconds{500});
 
   // `report_timeout` is the timeout to use when sending a reports to the
   // collector. Ignored if a custom transport is used.

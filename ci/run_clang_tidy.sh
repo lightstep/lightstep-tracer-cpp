@@ -32,6 +32,7 @@ CHECKS="\
 -hicpp-no-array-decay,\
 -hicpp-special-member-functions,\
 -hicpp-no-assembler,\
+-cppcoreguidelines-pro-type-static-cast-downcast,\
 -cppcoreguidelines-special-member-functions,\
 -cppcoreguidelines-pro-type-union-access,\
 -cppcoreguidelines-pro-type-member-init,\

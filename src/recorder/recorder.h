@@ -71,5 +71,13 @@ class Recorder {
       std::chrono::steady_clock::time_point /*steady_now*/) const noexcept {
     return std::chrono::system_clock::now();
   }
+
+  /**
+   * Accessor to metrics observer if available.
+   * @return a pointer to the attached MetricsObserver or nullptr
+   */
+  virtual const MetricsObserver* metrics_observer() const noexcept {
+    return nullptr;
+  }
 };
 }  // namespace lightstep

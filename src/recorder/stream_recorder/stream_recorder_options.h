@@ -19,9 +19,6 @@ struct StreamRecorderOptions {
   // It's meant to be used as a mode for benchmarking only.
   bool throw_away_spans = false;
 
-  // The maximum number of bytes that will be buffered.
-  size_t max_span_buffer_bytes = 1048576;
-
   // The amount of time between executions of StreamRecorder's polling callback.
   //
   // Note: This should be a short duration; otherwise, the recorder can hang the
@@ -33,11 +30,6 @@ struct StreamRecorderOptions {
   std::chrono::microseconds timestamp_delta_period =
       std::chrono::duration_cast<std::chrono::microseconds>(
           std::chrono::milliseconds{500});
-
-  // The amount of time between flushes of StreamRecorder's span buffer.
-  std::chrono::microseconds flushing_period =
-      std::chrono::duration_cast<std::chrono::microseconds>(
-          std::chrono::seconds{5});
 
   // If the span buffer fills past this fraction of its max size, then we do
   // flush the span buffer early.

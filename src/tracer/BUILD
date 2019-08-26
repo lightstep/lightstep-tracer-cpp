@@ -192,3 +192,12 @@ lightstep_cc_library(
     ],
 )
 
+lightstep_cc_library(
+    name = "counting_metrics_observer_lib",
+    private_hdrs = [
+        "counting_metrics_observer.h",
+    ],
+    deps = [
+        "//include/lightstep:metrics_observer_interface",
+    ],
+)
