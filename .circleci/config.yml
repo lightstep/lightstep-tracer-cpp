@@ -108,7 +108,7 @@ jobs:
       - run: ./ci/setup_build_environment.sh
       - run: ./ci/install_clang.sh
       - run: ./ci/install_bazel.sh
-      - run: 
+      - run:
           command: ./ci/do_ci.sh clang_tidy
           no_output_timeout: 1800
       - store_artifacts:
@@ -127,10 +127,23 @@ jobs:
       - checkout
       - run: ./ci/setup_build_environment.sh
       - run: ./ci/install_bazel.sh
-      - run: ./ci/do_ci.sh plugin
+
+      - restore_cache:
+          key: bazel-cache
+
+      - run:
+          command: ./ci/do_ci.sh plugin
+          no_output_timeout: 30m
+
+      - save_cache:
+          paths:
+            - ~/.cache/bazel
+          key: bazel-cache
+
       - store_artifacts:
           path: /plugin
           destination: plugin
+
       - persist_to_workspace:
           root: /plugin
           paths:
@@ -171,6 +184,109 @@ jobs:
           path: /coverage
           desination: coverage
 
+  regression_test:
+    resource_class: xlarge
+    docker:
+      - image: circleci/python:3.7.4
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: cd ~; ~/repo/ci/clone_lightstep_benchmarks.sh
+      - run: ~/lightstep-benchmarks/scripts/ci_setup.sh
+      - attach_workspace:
+          at: ~/plugin
+      - run: sudo pip install ~/plugin/*cp3*.whl
+      - run: |
+          cd ~/lightstep-benchmarks
+          pytest -s --client_name python-cpp regression_tests.py
+      - store_artifacts:
+          path: ~/lightstep-benchmarks/logs
+          destination: logs
+
+  make_cpu_graphs:
+    resource_class: xlarge
+    docker:
+      - image: circleci/python:3.7.4
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: cd ~; ~/repo/ci/clone_lightstep_benchmarks.sh
+      - run: ~/lightstep-benchmarks/scripts/ci_setup.sh
+      - attach_workspace:
+          at: ~/plugin
+      - run: sudo pip install ~/plugin/*cp3*.whl
+      - run: python ~/lightstep-benchmarks/cpu_graphs.py python-cpp --runtime 10 --trials 20
+
+      - store_artifacts:
+          path: ~/lightstep-benchmarks/logs
+          destination: logs
+      - store_artifacts:
+          path: ~/lightstep-benchmarks/graphs
+          destination: graphs
+
+  make_memory_graphs:
+    resource_class: xlarge
+    docker:
+      - image: circleci/python:3.7.4
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: cd ~; ~/repo/ci/clone_lightstep_benchmarks.sh
+      - run: ~/lightstep-benchmarks/scripts/ci_setup.sh
+      - attach_workspace:
+          at: ~/plugin
+      - run: sudo pip install ~/plugin/*cp3*.whl
+      - run: python ~/lightstep-benchmarks/memory_graphs.py python-cpp
+
+      - store_artifacts:
+          path: ~/lightstep-benchmarks/logs
+          destination: logs
+      - store_artifacts:
+          path: ~/lightstep-benchmarks/graphs
+          destination: graphs
+
+  make_dropped_graphs:
+    resource_class: xlarge
+    docker:
+      - image: circleci/python:3.7.4
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: cd ~; ~/repo/ci/clone_lightstep_benchmarks.sh
+      - run: ~/lightstep-benchmarks/scripts/ci_setup.sh
+      - attach_workspace:
+          at: ~/plugin
+      - run: sudo pip install ~/plugin/*cp3*.whl
+      - run: python ~/lightstep-benchmarks/dropped_graphs.py python-cpp
+
+      - store_artifacts:
+          path: ~/lightstep-benchmarks/logs
+          destination: logs
+      - store_artifacts:
+          path: ~/lightstep-benchmarks/graphs
+          destination: graphs
+
+  make_disconnect_graphs:
+    resource_class: xlarge
+    docker:
+      - image: circleci/python:3.7.4
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: cd ~; ~/repo/ci/clone_lightstep_benchmarks.sh
+      - run: ~/lightstep-benchmarks/scripts/ci_setup.sh
+      - attach_workspace:
+          at: ~/plugin
+      - run: sudo pip install ~/plugin/*cp3*.whl
+      - run: python ~/lightstep-benchmarks/disconnect_graphs.py python-cpp
+
+      - store_artifacts:
+          path: ~/lightstep-benchmarks/logs
+          destination: logs
+      - store_artifacts:
+          path: ~/lightstep-benchmarks/graphs
+          destination: graphs
+
 workflows:
   version: 2
   build_and_test:
@@ -186,11 +302,30 @@ workflows:
       - build_plugin
       - clang_tidy
       - plugin_test:
-          requires: 
+          requires:
             - build_plugin
       - python_wheel_test:
-          requires: 
+          requires:
             - build_plugin
+      - regression_test:
+          requires:
+            - build_plugin
+      - approve_make_graphs:
+          type: approval
+          requires:
+            - build_plugin
+      - make_cpu_graphs:
+          requires:
+            - approve_make_graphs
+      - make_dropped_graphs:
+          requires:
+            - approve_make_graphs
+      - make_memory_graphs:
+          requires:
+            - approve_make_graphs
+      - make_disconnect_graphs:
+          requires:
+            - approve_make_graphs
   deploy:
     jobs:
       - build_plugin:
