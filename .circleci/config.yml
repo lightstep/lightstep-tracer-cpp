@@ -215,7 +215,7 @@ jobs:
       - attach_workspace:
           at: ~/plugin
       - run: sudo pip install ~/plugin/*cp3*.whl
-      - run: python ~/lightstep-benchmarks/cpu_graphs.py python-cpp --runtime 10 --trials 10
+      - run: python ~/lightstep-benchmarks/cpu_graphs.py python-cpp --runtime 10 --trials 20
 
       - store_artifacts:
           path: ~/lightstep-benchmarks/logs
