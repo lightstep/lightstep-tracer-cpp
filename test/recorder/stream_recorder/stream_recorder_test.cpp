@@ -5,11 +5,11 @@
 #include <memory>
 #include <thread>
 
-#include "test/counting_metrics_observer.h"
 #include "test/mock_satellite/mock_satellite_handle.h"
 #include "test/ports.h"
 #include "test/string_logger_sink.h"
 #include "test/utility.h"
+#include "tracer/counting_metrics_observer.h"
 #include "tracer/legacy/legacy_tracer_impl.h"
 #include "tracer/tracer_impl.h"
 

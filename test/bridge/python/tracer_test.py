@@ -22,6 +22,8 @@ class TestTracer(unittest.TestCase):
                                          use_stream_recorder=True,
                                          collector_plaintext=True,
                                          satellite_endpoints=[{'host':'locahost', 'port':123}])
+        self.assertEqual(tracer.num_spans_sent, 0)
+        self.assertEqual(tracer.num_spans_dropped, 0)
 
 
 if __name__ == '__main__':

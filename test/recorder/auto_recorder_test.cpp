@@ -3,10 +3,10 @@
 #include "3rd_party/catch2/catch.hpp"
 #include "lightstep/tracer.h"
 #include "recorder/auto_recorder.h"
-#include "test/counting_metrics_observer.h"
 #include "test/recorder/in_memory_sync_transporter.h"
 #include "test/testing_condition_variable_wrapper.h"
 #include "test/utility.h"
+#include "tracer/counting_metrics_observer.h"
 #include "tracer/legacy/legacy_tracer_impl.h"
 
 using namespace lightstep;
