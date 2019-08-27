@@ -1,5 +1,6 @@
 #include "network/vector_write.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <climits>
