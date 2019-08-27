@@ -37,7 +37,8 @@ static opentracing::expected<opentracing::string_view> LookupKey(
   // First try carrier.LookupKey since that can potentially be the fastest
   // approach.
   auto result = carrier.LookupKey(key);
-  if (result || result.error() != opentracing::lookup_key_not_supported_error) {
+  if (result || !AreErrorsEqual(result.error(),
+                                opentracing::lookup_key_not_supported_error)) {
     return result;
   }
 
@@ -301,7 +302,7 @@ static opentracing::expected<bool> ExtractSpanContextSingleKey(
     KeyCompare key_compare) {
   auto value_maybe = LookupKey(carrier, PropagationSingleKey, key_compare);
   if (!value_maybe) {
-    if (value_maybe.error() == opentracing::key_not_found_error) {
+    if (AreErrorsEqual(value_maybe.error(), opentracing::key_not_found_error) {
       return false;
     }
     return opentracing::make_unexpected(value_maybe.error());
