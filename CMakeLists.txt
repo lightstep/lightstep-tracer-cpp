@@ -103,6 +103,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # ==============================================================================
 # Find packages
 
+set(LIGHTSTEP_LINK_LIBRARIES "")
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # Newer protobuf versions use cmake config files so try that first
@@ -110,9 +112,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 # Note: The non-config protobuf module doesn't find PROTOBUF_PROTOC_EXECUTABLE properly on windows.
 set(protobuf_MODULE_COMPATIBLE ON)
 find_package(Protobuf CONFIG NAMES protobuf)
-if (NOT protobuf_FOUND)
+if (protobuf_FOUND)
+  list(APPEND LIGHTSTEP_LINK_LIBRARIES protobuf::libprotobuf)
+else()
   # Fall back to the old style protobuf module
   find_package(Protobuf REQUIRED)
+  list(APPEND LIGHTSTEP_LINK_LIBRARIES ${PROTOBUF_LIBRARIES})
 endif()
 
 if (NOT DEFINED OPENTRACING_INCLUDE_DIR)
@@ -124,10 +129,7 @@ if (NOT DEFINED OPENTRACING_LIBRARY)
 endif()
 
 include_directories(SYSTEM ${OPENTRACING_INCLUDE_DIR})
-include_directories(SYSTEM ${PROTOBUF_INCLUDE_DIRS})
-
-set(LIGHTSTEP_LINK_LIBRARIES ${OPENTRACING_LIBRARY}
-                             ${PROTOBUF_LIBRARIES})
+list(APPEND LIGHTSTEP_LINK_LIBRARIES ${OPENTRACING_LIBRARY})
 
 if (WITH_GRPC)                           
   find_package(gRPC CONFIG)
