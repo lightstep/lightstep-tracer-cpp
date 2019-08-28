@@ -162,6 +162,7 @@ lightstep_cc_library(
         "serialization.cpp",
     ],
     deps = [
+        "//src/common/platform:memory_lib",
         "//src/common:serialization_lib",
         "//src/common:utility_lib",
     ],

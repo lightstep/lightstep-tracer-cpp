@@ -47,9 +47,9 @@ class FastRandomNumberGenerator {
         reinterpret_cast<uint32_t*>(state_.data() + state_.size()));
   }
 
-  uint64_t min() const noexcept { return 0; }
+  static uint64_t min() noexcept { return 0; }
 
-  uint64_t max() const noexcept { return std::numeric_limits<uint64_t>::max(); }
+  static uint64_t max() noexcept { return std::numeric_limits<uint64_t>::max(); }
 
  private:
   std::array<uint64_t, 2> state_{};

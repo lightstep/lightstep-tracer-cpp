@@ -61,10 +61,10 @@ brew install pkg-config
 Basic support is available for windows. Dependencies can be installed with [vcpkg](https://github.com/microsoft/vcpkg).
 
 ```
-vcpkg install libevent:x64-windows
-vcpkg install protobuf:x64-windows
-vcpkg install opentracing:x64-windows
-vcpkg install c-ares:x64-windows
+vcpkg install libevent:x64-windows-static
+vcpkg install protobuf:x64-windows-static
+vcpkg install opentracing:x64-windows-static
+vcpkg install c-ares:x64-windows-static
 ```
 
 The lightstep tracer can then be built with
@@ -76,6 +76,7 @@ cmake -DBUILD_SHARED_LIBS=OFF `
       -DWITH_GRPC=OFF `
       -DWITH_LIBEVENT=ON `
       -DWITH_CARES=ON `
+      -DVCPKG_TARGET_TRIPLET=x64-windows-static `
       "-DCMAKE_TOOLCHAIN_FILE=$VCPKG_DIR\scripts\buildsystems\vcpkg.cmake" `
       <path-to-lightstep>
 cmake --build .
