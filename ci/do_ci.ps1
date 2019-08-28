@@ -12,7 +12,7 @@ switch ($action) {
 	"build" {
 		cd "$BUILD_DIR"
 		cmake $SRC_DIR `
-          -DVCPKG_TARGET_TRIPLET=x64-windows `
+          -DVCPKG_TARGET_TRIPLET=x64-windows-static `
 			    "-DCMAKE_TOOLCHAIN_FILE=$VCPKG_DIR\scripts\buildsystems\vcpkg.cmake" `
 					-DWITH_DYNAMIC_LOAD=OFF `
 					-DWITH_GRPC=OFF `
