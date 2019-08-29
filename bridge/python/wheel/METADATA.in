@@ -45,28 +45,27 @@ The beauty of OpenTracing is that all tracers follow a well-defined API. The onl
 import lightstep_native
 
 tracer = lightstep_native.Tracer(
-  component_name='[your service name]',
-  access_token='[your LightStep access token]',
+    component_name='[your service name]',
+    access_token='[your LightStep access token]',
 
-  # Use these defaults unless you know what you're doing
-  use_stream_recorder=True,
-  collector_plaintext=True,
+    # Use these defaults unless you know what you're doing
+    use_stream_recorder=True,
+    collector_plaintext=True,
 
-  # Since the Streaming Python Tracer can report to multiple Satellites,
-  # you can put up to 8 entries in this list
-  satellite_endpoints=[{'host': 'localhost', 'port': 8360}],
+    # You can put any number of entries in this list and the tracer will rotate
+    # through them and send spans to each one.
+    satellite_endpoints=[{'host': 'localhost', 'port': 8360}],
 
-  # Number of spans the tracer keeps in its buffer
-  max_buffered_spans=MAX_BUFFERED_SPANS,
-
-  # Sets logging to verbose
-  verbose=True
+    # Turns off verbose logging, which is really only useful for debugging.
+    verbose=False
 )
 
 # Generates one span
-with tracer.start_active_span():
-  pass
+with tracer.start_active_span('test_operation'):
+    pass
 
 # Makes sure that the tracer has sent the span to a Satellite
 tracer.flush()
 ```
+
+A complete list of Streaming Python Tracer configuration parameters can be found in [tracer_configuration.schema.json](https://github.com/lightstep/lightstep-tracer-cpp/blob/master/lightstep-tracer-configuration/tracer_configuration.schema.json). If you are interested in peeking at the source code, this is available in the [LightStep C++ Tracer repo](https://github.com/lightstep/lightstep-tracer-cpp).
