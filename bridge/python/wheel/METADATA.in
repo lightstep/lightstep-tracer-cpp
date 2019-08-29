@@ -15,7 +15,57 @@ Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Python :: 3
 Requires-Dist: opentracing (>=2.2.0)
 Requires-Python: >=2.7,!=3.0.*,!=3.1.*
+Description-Content-Type: text/markdown; charset=UTF-8
 
-UNKNOWN
+# LightStep Native: Our Streaming Python Tracer
 
+The LightStep Native Tracer, also called the Streaming Python Tracer, is an [OpenTracing](http://opentracing.io) tracer which sends data to [LightStep Satellites](https://docs.lightstep.com/docs/satellite-setup).
 
+This tracer sends data to multiple Satellites concurrently using non-blocking I/O writes. Memory is carefully managed so that spans are only copied a single time during the reporting process and streamed to Satellites as they are generated to avoid filling up memory. The Streaming Python Tracer is written in C++ and compiled into your machine's _native_ assembly instructions (hence LightStep Native), which is part of why it is so efficient. There is a thin Python wrapper around this C++ core so the library can be imported just like any other Python module.
+
+LightStep has conducted a performance analysis of the Streaming Python Tracer and published some of the results [here in our blog](#).
+
+## Setup
+
+If you aren't familiar with OpenTracing or LightStep, we recommend reading up before continuing.
+
+Before installing, make sure that you system meets these requirements:
+
+- Linux
+- Python 2.7 or >= 3.2.0 (and pip)
+- opentracing PyPI Module (>=2.2.0)
+
+To install the Streaming Python Tracer, run `pip install lightstep-native`.
+
+## Getting Started
+
+The beauty of OpenTracing is that all tracers follow a well-defined API. The only step which varies from tracer to tracer is the setup step when `lightstep_native.Tracer`'s constructor is called. Below is a sample program which illustrates how to create a new Tracer object using the Streaming Python Tracer. For more details on how to use a `Tracer` object once it has been created, checkout the [OpenTracing Python API Guide](https://opentracing.io/guides/python/tracers/).
+
+```python
+import lightstep_native
+
+tracer = lightstep_native.Tracer(
+    component_name='[your service name]',
+    access_token='[your LightStep access token]',
+
+    # Use these defaults unless you know what you're doing
+    use_stream_recorder=True,
+    collector_plaintext=True,
+
+    # You can put any number of Satellite endpoints in this list and the tracer
+    # will rotate through them and send spans to each one.
+    satellite_endpoints=[{'host': 'localhost', 'port': 8360}],
+
+    # Turns off verbose logging, which is really only useful for debugging.
+    verbose=False
+)
+
+# Generates one span
+with tracer.start_active_span('[your operation name]'):
+    pass
+
+# Makes sure that the tracer has sent the span to a Satellite
+tracer.flush()
+```
+
+A complete list of Streaming Python Tracer configuration parameters can be found in [tracer_configuration.schema.json](https://github.com/lightstep/lightstep-tracer-cpp/blob/master/lightstep-tracer-configuration/tracer_configuration.schema.json). If you are interested in peeking at the source code, this is available in the [LightStep C++ Tracer repo](https://github.com/lightstep/lightstep-tracer-cpp).
