@@ -52,8 +52,8 @@ tracer = lightstep_native.Tracer(
     use_stream_recorder=True,
     collector_plaintext=True,
 
-    # You can put any number of entries in this list and the tracer will rotate
-    # through them and send spans to each one.
+    # You can put any number of Satellite endpoints in this list and the tracer
+    # will rotate through them and send spans to each one.
     satellite_endpoints=[{'host': 'localhost', 'port': 8360}],
 
     # Turns off verbose logging, which is really only useful for debugging.
