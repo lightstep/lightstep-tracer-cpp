@@ -61,7 +61,7 @@ tracer = lightstep_native.Tracer(
 )
 
 # Generates one span
-with tracer.start_active_span('test_operation'):
+with tracer.start_active_span('[your operation name]'):
     pass
 
 # Makes sure that the tracer has sent the span to a Satellite
