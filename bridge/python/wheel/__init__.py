@@ -1,1 +1,1 @@
-from .lightstep_native import Tracer
+from .lightstep_streaming import Tracer

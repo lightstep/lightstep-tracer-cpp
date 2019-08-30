@@ -128,12 +128,12 @@ void flush(opentracing::Tracer& tracer,
 }  // namespace python_bridge_tracer
 
 //--------------------------------------------------------------------------------------------------
-// PyInit_lightstep_native
+// PyInit_lightstep_streaming
 //--------------------------------------------------------------------------------------------------
 extern "C" {
-PYTHON_BRIDGE_TRACER_DEFINE_MODULE(lightstep_native) {
+PYTHON_BRIDGE_TRACER_DEFINE_MODULE(lightstep_streaming) {
   auto module = python_bridge_tracer::makeModule(
-      "lightstep_native", "bridge to LightStep's C++ tracer", ModuleMethods);
+      "lightstep_streaming", "bridge to LightStep's C++ tracer", ModuleMethods);
   if (module == nullptr) {
     PYTHON_BRIDGE_TRACER_MODULE_RETURN(nullptr);
   }

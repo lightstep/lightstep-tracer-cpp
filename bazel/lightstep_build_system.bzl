@@ -296,19 +296,19 @@ def lightstep_python_wheel(
       VERSION_H=$(location //:gen-config/lightstep/version.h)
       VERSION_=`grep LIGHTSTEP_VERSION $$VERSION_H | cut -d ' ' -f3`
       export VERSION=`eval echo $$VERSION_`
-      WHEEL_NAME=lightstep_native-$$VERSION-$$PYTHON_TAG-$$ABI_TAG-manylinux1_x86_64
+      WHEEL_NAME=lightstep_streaming-$$VERSION-$$PYTHON_TAG-$$ABI_TAG-manylinux1_x86_64
 
       # Set up the dist-info directory
-      DISTINFO_NAME=lightstep_native-$$VERSION.dist-info
+      DISTINFO_NAME=lightstep_streaming-$$VERSION.dist-info
       DISTINFO_DIR=$$WORK_DIR/$$DISTINFO_NAME
       mkdir $$DISTINFO_DIR
       cat $$WHEEL_FILES/WHEEL.in > $$DISTINFO_DIR/WHEEL
       echo "Tag: $$PYTHON_TAG-$$ABI_TAG-manylinux1_x86_64" >> $$DISTINFO_DIR/WHEEL
       cat $$WHEEL_FILES/METADATA.in | envsubst > $$DISTINFO_DIR/METADATA
-      echo lightstep_native > $$DISTINFO_DIR/top_level.txt
+      echo lightstep_streaming > $$DISTINFO_DIR/top_level.txt
 
       # Set up the source directory
-      SRC_DIR=$$WORK_DIR/lightstep_native
+      SRC_DIR=$$WORK_DIR/lightstep_streaming
       mkdir $$SRC_DIR
       cp $$WHEEL_FILES/__init__.py $$SRC_DIR
       cp $(location %s) $$SRC_DIR
@@ -324,7 +324,7 @@ def lightstep_python_wheel(
       
       # zip up our wheel
       pushd $$WORK_DIR
-      zip -r wheel/$$WHEEL_NAME.whl $$DISTINFO_NAME lightstep_native
+      zip -r wheel/$$WHEEL_NAME.whl $$DISTINFO_NAME lightstep_streaming
       tar czf wheel.tgz wheel
       popd
       cp $$WORK_DIR/wheel.tgz $${PWD}/$(location :%s)

@@ -1,5 +1,5 @@
 import sys
-import lightstep_native
+import lightstep_streaming
 
 if len(sys.argv) != 3:
     print("Usage: span_probe.py <host> <port>")
@@ -9,7 +9,7 @@ if len(sys.argv) != 3:
 host = sys.argv[1]
 port = sys.argv[2]
 
-tracer = lightstep_native.Tracer(
+tracer = lightstep_streaming.Tracer(
         component_name = "span_probe",
         access_token = "abc",
         collector_plaintext = True,

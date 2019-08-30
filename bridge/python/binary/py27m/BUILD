@@ -7,7 +7,7 @@ load(
 lightstep_package()
 
 lightstep_portable_cc_binary(
-    name = "lightstep_native.so",
+    name = "lightstep_streaming.so",
     linkshared = True,
     srcs = [
         "//bridge/python/src:module.cpp",

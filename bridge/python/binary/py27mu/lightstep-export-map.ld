@@ -1,7 +1,7 @@
 {
   global:
     Py*;
-    initlightstep_native;
+    initlightstep_streaming;
   local: *;
 };
 

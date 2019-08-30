@@ -1,5 +1,5 @@
 Metadata-Version: 2.1
-Name: lightstep_native
+Name: lightstep_streaming
 Version: $VERSION
 Summary: LightStep Python OpenTracing Implementation
 Home-page: UNKNOWN
@@ -39,12 +39,12 @@ To install the Streaming Python Tracer, run `pip install lightstep-native`.
 
 ## Getting Started
 
-The beauty of OpenTracing is that all tracers follow a well-defined API. The only step which varies from tracer to tracer is the setup step when `lightstep_native.Tracer`'s constructor is called. Below is a sample program which illustrates how to create a new Tracer object using the Streaming Python Tracer. For more details on how to use a `Tracer` object once it has been created, checkout the [OpenTracing Python API Guide](https://opentracing.io/guides/python/tracers/).
+The beauty of OpenTracing is that all tracers follow a well-defined API. The only step which varies from tracer to tracer is the setup step when `lightstep_streaming.Tracer`'s constructor is called. Below is a sample program which illustrates how to create a new Tracer object using the Streaming Python Tracer. For more details on how to use a `Tracer` object once it has been created, checkout the [OpenTracing Python API Guide](https://opentracing.io/guides/python/tracers/).
 
 ```python
-import lightstep_native
+import lightstep_streaming
 
-tracer = lightstep_native.Tracer(
+tracer = lightstep_streaming.Tracer(
     component_name='[your service name]',
     access_token='[your LightStep access token]',
 
