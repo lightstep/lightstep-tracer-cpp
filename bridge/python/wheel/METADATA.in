@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
 Name: lightstep_streaming
 Version: $VERSION
-Summary: LightStep Python OpenTracing Implementation
+Summary: High performace C++ implementation of LightStep tracing
 Home-page: UNKNOWN
 Author: LightStep
 Author-email: UNKNOWN
