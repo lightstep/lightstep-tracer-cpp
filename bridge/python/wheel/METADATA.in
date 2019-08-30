@@ -35,7 +35,7 @@ Before installing, make sure that you system meets these requirements:
 - Python 2.7 or >= 3.2.0 (and pip)
 - opentracing PyPI Module (>=2.2.0)
 
-To install the Streaming Python Tracer, run `pip install lightstep-native`.
+To install the Streaming Python Tracer, run `pip install lightstep-streaming`.
 
 ## Getting Started
 
