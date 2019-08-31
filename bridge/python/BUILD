@@ -30,19 +30,19 @@ filegroup(
 lightstep_python_wheel(
   python_tag = "cp32",
   abi_tag = "abi3",
-  binary = "//bridge/python/binary/py3:lightstep_native.so",
+  binary = "//bridge/python/binary/py3:lightstep_streaming.so",
 )
 
 lightstep_python_wheel(
   python_tag = "cp27",
   abi_tag = "cp27m",
-  binary = "//bridge/python/binary/py27m:lightstep_native.so",
+  binary = "//bridge/python/binary/py27m:lightstep_streaming.so",
 )
 
 lightstep_python_wheel(
   python_tag = "cp27",
   abi_tag = "cp27mu",
-  binary = "//bridge/python/binary/py27mu:lightstep_native.so",
+  binary = "//bridge/python/binary/py27mu:lightstep_streaming.so",
 )
 
 genrule(

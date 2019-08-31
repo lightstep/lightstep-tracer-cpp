@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
-Name: lightstep_native
+Name: lightstep_streaming
 Version: $VERSION
-Summary: LightStep Python OpenTracing Implementation
+Summary: High performace C++ implementation of LightStep tracing
 Home-page: UNKNOWN
 Author: LightStep
 Author-email: UNKNOWN
@@ -17,13 +17,11 @@ Requires-Dist: opentracing (>=2.2.0)
 Requires-Python: >=2.7,!=3.0.*,!=3.1.*
 Description-Content-Type: text/markdown; charset=UTF-8
 
-# LightStep Native: Our Streaming Python Tracer
+# LightStep Streaming: Our Streaming Python Tracer
 
-The LightStep Native Tracer, also called the Streaming Python Tracer, is an [OpenTracing](http://opentracing.io) tracer which sends data to [LightStep Satellites](https://docs.lightstep.com/docs/satellite-setup).
+The Streaming Python Tracer, is an [OpenTracing](http://opentracing.io) tracer which sends data to [LightStep Satellites](https://docs.lightstep.com/docs/satellite-setup).
 
-This tracer sends data to multiple Satellites concurrently using non-blocking I/O writes. Memory is carefully managed so that spans are only copied a single time during the reporting process and streamed to Satellites as they are generated to avoid filling up memory. The Streaming Python Tracer is written in C++ and compiled into your machine's _native_ assembly instructions (hence LightStep Native), which is part of why it is so efficient. There is a thin Python wrapper around this C++ core so the library can be imported just like any other Python module.
-
-LightStep has conducted a performance analysis of the Streaming Python Tracer and published some of the results [here in our blog](#).
+This tracer sends data to multiple Satellites concurrently using non-blocking I/O writes. Memory is carefully managed so that spans are only copied a single time during the reporting process and streamed to Satellites as they are generated to avoid filling up memory. The Streaming Python Tracer is written in C++. There is a thin Python wrapper around this C++ core so the library can be imported just like any other Python module.
 
 ## Setup
 
@@ -35,16 +33,16 @@ Before installing, make sure that you system meets these requirements:
 - Python 2.7 or >= 3.2.0 (and pip)
 - opentracing PyPI Module (>=2.2.0)
 
-To install the Streaming Python Tracer, run `pip install lightstep-native`.
+To install the Streaming Python Tracer, run `pip install lightstep-streaming`.
 
 ## Getting Started
 
-The beauty of OpenTracing is that all tracers follow a well-defined API. The only step which varies from tracer to tracer is the setup step when `lightstep_native.Tracer`'s constructor is called. Below is a sample program which illustrates how to create a new Tracer object using the Streaming Python Tracer. For more details on how to use a `Tracer` object once it has been created, checkout the [OpenTracing Python API Guide](https://opentracing.io/guides/python/tracers/).
+The beauty of OpenTracing is that all tracers follow a well-defined API. The only step which varies from tracer to tracer is the setup step when `lightstep_streaming.Tracer`'s constructor is called. Below is a sample program which illustrates how to create a new Tracer object using the Streaming Python Tracer. For more details on how to use a `Tracer` object once it has been created, checkout the [OpenTracing Python API Guide](https://opentracing.io/guides/python/tracers/).
 
 ```python
-import lightstep_native
+import lightstep_streaming
 
-tracer = lightstep_native.Tracer(
+tracer = lightstep_streaming.Tracer(
     component_name='[your service name]',
     access_token='[your LightStep access token]',
 
