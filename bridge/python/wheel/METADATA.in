@@ -23,8 +23,6 @@ The Streaming Python Tracer, is an [OpenTracing](http://opentracing.io) tracer w
 
 This tracer sends data to multiple Satellites concurrently using non-blocking I/O writes. Memory is carefully managed so that spans are only copied a single time during the reporting process and streamed to Satellites as they are generated to avoid filling up memory. The Streaming Python Tracer is written in C++. There is a thin Python wrapper around this C++ core so the library can be imported just like any other Python module.
 
-LightStep has conducted a performance analysis of the Streaming Python Tracer and published some of the results [here in our blog](#).
-
 ## Setup
 
 If you aren't familiar with OpenTracing or LightStep, we recommend reading up before continuing.
