@@ -27,6 +27,19 @@ const opentracing::string_view PropagationSingleKey = "x-ot-span-context";
 const opentracing::string_view TrueStr = "true";
 const opentracing::string_view FalseStr = "false";
 const opentracing::string_view ZeroStr = "0";
+
+//--------------------------------------------------------------------------------------------------
+// ToLower
+//--------------------------------------------------------------------------------------------------
+static BaggageProtobufMap ToLower(const BaggageProtobufMap& baggage) {
+  BaggageProtobufMap result;
+  for (auto& baggage_item : baggage) {
+    result.insert(BaggageProtobufMap::value_type(ToLower(baggage_item.first),
+                                                 baggage_item.second));
+  }
+  return result;
+}
+
 //------------------------------------------------------------------------------
 // LookupKey
 //------------------------------------------------------------------------------
@@ -242,43 +255,45 @@ static opentracing::expected<bool> ExtractSpanContextMultiKey(
     uint64_t& span_id, bool& sampled, BaggageProtobufMap& baggage,
     KeyCompare key_compare) {
   int count = 0;
-  auto result = carrier.ForeachKey([&](opentracing::string_view key,
-                                       opentracing::string_view value)
-                                       -> opentracing::expected<void> {
-    try {
-      if (key_compare(key, FieldNameTraceID)) {
-        auto trace_id_maybe = HexToUint64(value);
-        if (!trace_id_maybe) {
+  auto result = carrier.ForeachKey(
+      [&](opentracing::string_view key,
+          opentracing::string_view value) -> opentracing::expected<void> {
+        try {
+          if (key_compare(key, FieldNameTraceID)) {
+            auto trace_id_maybe = HexToUint64(value);
+            if (!trace_id_maybe) {
+              return opentracing::make_unexpected(
+                  opentracing::span_context_corrupted_error);
+            }
+            trace_id = *trace_id_maybe;
+            count++;
+          } else if (key_compare(key, FieldNameSpanID)) {
+            auto span_id_maybe = HexToUint64(value);
+            if (!span_id_maybe) {
+              return opentracing::make_unexpected(
+                  opentracing::span_context_corrupted_error);
+            }
+            span_id = *span_id_maybe;
+            count++;
+          } else if (key_compare(key, FieldNameSampled)) {
+            sampled = !(value == FalseStr || value == ZeroStr);
+            count++;
+          } else if (key.length() > PrefixBaggage.size() &&
+                     key_compare(opentracing::string_view{key.data(),
+                                                          PrefixBaggage.size()},
+                                 PrefixBaggage)) {
+            baggage.insert(BaggageProtobufMap::value_type(
+                ToLower(opentracing::string_view{
+                    key.data() + PrefixBaggage.size(),
+                    key.size() - PrefixBaggage.size()}),
+                value));
+          }
+          return {};
+        } catch (const std::bad_alloc&) {
           return opentracing::make_unexpected(
-              opentracing::span_context_corrupted_error);
+              std::make_error_code(std::errc::not_enough_memory));
         }
-        trace_id = *trace_id_maybe;
-        count++;
-      } else if (key_compare(key, FieldNameSpanID)) {
-        auto span_id_maybe = HexToUint64(value);
-        if (!span_id_maybe) {
-          return opentracing::make_unexpected(
-              opentracing::span_context_corrupted_error);
-        }
-        span_id = *span_id_maybe;
-        count++;
-      } else if (key_compare(key, FieldNameSampled)) {
-        sampled = !(value == FalseStr || value == ZeroStr);
-        count++;
-      } else if (key.length() > PrefixBaggage.size() &&
-                 key_compare(
-                     opentracing::string_view{key.data(), PrefixBaggage.size()},
-                     PrefixBaggage)) {
-        baggage.insert(BaggageProtobufMap::value_type(
-            std::string{std::begin(key) + PrefixBaggage.size(), std::end(key)},
-            value));
-      }
-      return {};
-    } catch (const std::bad_alloc&) {
-      return opentracing::make_unexpected(
-          std::make_error_code(std::errc::not_enough_memory));
-    }
-  });
+      });
   if (!result) {
     return opentracing::make_unexpected(result.error());
   }
@@ -334,7 +349,7 @@ static opentracing::expected<bool> ExtractSpanContext(
   trace_id = basic.trace_id();
   span_id = basic.span_id();
   sampled = basic.sampled();
-  baggage = basic.baggage_items();
+  baggage = ToLower(basic.baggage_items());
   return true;
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(

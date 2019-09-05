@@ -359,4 +359,16 @@ bool ReadChunkHeader(google::protobuf::io::ZeroCopyInputStream& stream,
   }
   return false;
 }
+
+//--------------------------------------------------------------------------------------------------
+// ToLower
+//--------------------------------------------------------------------------------------------------
+std::string ToLower(opentracing::string_view s) {
+  std::string result;
+  result.reserve(s.size());
+  for (auto c : s) {
+    result.push_back(static_cast<char>(std::tolower(c)));
+  }
+  return result;
+}
 }  // namespace lightstep

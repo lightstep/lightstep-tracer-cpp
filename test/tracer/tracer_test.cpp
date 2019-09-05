@@ -127,6 +127,13 @@ TEST_CASE("tracer") {
                               spans.at(1)));
     }
 
+    SECTION(tracer_type + ": Baggage is treated case-insensitively") {
+      auto span_a = tracer->StartSpan("a");
+      REQUIRE(span_a);
+      span_a->SetBaggageItem("AbC", "123");
+      REQUIRE(span_a->BaggageItem("aBc") == "123");
+    }
+
     SECTION(tracer_type +
             ": Baggage from the span references are copied over to a new span "
             "context") {

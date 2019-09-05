@@ -123,11 +123,12 @@ void Span::SetTag(opentracing::string_view key,
 //------------------------------------------------------------------------------
 void Span::SetBaggageItem(opentracing::string_view restricted_key,
                           opentracing::string_view value) noexcept try {
+  auto lowercase_key = ToLower(restricted_key);
   SpinLockGuard lock_guard{mutex_};
   if (is_finished_) {
     return;
   }
-  baggage_.insert_or_assign(std::string{restricted_key}, std::string{value});
+  baggage_.insert_or_assign(std::move(lowercase_key), std::string{value});
 } catch (const std::exception& e) {
   tracer_->logger().Error("SetBaggageItem failed: ", e.what());
 }
@@ -137,8 +138,9 @@ void Span::SetBaggageItem(opentracing::string_view restricted_key,
 //------------------------------------------------------------------------------
 std::string Span::BaggageItem(opentracing::string_view restricted_key) const
     noexcept try {
+  auto lowercase_key = ToLower(restricted_key);
   SpinLockGuard lock_guard{mutex_};
-  auto iter = baggage_.find(restricted_key);
+  auto iter = baggage_.find(lowercase_key);
   if (iter != baggage_.end()) {
     return iter->second;
   }

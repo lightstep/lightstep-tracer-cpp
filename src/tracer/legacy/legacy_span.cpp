@@ -195,9 +195,11 @@ void LegacySpan::SetTag(opentracing::string_view key,
 //------------------------------------------------------------------------------
 void LegacySpan::SetBaggageItem(opentracing::string_view restricted_key,
                                 opentracing::string_view value) noexcept try {
+  auto lowercase_key = ToLower(restricted_key);
   std::lock_guard<std::mutex> lock_guard{mutex_};
   auto& baggage = *span_.mutable_span_context()->mutable_baggage();
-  baggage.insert(BaggageProtobufMap::value_type(restricted_key, value));
+  baggage.insert(
+      BaggageProtobufMap::value_type(std::move(lowercase_key), value));
 } catch (const std::exception& e) {
   logger_.Error("SetBaggageItem failed: ", e.what());
 }
@@ -207,9 +209,10 @@ void LegacySpan::SetBaggageItem(opentracing::string_view restricted_key,
 //------------------------------------------------------------------------------
 std::string LegacySpan::BaggageItem(
     opentracing::string_view restricted_key) const noexcept try {
+  auto lowercase_key = ToLower(restricted_key);
   std::lock_guard<std::mutex> lock_guard{mutex_};
   auto& baggage = span_.span_context().baggage();
-  auto lookup = baggage.find(restricted_key);
+  auto lookup = baggage.find(lowercase_key);
   if (lookup != baggage.end()) {
     return lookup->second;
   }

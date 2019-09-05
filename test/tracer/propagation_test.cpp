@@ -2,6 +2,7 @@
 #include <opentracing/noop.h>
 #include <algorithm>
 #include <cctype>
+#include <random>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -16,6 +17,23 @@
 #include "tracer/tracer_impl.h"
 
 using namespace lightstep;
+//--------------------------------------------------------------------------------------------------
+// RandomlyCapitalize
+//--------------------------------------------------------------------------------------------------
+static std::string RandomlyCapitalize(opentracing::string_view s) {
+  static thread_local std::mt19937 random_number_generator{0};
+  std::string result;
+  result.reserve(s.size());
+  std::bernoulli_distribution distribution{0.5};
+  for (auto c : s) {
+    if (distribution(random_number_generator)) {
+      result.push_back(static_cast<char>(std::toupper(c)));
+    } else {
+      result.push_back(static_cast<char>(std::tolower(c)));
+    }
+  }
+  return result;
+}
 
 //------------------------------------------------------------------------------
 // TextMapCarrier
@@ -85,7 +103,8 @@ struct HTTPHeadersCarrier : opentracing::HTTPHeadersReader,
                                                 opentracing::string_view value)>
           f) const override {
     for (const auto& key_value : text_map) {
-      auto result = f(key_value.first, key_value.second);
+      auto key = RandomlyCapitalize(key_value.first);
+      auto result = f(key, key_value.second);
       if (!result) {
         return result;
       }

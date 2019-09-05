@@ -2,9 +2,9 @@
 
 #include <iterator>
 
+#include "common/platform/memory.h"
 #include "common/serialization.h"
 #include "common/utility.h"
-#include "common/platform/memory.h"
 
 const size_t SpanContextField = 1;
 const size_t OperationNameField = 2;

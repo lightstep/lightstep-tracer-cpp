@@ -153,4 +153,11 @@ inline bool AreErrorsEqual(std::error_code lhs, std::error_code rhs) noexcept {
              opentracing::string_view{rhs.category().name()} &&
          lhs.value() == rhs.value();
 }
+
+/**
+ * Converts a string to lower-case.
+ * @param s a string
+ * @return the lower-case version of s
+ */
+std::string ToLower(opentracing::string_view s);
 }  // namespace lightstep
