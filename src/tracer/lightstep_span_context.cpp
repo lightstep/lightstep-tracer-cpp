@@ -1,6 +1,34 @@
 #include "tracer/lightstep_span_context.h"
 
+#include "common/utility.h"
+
 namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// ToHexString
+//--------------------------------------------------------------------------------------------------
+static std::string ToHexString(uint64_t x) {
+  std::array<char, Num64BitHexDigits> buffer;
+  return Uint64ToHex(x, buffer.data());
+}
+
+//--------------------------------------------------------------------------------------------------
+// ToTraceID
+//--------------------------------------------------------------------------------------------------
+std::string LightStepSpanContext::ToTraceID() const noexcept try {
+  return ToHexString(this->trace_id());
+} catch (const std::exception& /*e*/) {
+  return {};
+}
+
+//--------------------------------------------------------------------------------------------------
+// ToSpanID
+//--------------------------------------------------------------------------------------------------
+std::string LightStepSpanContext::ToSpanID() const noexcept try {
+  return ToHexString(this->span_id());
+} catch (const std::exception& /*e*/) {
+  return {};
+}
+
 //------------------------------------------------------------------------------
 // operator==
 //------------------------------------------------------------------------------

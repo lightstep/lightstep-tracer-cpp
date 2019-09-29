@@ -44,6 +44,16 @@ class LegacySpan final : public opentracing::Span, public LightStepSpanContext {
            std::pair<opentracing::string_view, opentracing::Value>>
                fields) noexcept override;
 
+  void Log(opentracing::SystemTime timestamp,
+           std::initializer_list<
+               std::pair<opentracing::string_view, opentracing::Value>>
+               fields) noexcept override;
+
+  void Log(opentracing::SystemTime timestamp,
+           const std::vector<
+               std::pair<opentracing::string_view, opentracing::Value>>&
+               fields) noexcept override;
+
   const opentracing::SpanContext& context() const noexcept override {
     return *this;
   }
@@ -54,6 +64,8 @@ class LegacySpan final : public opentracing::Span, public LightStepSpanContext {
   void ForeachBaggageItem(
       std::function<bool(const std::string& key, const std::string& value)> f)
       const override;
+
+  std::unique_ptr<opentracing::SpanContext> Clone() const noexcept override;
 
   bool sampled() const noexcept override;
 

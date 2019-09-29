@@ -22,6 +22,7 @@ lightstep_cc_library(
         "//src/tracer:lightstep_span_context_interface",
         "//src/tracer:utility_lib",
         "//src/tracer:tag_lib",
+        ":legacy_immutable_span_context_lib",
     ],
 )
 

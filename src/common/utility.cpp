@@ -145,6 +145,8 @@ struct JsonValueVisitor {
 
   void operator()(const char* s) { WriteEscapedString(writer, s); }
 
+  void operator()(opentracing::string_view s) { WriteEscapedString(writer, s); }
+
   void operator()(const opentracing::Values& values) {
     writer << '[';
     size_t i = 0;
