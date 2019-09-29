@@ -4,6 +4,7 @@
 
 #include "common/random.h"
 #include "common/utility.h"
+#include "tracer/legacy/legacy_immutable_span_context.h"
 #include "tracer/serialization.h"
 #include "tracer/tag.h"
 #include "tracer/utility.h"
@@ -157,12 +158,33 @@ std::string Span::BaggageItem(opentracing::string_view restricted_key) const
 void Span::Log(std::initializer_list<
                std::pair<opentracing::string_view, opentracing::Value>>
                    fields) noexcept try {
-  auto timestamp = SystemClock::now();
+  this->Log(SystemClock::now(), fields);
+} catch (const std::exception& e) {
+  tracer_->logger().Error("Log failed: ", e.what());
+}
+
+void Span::Log(opentracing::SystemTime timestamp,
+               std::initializer_list<
+                   std::pair<opentracing::string_view, opentracing::Value>>
+                   fields) noexcept try {
   SpinLockGuard lock_guard{mutex_};
   if (is_finished_) {
     return;
   }
   WriteLog(stream_, timestamp, fields.begin(), fields.end());
+} catch (const std::exception& e) {
+  tracer_->logger().Error("Log failed: ", e.what());
+}
+
+void Span::Log(
+    opentracing::SystemTime timestamp,
+    const std::vector<std::pair<opentracing::string_view, opentracing::Value>>&
+        fields) noexcept try {
+  SpinLockGuard lock_guard{mutex_};
+  if (is_finished_) {
+    return;
+  }
+  WriteLog(stream_, timestamp, fields.data(), fields.data() + fields.size());
 } catch (const std::exception& e) {
   tracer_->logger().Error("Log failed: ", e.what());
 }
@@ -179,6 +201,20 @@ void Span::ForeachBaggageItem(
       return;
     }
   }
+}
+
+//--------------------------------------------------------------------------------------------------
+// Clone
+//--------------------------------------------------------------------------------------------------
+std::unique_ptr<opentracing::SpanContext> Span::Clone() const noexcept try {
+  SpinLockGuard lock_guard{mutex_};
+  BaggageProtobufMap baggage_copy{baggage_.begin(), baggage_.end()};
+  std::unique_ptr<opentracing::SpanContext> result{
+      new LegacyImmutableSpanContext{trace_id_, span_id_, sampled_,
+                                     std::move(baggage_copy)}};
+  return result;
+} catch (const std::exception& /*e*/) {
+  return nullptr;
 }
 
 //------------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 
 #include "common/random.h"
 #include "common/utility.h"
+#include "tracer/legacy/legacy_immutable_span_context.h"
 #include "tracer/tag.h"
 #include "tracer/utility.h"
 
@@ -227,8 +228,25 @@ std::string LegacySpan::BaggageItem(
 //------------------------------------------------------------------------------
 void LegacySpan::Log(std::initializer_list<
                      std::pair<opentracing::string_view, opentracing::Value>>
+                         fields) noexcept {
+  this->Log(SystemClock::now(), fields);
+}
+
+void LegacySpan::Log(opentracing::SystemTime timestamp,
+                     std::initializer_list<std::pair<opentracing::string_view,
+                                                     opentracing::Value>>
                          fields) noexcept try {
-  auto timestamp = SystemClock::now();
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  *span_.mutable_logs()->Add() =
+      ToLog(timestamp, std::begin(fields), std::end(fields));
+} catch (const std::exception& e) {
+  logger_.Error("Log failed: ", e.what());
+}
+
+void LegacySpan::Log(
+    opentracing::SystemTime timestamp,
+    const std::vector<std::pair<opentracing::string_view, opentracing::Value>>&
+        fields) noexcept try {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   *span_.mutable_logs()->Add() =
       ToLog(timestamp, std::begin(fields), std::end(fields));
@@ -248,6 +266,21 @@ void LegacySpan::ForeachBaggageItem(
       return;
     }
   }
+}
+
+//--------------------------------------------------------------------------------------------------
+// Clone
+//--------------------------------------------------------------------------------------------------
+std::unique_ptr<opentracing::SpanContext> LegacySpan::Clone() const
+    noexcept try {
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  std::unique_ptr<opentracing::SpanContext> result{
+      new LegacyImmutableSpanContext{
+          this->trace_id(), this->span_id(), sampled_,
+          BaggageProtobufMap{span_.span_context().baggage()}}};
+  return result;
+} catch (const std::exception& /*e*/) {
+  return nullptr;
 }
 
 //------------------------------------------------------------------------------

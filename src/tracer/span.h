@@ -46,6 +46,16 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
            std::pair<opentracing::string_view, opentracing::Value>>
                fields) noexcept override;
 
+  void Log(opentracing::SystemTime timestamp,
+           std::initializer_list<
+               std::pair<opentracing::string_view, opentracing::Value>>
+               fields) noexcept override;
+
+  void Log(opentracing::SystemTime timestamp,
+           const std::vector<
+               std::pair<opentracing::string_view, opentracing::Value>>&
+               fields) noexcept override;
+
   const opentracing::SpanContext& context() const noexcept override {
     return *this;
   }
@@ -75,6 +85,8 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
       const opentracing::HTTPHeadersWriter& writer) const override {
     return this->InjectImpl(propagation_options, writer);
   }
+
+  std::unique_ptr<opentracing::SpanContext> Clone() const noexcept override;
 
   // LightStepSpanContext
   bool sampled() const noexcept override;

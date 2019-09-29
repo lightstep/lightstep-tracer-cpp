@@ -18,6 +18,7 @@ class LegacyImmutableSpanContext final : public LightStepSpanContext {
 
   bool sampled() const noexcept override { return sampled_; }
 
+  // opentracing::SpanContext
   void ForeachBaggageItem(
       std::function<bool(const std::string& key, const std::string& value)> f)
       const override;
@@ -39,6 +40,8 @@ class LegacyImmutableSpanContext final : public LightStepSpanContext {
       const opentracing::HTTPHeadersWriter& writer) const override {
     return this->InjectImpl(propagation_options, writer);
   }
+
+  std::unique_ptr<opentracing::SpanContext> Clone() const noexcept override;
 
  private:
   uint64_t trace_id_;

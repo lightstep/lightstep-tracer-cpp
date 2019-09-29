@@ -27,6 +27,10 @@ class LightStepSpanContext : public opentracing::SpanContext {
   virtual opentracing::expected<void> Inject(
       const PropagationOptions& propagation_options,
       const opentracing::HTTPHeadersWriter& writer) const = 0;
+
+  std::string ToTraceID() const noexcept final;
+
+  std::string ToSpanID() const noexcept final;
 };
 
 bool operator==(const LightStepSpanContext& lhs,

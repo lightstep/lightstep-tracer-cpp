@@ -1,6 +1,24 @@
 #include "tracer/lightstep_span_context.h"
 
 namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// ToTraceID
+//--------------------------------------------------------------------------------------------------
+std::string LightStepSpanContext::ToTraceID() const noexcept try {
+  return std::to_string(this->trace_id());
+} catch (const std::exception& /*e*/) {
+  return {};
+}
+
+//--------------------------------------------------------------------------------------------------
+// ToSpanID
+//--------------------------------------------------------------------------------------------------
+std::string LightStepSpanContext::ToSpanID() const noexcept try {
+  return std::to_string(this->span_id());
+} catch (const std::exception& /*e*/) {
+  return {};
+}
+
 //------------------------------------------------------------------------------
 // operator==
 //------------------------------------------------------------------------------
