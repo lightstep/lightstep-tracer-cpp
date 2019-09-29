@@ -6,6 +6,7 @@
 #include "test/recorder/in_memory_recorder.h"
 #include "test/utility.h"
 #include "tracer/legacy/legacy_tracer_impl.h"
+#include "tracer/lightstep_span_context.h"
 #include "tracer/tag.h"
 #include "tracer/tracer_impl.h"
 
@@ -197,8 +198,12 @@ TEST_CASE("tracer") {
       auto span = tracer->StartSpan("a");
       REQUIRE(span);
       span->Log({{"abc", 123}});
+      span->Log(
+          std::chrono::system_clock::now(),
+          std::vector<std::pair<opentracing::string_view, opentracing::Value>>{
+              {"abc", 123}});
       span->Finish();
-      REQUIRE(recorder->top().logs().size() == 1);
+      REQUIRE(recorder->top().logs().size() == 2);
     }
 
     SECTION(tracer_type + ": Logs can be added with FinishSpanOptions.") {
@@ -218,6 +223,28 @@ TEST_CASE("tracer") {
       span->Finish();
       span->SetTag("abc", 123);
       span->Log({{"abc", 123}});
+    }
+
+    SECTION(tracer_type + ": span contexts can be cloned") {
+      auto span = tracer->StartSpan("a");
+      REQUIRE(span);
+      span->SetBaggageItem("abc", "123");
+      auto span_context1 = span->context().Clone();
+      REQUIRE(span_context1 != nullptr);
+      auto span_context2 = span_context1->Clone();
+      REQUIRE(span_context2 != nullptr);
+      REQUIRE(dynamic_cast<const LightStepSpanContext&>(span->context()) ==
+              dynamic_cast<LightStepSpanContext&>(*span_context1));
+    }
+
+    SECTION(tracer_type + ": supports accessing context IDs as strings") {
+      auto span = tracer->StartSpan("a");
+      REQUIRE(span);
+      auto trace_id = span->context().ToTraceID();
+      REQUIRE(!trace_id.empty());
+      auto span_id = span->context().ToSpanID();
+      REQUIRE(!span_id.empty());
+      REQUIRE(trace_id != span_id);
     }
   }
 }
