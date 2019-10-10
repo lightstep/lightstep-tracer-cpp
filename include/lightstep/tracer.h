@@ -20,6 +20,8 @@ const std::string& CollectorMethodName();
 //  See https://github.com/gabime/spdlog/blob/master/include/spdlog/common.h
 enum class LogLevel { debug = 1, info = 2, warn = 3, error = 4, off = 6 };
 
+enum class PropagationMode { lightstep = 1, b3 = 2 };
+
 // DynamicConfigurationValue is used for configuration values that can
 // be either fixed or changed at runtime. To specify a fixed value, just assign
 // a constant
@@ -55,6 +57,8 @@ struct LightStepTracerOptions {
   // `access_token` is the unique API key for your LightStep project. It is
   // available on your account page at https://app.lightstep.com/account
   std::string access_token;
+
+  PropagationMode propagation_mode = PropagationMode::lightstep;
 
   // The host and port of collector. Ignored if a custom transporter is used.
   //

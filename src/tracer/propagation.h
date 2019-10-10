@@ -1,5 +1,7 @@
 #pragma once
 
+#include <lightstep/tracer.h>
+
 #include "tracer/baggage_flat_map.h"
 
 #include <google/protobuf/map.h>
@@ -9,6 +11,7 @@ namespace lightstep {
 using BaggageProtobufMap = google::protobuf::Map<std::string, std::string>;
 
 struct PropagationOptions {
+  PropagationMode propagation_mode;
   bool use_single_key = false;
 };
 
