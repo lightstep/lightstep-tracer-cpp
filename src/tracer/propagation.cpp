@@ -79,17 +79,18 @@ static opentracing::expected<opentracing::string_view> LookupKey(
 //------------------------------------------------------------------------------
 template <class BaggageMap>
 static opentracing::expected<void> InjectSpanContextBaggage(
+    opentracing::string_view baggage_prefix,
     const opentracing::TextMapWriter& carrier, const BaggageMap& baggage) {
   std::string baggage_key;
   try {
-    baggage_key = PrefixBaggage;
+    baggage_key = baggage_prefix;
   } catch (const std::bad_alloc&) {
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::not_enough_memory));
   }
   for (const auto& baggage_item : baggage) {
     try {
-      baggage_key.replace(std::begin(baggage_key) + PrefixBaggage.size(),
+      baggage_key.replace(std::begin(baggage_key) + baggage_prefix.size(),
                           std::end(baggage_key), baggage_item.first);
     } catch (const std::bad_alloc&) {
       return opentracing::make_unexpected(
@@ -129,7 +130,38 @@ static opentracing::expected<void> InjectSpanContextMultiKey(
     return result;
   }
   if (!baggage.empty()) {
-    return InjectSpanContextBaggage(carrier, baggage);
+    return InjectSpanContextBaggage(PrefixBaggage, carrier, baggage);
+  }
+  return {};
+}
+
+template <class Propagator, class BaggageMap>
+static opentracing::expected<void> InjectSpanContextMultiKey(
+    const Propagator& propagator, const opentracing::TextMapWriter& carrier,
+    uint64_t trace_id, uint64_t span_id, bool sampled,
+    const BaggageMap& baggage) {
+  std::array<char, Num64BitHexDigits> data;
+  auto result = carrier.Set(propagator.trace_id_key(),
+                            Uint64ToHex(trace_id, data.data()));
+  if (!result) {
+    return result;
+  }
+  result =
+      carrier.Set(propagator.span_id_key(), Uint64ToHex(span_id, data.data()));
+  if (!result) {
+    return result;
+  }
+  if (sampled) {
+    result = carrier.Set(propagator.sampled_key(), TrueStr);
+  } else {
+    result = carrier.Set(propagator.sampled_key(), FalseStr);
+  }
+  if (!result) {
+    return result;
+  }
+  if (propagator.supports_baggage() && !baggage.empty()) {
+    return InjectSpanContextBaggage(propagator.baggage_prefix(), carrier,
+                                    baggage);
   }
   return {};
 }

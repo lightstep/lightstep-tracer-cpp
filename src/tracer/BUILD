@@ -179,6 +179,8 @@ lightstep_cc_library(
     ],
     srcs = [
         "propagation.cpp",
+        "lightstep_propagator.h",
+        "lightstep_propagator.cpp",
     ],
     deps = [
         "//src/common:utility_lib",
