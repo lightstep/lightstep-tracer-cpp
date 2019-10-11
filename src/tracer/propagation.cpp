@@ -11,17 +11,10 @@
 #include "common/in_memory_stream.h"
 #include "common/utility.h"
 #include "lightstep-tracer-common/lightstep_carrier.pb.h"
+#include "lightstep_propagator.h"
 
 namespace lightstep {
-#define PREFIX_TRACER_STATE "ot-tracer-"
-// Note: these constants are a convention of the OpenTracing basictracers.
-const opentracing::string_view PrefixBaggage = "ot-baggage-";
-
 const int FieldCount = 3;
-const opentracing::string_view FieldNameTraceID = PREFIX_TRACER_STATE "traceid";
-const opentracing::string_view FieldNameSpanID = PREFIX_TRACER_STATE "spanid";
-const opentracing::string_view FieldNameSampled = PREFIX_TRACER_STATE "sampled";
-#undef PREFIX_TRACER_STATE
 
 const opentracing::string_view PropagationSingleKey = "x-ot-span-context";
 const opentracing::string_view TrueStr = "true";
@@ -107,34 +100,6 @@ static opentracing::expected<void> InjectSpanContextBaggage(
 //------------------------------------------------------------------------------
 // InjectSpanContextMultiKey
 //------------------------------------------------------------------------------
-template <class BaggageMap>
-static opentracing::expected<void> InjectSpanContextMultiKey(
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id,
-    uint64_t span_id, bool sampled, const BaggageMap& baggage) {
-  std::array<char, Num64BitHexDigits> data;
-  auto result =
-      carrier.Set(FieldNameTraceID, Uint64ToHex(trace_id, data.data()));
-  if (!result) {
-    return result;
-  }
-  result = carrier.Set(FieldNameSpanID, Uint64ToHex(span_id, data.data()));
-  if (!result) {
-    return result;
-  }
-  if (sampled) {
-    result = carrier.Set(FieldNameSampled, TrueStr);
-  } else {
-    result = carrier.Set(FieldNameSampled, FalseStr);
-  }
-  if (!result) {
-    return result;
-  }
-  if (!baggage.empty()) {
-    return InjectSpanContextBaggage(PrefixBaggage, carrier, baggage);
-  }
-  return {};
-}
-
 template <class Propagator, class BaggageMap>
 static opentracing::expected<void> InjectSpanContextMultiKey(
     const Propagator& propagator, const opentracing::TextMapWriter& carrier,
@@ -264,8 +229,8 @@ opentracing::expected<void> InjectSpanContext(
     return InjectSpanContextSingleKey(carrier, trace_id, span_id, sampled,
                                       baggage);
   }
-  return InjectSpanContextMultiKey(carrier, trace_id, span_id, sampled,
-                                   baggage);
+  return InjectSpanContextMultiKey(LightStepPropagator{}, carrier, trace_id,
+                                   span_id, sampled, baggage);
 }
 
 template opentracing::expected<void> InjectSpanContext(
@@ -281,17 +246,18 @@ template opentracing::expected<void> InjectSpanContext(
 //------------------------------------------------------------------------------
 // ExtractSpanContextMultiKey
 //------------------------------------------------------------------------------
-template <class KeyCompare>
+template <class Propagator, class KeyCompare>
 static opentracing::expected<bool> ExtractSpanContextMultiKey(
-    const opentracing::TextMapReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, bool& sampled, BaggageProtobufMap& baggage,
-    KeyCompare key_compare) {
+    const Propagator& propagator, const opentracing::TextMapReader& carrier,
+    uint64_t& trace_id, uint64_t& span_id, bool& sampled,
+    BaggageProtobufMap& baggage, KeyCompare key_compare) {
   int count = 0;
+  auto baggage_prefix = propagator.baggage_prefix();
   auto result = carrier.ForeachKey(
       [&](opentracing::string_view key,
           opentracing::string_view value) -> opentracing::expected<void> {
         try {
-          if (key_compare(key, FieldNameTraceID)) {
+          if (key_compare(key, propagator.trace_id_key())) {
             auto trace_id_maybe = HexToUint64(value);
             if (!trace_id_maybe) {
               return opentracing::make_unexpected(
@@ -299,7 +265,7 @@ static opentracing::expected<bool> ExtractSpanContextMultiKey(
             }
             trace_id = *trace_id_maybe;
             count++;
-          } else if (key_compare(key, FieldNameSpanID)) {
+          } else if (key_compare(key, propagator.span_id_key())) {
             auto span_id_maybe = HexToUint64(value);
             if (!span_id_maybe) {
               return opentracing::make_unexpected(
@@ -307,17 +273,19 @@ static opentracing::expected<bool> ExtractSpanContextMultiKey(
             }
             span_id = *span_id_maybe;
             count++;
-          } else if (key_compare(key, FieldNameSampled)) {
+          } else if (key_compare(key, propagator.sampled_key())) {
             sampled = !(value == FalseStr || value == ZeroStr);
             count++;
-          } else if (key.length() > PrefixBaggage.size() &&
-                     key_compare(opentracing::string_view{key.data(),
-                                                          PrefixBaggage.size()},
-                                 PrefixBaggage)) {
+          } else if (propagator.supports_baggage() &&
+                     key.length() > baggage_prefix.size() &&
+                     key_compare(
+                         opentracing::string_view{key.data(),
+                                                  baggage_prefix.size()},
+                         baggage_prefix)) {
             baggage.insert(BaggageProtobufMap::value_type(
                 ToLower(opentracing::string_view{
-                    key.data() + PrefixBaggage.size(),
-                    key.size() - PrefixBaggage.size()}),
+                    key.data() + baggage_prefix.size(),
+                    key.size() - baggage_prefix.size()}),
                 value));
           }
           return {};
@@ -433,8 +401,8 @@ static opentracing::expected<bool> ExtractSpanContext(
     }
   }
 
-  return ExtractSpanContextMultiKey(carrier, trace_id, span_id, sampled,
-                                    baggage, key_compare);
+  return ExtractSpanContextMultiKey(LightStepPropagator{}, carrier, trace_id,
+                                    span_id, sampled, baggage, key_compare);
 }
 
 opentracing::expected<bool> ExtractSpanContext(
