@@ -12,6 +12,7 @@
 #include "common/utility.h"
 #include "lightstep-tracer-common/lightstep_carrier.pb.h"
 #include "lightstep_propagator.h"
+#include "b3_propagator.h"
 
 namespace lightstep {
 const int FieldCount = 3;
@@ -229,6 +230,10 @@ opentracing::expected<void> InjectSpanContext(
     return InjectSpanContextSingleKey(carrier, trace_id, span_id, sampled,
                                       baggage);
   }
+  if (propagation_options.propagation_mode == PropagationMode::b3) {
+    return InjectSpanContextMultiKey(B3Propagator{}, carrier, trace_id, span_id,
+                                     sampled, baggage);
+  }
   return InjectSpanContextMultiKey(LightStepPropagator{}, carrier, trace_id,
                                    span_id, sampled, baggage);
 }
@@ -400,7 +405,10 @@ static opentracing::expected<bool> ExtractSpanContext(
       return span_context_maybe;
     }
   }
-
+  if (propagation_options.propagation_mode == PropagationMode::b3) {
+    return ExtractSpanContextMultiKey(B3Propagator{}, carrier, trace_id,
+                                      span_id, sampled, baggage, key_compare);
+  }
   return ExtractSpanContextMultiKey(LightStepPropagator{}, carrier, trace_id,
                                     span_id, sampled, baggage, key_compare);
 }

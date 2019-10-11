@@ -181,6 +181,8 @@ lightstep_cc_library(
         "propagation.cpp",
         "lightstep_propagator.h",
         "lightstep_propagator.cpp",
+        "b3_propagator.h",
+        "b3_propagator.cpp",
     ],
     deps = [
         "//src/common:utility_lib",
