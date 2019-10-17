@@ -55,7 +55,7 @@ static PropagationOptions MakePropagationOptions(
     const LightStepTracerOptions& options) noexcept {
   PropagationOptions result;
   result.use_single_key = options.use_single_key_propagation;
-  result.propagation_mode = options.propagation_mode;
+  /* result.propagation_mode = options.propagation_mode; */
   return result;
 }
 

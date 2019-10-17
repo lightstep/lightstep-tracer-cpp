@@ -28,6 +28,16 @@ static std::vector<std::pair<std::string, uint16_t>> GetSatelliteEndpoints(
 }
 
 //--------------------------------------------------------------------------------------------------
+// GetPropagationMode
+//--------------------------------------------------------------------------------------------------
+/* static PropagationMode GetPropagationMode(opentracing::string_view s) { */
+/*   if (s == "b3") { */
+/*     return PropagationMode::b3; */
+/*   } */
+/*   return PropagationMode::lightstep; */
+/* } */
+
+//--------------------------------------------------------------------------------------------------
 // MakeTracerOptions
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<LightStepTracerOptions> MakeTracerOptions(

@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <vector>
 #include <unordered_map>
 
 namespace lightstep {
@@ -58,7 +59,7 @@ struct LightStepTracerOptions {
   // available on your account page at https://app.lightstep.com/account
   std::string access_token;
 
-  PropagationMode propagation_mode = PropagationMode::lightstep;
+  std::vector<PropagationMode> propagation_modes = {PropagationMode::lightstep};
 
   // The host and port of collector. Ignored if a custom transporter is used.
   //

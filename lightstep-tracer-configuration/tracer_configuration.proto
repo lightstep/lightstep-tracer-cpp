@@ -61,4 +61,6 @@ message TracerConfiguration {
 
   // Log at the debug level.
   bool verbose = 13;
+
+  repeated string propagation_modes = 14;
 }
