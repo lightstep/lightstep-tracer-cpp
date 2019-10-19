@@ -49,4 +49,23 @@ inline opentracing::string_view Uint32ToHex(uint32_t x, char* output) noexcept {
 // or an error code.
 opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s);
 
+class HexSerializer {
+ public:
+   opentracing::string_view Uint64ToHex(uint64_t x) noexcept {
+     return lightstep::Uint64ToHex(x, buffer_.data());
+   }
+
+   opentracing::string_view Uint128ToHex(uint64_t x_high,
+                                         uint64_t x_low) noexcept {
+     if (x_high == 0) {
+       return this->Uint64ToHex(x_low);
+     }
+     lightstep::Uint64ToHex(x_low, buffer_.data() + Num64BitHexDigits);
+     lightstep::Uint64ToHex(x_high, buffer_.data());
+     return opentracing::string_view{buffer_.data(), buffer_.size()};
+   }
+
+ private:
+   std::array<char, Num64BitHexDigits*2> buffer_;
+};
 }  // namespace lightstep

@@ -8,6 +8,7 @@ using namespace opentracing;
 
 TEST_CASE("hex-integer conversions") {
   char data[16];
+  HexSerializer serializer;
 
   SECTION("Verify hex conversion and back against a range of values.") {
     for (uint32_t x = 0; x < 1000; ++x) {
@@ -66,5 +67,16 @@ TEST_CASE("hex-integer conversions") {
 
   SECTION("Hex conversion with invalid digits gives an error.") {
     REQUIRE(!HexToUint64("abcHef"));
+  }
+
+  SECTION("We can serialize 128-bit integers") {
+    REQUIRE(serializer.Uint128ToHex(0, 1) == "0000000000000001");
+    REQUIRE(serializer.Uint128ToHex(1, 0) ==
+            "0000000000000001"
+            "0000000000000000");
+    REQUIRE(serializer.Uint128ToHex(std::numeric_limits<uint64_t>::max(),
+                                    std::numeric_limits<uint64_t>::max()) ==
+            "FFFFFFFFFFFFFFFF"
+            "FFFFFFFFFFFFFFFF");
   }
 }
