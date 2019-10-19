@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <system_error>
 
+#include "common/hex_conversion.h"
 #include "common/platform/time.h"
 
 #include <opentracing/string_view.h>

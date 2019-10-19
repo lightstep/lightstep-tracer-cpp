@@ -188,6 +188,7 @@ lightstep_cc_library(
         "multiheader_propagator.cpp",
     ],
     deps = [
+        "//src/common:hex_conversion_lib",
         "//src/common:utility_lib",
         "//src/common:in_memory_stream_lib",
         "//3rd_party/base64:base64_lib",

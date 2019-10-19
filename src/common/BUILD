@@ -41,7 +41,7 @@ lightstep_cc_library(
     deps = [
         ":fragment_input_stream_lib",
         ":noncopyable_lib",
-        ":utility_lib",
+        ":hex_conversion_lib",
         ":serialization_lib",
     ],
     external_deps = [
