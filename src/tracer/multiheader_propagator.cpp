@@ -17,8 +17,9 @@ MultiheaderPropagator::MultiheaderPropagator(
 // InjectSpanContext
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<void> MultiheaderPropagator::InjectSpanContext(
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id_high, uint64_t trace_id_low,
-    uint64_t span_id, bool sampled, const BaggageProtobufMap& baggage) const {
+    const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
+    uint64_t trace_id_low, uint64_t span_id, bool sampled,
+    const BaggageProtobufMap& baggage) const {
   return this->InjectSpanContextImpl(carrier, trace_id_high, trace_id_low,
                                      span_id, sampled, baggage);
 }

@@ -8,11 +8,11 @@
 #include <iomanip>
 #include <ios>
 #include <sstream>
+#include "b3_propagator.h"
 #include "common/in_memory_stream.h"
 #include "common/utility.h"
 #include "lightstep-tracer-common/lightstep_carrier.pb.h"
 #include "lightstep_propagator.h"
-#include "b3_propagator.h"
 
 namespace lightstep {
 const int FieldCount = 3;

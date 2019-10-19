@@ -27,4 +27,4 @@ opentracing::string_view B3Propagator::span_id_key() const noexcept {
 opentracing::string_view B3Propagator::sampled_key() const noexcept {
   return FieldNameSampled;
 }
-} // namespace lightstep
+}  // namespace lightstep
