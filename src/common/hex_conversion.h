@@ -47,25 +47,30 @@ inline opentracing::string_view Uint32ToHex(uint32_t x, char* output) noexcept {
 
 // Converts a hexidecimal number to a 64-bit integer. Either returns the number
 // or an error code.
-opentracing::expected<uint64_t> HexToUint64(opentracing::string_view s);
+opentracing::expected<uint64_t> HexToUint64(
+    opentracing::string_view s) noexcept;
+
+opentracing::expected<void> HexToUint128(opentracing::string_view s,
+                                         uint64_t& x_high,
+                                         uint64_t& x_low) noexcept;
 
 class HexSerializer {
  public:
-   opentracing::string_view Uint64ToHex(uint64_t x) noexcept {
-     return lightstep::Uint64ToHex(x, buffer_.data());
-   }
+  opentracing::string_view Uint64ToHex(uint64_t x) noexcept {
+    return lightstep::Uint64ToHex(x, buffer_.data());
+  }
 
-   opentracing::string_view Uint128ToHex(uint64_t x_high,
-                                         uint64_t x_low) noexcept {
-     if (x_high == 0) {
-       return this->Uint64ToHex(x_low);
-     }
-     lightstep::Uint64ToHex(x_low, buffer_.data() + Num64BitHexDigits);
-     lightstep::Uint64ToHex(x_high, buffer_.data());
-     return opentracing::string_view{buffer_.data(), buffer_.size()};
-   }
+  opentracing::string_view Uint128ToHex(uint64_t x_high,
+                                        uint64_t x_low) noexcept {
+    if (x_high == 0) {
+      return this->Uint64ToHex(x_low);
+    }
+    lightstep::Uint64ToHex(x_high, buffer_.data());
+    lightstep::Uint64ToHex(x_low, buffer_.data() + Num64BitHexDigits);
+    return opentracing::string_view{buffer_.data(), buffer_.size()};
+  }
 
  private:
-   std::array<char, Num64BitHexDigits*2> buffer_;
+  std::array<char, Num64BitHexDigits * 2> buffer_;
 };
 }  // namespace lightstep
