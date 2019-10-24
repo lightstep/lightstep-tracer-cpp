@@ -39,5 +39,11 @@ class MultiheaderPropagator : public Propagator {
       const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
       uint64_t trace_id_low, uint64_t span_id, bool sampled,
       const BaggageMap& baggage) const;
+
+  template <class KeyCompare>
+  opentracing::expected<bool> ExtractSpanContextImpl(
+      const opentracing::TextMapReader& carrier, uint64_t& trace_id_high,
+      uint64_t& trace_id_low, uint64_t& span_id, bool& sampled,
+      BaggageProtobufMap& baggage, const KeyCompare& key_compare) const;
 };
 }  // namespace lightstep
