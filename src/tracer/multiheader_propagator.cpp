@@ -1,5 +1,13 @@
 #include "tracer/multiheader_propagator.h"
 
+#include "common/hex_conversion.h"
+#include "tracer/propagation.h"
+
+const opentracing::string_view TrueStr = "true";
+const opentracing::string_view FalseStr = "false";
+const opentracing::string_view OneStr = "1";
+const opentracing::string_view ZeroStr = "0";
+
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // MultiheaderPropagator
@@ -7,11 +15,12 @@ namespace lightstep {
 MultiheaderPropagator::MultiheaderPropagator(
     opentracing::string_view trace_id_key, opentracing::string_view span_id_key,
     opentracing::string_view sampled_key,
-    opentracing::string_view baggage_prefix) noexcept
+    opentracing::string_view baggage_prefix, bool supports_128bit) noexcept
     : trace_id_key_{trace_id_key},
       span_id_key_{span_id_key},
       sampled_key_{sampled_key},
-      baggage_prefix_{baggage_prefix} {}
+      baggage_prefix_{baggage_prefix},
+      supports_128bit_{supports_128bit} {}
 
 //--------------------------------------------------------------------------------------------------
 // InjectSpanContext
@@ -57,38 +66,33 @@ opentracing::expected<void> MultiheaderPropagator::InjectSpanContextImpl(
     const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
     uint64_t trace_id_low, uint64_t span_id, bool sampled,
     const BaggageMap& baggage) const {
-  (void)carrier;
-  (void)trace_id_high;
-  (void)trace_id_low;
-  (void)span_id;
-  (void)sampled;
-  (void)baggage;
-  return {};
-#if 0
-  std::array<char, Num64BitHexDigits> data;
-  auto result = carrier.Set(propagator.trace_id_key(),
-                            Uint64ToHex(trace_id, data.data()));
+  HexSerializer hex_serializer;
+  opentracing::expected<void> result;
+  if (supports_128bit_) {
+    result = carrier.Set(trace_id_key_, hex_serializer.Uint128ToHex(
+                                            trace_id_high, trace_id_low));
+  } else {
+    result =
+        carrier.Set(trace_id_key_, hex_serializer.Uint64ToHex(trace_id_low));
+  }
   if (!result) {
     return result;
   }
-  result =
-      carrier.Set(propagator.span_id_key(), Uint64ToHex(span_id, data.data()));
+  result = carrier.Set(span_id_key_, hex_serializer.Uint64ToHex(span_id));
   if (!result) {
     return result;
   }
   if (sampled) {
-    result = carrier.Set(propagator.sampled_key(), TrueStr);
+    result = carrier.Set(sampled_key_, OneStr);
   } else {
-    result = carrier.Set(propagator.sampled_key(), FalseStr);
+    result = carrier.Set(sampled_key_, ZeroStr);
   }
   if (!result) {
     return result;
   }
-  if (propagator.supports_baggage() && !baggage.empty()) {
-    return InjectSpanContextBaggage(propagator.baggage_prefix(), carrier,
-                                    baggage);
+  if (!baggage.empty()) {
+    return InjectSpanContextBaggage(baggage_prefix_, carrier, baggage);
   }
   return {};
-#endif
 }
 }  // namespace lightstep

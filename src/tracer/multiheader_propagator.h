@@ -8,7 +8,8 @@ class MultiheaderPropagator : public Propagator {
   MultiheaderPropagator(opentracing::string_view trace_id_key,
                         opentracing::string_view span_id_key,
                         opentracing::string_view sampled_key,
-                        opentracing::string_view baggage_prefix) noexcept;
+                        opentracing::string_view baggage_prefix,
+                        bool supports_128bit) noexcept;
 
   // Propagator
   opentracing::expected<void> InjectSpanContext(
@@ -31,6 +32,7 @@ class MultiheaderPropagator : public Propagator {
   opentracing::string_view span_id_key_;
   opentracing::string_view sampled_key_;
   opentracing::string_view baggage_prefix_;
+  bool supports_128bit_;
 
   template <class BaggageMap>
   opentracing::expected<void> InjectSpanContextImpl(

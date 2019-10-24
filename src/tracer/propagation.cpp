@@ -73,6 +73,7 @@ static opentracing::expected<opentracing::string_view> LookupKey(
 //------------------------------------------------------------------------------
 // InjectSpanContextBaggage
 //------------------------------------------------------------------------------
+#if 0
 template <class BaggageMap>
 static opentracing::expected<void> InjectSpanContextBaggage(
     opentracing::string_view baggage_prefix,
@@ -99,6 +100,7 @@ static opentracing::expected<void> InjectSpanContextBaggage(
   }
   return {};
 }
+#endif
 
 //------------------------------------------------------------------------------
 // InjectSpanContextMultiKey
