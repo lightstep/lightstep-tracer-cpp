@@ -29,17 +29,17 @@ MultiheaderPropagator::MultiheaderPropagator(
 opentracing::expected<void> MultiheaderPropagator::InjectSpanContext(
     const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
     uint64_t trace_id_low, uint64_t span_id, bool sampled,
-    const BaggageProtobufMap& baggage) const {
+    const BaggageProtobufMap& /*baggage*/) const {
   return this->InjectSpanContextImpl(carrier, trace_id_high, trace_id_low,
-                                     span_id, sampled, baggage);
+                                     span_id, sampled);
 }
 
 opentracing::expected<void> MultiheaderPropagator::InjectSpanContext(
     const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
     uint64_t trace_id_low, uint64_t span_id, bool sampled,
-    const BaggageFlatMap& baggage) const {
+    const BaggageFlatMap& /*baggage*/) const {
   return this->InjectSpanContextImpl(carrier, trace_id_high, trace_id_low,
-                                     span_id, sampled, baggage);
+                                     span_id, sampled);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -70,11 +70,9 @@ opentracing::expected<bool> MultiheaderPropagator::ExtractSpanContext(
 //--------------------------------------------------------------------------------------------------
 // InjectSpanContextImpl
 //--------------------------------------------------------------------------------------------------
-template <class BaggageMap>
 opentracing::expected<void> MultiheaderPropagator::InjectSpanContextImpl(
     const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-    uint64_t trace_id_low, uint64_t span_id, bool sampled,
-    const BaggageMap& baggage) const {
+    uint64_t trace_id_low, uint64_t span_id, bool sampled) const {
   HexSerializer hex_serializer;
   opentracing::expected<void> result;
   if (supports_128bit_) {
@@ -98,9 +96,6 @@ opentracing::expected<void> MultiheaderPropagator::InjectSpanContextImpl(
   }
   if (!result) {
     return result;
-  }
-  if (!baggage.empty()) {
-    return InjectSpanContextBaggage(baggage_prefix_, carrier, baggage);
   }
   return {};
 }

@@ -3,7 +3,7 @@
 #include "tracer/propagator.h"
 
 namespace lightstep {
-class MultiheaderPropagator : public Propagator {
+class MultiheaderPropagator final : public Propagator {
  public:
   MultiheaderPropagator(opentracing::string_view trace_id_key,
                         opentracing::string_view span_id_key,
@@ -34,11 +34,9 @@ class MultiheaderPropagator : public Propagator {
   opentracing::string_view baggage_prefix_;
   bool supports_128bit_;
 
-  template <class BaggageMap>
   opentracing::expected<void> InjectSpanContextImpl(
       const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-      uint64_t trace_id_low, uint64_t span_id, bool sampled,
-      const BaggageMap& baggage) const;
+      uint64_t trace_id_low, uint64_t span_id, bool sampled) const;
 
   template <class KeyCompare>
   opentracing::expected<bool> ExtractSpanContextImpl(

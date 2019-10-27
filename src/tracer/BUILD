@@ -186,6 +186,8 @@ lightstep_cc_library(
         "b3_propagator.cpp",
         "multiheader_propagator.h",
         "multiheader_propagator.cpp",
+        "baggage_propagator.h",
+        "baggage_propagator.cpp",
     ],
     deps = [
         "//src/common:hex_conversion_lib",
