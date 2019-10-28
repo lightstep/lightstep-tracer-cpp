@@ -35,70 +35,6 @@ static BaggageProtobufMap ToLower(const BaggageProtobufMap& baggage) {
 }
 
 //------------------------------------------------------------------------------
-// InjectSpanContextMultiKey
-//------------------------------------------------------------------------------
-template <class Propagator, class BaggageMap>
-static opentracing::expected<void> InjectSpanContextMultiKey(
-    const Propagator& propagator, const opentracing::TextMapWriter& carrier,
-    uint64_t trace_id, uint64_t span_id, bool sampled,
-    const BaggageMap& baggage) {
-  std::array<char, Num64BitHexDigits> data;
-  auto result = carrier.Set(propagator.trace_id_key(),
-                            Uint64ToHex(trace_id, data.data()));
-  if (!result) {
-    return result;
-  }
-  result =
-      carrier.Set(propagator.span_id_key(), Uint64ToHex(span_id, data.data()));
-  if (!result) {
-    return result;
-  }
-  if (sampled) {
-    result = carrier.Set(propagator.sampled_key(), TrueStr);
-  } else {
-    result = carrier.Set(propagator.sampled_key(), FalseStr);
-  }
-  if (!result) {
-    return result;
-  }
-  if (propagator.supports_baggage() && !baggage.empty()) {
-    return InjectSpanContextBaggage(propagator.baggage_prefix(), carrier,
-                                    baggage);
-  }
-  return {};
-}
-
-//------------------------------------------------------------------------------
-// InjectSpanContextSingleKey
-//------------------------------------------------------------------------------
-template <class BaggageMap>
-static opentracing::expected<void> InjectSpanContextSingleKey(
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id,
-    uint64_t span_id, bool sampled, const BaggageMap& baggage) {
-  std::ostringstream ostream;
-  auto result = InjectSpanContext(PropagationOptions{}, ostream, trace_id,
-                                  span_id, sampled, baggage);
-  if (!result) {
-    return result;
-  }
-  std::string context_value;
-  try {
-    auto binary_encoding = ostream.str();
-    context_value =
-        Base64::encode(binary_encoding.data(), binary_encoding.size());
-  } catch (const std::bad_alloc&) {
-    return opentracing::make_unexpected(
-        std::make_error_code(std::errc::not_enough_memory));
-  }
-
-  result = carrier.Set(PropagationSingleKey, context_value);
-  if (!result) {
-    return result;
-  }
-  return {};
-}
-
-//------------------------------------------------------------------------------
 // InjectSpanContext
 //------------------------------------------------------------------------------
 template <class BaggageMap>
@@ -160,23 +96,6 @@ template opentracing::expected<void> InjectSpanContext(
 template <class BaggageMap>
 opentracing::expected<void> InjectSpanContext(
     const PropagationOptions& propagation_options,
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id,
-    uint64_t span_id, bool sampled, const BaggageMap& baggage) {
-  if (propagation_options.use_single_key) {
-    return InjectSpanContextSingleKey(carrier, trace_id, span_id, sampled,
-                                      baggage);
-  }
-  if (propagation_options.propagation_mode == PropagationMode::b3) {
-    return InjectSpanContextMultiKey(B3Propagator{}, carrier, trace_id, span_id,
-                                     sampled, baggage);
-  }
-  return InjectSpanContextMultiKey(LightStepPropagator{}, carrier, trace_id,
-                                   span_id, sampled, baggage);
-}
-
-template <class BaggageMap>
-opentracing::expected<void> InjectSpanContext(
-    const PropagationOptions& propagation_options,
     const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
     uint64_t trace_id_low, uint64_t span_id, bool sampled,
     const BaggageMap& baggage) {
@@ -189,16 +108,6 @@ opentracing::expected<void> InjectSpanContext(
   }
   return {};
 }
-
-template opentracing::expected<void> InjectSpanContext(
-    const PropagationOptions& propagation_options,
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id,
-    uint64_t span_id, bool sampled, const BaggageProtobufMap& baggage);
-
-template opentracing::expected<void> InjectSpanContext(
-    const PropagationOptions& propagation_options,
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id,
-    uint64_t span_id, bool sampled, const BaggageFlatMap& baggage);
 
 template opentracing::expected<void> InjectSpanContext(
     const PropagationOptions& propagation_options,
