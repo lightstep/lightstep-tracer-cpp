@@ -83,7 +83,6 @@ static std::vector<std::unique_ptr<Propagator>> MakePropagators(
 PropagationOptions MakePropagationOptions(
     const LightStepTracerOptions& options) {
   std::vector<PropagationMode> propagation_modes;
-  (void)MakePropagators;
   PropagationOptions result;
   result.use_single_key = options.use_single_key_propagation;
   if (options.use_single_key_propagation) {

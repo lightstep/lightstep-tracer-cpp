@@ -19,6 +19,15 @@ opentracing::expected<void> InjectSpanContext(
 
 template <class BaggageMap>
 opentracing::expected<void> InjectSpanContext(
+    const PropagationOptions& propagation_options, std::ostream& carrier,
+    uint64_t /*trace_id_high*/, uint64_t trace_id, uint64_t span_id,
+    bool sampled, const BaggageMap& baggage) {
+  return InjectSpanContext(propagation_options, carrier, trace_id, span_id,
+                           sampled, baggage);
+}
+
+template <class BaggageMap>
+opentracing::expected<void> InjectSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapWriter& carrier, uint64_t trace_id,
     uint64_t span_id, bool sampled, const BaggageMap& baggage);

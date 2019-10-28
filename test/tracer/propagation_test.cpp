@@ -345,7 +345,7 @@ TEST_CASE("propagation - single key") {
       auto tracer = named_tracer.second;
       auto multikey_tracer =
           std::shared_ptr<opentracing::Tracer>{new LegacyTracerImpl{
-              PropagationOptions{},
+              MakePropagationOptions(LightStepTracerOptions{}),
               std::unique_ptr<Recorder>{new InMemoryRecorder{}}}};
       std::unordered_map<std::string, std::string> text_map;
       TextMapCarrier text_map_carrier{text_map};
