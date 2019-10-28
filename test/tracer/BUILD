@@ -21,6 +21,16 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "propagation_options_test",
+    srcs = [
+        "propagation_options_test.cpp",
+    ],
+    deps = [
+        "//src/tracer:propagation_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "tracer_test",
     srcs = [
         "tracer_test.cpp",

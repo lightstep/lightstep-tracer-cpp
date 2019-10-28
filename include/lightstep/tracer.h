@@ -21,7 +21,7 @@ const std::string& CollectorMethodName();
 //  See https://github.com/gabime/spdlog/blob/master/include/spdlog/common.h
 enum class LogLevel { debug = 1, info = 2, warn = 3, error = 4, off = 6 };
 
-enum class PropagationMode { lightstep = 1, b3 = 2 };
+enum class PropagationMode { lightstep = 1, b3 = 2, envoy = 3 };
 
 // DynamicConfigurationValue is used for configuration values that can
 // be either fixed or changed at runtime. To specify a fixed value, just assign

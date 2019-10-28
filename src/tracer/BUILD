@@ -176,10 +176,12 @@ lightstep_cc_library(
     name = "propagation_lib",
     private_hdrs = [
         "propagation.h",
+        "propagation_options.h"
     ],
     srcs = [
         "propagator.h",
         "propagation.cpp",
+        "propagation_options.cpp",
         "lightstep_propagator.h",
         "lightstep_propagator.cpp",
         "b3_propagator.h",

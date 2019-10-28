@@ -7,7 +7,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "3rd_party/catch2/catch.hpp"
 #include "common/utility.h"
 #include "lightstep/binary_carrier.h"
 #include "lightstep/tracer.h"
@@ -15,6 +14,8 @@
 #include "tracer/legacy/legacy_immutable_span_context.h"
 #include "tracer/legacy/legacy_tracer_impl.h"
 #include "tracer/tracer_impl.h"
+
+#include "3rd_party/catch2/catch.hpp"
 
 using namespace lightstep;
 //--------------------------------------------------------------------------------------------------

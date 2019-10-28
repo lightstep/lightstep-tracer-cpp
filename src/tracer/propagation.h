@@ -5,17 +5,13 @@
 #include "common/utility.h"
 #include "lightstep-tracer-common/lightstep_carrier.pb.h"
 #include "tracer/baggage_flat_map.h"
+#include "tracer/propagation_options.h"
 
 #include <google/protobuf/map.h>
 #include <opentracing/propagation.h>
 
 namespace lightstep {
 using BaggageProtobufMap = google::protobuf::Map<std::string, std::string>;
-
-struct PropagationOptions {
-  PropagationMode propagation_mode;
-  bool use_single_key = false;
-};
 
 template <class BaggageMap>
 opentracing::expected<void> InjectSpanContext(
