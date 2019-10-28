@@ -51,17 +51,17 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-TracerImpl::TracerImpl(const PropagationOptions& propagation_options,
+TracerImpl::TracerImpl(PropagationOptions&& propagation_options,
                        std::unique_ptr<Recorder>&& recorder) noexcept
     : logger_{std::make_shared<Logger>()},
-      propagation_options_{propagation_options},
+      propagation_options_{std::move(propagation_options)},
       recorder_{std::move(recorder)} {}
 
 TracerImpl::TracerImpl(std::shared_ptr<Logger> logger,
-                       const PropagationOptions& propagation_options,
+                       PropagationOptions&& propagation_options,
                        std::unique_ptr<Recorder>&& recorder) noexcept
     : logger_{std::move(logger)},
-      propagation_options_{propagation_options},
+      propagation_options_{std::move(propagation_options)},
       recorder_{std::move(recorder)} {}
 
 //------------------------------------------------------------------------------

@@ -11,11 +11,11 @@ class LegacyTracerImpl final
     : public LightStepTracer,
       public std::enable_shared_from_this<LegacyTracerImpl> {
  public:
-  LegacyTracerImpl(const PropagationOptions& propagation_options,
+  LegacyTracerImpl(PropagationOptions&& propagation_options,
                    std::unique_ptr<Recorder>&& recorder) noexcept;
 
   LegacyTracerImpl(std::shared_ptr<Logger> logger,
-                   const PropagationOptions& propagation_options,
+                   PropagationOptions&& propagation_options,
                    std::unique_ptr<Recorder>&& recorder) noexcept;
 
   std::unique_ptr<opentracing::Span> StartSpanWithOptions(

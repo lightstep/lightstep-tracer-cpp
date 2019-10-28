@@ -195,17 +195,17 @@ static void VerifyInjectExtract(const opentracing::Tracer& tracer,
 // MakeTracers
 //--------------------------------------------------------------------------------------------------
 static std::vector<std::pair<std::string, std::shared_ptr<opentracing::Tracer>>>
-MakeTracers(
-    const PropagationOptions& propagation_options = PropagationOptions{}) {
+MakeTracers(const LightStepTracerOptions& tracer_options = {}) {
   std::vector<std::pair<std::string, std::shared_ptr<opentracing::Tracer>>>
       result;
   auto legacy_tracer = std::shared_ptr<opentracing::Tracer>{
-      new LegacyTracerImpl{propagation_options,
+      new LegacyTracerImpl{MakePropagationOptions(tracer_options),
                            std::unique_ptr<Recorder>{new InMemoryRecorder{}}}};
   result.emplace_back("LegacyTracer", legacy_tracer);
 
-  auto tracer = std::shared_ptr<opentracing::Tracer>{new TracerImpl{
-      propagation_options, std::unique_ptr<Recorder>{new InMemoryRecorder{}}}};
+  auto tracer = std::shared_ptr<opentracing::Tracer>{
+      new TracerImpl{MakePropagationOptions(tracer_options),
+                     std::unique_ptr<Recorder>{new InMemoryRecorder{}}}};
   result.emplace_back("Tracer", tracer);
   return result;
 }
@@ -338,9 +338,9 @@ TEST_CASE("propagation") {
 }
 
 TEST_CASE("propagation - single key") {
-  PropagationOptions propagation_options;
-  propagation_options.use_single_key = true;
-  for (auto named_tracer : MakeTracers(propagation_options)) {
+  LightStepTracerOptions tracer_options;
+  tracer_options.use_single_key_propagation = true;
+  for (auto named_tracer : MakeTracers(tracer_options)) {
     SECTION(named_tracer.first) {
       auto tracer = named_tracer.second;
       auto multikey_tracer =

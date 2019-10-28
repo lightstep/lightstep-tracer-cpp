@@ -1,5 +1,8 @@
 #include "b3_propagator.h"
 
+#include "lightstep_propagator.h"
+#include "multiheader_propagator.h"
+
 #define PREFIX_TRACER_STATE "X-B3-"
 const opentracing::string_view FieldNameTraceID = PREFIX_TRACER_STATE "TraceId";
 const opentracing::string_view FieldNameSpanID = PREFIX_TRACER_STATE "SpanId";
@@ -26,5 +29,14 @@ opentracing::string_view B3Propagator::span_id_key() const noexcept {
 //--------------------------------------------------------------------------------------------------
 opentracing::string_view B3Propagator::sampled_key() const noexcept {
   return FieldNameSampled;
+}
+
+//--------------------------------------------------------------------------------------------------
+// MakeB3Propagator
+//--------------------------------------------------------------------------------------------------
+std::unique_ptr<Propagator> MakeB3Propagator() {
+  return std::unique_ptr<Propagator>{
+      new MultiheaderPropagator{FieldNameTraceID, FieldNameSpanID,
+                                FieldNameSampled, PrefixBaggage, true}};
 }
 }  // namespace lightstep

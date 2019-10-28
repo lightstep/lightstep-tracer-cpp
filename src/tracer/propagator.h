@@ -1,8 +1,14 @@
 #pragma once
 
-#include "tracer/propagation.h"
+#include "tracer/baggage_flat_map.h"
+
+#include <google/protobuf/map.h>
+
+#include <opentracing/propagation.h>
 
 namespace lightstep {
+using BaggageProtobufMap = google::protobuf::Map<std::string, std::string>;
+
 class Propagator {
  public:
   virtual ~Propagator() noexcept = default;

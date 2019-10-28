@@ -49,17 +49,6 @@ GetDefaultTags() {
 }
 
 //------------------------------------------------------------------------------
-// MakePropagationOptions
-//------------------------------------------------------------------------------
-static PropagationOptions MakePropagationOptions(
-    const LightStepTracerOptions& options) noexcept {
-  PropagationOptions result;
-  result.use_single_key = options.use_single_key_propagation;
-  /* result.propagation_mode = options.propagation_mode; */
-  return result;
-}
-
-//------------------------------------------------------------------------------
 // CollectorServiceFullName
 //------------------------------------------------------------------------------
 const std::string& CollectorServiceFullName() {
@@ -130,7 +119,7 @@ static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
   auto recorder = std::unique_ptr<Recorder>{
       new AutoRecorder{*logger, std::move(options), std::move(transporter)}};
   return std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
-      std::move(logger), propagation_options, std::move(recorder)}};
+      std::move(logger), std::move(propagation_options), std::move(recorder)}};
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -141,7 +130,7 @@ static std::shared_ptr<LightStepTracer> MakeStreamTracer(
   auto propagation_options = MakePropagationOptions(options);
   auto recorder = MakeStreamRecorder(*logger, std::move(options));
   return std::shared_ptr<LightStepTracer>{new TracerImpl{
-      std::move(logger), propagation_options, std::move(recorder)}};
+      std::move(logger), std::move(propagation_options), std::move(recorder)}};
 }
 
 //------------------------------------------------------------------------------
@@ -168,7 +157,7 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
   auto recorder = std::unique_ptr<Recorder>{
       new ManualRecorder{*logger, std::move(options), std::move(transporter)}};
   return std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
-      std::move(logger), propagation_options, std::move(recorder)}};
+      std::move(logger), std::move(propagation_options), std::move(recorder)}};
 }
 
 //------------------------------------------------------------------------------

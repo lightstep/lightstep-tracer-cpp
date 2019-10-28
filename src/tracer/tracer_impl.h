@@ -13,11 +13,11 @@ namespace lightstep {
 class TracerImpl final : public LightStepTracer,
                          public std::enable_shared_from_this<TracerImpl> {
  public:
-  TracerImpl(const PropagationOptions& propagation_options,
+  TracerImpl(PropagationOptions&& propagation_options,
              std::unique_ptr<Recorder>&& recorder) noexcept;
 
   TracerImpl(std::shared_ptr<Logger> logger,
-             const PropagationOptions& propagation_options,
+             PropagationOptions&& propagation_options,
              std::unique_ptr<Recorder>&& recorder) noexcept;
 
   /**

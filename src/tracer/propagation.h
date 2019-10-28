@@ -11,8 +11,6 @@
 #include <opentracing/propagation.h>
 
 namespace lightstep {
-using BaggageProtobufMap = google::protobuf::Map<std::string, std::string>;
-
 template <class BaggageMap>
 opentracing::expected<void> InjectSpanContext(
     const PropagationOptions& propagation_options, std::ostream& carrier,

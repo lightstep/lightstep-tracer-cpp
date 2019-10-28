@@ -1,5 +1,9 @@
 #pragma once
 
+#include <memory>
+
+#include "propagator.h"
+
 #include <opentracing/string_view.h>
 
 namespace lightstep {
@@ -15,4 +19,6 @@ class B3Propagator {
 
   bool supports_baggage() const noexcept { return false; }
 };
+
+std::unique_ptr<Propagator> MakeB3Propagator();
 }  // namespace lightstep

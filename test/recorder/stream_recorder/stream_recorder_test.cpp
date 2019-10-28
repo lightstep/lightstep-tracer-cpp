@@ -61,8 +61,7 @@ TEST_CASE("StreamRecorder") {
   auto stream_recorder = new StreamRecorder{*logger, std::move(tracer_options),
                                             std::move(recorder_options)};
   std::unique_ptr<Recorder> recorder{stream_recorder};
-  PropagationOptions propagation_options;
-  auto tracer = std::make_shared<TracerImpl>(logger, propagation_options,
+  auto tracer = std::make_shared<TracerImpl>(logger, PropagationOptions{},
                                              std::move(recorder));
 
   SECTION("Spans are consumed from the buffer and sent to the satellite.") {
