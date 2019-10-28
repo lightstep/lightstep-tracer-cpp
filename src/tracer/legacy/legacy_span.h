@@ -107,5 +107,11 @@ class LegacySpan final : public opentracing::Span, public LightStepSpanContext {
                              span_context.trace_id(), span_context.span_id(),
                              sampled_, span_context.baggage());
   }
+
+  bool SetSpanReference(
+      const std::pair<opentracing::SpanReferenceType,
+                      const opentracing::SpanContext*>& reference,
+      BaggageProtobufMap& baggage, collector::Reference& collector_reference,
+      uint64_t& trace_id_high, uint64_t& trace_id, bool& sampled);
 };
 }  // namespace lightstep
