@@ -55,19 +55,55 @@ void SetInjectExtractPropagationModes(
 }
 
 //--------------------------------------------------------------------------------------------------
+// MakePropagators
+//--------------------------------------------------------------------------------------------------
+static std::vector<std::unique_ptr<Propagator>> MakePropagators(
+    const std::vector<PropagationMode>& propagation_modes) {
+  std::vector<std::unique_ptr<Propagator>> result;
+  result.reserve(propagation_modes.size());
+  for (auto propagation_mode : propagation_modes) {
+    switch (propagation_mode) {
+      case PropagationMode::lightstep:
+        result.emplace_back(MakeLightStepPropagator());
+        break;
+      case PropagationMode::b3:
+        result.emplace_back(MakeB3Propagator());
+        break;
+      case PropagationMode::envoy:
+        result.emplace_back(new EnvoyPropagator{});
+        break;
+    }
+  }
+  return result;
+}
+
+//--------------------------------------------------------------------------------------------------
 // MakePropagationOptions
 //--------------------------------------------------------------------------------------------------
 PropagationOptions MakePropagationOptions(
-    const std::vector<PropagationMode>& propagation_modes) {
-  (void)propagation_modes;
-  return {};
-}
-
-PropagationOptions MakePropagationOptions(
     const LightStepTracerOptions& options) {
+  std::vector<PropagationMode> propagation_modes;
+  (void)MakePropagators;
   PropagationOptions result;
   result.use_single_key = options.use_single_key_propagation;
-  /* result.propagation_mode = options.propagation_mode; */
+  if (options.use_single_key_propagation) {
+    propagation_modes = {PropagationMode::envoy};
+  } else {
+    propagation_modes = {PropagationMode::lightstep};
+  }
+
+  std::vector<PropagationMode> inject_propagation_modes;
+  std::vector<PropagationMode> extract_propagation_modes;
+
+  SetInjectExtractPropagationModes(propagation_modes, inject_propagation_modes,
+                                   extract_propagation_modes);
+  result.inject_propagators = MakePropagators(inject_propagation_modes);
+  result.extract_propagators = MakePropagators(extract_propagation_modes);
+  if (!(propagation_modes.size() == 1 &&
+        propagation_modes[0] == PropagationMode::envoy)) {
+    result.inject_propagators.emplace_back(
+        new BaggagePropagator{PrefixBaggage});
+  }
   return result;
 }
 }  // namespace lightstep

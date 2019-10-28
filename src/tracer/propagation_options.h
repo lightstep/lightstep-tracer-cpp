@@ -21,8 +21,5 @@ void SetInjectExtractPropagationModes(
     std::vector<PropagationMode>& extract_propagation_modes);
 
 PropagationOptions MakePropagationOptions(
-    const std::vector<PropagationMode>& propagation_modes);
-
-PropagationOptions MakePropagationOptions(
     const LightStepTracerOptions& options);
 }  // namespace lightstep

@@ -4,6 +4,13 @@
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
+// constructor
+//--------------------------------------------------------------------------------------------------
+BaggagePropagator::BaggagePropagator(
+    opentracing::string_view baggage_prefix) noexcept
+    : baggage_prefix_{baggage_prefix} {}
+
+//--------------------------------------------------------------------------------------------------
 // InjectSpanContext
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<void> BaggagePropagator::InjectSpanContext(
