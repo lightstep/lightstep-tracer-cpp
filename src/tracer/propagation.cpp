@@ -122,102 +122,6 @@ template opentracing::expected<void> InjectSpanContext(
     const BaggageFlatMap& baggage);
 
 //------------------------------------------------------------------------------
-// ExtractSpanContextMultiKey
-//------------------------------------------------------------------------------
-template <class Propagator, class KeyCompare>
-static opentracing::expected<bool> ExtractSpanContextMultiKey(
-    const Propagator& propagator, const opentracing::TextMapReader& carrier,
-    uint64_t& trace_id, uint64_t& span_id, bool& sampled,
-    BaggageProtobufMap& baggage, KeyCompare key_compare) {
-  int count = 0;
-  auto baggage_prefix = propagator.baggage_prefix();
-  auto result = carrier.ForeachKey(
-      [&](opentracing::string_view key,
-          opentracing::string_view value) -> opentracing::expected<void> {
-        try {
-          if (key_compare(key, propagator.trace_id_key())) {
-            auto trace_id_maybe = HexToUint64(value);
-            if (!trace_id_maybe) {
-              return opentracing::make_unexpected(
-                  opentracing::span_context_corrupted_error);
-            }
-            trace_id = *trace_id_maybe;
-            count++;
-          } else if (key_compare(key, propagator.span_id_key())) {
-            auto span_id_maybe = HexToUint64(value);
-            if (!span_id_maybe) {
-              return opentracing::make_unexpected(
-                  opentracing::span_context_corrupted_error);
-            }
-            span_id = *span_id_maybe;
-            count++;
-          } else if (key_compare(key, propagator.sampled_key())) {
-            sampled = !(value == FalseStr || value == ZeroStr);
-            count++;
-          } else if (propagator.supports_baggage() &&
-                     key.length() > baggage_prefix.size() &&
-                     key_compare(
-                         opentracing::string_view{key.data(),
-                                                  baggage_prefix.size()},
-                         baggage_prefix)) {
-            baggage.insert(BaggageProtobufMap::value_type(
-                ToLower(opentracing::string_view{
-                    key.data() + baggage_prefix.size(),
-                    key.size() - baggage_prefix.size()}),
-                value));
-          }
-          return {};
-        } catch (const std::bad_alloc&) {
-          return opentracing::make_unexpected(
-              std::make_error_code(std::errc::not_enough_memory));
-        }
-      });
-  if (!result) {
-    return opentracing::make_unexpected(result.error());
-  }
-  if (count == 0) {
-    return false;
-  }
-  if (count > 0 && count != FieldCount) {
-    return opentracing::make_unexpected(
-        opentracing::span_context_corrupted_error);
-  }
-  return true;
-}
-
-//------------------------------------------------------------------------------
-// ExtractSpanContextSingleKey
-//------------------------------------------------------------------------------
-template <class KeyCompare>
-static opentracing::expected<bool> ExtractSpanContextSingleKey(
-    const opentracing::TextMapReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, bool& sampled, BaggageProtobufMap& baggage,
-    KeyCompare key_compare) {
-  auto value_maybe = LookupKey(carrier, PropagationSingleKey, key_compare);
-  if (!value_maybe) {
-    if (AreErrorsEqual(value_maybe.error(), opentracing::key_not_found_error)) {
-      return false;
-    }
-    return opentracing::make_unexpected(value_maybe.error());
-  }
-  auto value = *value_maybe;
-  std::string base64_decoding;
-  try {
-    base64_decoding = Base64::decode(value.data(), value.size());
-  } catch (const std::bad_alloc&) {
-    return opentracing::make_unexpected(
-        std::make_error_code(std::errc::not_enough_memory));
-  }
-  if (base64_decoding.empty()) {
-    return opentracing::make_unexpected(
-        opentracing::span_context_corrupted_error);
-  }
-  in_memory_stream istream{base64_decoding.data(), base64_decoding.size()};
-  return ExtractSpanContext(PropagationOptions{}, istream, trace_id, span_id,
-                            sampled, baggage);
-}
-
-//------------------------------------------------------------------------------
 // ExtractSpanContext
 //------------------------------------------------------------------------------
 static opentracing::expected<bool> ExtractSpanContext(
@@ -262,30 +166,6 @@ opentracing::expected<bool> ExtractSpanContext(
       std::make_error_code(std::errc::not_enough_memory));
 }
 
-template <class KeyCompare>
-static opentracing::expected<bool> ExtractSpanContext(
-    const PropagationOptions& propagation_options,
-    const opentracing::TextMapReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, bool& sampled, BaggageProtobufMap& baggage,
-    KeyCompare key_compare) {
-  if (propagation_options.use_single_key) {
-    auto span_context_maybe = ExtractSpanContextSingleKey(
-        carrier, trace_id, span_id, sampled, baggage, key_compare);
-
-    // If no span context was found, fall back to multikey extraction so as to
-    // support interoperability with other tracers.
-    if (!span_context_maybe || *span_context_maybe) {
-      return span_context_maybe;
-    }
-  }
-  if (propagation_options.propagation_mode == PropagationMode::b3) {
-    return ExtractSpanContextMultiKey(B3Propagator{}, carrier, trace_id,
-                                      span_id, sampled, baggage, key_compare);
-  }
-  return ExtractSpanContextMultiKey(LightStepPropagator{}, carrier, trace_id,
-                                    span_id, sampled, baggage, key_compare);
-}
-
 static opentracing::expected<bool> ExtractSpanContextImpl(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapReader& carrier, bool case_sensitive,
@@ -327,34 +207,5 @@ opentracing::expected<bool> ExtractSpanContext(
   return ExtractSpanContextImpl(propagation_options, carrier, false,
                                 trace_id_high, trace_id_low, span_id, sampled,
                                 baggage);
-}
-
-opentracing::expected<bool> ExtractSpanContext(
-    const PropagationOptions& propagation_options,
-    const opentracing::TextMapReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, bool& sampled, BaggageProtobufMap& baggage) {
-  return ExtractSpanContext(propagation_options, carrier, trace_id, span_id,
-                            sampled, baggage,
-                            std::equal_to<opentracing::string_view>());
-}
-
-// HTTP header field names are case insensitive, so we need to ignore case when
-// comparing against the OpenTracing field names.
-//
-// See https://stackoverflow.com/a/5259004/4447365
-opentracing::expected<bool> ExtractSpanContext(
-    const PropagationOptions& propagation_options,
-    const opentracing::HTTPHeadersReader& carrier, uint64_t& trace_id,
-    uint64_t& span_id, bool& sampled, BaggageProtobufMap& baggage) {
-  auto iequals = [](opentracing::string_view lhs,
-                    opentracing::string_view rhs) {
-    return lhs.length() == rhs.length() &&
-           std::equal(std::begin(lhs), std::end(lhs), std::begin(rhs),
-                      [](char a, char b) {
-                        return std::tolower(a) == std::tolower(b);
-                      });
-  };
-  return ExtractSpanContext(propagation_options, carrier, trace_id, span_id,
-                            sampled, baggage, iequals);
 }
 }  // namespace lightstep
