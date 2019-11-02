@@ -277,7 +277,13 @@ TEST_CASE("propagation") {
         CHECK(tracer->Inject(span->context(), text_map_carrier));
 
         // Remove a field to get an invalid span context.
-        text_map.erase(std::begin(text_map));
+        auto iter = text_map.find("ot-tracer-traceid");
+        REQUIRE(iter != text_map.end());
+        text_map.erase(iter);
+
+        for (auto& kv : text_map) {
+          std::cout << kv.first << ": " << kv.second << std::endl;
+        }
         auto span_context_maybe = tracer->Extract(text_map_carrier);
         CHECK(!span_context_maybe);
         CHECK(span_context_maybe.error() ==
