@@ -38,6 +38,15 @@ opentracing::expected<bool> ExtractSpanContext(
     uint64_t& trace_id, uint64_t& span_id, bool& sampled,
     BaggageProtobufMap& baggage);
 
+inline opentracing::expected<bool> ExtractSpanContext(
+    const PropagationOptions& propagation_options, std::istream& carrier,
+    uint64_t& trace_id_high, uint64_t& trace_id_low, uint64_t& span_id, bool& sampled,
+    BaggageProtobufMap& baggage) {
+  trace_id_high = 0;
+  return ExtractSpanContext(propagation_options, carrier, trace_id_low, span_id,
+                            sampled, baggage);
+}
+
 opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapReader& carrier, uint64_t& trace_id,
