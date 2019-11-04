@@ -61,10 +61,9 @@ opentracing::expected<bool> MultiheaderPropagator::ExtractSpanContext(
     return ExtractSpanContextImpl(carrier, trace_id_high, trace_id_low, span_id,
                                   sampled, baggage,
                                   std::equal_to<opentracing::string_view>{});
-  } else {
-    return ExtractSpanContextImpl(carrier, trace_id_high, trace_id_low, span_id,
-                                  sampled, baggage, iequals);
   }
+  return ExtractSpanContextImpl(carrier, trace_id_high, trace_id_low, span_id,
+                                sampled, baggage, iequals);
 }
 
 //--------------------------------------------------------------------------------------------------
