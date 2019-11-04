@@ -23,7 +23,7 @@ class LegacyImmutableSpanContext final : public LightStepSpanContext {
 
   uint64_t trace_id_high() const noexcept override { return trace_id_high_; }
 
-  uint64_t trace_id_low() const noexcept override { return trace_id_; }
+  uint64_t trace_id_low() const noexcept override { return trace_id_low_; }
 
   uint64_t span_id() const noexcept override { return span_id_; }
 
@@ -52,8 +52,8 @@ class LegacyImmutableSpanContext final : public LightStepSpanContext {
   }
 
  private:
-  uint64_t trace_id_high_{0};
-  uint64_t trace_id_;
+  uint64_t trace_id_high_;
+  uint64_t trace_id_low_;
   uint64_t span_id_;
   bool sampled_;
   BaggageProtobufMap baggage_;
@@ -62,7 +62,7 @@ class LegacyImmutableSpanContext final : public LightStepSpanContext {
   opentracing::expected<void> InjectImpl(
       const PropagationOptions& propagation_options, Carrier& writer) const {
     return InjectSpanContext(propagation_options, writer, trace_id_high_,
-                             trace_id_, span_id_, sampled_, baggage_);
+                             trace_id_low_, span_id_, sampled_, baggage_);
   }
 };
 }  // namespace lightstep

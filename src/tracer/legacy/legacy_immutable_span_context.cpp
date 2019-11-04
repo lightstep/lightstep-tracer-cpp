@@ -13,7 +13,7 @@ LegacyImmutableSpanContext::LegacyImmutableSpanContext(
     uint64_t trace_id_high, uint64_t trace_id_low, uint64_t span_id,
     bool sampled, const std::unordered_map<std::string, std::string>& baggage)
     : trace_id_high_{trace_id_high},
-      trace_id_{trace_id_low},
+      trace_id_low_{trace_id_low},
       span_id_{span_id},
       sampled_{sampled} {
   for (auto& baggage_item : baggage) {
@@ -32,7 +32,7 @@ LegacyImmutableSpanContext::LegacyImmutableSpanContext(
     uint64_t trace_id_high, uint64_t trace_id_low, uint64_t span_id,
     bool sampled, BaggageProtobufMap&& baggage) noexcept
     : trace_id_high_{trace_id_high},
-      trace_id_{trace_id_low},
+      trace_id_low_{trace_id_low},
       span_id_{span_id},
       sampled_{sampled},
       baggage_{std::move(baggage)} {}
