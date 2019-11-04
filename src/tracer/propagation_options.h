@@ -9,8 +9,6 @@
 
 namespace lightstep {
 struct PropagationOptions {
-  PropagationMode propagation_mode;
-  bool use_single_key = false;
   std::vector<std::unique_ptr<Propagator>> inject_propagators;
   std::vector<std::unique_ptr<Propagator>> extract_propagators;
 };
