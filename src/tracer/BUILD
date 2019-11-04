@@ -175,11 +175,10 @@ lightstep_cc_library(
 lightstep_cc_library(
     name = "propagation_lib",
     private_hdrs = [
+        "propagation_options.h",
         "propagation.h",
-        "propagation_options.h"
     ],
     srcs = [
-        "propagator.h",
         "propagation.cpp",
         "propagation_options.cpp",
         "lightstep_propagator.h",
@@ -197,6 +196,7 @@ lightstep_cc_library(
         "//src/common:hex_conversion_lib",
         "//src/common:utility_lib",
         "//src/common:in_memory_stream_lib",
+        "//src/tracer/propagation:propagator_interface",
         "//3rd_party/base64:base64_lib",
         "//lightstep-tracer-common:lightstep_carrier_proto_cc",
         ":baggage_flat_map_lib",

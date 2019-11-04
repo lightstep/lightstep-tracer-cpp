@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tracer/propagator.h"
+#include "tracer/propagation/propagator.h"
 
 namespace lightstep {
 class EnvoyPropagator final : public Propagator {
