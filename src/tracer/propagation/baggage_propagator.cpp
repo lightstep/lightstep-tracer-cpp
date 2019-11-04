@@ -1,8 +1,38 @@
-#include "tracer/baggage_propagator.h"
+#include "tracer/propagation/baggage_propagator.h"
 
-#include "tracer/propagation.h"
+#include <string>
 
 namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// InjectSpanContextBaggage
+//--------------------------------------------------------------------------------------------------
+template <class BaggageMap>
+static opentracing::expected<void> InjectSpanContextBaggage(
+    opentracing::string_view baggage_prefix,
+    const opentracing::TextMapWriter& carrier, const BaggageMap& baggage) {
+  std::string baggage_key;
+  try {
+    baggage_key = baggage_prefix;
+  } catch (const std::bad_alloc&) {
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::not_enough_memory));
+  }
+  for (const auto& baggage_item : baggage) {
+    try {
+      baggage_key.replace(std::begin(baggage_key) + baggage_prefix.size(),
+                          std::end(baggage_key), baggage_item.first);
+    } catch (const std::bad_alloc&) {
+      return opentracing::make_unexpected(
+          std::make_error_code(std::errc::not_enough_memory));
+    }
+    auto result = carrier.Set(baggage_key, baggage_item.second);
+    if (!result) {
+      return result;
+    }
+  }
+  return {};
+}
+
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
