@@ -84,7 +84,9 @@ PropagationOptions MakePropagationOptions(
     const LightStepTracerOptions& options) {
   std::vector<PropagationMode> propagation_modes;
   PropagationOptions result;
-  if (options.use_single_key_propagation) {
+  if (!options.propagation_modes.empty()) {
+    propagation_modes = options.propagation_modes;
+  } else if (options.use_single_key_propagation) {
     propagation_modes = {PropagationMode::envoy};
   } else {
     propagation_modes = {PropagationMode::lightstep};

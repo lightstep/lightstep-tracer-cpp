@@ -59,7 +59,7 @@ struct LightStepTracerOptions {
   // available on your account page at https://app.lightstep.com/account
   std::string access_token;
 
-  std::vector<PropagationMode> propagation_modes = {PropagationMode::lightstep};
+  std::vector<PropagationMode> propagation_modes;
 
   // The host and port of collector. Ignored if a custom transporter is used.
   //
