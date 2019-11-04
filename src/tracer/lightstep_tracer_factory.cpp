@@ -1,6 +1,8 @@
 #include "tracer/lightstep_tracer_factory.h"
 
+#include <iostream>
 #include <limits>
+#include <sstream>
 
 #include <google/protobuf/util/json_util.h>
 #include "lightstep-tracer-configuration/tracer_configuration.pb.h"
@@ -30,18 +32,26 @@ static std::vector<std::pair<std::string, uint16_t>> GetSatelliteEndpoints(
 //--------------------------------------------------------------------------------------------------
 // GetPropagationMode
 //--------------------------------------------------------------------------------------------------
-/* static PropagationMode GetPropagationMode(opentracing::string_view s) { */
-/*   if (s == "b3") { */
-/*     return PropagationMode::b3; */
-/*   } */
-/*   return PropagationMode::lightstep; */
-/* } */
+static PropagationMode GetPropagationMode(opentracing::string_view s) {
+  if (s == "b3") {
+    return PropagationMode::b3;
+  }
+  if (s == "lightstep") {
+    return PropagationMode::lightstep;
+  }
+  if (s == "envoy") {
+    return PropagationMode::envoy;
+  }
+  std::ostringstream oss;
+  oss << "invalid propagation mode " << s;
+  throw std::runtime_error{oss.str()};
+}
 
 //--------------------------------------------------------------------------------------------------
 // MakeTracerOptions
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<LightStepTracerOptions> MakeTracerOptions(
-    const char* configuration, std::string& error_message) {
+    const char* configuration, std::string& error_message) try {
   tracer_configuration::TracerConfiguration tracer_configuration;
   auto parse_result = google::protobuf::util::JsonStringToMessage(
       configuration, &tracer_configuration);
@@ -83,7 +93,17 @@ opentracing::expected<LightStepTracerOptions> MakeTracerOptions(
 
   options.verbose = tracer_configuration.verbose();
 
+  options.propagation_modes.reserve(
+      tracer_configuration.propagation_modes().size());
+  for (auto& propagation_mode : tracer_configuration.propagation_modes()) {
+    options.propagation_modes.push_back(GetPropagationMode(propagation_mode));
+  }
+
   return options;
+} catch (const std::exception& e) {
+  std::cerr << "Invalid options: " << e.what() << "\n";
+  return opentracing::make_unexpected(
+      std::make_error_code(std::errc::invalid_argument));
 }
 
 //--------------------------------------------------------------------------------------------------
