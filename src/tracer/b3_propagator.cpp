@@ -11,27 +11,6 @@ const opentracing::string_view FieldNameSampled = PREFIX_TRACER_STATE "Sampled";
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
-// trace_id_key
-//--------------------------------------------------------------------------------------------------
-opentracing::string_view B3Propagator::trace_id_key() const noexcept {
-  return FieldNameTraceID;
-}
-
-//--------------------------------------------------------------------------------------------------
-// span_id_key
-//--------------------------------------------------------------------------------------------------
-opentracing::string_view B3Propagator::span_id_key() const noexcept {
-  return FieldNameSpanID;
-}
-
-//--------------------------------------------------------------------------------------------------
-// sampled_key
-//--------------------------------------------------------------------------------------------------
-opentracing::string_view B3Propagator::sampled_key() const noexcept {
-  return FieldNameSampled;
-}
-
-//--------------------------------------------------------------------------------------------------
 // MakeB3Propagator
 //--------------------------------------------------------------------------------------------------
 std::unique_ptr<Propagator> MakeB3Propagator() {

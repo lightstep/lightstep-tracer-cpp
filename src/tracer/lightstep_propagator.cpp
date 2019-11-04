@@ -14,34 +14,6 @@ namespace lightstep {
 const opentracing::string_view PrefixBaggage = "ot-baggage-";
 
 //--------------------------------------------------------------------------------------------------
-// trace_id_key
-//--------------------------------------------------------------------------------------------------
-opentracing::string_view LightStepPropagator::trace_id_key() const noexcept {
-  return FieldNameTraceID;
-}
-
-//--------------------------------------------------------------------------------------------------
-// span_id_key
-//--------------------------------------------------------------------------------------------------
-opentracing::string_view LightStepPropagator::span_id_key() const noexcept {
-  return FieldNameSpanID;
-}
-
-//--------------------------------------------------------------------------------------------------
-// sampled_key
-//--------------------------------------------------------------------------------------------------
-opentracing::string_view LightStepPropagator::sampled_key() const noexcept {
-  return FieldNameSampled;
-}
-
-//--------------------------------------------------------------------------------------------------
-// baggage_prefix
-//--------------------------------------------------------------------------------------------------
-opentracing::string_view LightStepPropagator::baggage_prefix() const noexcept {
-  return PrefixBaggage;
-}
-
-//--------------------------------------------------------------------------------------------------
 // MakeLightStepPropagator
 //--------------------------------------------------------------------------------------------------
 std::unique_ptr<Propagator> MakeLightStepPropagator() {
