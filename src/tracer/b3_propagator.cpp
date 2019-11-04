@@ -1,7 +1,7 @@
 #include "b3_propagator.h"
 
 #include "lightstep_propagator.h"
-#include "multiheader_propagator.h"
+#include "tracer/propagation/multiheader_propagator.h"
 
 #define PREFIX_TRACER_STATE "X-B3-"
 const opentracing::string_view FieldNameTraceID = PREFIX_TRACER_STATE "TraceId";

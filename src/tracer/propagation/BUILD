@@ -16,15 +16,21 @@ lightstep_cc_library(
     ],
 )
 
-# lightstep_cc_library(
-#     name = "multiheader_propagator_lib",
-#     private_hdrs = [
-#         "multiheader_propagator.h",
-#     ],
-#     srcs = [
-#         "multiheader_propagator.cpp",
-#     ],
-# )
+lightstep_cc_library(
+    name = "multiheader_propagator_lib",
+    private_hdrs = [
+        "multiheader_propagator.h",
+    ],
+    srcs = [
+        "multiheader_propagator.cpp",
+    ],
+    deps = [
+        "//src/common:hex_conversion_lib",
+        "//src/common:utility_lib",
+        "//src/tracer:baggage_flat_map_lib",
+        ":propagator_interface",
+    ],
+)
 
 # lightstep_cc_library(
 #     name = "propagation_options_lib",
