@@ -249,7 +249,7 @@ bool LegacySpan::SetSpanReference(
     return false;
   }
   trace_id_high = referenced_context->trace_id_high();
-  trace_id = referenced_context->trace_id();
+  trace_id = referenced_context->trace_id_low();
   collector_reference.mutable_span_context()->set_trace_id(trace_id);
   collector_reference.mutable_span_context()->set_span_id(
       referenced_context->span_id());

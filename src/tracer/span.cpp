@@ -210,7 +210,7 @@ bool Span::SetSpanReference(
     return false;
   }
   trace_id_high = referenced_context->trace_id_high();
-  trace_id = referenced_context->trace_id();
+  trace_id = referenced_context->trace_id_low();
   WriteSpanReference(stream_, reference.first, trace_id,
                      referenced_context->span_id());
   sampled_ = sampled_ || referenced_context->sampled();

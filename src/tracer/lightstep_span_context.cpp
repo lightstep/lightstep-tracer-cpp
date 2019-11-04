@@ -16,8 +16,8 @@ bool operator==(const LightStepSpanContext& lhs,
     return baggage;
   };
 
-  return lhs.trace_id() == rhs.trace_id() && lhs.span_id() == rhs.span_id() &&
-         lhs.sampled() == rhs.sampled() &&
+  return lhs.trace_id_low() == rhs.trace_id_low() &&
+         lhs.span_id() == rhs.span_id() && lhs.sampled() == rhs.sampled() &&
          extract_baggage(lhs) == extract_baggage(rhs);
 }
 }  // namespace lightstep

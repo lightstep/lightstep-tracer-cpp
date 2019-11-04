@@ -57,7 +57,7 @@ class LegacySpan final : public opentracing::Span, public LightStepSpanContext {
 
   uint64_t trace_id_high() const noexcept override { return trace_id_high_; }
 
-  uint64_t trace_id() const noexcept override {
+  uint64_t trace_id_low() const noexcept override {
     return span_.span_context().trace_id();
   }
 

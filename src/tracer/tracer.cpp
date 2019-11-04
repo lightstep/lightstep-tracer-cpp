@@ -77,7 +77,8 @@ LightStepTracer::GetTraceSpanIdsSampled(
         opentracing::invalid_span_context_error);
   }
   std::array<uint64_t, 3> result = {
-      {lightstep_span_context->trace_id(), lightstep_span_context->span_id(),
+      {lightstep_span_context->trace_id_low(),
+       lightstep_span_context->span_id(),
        static_cast<uint64_t>(lightstep_span_context->sampled())}};
   return result;
 }

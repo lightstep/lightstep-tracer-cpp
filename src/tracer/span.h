@@ -79,7 +79,7 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
   // LightStepSpanContext
   uint64_t trace_id_high() const noexcept override { return trace_id_high_; }
 
-  uint64_t trace_id() const noexcept override { return trace_id_; }
+  uint64_t trace_id_low() const noexcept override { return trace_id_; }
 
   uint64_t span_id() const noexcept override { return span_id_; }
 
