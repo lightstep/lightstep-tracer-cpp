@@ -15,13 +15,6 @@
 #include "lightstep_propagator.h"
 
 namespace lightstep {
-const int FieldCount = 3;
-
-const opentracing::string_view PropagationSingleKey = "x-ot-span-context";
-const opentracing::string_view TrueStr = "true";
-const opentracing::string_view FalseStr = "false";
-const opentracing::string_view ZeroStr = "0";
-
 //--------------------------------------------------------------------------------------------------
 // ToLower
 //--------------------------------------------------------------------------------------------------
