@@ -5,7 +5,7 @@
 #include "b3_propagator.h"
 #include "baggage_propagator.h"
 #include "envoy_propagator.h"
-#include "lightstep_propagator.h"
+#include "tracer/propagation/lightstep_propagator.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------

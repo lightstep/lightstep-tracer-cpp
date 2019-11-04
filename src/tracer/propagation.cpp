@@ -12,7 +12,6 @@
 #include "b3_propagator.h"
 #include "common/hex_conversion.h"
 #include "common/in_memory_stream.h"
-#include "lightstep_propagator.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------

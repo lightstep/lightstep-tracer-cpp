@@ -32,6 +32,19 @@ lightstep_cc_library(
     ],
 )
 
+lightstep_cc_library(
+    name = "lightstep_propagator_lib",
+    private_hdrs = [
+        "lightstep_propagator.h",
+    ],
+    srcs = [
+        "lightstep_propagator.cpp",
+    ],
+    deps = [
+        ":multiheader_propagator_lib",
+    ],
+)
+
 # lightstep_cc_library(
 #     name = "propagation_options_lib",
 #     private_hdrs = [
