@@ -2,9 +2,9 @@
 
 #include <set>
 
-#include "envoy_propagator.h"
 #include "tracer/propagation/b3_propagator.h"
 #include "tracer/propagation/baggage_propagator.h"
+#include "tracer/propagation/envoy_propagator.h"
 #include "tracer/propagation/lightstep_propagator.h"
 
 namespace lightstep {

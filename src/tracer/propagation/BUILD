@@ -7,6 +7,19 @@ load(
 lightstep_package()
 
 lightstep_cc_library(
+    name = "utility_lib",
+    private_hdrs = [
+        "utility.h",
+    ],
+    deps = [
+        "//src/common:utility_lib",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_cc_library(
     name = "propagator_interface",
     private_hdrs = [
         "propagator.h",
@@ -58,6 +71,21 @@ lightstep_cc_library(
     ],
     deps = [
         ":lightstep_propagator_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "envoy_propagator_lib",
+    private_hdrs = [
+        "envoy_propagator.h",
+    ],
+    srcs = [
+        "envoy_propagator.cpp",
+    ],
+    deps = [
+        "//3rd_party/base64:base64_lib",
+        ":binary_propagation_lib",
+        ":utility_lib",
     ],
 )
 

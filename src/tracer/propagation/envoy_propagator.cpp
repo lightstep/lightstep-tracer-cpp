@@ -1,10 +1,10 @@
-#include "tracer/envoy_propagator.h"
+#include "tracer/propagation/envoy_propagator.h"
 
 #include <lightstep/base64/base64.h>
 
 #include "common/in_memory_stream.h"
-#include "tracer/propagation.h"
 #include "tracer/propagation/binary_propagation.h"
+#include "tracer/propagation/utility.h"
 
 const opentracing::string_view PropagationSingleKey = "x-ot-span-context";
 
