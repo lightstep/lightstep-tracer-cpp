@@ -175,12 +175,10 @@ lightstep_cc_library(
 lightstep_cc_library(
     name = "propagation_lib",
     private_hdrs = [
-        "propagation_options.h",
         "propagation.h",
     ],
     srcs = [
         "propagation.cpp",
-        "propagation_options.cpp",
     ],
     deps = [
         "//src/common:hex_conversion_lib",
@@ -193,6 +191,7 @@ lightstep_cc_library(
         "//src/tracer/propagation:b3_propagator_lib",
         "//src/tracer/propagation:envoy_propagator_lib",
         "//src/tracer/propagation:binary_propagation_lib",
+        "//src/tracer/propagation:propagation_options_lib",
         "//3rd_party/base64:base64_lib",
         "//lightstep-tracer-common:lightstep_carrier_proto_cc",
         ":baggage_flat_map_lib",

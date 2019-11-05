@@ -6,7 +6,7 @@
 #include "lightstep-tracer-common/lightstep_carrier.pb.h"
 #include "tracer/baggage_flat_map.h"
 #include "tracer/propagation/binary_propagation.h"
-#include "tracer/propagation_options.h"
+#include "tracer/propagation/propagation_options.h"
 
 #include <google/protobuf/map.h>
 #include <opentracing/propagation.h>

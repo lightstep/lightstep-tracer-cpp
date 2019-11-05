@@ -1,11 +1,11 @@
-#include "tracer/propagation_options.h"
+#include "tracer/propagation/propagation_options.h"
 
 #include <set>
 
-#include "b3_propagator.h"
-#include "baggage_propagator.h"
-#include "envoy_propagator.h"
-#include "lightstep_propagator.h"
+#include "tracer/propagation/b3_propagator.h"
+#include "tracer/propagation/baggage_propagator.h"
+#include "tracer/propagation/envoy_propagator.h"
+#include "tracer/propagation/lightstep_propagator.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------

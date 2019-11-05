@@ -123,15 +123,18 @@ lightstep_cc_library(
     ],
 )
 
-# lightstep_cc_library(
-#     name = "propagation_options_lib",
-#     private_hdrs = [
-#         "propagation_options.h",
-#     ],
-#     srcs = [
-#         "propagation_options.cpp",
-#     ],
-#     deps = [
-#         ":propagator_interface",
-#     ],
-# )
+lightstep_cc_library(
+    name = "propagation_options_lib",
+    private_hdrs = [
+        "propagation_options.h",
+    ],
+    srcs = [
+        "propagation_options.cpp",
+    ],
+    deps = [
+        ":lightstep_propagator_lib",
+        ":b3_propagator_lib",
+        ":envoy_propagator_lib",
+        ":baggage_propagator_lib",
+    ],
+)
