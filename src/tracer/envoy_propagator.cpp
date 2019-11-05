@@ -4,6 +4,7 @@
 
 #include "common/in_memory_stream.h"
 #include "tracer/propagation.h"
+#include "tracer/propagation/binary_propagation.h"
 
 const opentracing::string_view PropagationSingleKey = "x-ot-span-context";
 
@@ -60,8 +61,8 @@ opentracing::expected<void> EnvoyPropagator::InjectSpanContextImpl(
     uint64_t trace_id_low, uint64_t span_id, bool sampled,
     const BaggageMap& baggage) const {
   std::ostringstream ostream;
-  auto result = lightstep::InjectSpanContext(
-      PropagationOptions{}, ostream, trace_id_low, span_id, sampled, baggage);
+  auto result = lightstep::InjectSpanContext(ostream, trace_id_low, span_id,
+                                             sampled, baggage);
   if (!result) {
     return result;
   }
@@ -111,7 +112,7 @@ opentracing::expected<bool> EnvoyPropagator::ExtractSpanContextImpl(
         opentracing::span_context_corrupted_error);
   }
   in_memory_stream istream{base64_decoding.data(), base64_decoding.size()};
-  return lightstep::ExtractSpanContext(PropagationOptions{}, istream,
-                                       trace_id_low, span_id, sampled, baggage);
+  return lightstep::ExtractSpanContext(istream, trace_id_low, span_id, sampled,
+                                       baggage);
 }
 }  // namespace lightstep

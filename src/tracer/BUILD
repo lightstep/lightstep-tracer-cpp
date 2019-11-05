@@ -193,6 +193,7 @@ lightstep_cc_library(
         "//src/tracer/propagation:multiheader_propagator_lib",
         "//src/tracer/propagation:lightstep_propagator_lib",
         "//src/tracer/propagation:b3_propagator_lib",
+        "//src/tracer/propagation:binary_propagation_lib",
         "//3rd_party/base64:base64_lib",
         "//lightstep-tracer-common:lightstep_carrier_proto_cc",
         ":baggage_flat_map_lib",

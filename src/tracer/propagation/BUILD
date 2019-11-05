@@ -11,12 +11,12 @@ lightstep_cc_library(
     private_hdrs = [
         "propagator.h",
     ],
+    deps = [
+        "//src/tracer:baggage_flat_map_lib",
+    ],
     external_deps = [
         "@com_google_protobuf//:protobuf",
         "@io_opentracing_cpp//:opentracing",
-    ],
-    deps = [
-        "//src/tracer:baggage_flat_map_lib",
     ],
 )
 
@@ -71,6 +71,27 @@ lightstep_cc_library(
     ],
     deps = [
         ":propagator_interface",
+    ],
+)
+
+lightstep_cc_library(
+    name = "binary_propagation_lib",
+    private_hdrs = [
+        "binary_propagation.h",
+    ],
+    srcs = [
+        "binary_propagation.cpp",
+    ],
+    deps = [
+        "//src/common:in_memory_stream_lib",
+        "//src/common:utility_lib",
+        "//lightstep-tracer-common:lightstep_carrier_proto_cc",
+        "//src/tracer:baggage_flat_map_lib",
+        ":propagator_interface",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+        "@io_opentracing_cpp//:opentracing",
     ],
 )
 
