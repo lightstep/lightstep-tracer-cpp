@@ -1,6 +1,6 @@
-#include "b3_propagator.h"
+#include "tracer/propagation/b3_propagator.h"
 
-#include "lightstep_propagator.h"
+#include "tracer/propagation/lightstep_propagator.h"
 #include "tracer/propagation/multiheader_propagator.h"
 
 #define PREFIX_TRACER_STATE "X-B3-"

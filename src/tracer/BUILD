@@ -181,8 +181,6 @@ lightstep_cc_library(
     srcs = [
         "propagation.cpp",
         "propagation_options.cpp",
-        "b3_propagator.h",
-        "b3_propagator.cpp",
         "envoy_propagator.h",
         "envoy_propagator.cpp",
     ],
@@ -194,6 +192,7 @@ lightstep_cc_library(
         "//src/tracer/propagation:baggage_propagator_lib",
         "//src/tracer/propagation:multiheader_propagator_lib",
         "//src/tracer/propagation:lightstep_propagator_lib",
+        "//src/tracer/propagation:b3_propagator_lib",
         "//3rd_party/base64:base64_lib",
         "//lightstep-tracer-common:lightstep_carrier_proto_cc",
         ":baggage_flat_map_lib",

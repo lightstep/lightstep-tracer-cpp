@@ -9,7 +9,6 @@
 #include <ios>
 #include <sstream>
 
-#include "b3_propagator.h"
 #include "common/hex_conversion.h"
 #include "common/in_memory_stream.h"
 

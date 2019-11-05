@@ -49,6 +49,19 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "b3_propagator_lib",
+    private_hdrs = [
+        "b3_propagator.h",
+    ],
+    srcs = [
+        "b3_propagator.cpp",
+    ],
+    deps = [
+        ":lightstep_propagator_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "baggage_propagator_lib",
     private_hdrs = [
         "baggage_propagator.h",
