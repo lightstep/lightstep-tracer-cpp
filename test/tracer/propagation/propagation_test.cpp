@@ -11,6 +11,7 @@
 #include "lightstep/binary_carrier.h"
 #include "lightstep/tracer.h"
 #include "test/recorder/in_memory_recorder.h"
+#include "test/tracer/propagation/text_map_carrier.h"
 #include "tracer/legacy/legacy_immutable_span_context.h"
 #include "tracer/legacy/legacy_tracer_impl.h"
 #include "tracer/tracer_impl.h"
@@ -35,53 +36,6 @@ static std::string RandomlyCapitalize(opentracing::string_view s) {
   }
   return result;
 }
-
-//------------------------------------------------------------------------------
-// TextMapCarrier
-//------------------------------------------------------------------------------
-struct TextMapCarrier : opentracing::TextMapReader, opentracing::TextMapWriter {
-  explicit TextMapCarrier(
-      std::unordered_map<std::string, std::string>& text_map_)
-      : text_map(text_map_) {}
-
-  opentracing::expected<void> Set(
-      opentracing::string_view key,
-      opentracing::string_view value) const override {
-    text_map[key] = value;
-    return {};
-  }
-
-  opentracing::expected<opentracing::string_view> LookupKey(
-      opentracing::string_view key) const override {
-    if (!supports_lookup) {
-      return opentracing::make_unexpected(
-          opentracing::lookup_key_not_supported_error);
-    }
-    auto iter = text_map.find(key);
-    if (iter != text_map.end()) {
-      return opentracing::string_view{iter->second};
-    }
-    return opentracing::make_unexpected(opentracing::key_not_found_error);
-  }
-
-  opentracing::expected<void> ForeachKey(
-      std::function<opentracing::expected<void>(opentracing::string_view key,
-                                                opentracing::string_view value)>
-          f) const override {
-    ++foreach_key_call_count;
-    for (const auto& key_value : text_map) {
-      auto result = f(key_value.first, key_value.second);
-      if (!result) {
-        return result;
-      }
-    }
-    return {};
-  }
-
-  bool supports_lookup = false;
-  mutable int foreach_key_call_count = 0;
-  std::unordered_map<std::string, std::string>& text_map;
-};
 
 //------------------------------------------------------------------------------
 // HTTPHeadersCarrier

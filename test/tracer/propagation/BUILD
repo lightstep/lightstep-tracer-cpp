@@ -9,6 +9,19 @@ load(
 
 lightstep_package()
 
+lightstep_cc_library(
+    name = "text_map_carrier_lib",
+    private_hdrs = [
+        "text_map_carrier.h",
+    ],
+    srcs = [
+        "text_map_carrier.cpp",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
 lightstep_catch_test(
     name = "propagation_test",
     srcs = [
@@ -17,6 +30,7 @@ lightstep_catch_test(
     deps = [
         "//:manual_tracer_lib",
         "//test/recorder:in_memory_recorder_lib",
+        ":text_map_carrier_lib",
     ],
 )
 
