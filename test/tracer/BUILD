@@ -26,7 +26,7 @@ lightstep_catch_test(
         "propagation_options_test.cpp",
     ],
     deps = [
-        "//src/tracer:propagation_lib",
+        "//src/tracer/propagation:propagation_lib",
     ],
 )
 

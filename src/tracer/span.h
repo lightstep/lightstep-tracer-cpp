@@ -9,7 +9,7 @@
 #include "common/spin_lock_mutex.h"
 #include "tracer/baggage_flat_map.h"
 #include "tracer/lightstep_span_context.h"
-#include "tracer/propagation.h"
+#include "tracer/propagation/propagation.h"
 #include "tracer/tracer_impl.h"
 
 #include <google/protobuf/io/coded_stream.h>

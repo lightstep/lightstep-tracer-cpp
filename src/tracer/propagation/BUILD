@@ -138,3 +138,17 @@ lightstep_cc_library(
         ":baggage_propagator_lib",
     ],
 )
+
+lightstep_cc_library(
+    name = "propagation_lib",
+    private_hdrs = [
+        "propagation.h",
+    ],
+    srcs = [
+        "propagation.cpp",
+    ],
+    deps = [
+        "//src/common:in_memory_stream_lib",
+        ":propagation_options_lib",
+    ],
+)

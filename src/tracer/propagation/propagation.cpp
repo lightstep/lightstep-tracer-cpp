@@ -1,4 +1,5 @@
-#include "tracer/propagation.h"
+#include "tracer/propagation/propagation.h"
+
 #include <lightstep/base64/base64.h>
 #include <algorithm>
 #include <array>
@@ -9,7 +10,6 @@
 #include <ios>
 #include <sstream>
 
-#include "common/hex_conversion.h"
 #include "common/in_memory_stream.h"
 
 namespace lightstep {

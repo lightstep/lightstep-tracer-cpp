@@ -2,10 +2,10 @@
 
 #include <iosfwd>
 
+#include "tracer/propagation/propagator.h"
+
 #include <google/protobuf/map.h>
 #include <opentracing/propagation.h>
-
-#include "tracer/propagation/propagator.h"
 
 namespace lightstep {
 template <class BaggageMap>
