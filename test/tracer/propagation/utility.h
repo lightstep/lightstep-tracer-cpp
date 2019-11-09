@@ -38,5 +38,6 @@ void VerifyInjectExtract(const opentracing::Tracer& tracer,
   }
 }
 
-std::vector<std::unique_ptr<opentracing::SpanContext>> MakeTestSpanContexts();
+std::vector<std::unique_ptr<opentracing::SpanContext>> MakeTestSpanContexts(
+    bool use_128bit_trace_ids = false);
 }  // namespace lightstep
