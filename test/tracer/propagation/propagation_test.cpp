@@ -11,7 +11,9 @@
 #include "lightstep/binary_carrier.h"
 #include "lightstep/tracer.h"
 #include "test/recorder/in_memory_recorder.h"
+#include "test/tracer/propagation/http_headers_carrier.h"
 #include "test/tracer/propagation/text_map_carrier.h"
+#include "test/tracer/propagation/utility.h"
 #include "tracer/legacy/legacy_immutable_span_context.h"
 #include "tracer/legacy/legacy_tracer_impl.h"
 #include "tracer/tracer_impl.h"
@@ -19,56 +21,6 @@
 #include "3rd_party/catch2/catch.hpp"
 
 using namespace lightstep;
-//--------------------------------------------------------------------------------------------------
-// RandomlyCapitalize
-//--------------------------------------------------------------------------------------------------
-static std::string RandomlyCapitalize(opentracing::string_view s) {
-  static thread_local std::mt19937 random_number_generator{0};
-  std::string result;
-  result.reserve(s.size());
-  std::bernoulli_distribution distribution{0.5};
-  for (auto c : s) {
-    if (distribution(random_number_generator)) {
-      result.push_back(static_cast<char>(std::toupper(c)));
-    } else {
-      result.push_back(static_cast<char>(std::tolower(c)));
-    }
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// HTTPHeadersCarrier
-//------------------------------------------------------------------------------
-struct HTTPHeadersCarrier : opentracing::HTTPHeadersReader,
-                            opentracing::HTTPHeadersWriter {
-  explicit HTTPHeadersCarrier(
-      std::unordered_map<std::string, std::string>& text_map_)
-      : text_map(text_map_) {}
-
-  opentracing::expected<void> Set(
-      opentracing::string_view key,
-      opentracing::string_view value) const override {
-    text_map[key] = value;
-    return {};
-  }
-
-  opentracing::expected<void> ForeachKey(
-      std::function<opentracing::expected<void>(opentracing::string_view key,
-                                                opentracing::string_view value)>
-          f) const override {
-    for (const auto& key_value : text_map) {
-      auto key = RandomlyCapitalize(key_value.first);
-      auto result = f(key, key_value.second);
-      if (!result) {
-        return result;
-      }
-    }
-    return {};
-  }
-
-  std::unordered_map<std::string, std::string>& text_map;
-};
 
 //------------------------------------------------------------------------------
 // LightStepBinaryReaderWriter
@@ -79,16 +31,6 @@ class LightStepBinaryReaderWriter : public LightStepBinaryReader,
   explicit LightStepBinaryReaderWriter(lightstep::BinaryCarrier& carrier)
       : LightStepBinaryReader{&carrier}, LightStepBinaryWriter{carrier} {}
 };
-
-//------------------------------------------------------------------------------
-// AreSpanContextsEquivalent
-//------------------------------------------------------------------------------
-static bool AreSpanContextsEquivalent(
-    const opentracing::SpanContext& context1,
-    const opentracing::SpanContext& context2) {
-  return dynamic_cast<const lightstep::LightStepSpanContext&>(context1) ==
-         dynamic_cast<const lightstep::LightStepSpanContext&>(context2);
-}
 
 //------------------------------------------------------------------------------
 // MakeTestSpanContexts
@@ -117,32 +59,6 @@ MakeTestSpanContexts() {
           123, 456, false, std::unordered_map<std::string, std::string>{}}});
 
   return result;
-}
-
-//------------------------------------------------------------------------------
-// VerifyInjectExtract
-//------------------------------------------------------------------------------
-template <class Carrier>
-static void VerifyInjectExtract(const opentracing::Tracer& tracer,
-                                const opentracing::SpanContext& span_context,
-                                Carrier& carrier) {
-  auto rcode = tracer.Inject(span_context, carrier);
-  if (!rcode) {
-    throw std::runtime_error{"failed to inject span context: " +
-                             rcode.error().message()};
-  }
-  auto span_context_maybe = tracer.Extract(carrier);
-  if (!span_context_maybe) {
-    throw std::runtime_error{"failed to extract span context: " +
-                             span_context_maybe.error().message()};
-  }
-  if (*span_context_maybe == nullptr) {
-    throw std::runtime_error{"no span context extracted"};
-  }
-
-  if (!AreSpanContextsEquivalent(span_context, **span_context_maybe)) {
-    throw std::runtime_error{"span contexts not equal"};
-  }
 }
 
 //--------------------------------------------------------------------------------------------------

@@ -22,6 +22,35 @@ lightstep_cc_library(
     ],
 )
 
+lightstep_cc_library(
+    name = "http_headers_carrier_lib",
+    private_hdrs = [
+        "http_headers_carrier.h",
+    ],
+    srcs = [
+        "http_headers_carrier.cpp",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_cc_library(
+    name = "utility_lib",
+    private_hdrs = [
+        "utility.h",
+    ],
+    srcs = [
+        "utility.cpp",
+    ],
+    deps = [
+        "//src/tracer:lightstep_span_context_interface",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
 lightstep_catch_test(
     name = "propagation_test",
     srcs = [
@@ -31,6 +60,8 @@ lightstep_catch_test(
         "//:manual_tracer_lib",
         "//test/recorder:in_memory_recorder_lib",
         ":text_map_carrier_lib",
+        ":http_headers_carrier_lib",
+        ":utility_lib",
     ],
 )
 
