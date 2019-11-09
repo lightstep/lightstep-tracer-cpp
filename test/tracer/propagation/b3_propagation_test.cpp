@@ -36,4 +36,10 @@ TEST_CASE("b3 propagation") {
       }
     }
   }
+
+  SECTION("Verify extraction against specific values") {
+  }
+
+  SECTION("A child keeps the same trace id as its parent") {
+  }
 }

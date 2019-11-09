@@ -172,36 +172,6 @@ lightstep_cc_library(
     ],
 )
 
-# lightstep_cc_library(
-#     name = "propagation_lib",
-#     private_hdrs = [
-#         "propagation.h",
-#     ],
-#     srcs = [
-#         "propagation.cpp",
-#     ],
-#     deps = [
-#         "//src/common:hex_conversion_lib",
-#         "//src/common:utility_lib",
-#         "//src/common:in_memory_stream_lib",
-#         "//src/tracer/propagation:propagator_interface",
-#         "//src/tracer/propagation:baggage_propagator_lib",
-#         "//src/tracer/propagation:multiheader_propagator_lib",
-#         "//src/tracer/propagation:lightstep_propagator_lib",
-#         "//src/tracer/propagation:b3_propagator_lib",
-#         "//src/tracer/propagation:envoy_propagator_lib",
-#         "//src/tracer/propagation:binary_propagation_lib",
-#         "//src/tracer/propagation:propagation_options_lib",
-#         "//3rd_party/base64:base64_lib",
-#         "//lightstep-tracer-common:lightstep_carrier_proto_cc",
-#         ":baggage_flat_map_lib",
-#     ],
-#     external_deps = [
-#         "@com_google_protobuf//:protobuf",
-#         "@io_opentracing_cpp//:opentracing",
-#     ],
-# )
-
 lightstep_cc_library(
     name = "counting_metrics_observer_lib",
     private_hdrs = [
