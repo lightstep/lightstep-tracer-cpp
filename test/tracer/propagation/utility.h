@@ -5,6 +5,7 @@
 #include <opentracing/tracer.h>
 
 #include <stdexcept>
+#include <vector>
 
 namespace lightstep {
 inline bool AreSpanContextsEquivalent(
@@ -36,4 +37,6 @@ void VerifyInjectExtract(const opentracing::Tracer& tracer,
     throw std::runtime_error{"span contexts not equal"};
   }
 }
+
+std::vector<std::unique_ptr<opentracing::SpanContext>> MakeTestSpanContexts();
 }  // namespace lightstep

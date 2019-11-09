@@ -45,6 +45,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/tracer:lightstep_span_context_interface",
+        "//src/tracer/legacy:legacy_immutable_span_context_lib",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",
@@ -55,6 +56,20 @@ lightstep_catch_test(
     name = "propagation_test",
     srcs = [
         "propagation_test.cpp",
+    ],
+    deps = [
+        "//:manual_tracer_lib",
+        "//test/recorder:in_memory_recorder_lib",
+        ":text_map_carrier_lib",
+        ":http_headers_carrier_lib",
+        ":utility_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "envoy_propagation_test",
+    srcs = [
+        "envoy_propagation_test.cpp",
     ],
     deps = [
         "//:manual_tracer_lib",
