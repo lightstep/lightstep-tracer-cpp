@@ -211,7 +211,14 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/recorder/manual_recorder.cpp
                    src/recorder/transporter.cpp
                    src/tracer/binary_carrier.cpp
-                   src/tracer/propagation.cpp
+                   src/tracer/propagation/b3_propagator.cpp
+                   src/tracer/propagation/baggage_propagator.cpp
+                   src/tracer/propagation/binary_propagation.cpp
+                   src/tracer/propagation/envoy_propagator.cpp
+                   src/tracer/propagation/lightstep_propagator.cpp
+                   src/tracer/propagation/multiheader_propagator.cpp
+                   src/tracer/propagation/propagation.cpp
+                   src/tracer/propagation/propagation_options.cpp
                    src/tracer/legacy/legacy_immutable_span_context.cpp
                    src/tracer/legacy/legacy_span.cpp
                    src/tracer/legacy/legacy_tracer_impl.cpp
