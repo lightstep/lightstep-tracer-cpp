@@ -198,6 +198,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/common/fragment_input_stream.cpp
                    src/common/fragment_array_input_stream.cpp
                    src/common/protobuf.cpp
+                   src/common/hex_conversion.cpp
                    src/common/in_memory_stream.cpp
                    src/common/logger.cpp
                    src/common/random.cpp
