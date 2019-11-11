@@ -30,6 +30,6 @@ TEST_CASE("lightstep propagation") {
     REQUIRE(span_context_maybe);
     text_map.clear();
     REQUIRE(tracer->Inject(**span_context_maybe, text_map_carrier));
-    REQUIRE(text_map["ot-tracer-traceid"] == "8F1359EBAFA5C0C6");
+    REQUIRE(text_map["ot-tracer-traceid"] == "8f1359ebafa5c0c6");
   }
 }

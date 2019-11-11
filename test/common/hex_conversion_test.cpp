@@ -41,11 +41,11 @@ TEST_CASE("hex-integer conversions (64-bit)") {
     REQUIRE(Uint64ToHex(0, data) == "0000000000000000");
     REQUIRE(Uint64ToHex(1, data) == "0000000000000001");
     REQUIRE(Uint64ToHex(std::numeric_limits<uint64_t>::max(), data) ==
-            "FFFFFFFFFFFFFFFF");
+            "ffffffffffffffff");
 
     REQUIRE(*HexToUint64("0") == 0);
     REQUIRE(*HexToUint64("1") == 1);
-    REQUIRE(*HexToUint64("FFFFFFFFFFFFFFFF") ==
+    REQUIRE(*HexToUint64("ffffffffffffffff") ==
             std::numeric_limits<uint64_t>::max());
   }
 
@@ -92,8 +92,8 @@ TEST_CASE("hex-integer conversions (128-bit)") {
             "0000000000000000");
     REQUIRE(serializer.Uint128ToHex(std::numeric_limits<uint64_t>::max(),
                                     std::numeric_limits<uint64_t>::max()) ==
-            "FFFFFFFFFFFFFFFF"
-            "FFFFFFFFFFFFFFFF");
+            "ffffffffffffffff"
+            "ffffffffffffffff");
   }
 
   SECTION("Verify hex conversion and back against a range of values.") {
