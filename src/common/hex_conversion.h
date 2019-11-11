@@ -54,12 +54,26 @@ opentracing::expected<void> HexToUint128(opentracing::string_view s,
                                          uint64_t& x_high,
                                          uint64_t& x_low) noexcept;
 
+/**
+ * Serialize integers to hex
+ */
 class HexSerializer {
  public:
+  /**
+   * Serialize a 64-bit integer in hex
+   * @param x the number to serialize
+   * @return a string_view of the hex encoding of x
+   */
   opentracing::string_view Uint64ToHex(uint64_t x) noexcept {
     return lightstep::Uint64ToHex(x, buffer_.data());
   }
 
+  /**
+   * Serialize a 128-bit integer in hex
+   * @param x_high the high part of the number to serialize
+   * @param x_low the low part of the number to serialize
+   * @return a string_view of the hex encoding of x_high,x_low
+   */
   opentracing::string_view Uint128ToHex(uint64_t x_high,
                                         uint64_t x_low) noexcept {
     if (x_high == 0) {
