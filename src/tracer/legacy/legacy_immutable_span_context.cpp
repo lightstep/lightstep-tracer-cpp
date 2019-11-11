@@ -5,11 +5,6 @@ namespace lightstep {
 // constructor
 //------------------------------------------------------------------------------
 LegacyImmutableSpanContext::LegacyImmutableSpanContext(
-    uint64_t trace_id, uint64_t span_id, bool sampled,
-    const std::unordered_map<std::string, std::string>& baggage)
-    : LegacyImmutableSpanContext{0, trace_id, span_id, sampled, baggage} {}
-
-LegacyImmutableSpanContext::LegacyImmutableSpanContext(
     uint64_t trace_id_high, uint64_t trace_id_low, uint64_t span_id,
     bool sampled, const std::unordered_map<std::string, std::string>& baggage)
     : trace_id_high_{trace_id_high},

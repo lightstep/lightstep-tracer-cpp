@@ -91,7 +91,7 @@ LightStepTracer::MakeSpanContext(
     uint64_t trace_id, uint64_t span_id, bool sampled,
     std::unordered_map<std::string, std::string>&& baggage) const noexcept try {
   std::unique_ptr<opentracing::SpanContext> result{
-      new LegacyImmutableSpanContext{trace_id, span_id, sampled, baggage}};
+      new LegacyImmutableSpanContext{0, trace_id, span_id, sampled, baggage}};
   return std::move(result);
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(
