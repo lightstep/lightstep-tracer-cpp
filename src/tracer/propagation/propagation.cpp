@@ -50,7 +50,7 @@ template opentracing::expected<void> InjectSpanContext(
 static opentracing::expected<bool> ExtractSpanContextImpl(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapReader& carrier, bool case_sensitive,
-    uint64_t trace_id_high, uint64_t& trace_id_low, uint64_t& span_id,
+    uint64_t& trace_id_high, uint64_t& trace_id_low, uint64_t& span_id,
     bool& sampled, BaggageProtobufMap& baggage) {
   for (auto& propagator : propagation_options.extract_propagators) {
     baggage.clear();

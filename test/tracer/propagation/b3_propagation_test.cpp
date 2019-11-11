@@ -37,9 +37,18 @@ TEST_CASE("b3 propagation") {
     }
   }
 
-  SECTION("Verify extraction against specific values") {
+  SECTION("Verify extraction against a 128-bit trace id") {
+    text_map = {{"x-b3-traceid", "aef5705a090040838f1359ebafa5c0c6"},
+                {"x-b3-spanid", "aef5705a09004083"}};
+    auto span_context_maybe = tracer->Extract(http_headers_carrier);
+    std::cout << "**********************************" << std::endl;
+    REQUIRE(span_context_maybe);
+    auto span_context =
+        dynamic_cast<LightStepSpanContext*>(span_context_maybe->get());
+    REQUIRE(span_context->trace_id_high() == 0xaef5705a09004083ul);
+    REQUIRE(span_context->trace_id_low() == 0x8f1359ebafa5c0c6ul);
+    REQUIRE(span_context->span_id() == 0xaef5705a09004083ul);
   }
 
-  SECTION("A child keeps the same trace id as its parent") {
-  }
+  SECTION("A child keeps the same trace id as its parent") {}
 }
