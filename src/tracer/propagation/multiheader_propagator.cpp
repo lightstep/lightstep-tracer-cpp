@@ -106,6 +106,7 @@ opentracing::expected<bool> MultiheaderPropagator::ExtractSpanContextImpl(
     const opentracing::TextMapReader& carrier, uint64_t& trace_id_high,
     uint64_t& trace_id_low, uint64_t& span_id, bool& sampled,
     BaggageProtobufMap& baggage, const KeyCompare& key_compare) const {
+  sampled = true;
   int count = 0;
   auto result =
       carrier.ForeachKey([&](opentracing::string_view key,

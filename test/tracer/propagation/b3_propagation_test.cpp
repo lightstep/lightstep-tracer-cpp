@@ -13,9 +13,10 @@ using namespace lightstep;
 TEST_CASE("b3 propagation") {
   LightStepTracerOptions tracer_options;
   tracer_options.propagation_modes = {PropagationMode::b3};
+  auto recorder = new InMemoryRecorder{};
   auto tracer = std::shared_ptr<opentracing::Tracer>{
       new TracerImpl{MakePropagationOptions(tracer_options),
-                     std::unique_ptr<Recorder>{new InMemoryRecorder{}}}};
+                     std::unique_ptr<Recorder>{recorder}}};
   std::unordered_map<std::string, std::string> text_map;
   TextMapCarrier text_map_carrier{text_map};
   HTTPHeadersCarrier http_headers_carrier{text_map};
@@ -74,5 +75,14 @@ TEST_CASE("b3 propagation") {
         dynamic_cast<const LightStepSpanContext*>(&span->context());
     REQUIRE(span_context1->trace_id_high() == span_context2->trace_id_high());
     REQUIRE(span_context1->trace_id_low() == span_context2->trace_id_low());
+  }
+
+  SECTION("The low part of 128-bit trace ids are sent to satellites") {
+    text_map = {{"x-b3-traceid", "aef5705a090040838f1359ebafa5c0c6"},
+                {"x-b3-spanid", "aef5705a09004083"}};
+    auto span_context_maybe = tracer->Extract(http_headers_carrier);
+    REQUIRE(span_context_maybe);
+    tracer->StartSpan("abc", {opentracing::ChildOf(span_context_maybe->get())});
+    REQUIRE(recorder->top().span_context().trace_id() == 0x8f1359ebafa5c0c6ul);
   }
 }
