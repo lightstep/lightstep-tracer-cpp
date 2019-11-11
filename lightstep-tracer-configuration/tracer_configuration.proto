@@ -62,5 +62,13 @@ message TracerConfiguration {
   // Log at the debug level.
   bool verbose = 13;
 
+  // `propagation_modes` indicates the format that span contexts should be
+  // inject and extracted. Note that order is significant here since extraction
+  // will be done in the order specified until successful or an error occurs.
+  //
+  // If no propagation modes are specified, lightstep's propagation mode will be
+  // used.
+  //
+  // Also, if `use_single_key_propagation` is set, this field will be ignored.
   repeated string propagation_modes = 14;
 }
