@@ -11,7 +11,7 @@
 namespace lightstep {
 class LightStepSpanContext : public opentracing::SpanContext {
  public:
-  virtual uint64_t trace_id_high() const noexcept { return 0; }
+  virtual uint64_t trace_id_high() const noexcept = 0;
 
   virtual uint64_t trace_id_low() const noexcept = 0;
 
