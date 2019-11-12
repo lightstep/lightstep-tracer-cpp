@@ -3,6 +3,9 @@
 #include "tracer/propagation/propagator.h"
 
 namespace lightstep {
+/**
+ * Propagator for multi-header formats.
+ */
 class MultiheaderPropagator final : public Propagator {
  public:
   MultiheaderPropagator(opentracing::string_view trace_id_key,

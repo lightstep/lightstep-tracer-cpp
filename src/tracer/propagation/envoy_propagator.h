@@ -3,6 +3,9 @@
 #include "tracer/propagation/propagator.h"
 
 namespace lightstep {
+/**
+ * Propagator for Envoy's single-header format.
+ */
 class EnvoyPropagator final : public Propagator {
  public:
   // Propagator
