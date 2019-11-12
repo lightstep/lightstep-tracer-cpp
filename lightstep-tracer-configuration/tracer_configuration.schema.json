@@ -72,6 +72,14 @@
     "verbose": {
       "type": "boolean",
       "description": "Log at the debug level."
+    },
+
+    "propagation_modes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of propagation modes to use for injection/extraction.\nValid values are \"lightstep\", \"b3\", and \"envoy\"."
     }
   },
   "definitions": {
