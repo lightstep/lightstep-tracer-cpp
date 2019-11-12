@@ -68,6 +68,20 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "immutable_span_context_lib",
+    private_hdrs = [
+        "immutable_span_context.h",
+    ],
+    srcs = [
+        "immutable_span_context.cpp",
+    ],
+    deps = [
+        "//src/tracer:lightstep_span_context_interface",
+    ],
+)
+
+
+lightstep_cc_library(
     name = "tracer_impl_lib",
     private_hdrs = [
         "tracer_impl.h",
@@ -84,7 +98,7 @@ lightstep_cc_library(
         "//src/common:serialization_chain_lib",
         "//src/common:spin_lock_mutex_lib",
         "//src/recorder:recorder_interface",
-        "//src/tracer/legacy:legacy_immutable_span_context_lib",
+        ":immutable_span_context_lib",
         ":baggage_flat_map_lib",
         ":lightstep_span_context_interface",
         "//src/tracer/propagation:propagation_lib",

@@ -1,5 +1,5 @@
 #include "tracer/legacy/legacy_tracer_impl.h"
-#include "tracer/legacy/legacy_immutable_span_context.h"
+#include "tracer/immutable_span_context.h"
 #include "tracer/legacy/legacy_span.h"
 
 namespace lightstep {
@@ -40,9 +40,8 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
   if (!*extract_maybe) {
     return std::unique_ptr<opentracing::SpanContext>{nullptr};
   }
-  std::unique_ptr<opentracing::SpanContext> result{
-      new LegacyImmutableSpanContext{trace_id_high, trace_id_low, span_id,
-                                     sampled, std::move(baggage)}};
+  std::unique_ptr<opentracing::SpanContext> result{new ImmutableSpanContext{
+      trace_id_high, trace_id_low, span_id, sampled, std::move(baggage)}};
   return std::move(result);
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(

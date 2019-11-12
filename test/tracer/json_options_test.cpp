@@ -14,10 +14,8 @@ TEST_CASE("LightStepTracerFactory") {
     auto options_maybe = MakeTracerOptions(config, error_message);
     REQUIRE(options_maybe);
     std::vector<PropagationMode> expected_propagation_modes = {
-      PropagationMode::lightstep,
-      PropagationMode::b3,
-      PropagationMode::envoy
-    };
+        PropagationMode::lightstep, PropagationMode::b3,
+        PropagationMode::envoy};
     REQUIRE(options_maybe->propagation_modes == expected_propagation_modes);
   }
 

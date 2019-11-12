@@ -11,4 +11,4 @@ namespace lightstep {
  */
 opentracing::expected<LightStepTracerOptions> MakeTracerOptions(
     const char* configuration, std::string& error_message);
-} // namespace lightstep
+}  // namespace lightstep

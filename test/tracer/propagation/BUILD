@@ -45,7 +45,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/tracer:lightstep_span_context_interface",
-        "//src/tracer/legacy:legacy_immutable_span_context_lib",
+        "//src/tracer:immutable_span_context_lib",
     ],
     external_deps = [
         "@io_opentracing_cpp//:opentracing",

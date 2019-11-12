@@ -16,7 +16,7 @@
 #include "recorder/grpc_transporter.h"
 #include "recorder/manual_recorder.h"
 #include "recorder/stream_recorder.h"
-#include "tracer/legacy/legacy_immutable_span_context.h"
+#include "tracer/immutable_span_context.h"
 #include "tracer/legacy/legacy_tracer_impl.h"
 #include "tracer/tracer_impl.h"
 
@@ -91,7 +91,7 @@ LightStepTracer::MakeSpanContext(
     uint64_t trace_id, uint64_t span_id, bool sampled,
     std::unordered_map<std::string, std::string>&& baggage) const noexcept try {
   std::unique_ptr<opentracing::SpanContext> result{
-      new LegacyImmutableSpanContext{0, trace_id, span_id, sampled, baggage}};
+      new ImmutableSpanContext{0, trace_id, span_id, sampled, baggage}};
   return std::move(result);
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(

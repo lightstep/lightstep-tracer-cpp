@@ -221,7 +221,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/tracer/propagation/multiheader_propagator.cpp
                    src/tracer/propagation/propagation.cpp
                    src/tracer/propagation/propagation_options.cpp
-                   src/tracer/legacy/legacy_immutable_span_context.cpp
+                   src/tracer/immutable_span_context.cpp
                    src/tracer/legacy/legacy_span.cpp
                    src/tracer/legacy/legacy_tracer_impl.cpp
                    src/tracer/lightstep_span_context.cpp

@@ -6,8 +6,8 @@
 #include <stdexcept>
 
 #include <google/protobuf/util/json_util.h>
-#include "lightstep-tracer-configuration/tracer_configuration.pb.h"
 #include <opentracing/tracer_factory.h>
+#include "lightstep-tracer-configuration/tracer_configuration.pb.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -107,4 +107,4 @@ opentracing::expected<LightStepTracerOptions> MakeTracerOptions(
   return opentracing::make_unexpected(
       std::make_error_code(std::errc::invalid_argument));
 }
-} // namespace lightstep
+}  // namespace lightstep
