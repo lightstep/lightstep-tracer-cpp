@@ -8,6 +8,7 @@
 #include <stdexcept>
 
 #include "tracer/lightstep_tracer_factory.h"
+#include "tracer/json_options.h"
 
 #include "google/protobuf/util/json_util.h"
 
