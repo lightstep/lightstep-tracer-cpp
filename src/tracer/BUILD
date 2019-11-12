@@ -94,6 +94,22 @@ lightstep_cc_library(
     ],
 )
 
+lightstep_cc_library(
+    name = "json_options_lib",
+    private_hdrs = [
+        "json_options.h",
+    ],
+    srcs = [
+        "json_options.cpp",
+    ],
+    deps = [
+        "//lightstep-tracer-configuration:tracer_configuration_proto_cc",
+        "//include/lightstep:tracer_interface",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+    ],
+)
 
 lightstep_cc_library(
     name = "lightstep_tracer_factory_lib",
@@ -106,6 +122,7 @@ lightstep_cc_library(
     deps = [
         "//lightstep-tracer-configuration:tracer_configuration_proto_cc",
         "//include/lightstep:tracer_interface",
+        ":json_options_lib",
     ],
     external_deps = [
         "@com_google_protobuf//:protobuf",

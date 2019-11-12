@@ -11,6 +11,7 @@
 #include "tracer/counting_metrics_observer.h"
 #include "tracer/lightstep_tracer_factory.h"
 #include "tracer/tracer_impl.h"
+#include "tracer/json_options.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------

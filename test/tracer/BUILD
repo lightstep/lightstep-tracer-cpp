@@ -50,6 +50,16 @@ lightstep_catch_test(
     ],
 )
 
+lightstep_catch_test(
+    name = "json_options_test",
+    srcs = [
+        "json_options_test.cpp",
+    ],
+    deps = [
+         "//src/tracer:json_options_lib",
+    ],
+)
+
 lightstep_portable_cc_binary(
     name = "span_probe",
     srcs = [

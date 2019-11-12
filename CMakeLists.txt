@@ -212,6 +212,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/recorder/manual_recorder.cpp
                    src/recorder/transporter.cpp
                    src/tracer/binary_carrier.cpp
+                   src/tracer/json_options.cpp
                    src/tracer/propagation/b3_propagator.cpp
                    src/tracer/propagation/baggage_propagator.cpp
                    src/tracer/propagation/binary_propagation.cpp
