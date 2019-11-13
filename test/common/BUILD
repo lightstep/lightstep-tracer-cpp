@@ -70,6 +70,16 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "hex_conversion_test",
+    srcs = [
+        "hex_conversion_test.cpp",
+    ],
+    deps = [
+        "//src/common:hex_conversion_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "logger_test",
     srcs = [
         "logger_test.cpp",

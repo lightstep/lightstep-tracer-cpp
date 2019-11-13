@@ -10,17 +10,6 @@ load(
 lightstep_package()
 
 lightstep_catch_test(
-    name = "propagation_test",
-    srcs = [
-        "propagation_test.cpp",
-    ],
-    deps = [
-        "//:manual_tracer_lib",
-        "//test/recorder:in_memory_recorder_lib",
-    ],
-)
-
-lightstep_catch_test(
     name = "tracer_test",
     srcs = [
         "tracer_test.cpp",
@@ -58,6 +47,16 @@ lightstep_catch_test(
     deps = [
         "//src/tracer:serialization_lib",
         "//src/common:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "json_options_test",
+    srcs = [
+        "json_options_test.cpp",
+    ],
+    deps = [
+         "//src/tracer:json_options_lib",
     ],
 )
 

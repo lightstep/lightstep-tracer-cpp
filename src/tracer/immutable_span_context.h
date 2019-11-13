@@ -3,16 +3,27 @@
 #include "tracer/lightstep_span_context.h"
 
 namespace lightstep {
-class LegacyImmutableSpanContext final : public LightStepSpanContext {
+/**
+ * Implements a span context with immutable values.
+ */
+class ImmutableSpanContext final : public LightStepSpanContext {
  public:
-  LegacyImmutableSpanContext(
-      uint64_t trace_id, uint64_t span_id, bool sampled,
+  ImmutableSpanContext(
+      uint64_t trace_id_high, uint64_t trace_id_low, uint64_t span_id,
+      bool sampled,
       const std::unordered_map<std::string, std::string>& baggage);
 
-  LegacyImmutableSpanContext(uint64_t trace_id, uint64_t span_id, bool sampled,
-                             BaggageProtobufMap&& baggage) noexcept;
+  ImmutableSpanContext(uint64_t trace_id, uint64_t span_id, bool sampled,
+                       BaggageProtobufMap&& baggage) noexcept;
 
-  uint64_t trace_id() const noexcept override { return trace_id_; }
+  ImmutableSpanContext(uint64_t trace_id_high, uint64_t trace_id_low,
+                       uint64_t span_id, bool sampled,
+                       BaggageProtobufMap&& baggage) noexcept;
+
+  // LightStepSpanContext
+  uint64_t trace_id_high() const noexcept override { return trace_id_high_; }
+
+  uint64_t trace_id_low() const noexcept override { return trace_id_low_; }
 
   uint64_t span_id() const noexcept override { return span_id_; }
 
@@ -41,7 +52,8 @@ class LegacyImmutableSpanContext final : public LightStepSpanContext {
   }
 
  private:
-  uint64_t trace_id_;
+  uint64_t trace_id_high_;
+  uint64_t trace_id_low_;
   uint64_t span_id_;
   bool sampled_;
   BaggageProtobufMap baggage_;
@@ -49,8 +61,8 @@ class LegacyImmutableSpanContext final : public LightStepSpanContext {
   template <class Carrier>
   opentracing::expected<void> InjectImpl(
       const PropagationOptions& propagation_options, Carrier& writer) const {
-    return InjectSpanContext(propagation_options, writer, trace_id_, span_id_,
-                             sampled_, baggage_);
+    return InjectSpanContext(propagation_options, writer, trace_id_high_,
+                             trace_id_low_, span_id_, sampled_, baggage_);
   }
 };
 }  // namespace lightstep

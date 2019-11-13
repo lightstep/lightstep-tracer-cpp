@@ -9,6 +9,7 @@
 #include <functional>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 namespace lightstep {
 
@@ -19,6 +20,9 @@ const std::string& CollectorMethodName();
 // Follows log level ordering defined in spdlog.
 //  See https://github.com/gabime/spdlog/blob/master/include/spdlog/common.h
 enum class LogLevel { debug = 1, info = 2, warn = 3, error = 4, off = 6 };
+
+// Denotes different span context propagation formats.
+enum class PropagationMode { lightstep = 1, b3 = 2, envoy = 3 };
 
 // DynamicConfigurationValue is used for configuration values that can
 // be either fixed or changed at runtime. To specify a fixed value, just assign
@@ -55,6 +59,16 @@ struct LightStepTracerOptions {
   // `access_token` is the unique API key for your LightStep project. It is
   // available on your account page at https://app.lightstep.com/account
   std::string access_token;
+
+  // `propagation_modes` indicates the format that span contexts should be
+  // inject and extracted. Note that order is significant here since extraction
+  // will be done in the order specified until successful or an error occurs.
+  //
+  // If no propagation modes are specified, lightstep's propagation mode will be
+  // used.
+  //
+  // Also, if `use_single_key_propagation` is set, this field will be ignored.
+  std::vector<PropagationMode> propagation_modes;
 
   // The host and port of collector. Ignored if a custom transporter is used.
   //

@@ -198,6 +198,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/common/fragment_input_stream.cpp
                    src/common/fragment_array_input_stream.cpp
                    src/common/protobuf.cpp
+                   src/common/hex_conversion.cpp
                    src/common/in_memory_stream.cpp
                    src/common/logger.cpp
                    src/common/random.cpp
@@ -211,8 +212,16 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/recorder/manual_recorder.cpp
                    src/recorder/transporter.cpp
                    src/tracer/binary_carrier.cpp
-                   src/tracer/propagation.cpp
-                   src/tracer/legacy/legacy_immutable_span_context.cpp
+                   src/tracer/json_options.cpp
+                   src/tracer/propagation/b3_propagator.cpp
+                   src/tracer/propagation/baggage_propagator.cpp
+                   src/tracer/propagation/binary_propagation.cpp
+                   src/tracer/propagation/envoy_propagator.cpp
+                   src/tracer/propagation/lightstep_propagator.cpp
+                   src/tracer/propagation/multiheader_propagator.cpp
+                   src/tracer/propagation/propagation.cpp
+                   src/tracer/propagation/propagation_options.cpp
+                   src/tracer/immutable_span_context.cpp
                    src/tracer/legacy/legacy_span.cpp
                    src/tracer/legacy/legacy_tracer_impl.cpp
                    src/tracer/lightstep_span_context.cpp

@@ -5,9 +5,9 @@
 #include <memory>
 
 #include "common/fragment_input_stream.h"
+#include "common/hex_conversion.h"
 #include "common/noncopyable.h"
 #include "common/serialization.h"
-#include "common/utility.h"
 
 #include <google/protobuf/io/zero_copy_stream.h>
 

@@ -1,5 +1,5 @@
 #include "tracer/legacy/legacy_tracer_impl.h"
-#include "tracer/legacy/legacy_immutable_span_context.h"
+#include "tracer/immutable_span_context.h"
 #include "tracer/legacy/legacy_span.h"
 
 namespace lightstep {
@@ -27,20 +27,21 @@ static opentracing::expected<void> InjectImpl(
 template <class Carrier>
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
     const PropagationOptions& propagation_options, Carrier& reader) try {
-  uint64_t trace_id, span_id;
+  uint64_t trace_id_high, trace_id_low, span_id;
   bool sampled;
   BaggageProtobufMap baggage;
-  auto extract_maybe = ExtractSpanContext(propagation_options, reader, trace_id,
-                                          span_id, sampled, baggage);
+  auto extract_maybe =
+      ExtractSpanContext(propagation_options, reader, trace_id_high,
+                         trace_id_low, span_id, sampled, baggage);
+
   if (!extract_maybe) {
     return opentracing::make_unexpected(extract_maybe.error());
   }
   if (!*extract_maybe) {
     return std::unique_ptr<opentracing::SpanContext>{nullptr};
   }
-  std::unique_ptr<opentracing::SpanContext> result{
-      new LegacyImmutableSpanContext{trace_id, span_id, sampled,
-                                     std::move(baggage)}};
+  std::unique_ptr<opentracing::SpanContext> result{new ImmutableSpanContext{
+      trace_id_high, trace_id_low, span_id, sampled, std::move(baggage)}};
   return std::move(result);
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(
@@ -51,18 +52,17 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
 // Constructor
 //------------------------------------------------------------------------------
 LegacyTracerImpl::LegacyTracerImpl(
-    const PropagationOptions& propagation_options,
+    PropagationOptions&& propagation_options,
     std::unique_ptr<Recorder>&& recorder) noexcept
     : logger_{std::make_shared<Logger>()},
-      propagation_options_{propagation_options},
+      propagation_options_{std::move(propagation_options)},
       recorder_{std::move(recorder)} {}
 
 LegacyTracerImpl::LegacyTracerImpl(
-    std::shared_ptr<Logger> logger,
-    const PropagationOptions& propagation_options,
+    std::shared_ptr<Logger> logger, PropagationOptions&& propagation_options,
     std::unique_ptr<Recorder>&& recorder) noexcept
     : logger_{std::move(logger)},
-      propagation_options_{propagation_options},
+      propagation_options_{std::move(propagation_options)},
       recorder_{std::move(recorder)} {}
 
 //------------------------------------------------------------------------------

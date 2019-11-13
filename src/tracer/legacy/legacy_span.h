@@ -55,15 +55,17 @@ class LegacySpan final : public opentracing::Span, public LightStepSpanContext {
       std::function<bool(const std::string& key, const std::string& value)> f)
       const override;
 
-  bool sampled() const noexcept override;
+  uint64_t trace_id_high() const noexcept override { return trace_id_high_; }
 
-  uint64_t trace_id() const noexcept override {
+  uint64_t trace_id_low() const noexcept override {
     return span_.span_context().trace_id();
   }
 
   uint64_t span_id() const noexcept override {
     return span_.span_context().span_id();
   }
+
+  bool sampled() const noexcept override;
 
   opentracing::expected<void> Inject(
       const PropagationOptions& propagation_options,
@@ -85,6 +87,7 @@ class LegacySpan final : public opentracing::Span, public LightStepSpanContext {
 
  private:
   // Fields set in StartSpan() are not protected by a mutex.
+  uint64_t trace_id_high_{0};
   collector::Span span_;
   std::chrono::steady_clock::time_point start_steady_;
   bool sampled_;
@@ -100,9 +103,15 @@ class LegacySpan final : public opentracing::Span, public LightStepSpanContext {
       const PropagationOptions& propagation_options, Carrier& writer) const {
     std::lock_guard<std::mutex> lock_guard{mutex_};
     auto& span_context = span_.span_context();
-    return InjectSpanContext(propagation_options, writer,
+    return InjectSpanContext(propagation_options, writer, trace_id_high_,
                              span_context.trace_id(), span_context.span_id(),
                              sampled_, span_context.baggage());
   }
+
+  bool SetSpanReference(
+      const std::pair<opentracing::SpanReferenceType,
+                      const opentracing::SpanContext*>& reference,
+      BaggageProtobufMap& baggage, collector::Reference& collector_reference,
+      uint64_t& trace_id_high, uint64_t& trace_id, bool& sampled);
 };
 }  // namespace lightstep

@@ -26,19 +26,6 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "legacy_immutable_span_context_lib",
-    private_hdrs = [
-        "legacy_immutable_span_context.h",
-    ],
-    srcs = [
-        "legacy_immutable_span_context.cpp",
-    ],
-    deps = [
-        "//src/tracer:lightstep_span_context_interface",
-    ],
-)
-
-lightstep_cc_library(
     name = "legacy_tracer_impl_lib",
     private_hdrs = [
         "legacy_tracer_impl.h",
@@ -50,8 +37,8 @@ lightstep_cc_library(
         "//src/common:logger_lib",
         "//src/recorder:recorder_interface",
         ":lightstep_span_lib",
-        "//src/tracer:propagation_lib",
-        ":legacy_immutable_span_context_lib",
+        "//src/tracer/propagation:propagation_lib",
+        "//src/tracer:immutable_span_context_lib",
     ],
 )
 

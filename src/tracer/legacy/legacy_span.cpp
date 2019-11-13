@@ -12,49 +12,6 @@ using opentracing::SystemTime;
 
 namespace lightstep {
 //------------------------------------------------------------------------------
-// SetSpanReference
-//------------------------------------------------------------------------------
-static bool SetSpanReference(
-    Logger& logger,
-    const std::pair<opentracing::SpanReferenceType,
-                    const opentracing::SpanContext*>& reference,
-    BaggageProtobufMap& baggage, collector::Reference& collector_reference,
-    bool& sampled) {
-  collector_reference.Clear();
-  switch (reference.first) {
-    case opentracing::SpanReferenceType::ChildOfRef:
-      collector_reference.set_relationship(collector::Reference::CHILD_OF);
-      break;
-    case opentracing::SpanReferenceType::FollowsFromRef:
-      collector_reference.set_relationship(collector::Reference::FOLLOWS_FROM);
-      break;
-  }
-  if (reference.second == nullptr) {
-    logger.Warn("Passed in null span reference.");
-    return false;
-  }
-  auto referenced_context =
-      dynamic_cast<const LightStepSpanContext*>(reference.second);
-  if (referenced_context == nullptr) {
-    logger.Warn("Passed in span reference of unexpected type.");
-    return false;
-  }
-  collector_reference.mutable_span_context()->set_trace_id(
-      referenced_context->trace_id());
-  collector_reference.mutable_span_context()->set_span_id(
-      referenced_context->span_id());
-  sampled = sampled || referenced_context->sampled();
-
-  referenced_context->ForeachBaggageItem(
-      [&baggage](const std::string& key, const std::string& value) {
-        baggage[key] = value;
-        return true;
-      });
-
-  return true;
-}
-
-//------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
 LegacySpan::LegacySpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
@@ -79,11 +36,17 @@ LegacySpan::LegacySpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
   auto& references = *span_.mutable_references();
   references.Reserve(static_cast<int>(options.references.size()));
   for (auto& reference : options.references) {
-    if (!SetSpanReference(logger_, reference, baggage, collector_reference,
-                          sampled_)) {
+    uint64_t trace_id_high;
+    uint64_t trace_id;
+    if (!SetSpanReference(reference, baggage, collector_reference,
+                          trace_id_high, trace_id, sampled_)) {
       continue;
     }
     *references.Add() = collector_reference;
+    if (references.size() == 1) {
+      trace_id_high_ = trace_id_high;
+      span_context.set_trace_id(trace_id);
+    }
   }
 
   // If there are any span references, sampled should be true if any of the
@@ -106,11 +69,11 @@ LegacySpan::LegacySpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
   }
 
   // Set opentracing::SpanContext.
-  auto trace_id = references.empty() ? GenerateId()
-                                     : references[0].span_context().trace_id();
-  auto span_id = GenerateId();
-  span_context.set_trace_id(trace_id);
-  span_context.set_span_id(span_id);
+  if (references.empty()) {
+    trace_id_high_ = 0;
+    span_context.set_trace_id(GenerateId());
+  }
+  span_context.set_span_id(GenerateId());
 }
 
 //------------------------------------------------------------------------------
@@ -256,5 +219,48 @@ void LegacySpan::ForeachBaggageItem(
 bool LegacySpan::sampled() const noexcept {
   std::lock_guard<std::mutex> lock_guard{mutex_};
   return sampled_;
+}
+
+//--------------------------------------------------------------------------------------------------
+// SetSpanReference
+//--------------------------------------------------------------------------------------------------
+bool LegacySpan::SetSpanReference(
+    const std::pair<opentracing::SpanReferenceType,
+                    const opentracing::SpanContext*>& reference,
+    BaggageProtobufMap& baggage, collector::Reference& collector_reference,
+    uint64_t& trace_id_high, uint64_t& trace_id, bool& sampled) {
+  collector_reference.Clear();
+  switch (reference.first) {
+    case opentracing::SpanReferenceType::ChildOfRef:
+      collector_reference.set_relationship(collector::Reference::CHILD_OF);
+      break;
+    case opentracing::SpanReferenceType::FollowsFromRef:
+      collector_reference.set_relationship(collector::Reference::FOLLOWS_FROM);
+      break;
+  }
+  if (reference.second == nullptr) {
+    logger_.Warn("Passed in null span reference.");
+    return false;
+  }
+  auto referenced_context =
+      dynamic_cast<const LightStepSpanContext*>(reference.second);
+  if (referenced_context == nullptr) {
+    logger_.Warn("Passed in span reference of unexpected type.");
+    return false;
+  }
+  trace_id_high = referenced_context->trace_id_high();
+  trace_id = referenced_context->trace_id_low();
+  collector_reference.mutable_span_context()->set_trace_id(trace_id);
+  collector_reference.mutable_span_context()->set_span_id(
+      referenced_context->span_id());
+  sampled = sampled || referenced_context->sampled();
+
+  referenced_context->ForeachBaggageItem(
+      [&baggage](const std::string& key, const std::string& value) {
+        baggage[key] = value;
+        return true;
+      });
+
+  return true;
 }
 }  // namespace lightstep

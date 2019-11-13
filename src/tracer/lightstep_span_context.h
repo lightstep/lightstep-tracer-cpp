@@ -5,16 +5,19 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
-#include "tracer/propagation.h"
+
+#include "tracer/propagation/propagation.h"
 
 namespace lightstep {
 class LightStepSpanContext : public opentracing::SpanContext {
  public:
-  virtual bool sampled() const noexcept = 0;
+  virtual uint64_t trace_id_high() const noexcept = 0;
 
-  virtual uint64_t trace_id() const noexcept = 0;
+  virtual uint64_t trace_id_low() const noexcept = 0;
 
   virtual uint64_t span_id() const noexcept = 0;
+
+  virtual bool sampled() const noexcept = 0;
 
   virtual opentracing::expected<void> Inject(
       const PropagationOptions& propagation_options,

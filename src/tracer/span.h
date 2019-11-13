@@ -9,7 +9,7 @@
 #include "common/spin_lock_mutex.h"
 #include "tracer/baggage_flat_map.h"
 #include "tracer/lightstep_span_context.h"
-#include "tracer/propagation.h"
+#include "tracer/propagation/propagation.h"
 #include "tracer/tracer_impl.h"
 
 #include <google/protobuf/io/coded_stream.h>
@@ -77,11 +77,13 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
   }
 
   // LightStepSpanContext
-  bool sampled() const noexcept override;
+  uint64_t trace_id_high() const noexcept override { return trace_id_high_; }
 
-  uint64_t trace_id() const noexcept override { return trace_id_; }
+  uint64_t trace_id_low() const noexcept override { return trace_id_; }
 
   uint64_t span_id() const noexcept override { return span_id_; }
+
+  bool sampled() const noexcept override;
 
  private:
   // Profiling shows that even with no contention, locking and unlocking a
@@ -99,6 +101,7 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
   std::atomic<bool> is_finished_{false};
 
   std::shared_ptr<const TracerImpl> tracer_;
+  uint64_t trace_id_high_{0};
   uint64_t trace_id_;
   uint64_t span_id_;
   BaggageFlatMap baggage_;
@@ -108,14 +111,14 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
   opentracing::expected<void> InjectImpl(
       const PropagationOptions& propagation_options, Carrier& writer) const {
     SpinLockGuard lock_guard{mutex_};
-    return InjectSpanContext(propagation_options, writer, trace_id_, span_id_,
-                             sampled_, baggage_);
+    return InjectSpanContext(propagation_options, writer, trace_id_high_,
+                             trace_id_, span_id_, sampled_, baggage_);
   }
 
   bool SetSpanReference(
       const std::pair<opentracing::SpanReferenceType,
                       const opentracing::SpanContext*>& reference,
-      uint64_t& trace_id);
+      uint64_t& trace_id_high, uint64_t& trace_id);
 
   void FinishImpl(const opentracing::FinishSpanOptions& options) noexcept;
 };

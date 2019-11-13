@@ -38,10 +38,12 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
   sampled_ = false;
   int reference_count = 0;
   for (auto& reference : options.references) {
+    uint64_t trace_id_high;
     uint64_t trace_id;
-    auto valid_reference = SetSpanReference(reference, trace_id);
+    auto valid_reference = SetSpanReference(reference, trace_id_high, trace_id);
     reference_count += static_cast<int>(valid_reference);
     if (reference_count == 1 && valid_reference) {
+      trace_id_high_ = trace_id_high;
       trace_id_ = trace_id;
     }
   }
@@ -51,6 +53,7 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
   if (reference_count == 0) {
     sampled_ = true;
     auto ids = GenerateIds<2>();
+    trace_id_high_ = 0;
     trace_id_ = ids[0];
     span_id_ = ids[1];
   } else {
@@ -195,7 +198,7 @@ bool Span::sampled() const noexcept {
 bool Span::SetSpanReference(
     const std::pair<opentracing::SpanReferenceType,
                     const opentracing::SpanContext*>& reference,
-    uint64_t& trace_id) {
+    uint64_t& trace_id_high, uint64_t& trace_id) {
   if (reference.second == nullptr) {
     tracer_->logger().Warn("Passed in null span reference.");
     return false;
@@ -206,7 +209,8 @@ bool Span::SetSpanReference(
     tracer_->logger().Warn("Passed in span reference of unexpected type.");
     return false;
   }
-  trace_id = referenced_context->trace_id();
+  trace_id_high = referenced_context->trace_id_high();
+  trace_id = referenced_context->trace_id_low();
   WriteSpanReference(stream_, reference.first, trace_id,
                      referenced_context->span_id());
   sampled_ = sampled_ || referenced_context->sampled();

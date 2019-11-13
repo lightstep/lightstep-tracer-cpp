@@ -16,7 +16,7 @@
 #include "recorder/grpc_transporter.h"
 #include "recorder/manual_recorder.h"
 #include "recorder/stream_recorder.h"
-#include "tracer/legacy/legacy_immutable_span_context.h"
+#include "tracer/immutable_span_context.h"
 #include "tracer/legacy/legacy_tracer_impl.h"
 #include "tracer/tracer_impl.h"
 
@@ -77,7 +77,8 @@ LightStepTracer::GetTraceSpanIdsSampled(
         opentracing::invalid_span_context_error);
   }
   std::array<uint64_t, 3> result = {
-      {lightstep_span_context->trace_id(), lightstep_span_context->span_id(),
+      {lightstep_span_context->trace_id_low(),
+       lightstep_span_context->span_id(),
        static_cast<uint64_t>(lightstep_span_context->sampled())}};
   return result;
 }
@@ -90,7 +91,7 @@ LightStepTracer::MakeSpanContext(
     uint64_t trace_id, uint64_t span_id, bool sampled,
     std::unordered_map<std::string, std::string>&& baggage) const noexcept try {
   std::unique_ptr<opentracing::SpanContext> result{
-      new LegacyImmutableSpanContext{trace_id, span_id, sampled, baggage}};
+      new ImmutableSpanContext{0, trace_id, span_id, sampled, baggage}};
   return std::move(result);
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(
@@ -115,12 +116,11 @@ static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
   } else {
     transporter = MakeGrpcTransporter(*logger, options);
   }
-  PropagationOptions propagation_options{};
-  propagation_options.use_single_key = options.use_single_key_propagation;
+  auto propagation_options = MakePropagationOptions(options);
   auto recorder = std::unique_ptr<Recorder>{
       new AutoRecorder{*logger, std::move(options), std::move(transporter)}};
   return std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
-      std::move(logger), propagation_options, std::move(recorder)}};
+      std::move(logger), std::move(propagation_options), std::move(recorder)}};
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -128,11 +128,10 @@ static std::shared_ptr<LightStepTracer> MakeThreadedTracer(
 //--------------------------------------------------------------------------------------------------
 static std::shared_ptr<LightStepTracer> MakeStreamTracer(
     std::shared_ptr<Logger> logger, LightStepTracerOptions&& options) {
-  PropagationOptions propagation_options{};
-  propagation_options.use_single_key = options.use_single_key_propagation;
+  auto propagation_options = MakePropagationOptions(options);
   auto recorder = MakeStreamRecorder(*logger, std::move(options));
   return std::shared_ptr<LightStepTracer>{new TracerImpl{
-      std::move(logger), propagation_options, std::move(recorder)}};
+      std::move(logger), std::move(propagation_options), std::move(recorder)}};
 }
 
 //------------------------------------------------------------------------------
@@ -155,12 +154,11 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
         "`options.transporter` must be set if `options.use_thread` is false");
     return nullptr;
   }
-  PropagationOptions propagation_options{};
-  propagation_options.use_single_key = options.use_single_key_propagation;
+  auto propagation_options = MakePropagationOptions(options);
   auto recorder = std::unique_ptr<Recorder>{
       new ManualRecorder{*logger, std::move(options), std::move(transporter)}};
   return std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
-      std::move(logger), propagation_options, std::move(recorder)}};
+      std::move(logger), std::move(propagation_options), std::move(recorder)}};
 }
 
 //------------------------------------------------------------------------------

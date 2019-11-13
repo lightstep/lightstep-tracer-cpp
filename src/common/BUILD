@@ -41,7 +41,7 @@ lightstep_cc_library(
     deps = [
         ":fragment_input_stream_lib",
         ":noncopyable_lib",
-        ":utility_lib",
+        ":hex_conversion_lib",
         ":serialization_lib",
     ],
     external_deps = [
@@ -150,6 +150,19 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "hex_conversion_lib",
+    private_hdrs = [
+        "hex_conversion.h",
+    ],
+    srcs = [
+        "hex_conversion.cpp",
+    ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_cc_library(
     name = "utility_lib",
     private_hdrs = [
         "utility.h",
@@ -161,6 +174,7 @@ lightstep_cc_library(
         "//src/common/platform:time_lib",
         "//lightstep-tracer-common:collector_proto_cc",
         ":logger_lib",
+        ":hex_conversion_lib",
     ],
     external_deps = [
         "@com_google_protobuf//:protobuf",
