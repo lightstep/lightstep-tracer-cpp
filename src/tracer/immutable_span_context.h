@@ -57,6 +57,7 @@ class ImmutableSpanContext final : public LightStepSpanContext {
   uint64_t span_id_;
   bool sampled_;
   BaggageProtobufMap baggage_;
+  std::string trace_state_;
 
   template <class Carrier>
   opentracing::expected<void> InjectImpl(

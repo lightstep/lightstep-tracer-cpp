@@ -90,6 +90,21 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "trace_context_propagator_lib",
+    private_hdrs = [
+        "trace_context_propagator.h",
+    ],
+    srcs = [
+        "trace_context_propagator.cpp",
+    ],
+    deps = [
+        "//src/common:hex_conversion_lib",
+        "//src/common:utility_lib",
+        ":propagator_interface",
+    ],
+)
+
+lightstep_cc_library(
     name = "baggage_propagator_lib",
     private_hdrs = [
         "baggage_propagator.h",
