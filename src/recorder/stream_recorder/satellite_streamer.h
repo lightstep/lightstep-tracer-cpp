@@ -73,6 +73,11 @@ class SatelliteStreamer : private Noncopyable {
    */
   void Flush() noexcept;
 
+  /**
+   * Cleanly shut down satellite connections.
+   */
+  void InitiateShutdown() noexcept;
+
  private:
   Logger& logger_;
   EventBase& event_base_;
