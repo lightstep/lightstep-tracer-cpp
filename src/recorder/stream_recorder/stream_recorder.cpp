@@ -83,6 +83,18 @@ bool StreamRecorder::FlushWithTimeout(
 }
 
 //--------------------------------------------------------------------------------------------------
+// ShutdownWithTimeout
+//--------------------------------------------------------------------------------------------------
+bool StreamRecorder::ShutdownWithTimeout(
+    std::chrono::system_clock::duration timeout) noexcept try {
+  (void)timeout;
+  return true;
+} catch (const std::exception& e) {
+  logger_.Error("StreamRecorder::FlushWithTimeout failed: ", e.what());
+  return false;
+}
+
+//--------------------------------------------------------------------------------------------------
 // PrepareForFork
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::PrepareForFork() noexcept {
