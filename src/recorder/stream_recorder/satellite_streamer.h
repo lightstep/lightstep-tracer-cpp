@@ -69,6 +69,11 @@ class SatelliteStreamer : private Noncopyable {
   }
 
   /**
+   * @return true any satellite connections have open sockets.
+   */
+  bool is_active() const noexcept;
+
+  /**
    * Flush data to satellites if connections are available.
    */
   void Flush() noexcept;

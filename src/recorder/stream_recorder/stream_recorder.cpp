@@ -87,8 +87,11 @@ bool StreamRecorder::FlushWithTimeout(
 //--------------------------------------------------------------------------------------------------
 bool StreamRecorder::ShutdownWithTimeout(
     std::chrono::system_clock::duration timeout) noexcept try {
-  (void)timeout;
-  return true;
+  std::unique_lock<std::mutex> lock{flush_mutex_};
+  ++shutdown_counter_;
+  shutdown_condition_variable_.wait_for(
+      lock, timeout, [this] { return exit_ || !last_is_active_; });
+  return !last_is_active_;
 } catch (const std::exception& e) {
   logger_.Error("StreamRecorder::FlushWithTimeout failed: ", e.what());
   return false;
@@ -135,6 +138,18 @@ void StreamRecorder::Poll() noexcept {
       num_spans_consumed_ = num_spans_consumed;
     }
     flush_condition_variable_.notify_all();
+  }
+
+  if (shutdown_counter_.exchange(0) > 0) {
+    stream_recorder_impl_->InitiateShutdown();
+  }
+  
+  if (last_is_active_ && !stream_recorder_impl_->is_active()) {
+    {
+      std::lock_guard<std::mutex> lock_guard{shutdown_mutex_};
+      last_is_active_ = false;
+    }
+    shutdown_condition_variable_.notify_all();
   }
 }
 

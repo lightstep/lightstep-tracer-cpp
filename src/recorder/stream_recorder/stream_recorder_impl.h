@@ -27,6 +27,9 @@ class StreamRecorderImpl : private Noncopyable {
 
   int64_t timestamp_delta() const noexcept { return timestamp_delta_; }
 
+  void InitiateShutdown() noexcept { streamer_.InitiateShutdown(); }
+
+  bool is_active() const noexcept { return streamer_.is_active(); }
  private:
   StreamRecorder& stream_recorder_;
 
