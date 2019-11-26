@@ -42,6 +42,11 @@ class SatelliteConnection : private Noncopyable {
    */
   bool ready() const noexcept;
 
+  /**
+   * @return true if a connection to the satellite is active.
+   */
+  bool is_active() const noexcept { return !was_shutdown_; }
+
  private:
   SatelliteStreamer& streamer_;
   HostHeader host_header_;
@@ -50,6 +55,7 @@ class SatelliteConnection : private Noncopyable {
   Socket socket_{InvalidSocket};
   bool writable_{false};
   bool shutting_down_{false};
+  bool was_shutdown_{false};
   Event read_event_;
   Event write_event_;
   Event reconnect_timer_;

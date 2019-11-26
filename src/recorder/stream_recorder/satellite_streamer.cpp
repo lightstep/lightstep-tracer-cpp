@@ -37,7 +37,14 @@ SatelliteStreamer::SatelliteStreamer(
 //--------------------------------------------------------------------------------------------------
 // is_active
 //--------------------------------------------------------------------------------------------------
-bool SatelliteStreamer::is_active() const noexcept { return true; }
+bool SatelliteStreamer::is_active() const noexcept {
+  for (auto& connection : connections_) {
+    if (connection->is_active()) {
+      return true;
+    }
+  }
+  return false;
+}
 
 //--------------------------------------------------------------------------------------------------
 // Flush
