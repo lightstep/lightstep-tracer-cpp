@@ -54,7 +54,7 @@ class SatelliteConnection : private Noncopyable {
   StatusLineParser status_line_parser_;
   Socket socket_{InvalidSocket};
   bool writable_{false};
-  bool shutting_down_{false};
+  bool is_shutting_down_{false};
   bool was_shutdown_{false};
   Event read_event_;
   Event write_event_;

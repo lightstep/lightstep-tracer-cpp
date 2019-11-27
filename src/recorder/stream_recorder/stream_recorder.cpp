@@ -35,10 +35,12 @@ StreamRecorder::StreamRecorder(Logger& logger,
 //--------------------------------------------------------------------------------------------------
 StreamRecorder::~StreamRecorder() noexcept {
   {
-    std::lock_guard<std::mutex> lock_guard{flush_mutex_};
+    std::lock_guard<std::mutex> flush_lock_guard{flush_mutex_};
+    std::lock_guard<std::mutex> shutdown_lock_guard{shutdown_mutex_};
     exit_ = true;
   }
   flush_condition_variable_.notify_all();
+  shutdown_condition_variable_.notify_all();
 }
 
 //--------------------------------------------------------------------------------------------------

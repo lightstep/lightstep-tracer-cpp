@@ -79,6 +79,8 @@ bool SatelliteConnection::Flush() noexcept try {
 // InitiateShutdown
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::InitiateShutdown() noexcept {
+  InitiateReconnect();
+  is_shutting_down_ = true;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -135,6 +137,11 @@ void SatelliteConnection::FreeSocket() {
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::HandleFailure() noexcept try {
   FreeSocket();
+  if (is_shutting_down_) {
+    // if we failed during shutdown, don't try to reconnect
+    was_shutdown_ = true;
+    return;
+  }
   streamer_.event_base().OnTimeout(
       streamer_.recorder_options().satellite_failure_retry_period,
       MakeTimerCallback<SatelliteConnection, &SatelliteConnection::Connect>(),
@@ -157,6 +164,10 @@ void SatelliteConnection::ScheduleReconnect() {
 // InitiateReconnect
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::InitiateReconnect() noexcept try {
+  if (is_shutting_down_) {
+    // If we're shutting down, then we've already scheduled a reconnect so do nothing.
+    return;
+  }
   connection_stream_.Shutdown();
   if (writable_) {
     Flush();
@@ -173,6 +184,11 @@ void SatelliteConnection::InitiateReconnect() noexcept try {
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::Reconnect() noexcept try {
   FreeSocket();
+  if (is_shutting_down_) {
+    // break the reconnection cycle
+    was_shutdown_ = true;
+    return;
+  }
   Connect();
 } catch (const std::exception& e) {
   streamer_.logger().Error("Reconnect failed: ", e.what());
