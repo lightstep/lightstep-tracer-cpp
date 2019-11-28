@@ -78,7 +78,7 @@ void StreamRecorderImpl::Poll() noexcept {
     Flush();
   }
 
-  stream_recorder_.Poll();
+  stream_recorder_.Poll(*this);
 }
 
 //--------------------------------------------------------------------------------------------------

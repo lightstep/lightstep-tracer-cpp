@@ -33,9 +33,19 @@ class SatelliteConnection : private Noncopyable {
   bool Flush() noexcept;
 
   /**
+   * Initiate a clean shut down of the satellite connection.
+   */
+  void InitiateShutdown() noexcept;
+
+  /**
    * @return true if the satellite connection is available for streaming spans.
    */
   bool ready() const noexcept;
+
+  /**
+   * @return true if a connection to the satellite is active.
+   */
+  bool is_active() const noexcept { return !was_shutdown_; }
 
  private:
   SatelliteStreamer& streamer_;
@@ -44,6 +54,8 @@ class SatelliteConnection : private Noncopyable {
   StatusLineParser status_line_parser_;
   Socket socket_{InvalidSocket};
   bool writable_{false};
+  bool is_shutting_down_{false};
+  bool was_shutdown_{false};
   Event read_event_;
   Event write_event_;
   Event reconnect_timer_;

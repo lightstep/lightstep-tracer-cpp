@@ -35,6 +35,18 @@ SatelliteStreamer::SatelliteStreamer(
 }
 
 //--------------------------------------------------------------------------------------------------
+// is_active
+//--------------------------------------------------------------------------------------------------
+bool SatelliteStreamer::is_active() const noexcept {
+  for (auto& connection : connections_) {
+    if (connection->is_active()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+//--------------------------------------------------------------------------------------------------
 // Flush
 //--------------------------------------------------------------------------------------------------
 void SatelliteStreamer::Flush() noexcept {
@@ -48,6 +60,15 @@ void SatelliteStreamer::Flush() noexcept {
     }
     return !connection->Flush();
   });
+}
+
+//--------------------------------------------------------------------------------------------------
+// InitiateShutdown
+//--------------------------------------------------------------------------------------------------
+void SatelliteStreamer::InitiateShutdown() noexcept {
+  for (auto& connection : connections_) {
+    connection->InitiateShutdown();
+  }
 }
 
 //--------------------------------------------------------------------------------------------------

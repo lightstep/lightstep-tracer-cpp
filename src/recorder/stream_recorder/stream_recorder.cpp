@@ -35,10 +35,12 @@ StreamRecorder::StreamRecorder(Logger& logger,
 //--------------------------------------------------------------------------------------------------
 StreamRecorder::~StreamRecorder() noexcept {
   {
-    std::lock_guard<std::mutex> lock_guard{flush_mutex_};
+    std::lock_guard<std::mutex> flush_lock_guard{flush_mutex_};
+    std::lock_guard<std::mutex> shutdown_lock_guard{shutdown_mutex_};
     exit_ = true;
   }
   flush_condition_variable_.notify_all();
+  shutdown_condition_variable_.notify_all();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -83,6 +85,21 @@ bool StreamRecorder::FlushWithTimeout(
 }
 
 //--------------------------------------------------------------------------------------------------
+// ShutdownWithTimeout
+//--------------------------------------------------------------------------------------------------
+bool StreamRecorder::ShutdownWithTimeout(
+    std::chrono::system_clock::duration timeout) noexcept try {
+  std::unique_lock<std::mutex> lock{shutdown_mutex_};
+  ++shutdown_counter_;
+  shutdown_condition_variable_.wait_for(
+      lock, timeout, [this] { return exit_ || !last_is_active_; });
+  return !last_is_active_;
+} catch (const std::exception& e) {
+  logger_.Error("StreamRecorder::FlushWithTimeout failed: ", e.what());
+  return false;
+}
+
+//--------------------------------------------------------------------------------------------------
 // PrepareForFork
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::PrepareForFork() noexcept {
@@ -115,7 +132,7 @@ void StreamRecorder::OnForkedChild() noexcept {
 //--------------------------------------------------------------------------------------------------
 // Poll
 //--------------------------------------------------------------------------------------------------
-void StreamRecorder::Poll() noexcept {
+void StreamRecorder::Poll(StreamRecorderImpl& stream_recorder_impl) noexcept {
   auto num_spans_consumed = span_buffer_.consumption_count();
   if (num_spans_consumed > num_spans_consumed_) {
     {
@@ -123,6 +140,18 @@ void StreamRecorder::Poll() noexcept {
       num_spans_consumed_ = num_spans_consumed;
     }
     flush_condition_variable_.notify_all();
+  }
+
+  if (shutdown_counter_.exchange(0) > 0) {
+    stream_recorder_impl.InitiateShutdown();
+  }
+
+  if (last_is_active_ && !stream_recorder_impl.is_active()) {
+    {
+      std::lock_guard<std::mutex> lock_guard{shutdown_mutex_};
+      last_is_active_ = false;
+    }
+    shutdown_condition_variable_.notify_all();
   }
 }
 

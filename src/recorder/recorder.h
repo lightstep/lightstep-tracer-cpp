@@ -47,6 +47,16 @@ class Recorder {
   }
 
   /**
+   * Block until the recorder cleanly shuts down its connections to satellites.
+   * @param timeout the maximum amount of time to block.
+   * @return true if the shutdown was completed.
+   */
+  virtual bool ShutdownWithTimeout(
+      std::chrono::system_clock::duration /*timeout*/) noexcept {
+    return true;
+  }
+
+  /**
    * Compute a timestamp delta that con be used to convert between system and
    * steady timestamps.
    *
