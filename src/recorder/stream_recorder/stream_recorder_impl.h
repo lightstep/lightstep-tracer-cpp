@@ -25,10 +25,20 @@ class StreamRecorderImpl : private Noncopyable {
 
   ~StreamRecorderImpl() noexcept;
 
+  /**
+   * A cached delta of difference between std::chrono::system_clock and
+   * std::chrono::steady_clock.
+   */
   int64_t timestamp_delta() const noexcept { return timestamp_delta_; }
 
+  /**
+   * Schedule the recorder to cleanly close all satellite connections.
+   */
   void InitiateShutdown() noexcept { streamer_.InitiateShutdown(); }
 
+  /**
+   * @return true if any satellite connections are active.
+   */
   bool is_active() const noexcept { return streamer_.is_active(); }
 
  private:
