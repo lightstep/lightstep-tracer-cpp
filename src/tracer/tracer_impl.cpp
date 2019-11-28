@@ -144,7 +144,7 @@ void TracerImpl::Close() noexcept {
     return;
   }
   recorder_->ShutdownWithTimeout(
-      std::chrono::duration_cast<std::chrono::system_clock::duration>(
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(
           DefaultFlushTimeout) -
       delta);
 }
