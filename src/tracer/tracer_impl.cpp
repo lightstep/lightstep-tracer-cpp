@@ -143,9 +143,11 @@ void TracerImpl::Close() noexcept {
   if (delta >= DefaultFlushTimeout) {
     return;
   }
-  recorder_->ShutdownWithTimeout(
+  auto timeout =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(
           DefaultFlushTimeout) -
-      delta);
+      delta;
+  recorder_->ShutdownWithTimeout(
+      std::chrono::duration_cast<std::chrono::system_clock::duration>(timeout));
 }
 }  // namespace lightstep
