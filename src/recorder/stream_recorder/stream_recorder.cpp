@@ -89,7 +89,7 @@ bool StreamRecorder::FlushWithTimeout(
 //--------------------------------------------------------------------------------------------------
 bool StreamRecorder::ShutdownWithTimeout(
     std::chrono::system_clock::duration timeout) noexcept try {
-  std::unique_lock<std::mutex> lock{flush_mutex_};
+  std::unique_lock<std::mutex> lock{shutdown_mutex_};
   ++shutdown_counter_;
   shutdown_condition_variable_.wait_for(
       lock, timeout, [this] { return exit_ || !last_is_active_; });
