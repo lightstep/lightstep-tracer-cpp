@@ -132,7 +132,7 @@ void StreamRecorder::OnForkedChild() noexcept {
 //--------------------------------------------------------------------------------------------------
 // Poll
 //--------------------------------------------------------------------------------------------------
-void StreamRecorder::Poll() noexcept {
+void StreamRecorder::Poll(StreamRecorderImpl& stream_recorder_impl) noexcept {
   auto num_spans_consumed = span_buffer_.consumption_count();
   if (num_spans_consumed > num_spans_consumed_) {
     {
@@ -143,10 +143,10 @@ void StreamRecorder::Poll() noexcept {
   }
 
   if (shutdown_counter_.exchange(0) > 0) {
-    stream_recorder_impl_->InitiateShutdown();
+    stream_recorder_impl.InitiateShutdown();
   }
 
-  if (last_is_active_ && !stream_recorder_impl_->is_active()) {
+  if (last_is_active_ && !stream_recorder_impl.is_active()) {
     {
       std::lock_guard<std::mutex> lock_guard{shutdown_mutex_};
       last_is_active_ = false;

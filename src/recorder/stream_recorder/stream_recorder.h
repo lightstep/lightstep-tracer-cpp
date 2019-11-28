@@ -35,8 +35,14 @@ class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
 
   /**
    * Checks whether any threads blocked on flush calls can be resumed.
+   * @param stream_recorder_impl a reference to the stream recorder
+   * implementation that invoked poll.
+   *
+   * Note: stream_recorder_impl is redundant since it can also be accessed
+   * through the member variable stream_recorder_impl_, but it's structured this
+   * way to avoid false positives from TSAN.
    */
-  void Poll() noexcept;
+  void Poll(StreamRecorderImpl& stream_recorder_impl) noexcept;
 
   /**
    * Gets the pending flush count and resets the counter.
@@ -135,7 +141,7 @@ class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
 
   // Used by polling to track when the satellite connections become inactive so
   // that any threads waiting on shutdown can be notified.
-  std::atomic<bool> last_is_active_{true};
+  bool last_is_active_{true};
 
   std::unique_ptr<StreamRecorderImpl> stream_recorder_impl_;
 };
