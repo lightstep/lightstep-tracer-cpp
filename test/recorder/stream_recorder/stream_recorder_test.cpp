@@ -199,4 +199,18 @@ TEST_CASE("StreamRecorder") {
     stream_recorder->ShutdownWithTimeout(std::chrono::milliseconds{50});
     REQUIRE(logger_sink->contents().find("is readable") != std::string::npos);
   }
+
+  SECTION("Close will also shut down the recorder") {
+    tracer->StartSpan("abc");
+    tracer->Close();
+    REQUIRE(logger_sink->contents().find("is readable") != std::string::npos);
+  }
+
+  SECTION("Shutdown will return early if it times out") {
+    mock_satellite->SetRequestTimeout();
+    tracer->StartSpan("abc");
+    stream_recorder->FlushWithTimeout(std::chrono::milliseconds{50});
+    stream_recorder->ShutdownWithTimeout(std::chrono::milliseconds{50});
+    REQUIRE(logger_sink->contents().find("is readable") == std::string::npos);
+  }
 }
