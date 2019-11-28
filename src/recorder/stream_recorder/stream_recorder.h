@@ -132,7 +132,7 @@ class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
   std::mutex shutdown_mutex_;
   std::condition_variable shutdown_condition_variable_;
   std::atomic<int> shutdown_counter_{0};
-  bool last_is_active_{true};
+  std::atomic<bool> last_is_active_{true};
 
   std::unique_ptr<StreamRecorderImpl> stream_recorder_impl_;
 };
