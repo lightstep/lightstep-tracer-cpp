@@ -165,7 +165,8 @@ void SatelliteConnection::ScheduleReconnect() {
 //--------------------------------------------------------------------------------------------------
 void SatelliteConnection::InitiateReconnect() noexcept try {
   if (is_shutting_down_) {
-    // If we're shutting down, then we've already scheduled a reconnect so do nothing.
+    // If we're shutting down, then we've already scheduled a reconnect so do
+    // nothing.
     return;
   }
   connection_stream_.Shutdown();

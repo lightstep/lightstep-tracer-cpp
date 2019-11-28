@@ -145,7 +145,7 @@ void StreamRecorder::Poll() noexcept {
   if (shutdown_counter_.exchange(0) > 0) {
     stream_recorder_impl_->InitiateShutdown();
   }
-  
+
   if (last_is_active_ && !stream_recorder_impl_->is_active()) {
     {
       std::lock_guard<std::mutex> lock_guard{shutdown_mutex_};

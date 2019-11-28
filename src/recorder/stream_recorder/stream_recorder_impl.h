@@ -30,6 +30,7 @@ class StreamRecorderImpl : private Noncopyable {
   void InitiateShutdown() noexcept { streamer_.InitiateShutdown(); }
 
   bool is_active() const noexcept { return streamer_.is_active(); }
+
  private:
   StreamRecorder& stream_recorder_;
 

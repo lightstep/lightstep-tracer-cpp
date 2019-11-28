@@ -176,4 +176,27 @@ TEST_CASE("StreamRecorder") {
     stop = true;
     generator.join();
   }
+
+  SECTION(
+      "If a tracer is destroyed without shutting down first, it will close "
+      "satellite sockets before the http sessions are finished") {
+    std::this_thread::sleep_for(std::chrono::milliseconds{50});
+    tracer = nullptr;
+    std::this_thread::sleep_for(std::chrono::milliseconds{50});
+  }
+
+  SECTION("If a tracer is shut down, it waits for a response from the server") {
+    tracer->StartSpan("abc");
+    stream_recorder->FlushWithTimeout(std::chrono::milliseconds{50});
+    stream_recorder->ShutdownWithTimeout(std::chrono::milliseconds{50});
+    REQUIRE(logger_sink->contents().find("is readable") != std::string::npos);
+  }
+
+  SECTION("We can shut down a recorder twice") {
+    tracer->StartSpan("abc");
+    stream_recorder->FlushWithTimeout(std::chrono::milliseconds{50});
+    stream_recorder->ShutdownWithTimeout(std::chrono::milliseconds{50});
+    stream_recorder->ShutdownWithTimeout(std::chrono::milliseconds{50});
+    REQUIRE(logger_sink->contents().find("is readable") != std::string::npos);
+  }
 }

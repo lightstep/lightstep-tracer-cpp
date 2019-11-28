@@ -66,6 +66,9 @@ void SatelliteStreamer::Flush() noexcept {
 // InitiateShutdown
 //--------------------------------------------------------------------------------------------------
 void SatelliteStreamer::InitiateShutdown() noexcept {
+  for (auto& connection : connections_) {
+    connection->InitiateShutdown();
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
