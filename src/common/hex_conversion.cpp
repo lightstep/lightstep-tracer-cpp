@@ -1,11 +1,14 @@
 #include "common/hex_conversion.h"
 
+#include <cassert>
+
 namespace lightstep {
 
 //--------------------------------------------------------------------------------------------------
-// HexToUint64Impl
+// HexToUintImpl
 //--------------------------------------------------------------------------------------------------
-static opentracing::expected<uint64_t> HexToUint64Impl(
+template <class T>
+static opentracing::expected<T> HexToUintImpl(
     const char* i, const char* last) noexcept {
   static const unsigned char nil = std::numeric_limits<unsigned char>::max();
   static const std::array<unsigned char, 256> hextable = {
@@ -28,7 +31,7 @@ static opentracing::expected<uint64_t> HexToUint64Impl(
        nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
        nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
        nil, nil, nil, nil}};
-  uint64_t result = 0;
+  T result = 0;
   for (; i != last; ++i) {
     auto value = hextable[*i];
     if (value == nil) {
@@ -114,7 +117,7 @@ opentracing::expected<uint64_t> HexToUint64(
         std::make_error_code(std::errc::invalid_argument));
   }
 
-  return HexToUint64Impl(i, last);
+  return HexToUintImpl<uint64_t>(i, last);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -158,7 +161,7 @@ opentracing::expected<void> HexToUint128(opentracing::string_view s,
   // handle the case when we have a number that fits in a 64-bit integer
   if (length <= Num64BitHexDigits) {
     x_high = 0;
-    auto x_maybe = HexToUint64Impl(i, last);
+    auto x_maybe = HexToUintImpl<uint64_t>(i, last);
     if (!x_maybe) {
       return opentracing::make_unexpected(x_maybe.error());
     }
@@ -169,17 +172,25 @@ opentracing::expected<void> HexToUint128(opentracing::string_view s,
   // handle the case when we have a number that requires more than a single
   // 64-bit integer
   auto boundary = i + (length - Num64BitHexDigits);
-  auto x_high_maybe = HexToUint64Impl(i, boundary);
+  auto x_high_maybe = HexToUintImpl<uint64_t>(i, boundary);
   if (!x_high_maybe) {
     return opentracing::make_unexpected(x_high_maybe.error());
   }
   x_high = *x_high_maybe;
 
-  auto x_low_maybe = HexToUint64Impl(boundary, last);
+  auto x_low_maybe = HexToUintImpl<uint64_t>(boundary, last);
   if (!x_low_maybe) {
     return opentracing::make_unexpected(x_low_maybe.error());
   }
   x_low = *x_low_maybe;
   return {};
+}
+
+//--------------------------------------------------------------------------------------------------
+// NormalizedHexToUint8
+//--------------------------------------------------------------------------------------------------
+opentracing::expected<uint8_t> NormalizedHexToUint8(opentracing::string_view s) noexcept {
+  assert(s.size() == Num8BitHexDigits);
+  return HexToUintImpl<uint8_t>(s.data(), s.data() + Num8BitHexDigits);
 }
 }  // namespace lightstep
