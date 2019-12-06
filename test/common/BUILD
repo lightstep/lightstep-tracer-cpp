@@ -18,7 +18,7 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
-    name = "spin_lock_mute_test",
+    name = "spin_lock_mutex_test",
     srcs = [
         "spin_lock_mutex_test.cpp",
     ],
