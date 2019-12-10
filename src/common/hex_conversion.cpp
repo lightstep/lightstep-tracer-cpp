@@ -191,6 +191,37 @@ opentracing::expected<void> HexToUint128(opentracing::string_view s,
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<uint8_t> NormalizedHexToUint8(opentracing::string_view s) noexcept {
   assert(s.size() == Num8BitHexDigits);
-  return HexToUintImpl<uint8_t>(s.data(), s.data() + Num8BitHexDigits);
+  return HexToUintImpl<uint8_t>(s.data(), s.data() + s.size());
+}
+
+//--------------------------------------------------------------------------------------------------
+// NormalizedHexToUint64
+//--------------------------------------------------------------------------------------------------
+opentracing::expected<uint64_t> NormalizedHexToUint64(
+    opentracing::string_view s) noexcept {
+  assert(s.size() == Num64BitHexDigits);
+  return HexToUintImpl<uint64_t>(s.data(), s.data() + s.size());
+}
+
+//--------------------------------------------------------------------------------------------------
+// NormalizedHexToUint128
+//--------------------------------------------------------------------------------------------------
+opentracing::expected<void> NormalizedHexToUint128(opentracing::string_view s,
+                                                   uint64_t& x_high,
+                                                   uint64_t& x_low) noexcept {
+  assert(s.size() == 2 * Num64BitHexDigits);
+  auto x_maybe =
+      HexToUintImpl<uint64_t>(s.data(), s.data() + Num64BitHexDigits);
+  if (!x_maybe) {
+    return opentracing::make_unexpected(x_maybe.error());
+  }
+  x_high = *x_maybe;
+  x_maybe = HexToUintImpl<uint64_t>(s.data() + Num64BitHexDigits,
+                                    s.data() + 2 * Num64BitHexDigits);
+  if (!x_maybe) {
+    return opentracing::make_unexpected(x_maybe.error());
+  }
+  x_low = *x_maybe;
+  return {};
 }
 }  // namespace lightstep
