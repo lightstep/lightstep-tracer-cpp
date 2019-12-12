@@ -53,7 +53,8 @@ opentracing::expected<void> ParseTraceContext(
   trace_context.parent_id = *parent_id_maybe;
   offset += Num64BitHexDigits;
   if (s[offset] != '-') {
-    return opentracing::make_unexpected(parent_id_maybe.error());
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::invalid_argument));
   }
   ++offset;
 
