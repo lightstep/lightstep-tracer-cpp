@@ -3,38 +3,44 @@
 #include <cassert>
 
 namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// Nil
+//--------------------------------------------------------------------------------------------------
+static const unsigned char Nil = std::numeric_limits<unsigned char>::max();
+
+//--------------------------------------------------------------------------------------------------
+// HexTable
+//--------------------------------------------------------------------------------------------------
+static const std::array<unsigned char, 256> HexTable = {
+    {Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, 0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, 10,  11,  12,  13,  14,  15,  Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, 10,  11,  12,  13,  14,  15,  Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil,
+     Nil}};
 
 //--------------------------------------------------------------------------------------------------
 // HexToUintImpl
 //--------------------------------------------------------------------------------------------------
 template <class T>
-static opentracing::expected<T> HexToUintImpl(
-    const char* i, const char* last) noexcept {
-  static const unsigned char nil = std::numeric_limits<unsigned char>::max();
-  static const std::array<unsigned char, 256> hextable = {
-      {nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, 0,   1,   2,   3,   4,   5,   6,   7,
-       8,   9,   nil, nil, nil, nil, nil, nil, nil, 10,  11,  12,  13,  14,
-       15,  nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, 10,
-       11,  12,  13,  14,  15,  nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-       nil, nil, nil, nil}};
+static opentracing::expected<T> HexToUintImpl(const char* i,
+                                              const char* last) noexcept {
   T result = 0;
   for (; i != last; ++i) {
-    auto value = hextable[*i];
-    if (value == nil) {
+    auto value = HexTable[*i];
+    if (value == Nil) {
       return opentracing::make_unexpected(
           std::make_error_code(std::errc::invalid_argument));
     }
@@ -189,7 +195,8 @@ opentracing::expected<void> HexToUint128(opentracing::string_view s,
 //--------------------------------------------------------------------------------------------------
 // NormalizedHexToUint8
 //--------------------------------------------------------------------------------------------------
-opentracing::expected<uint8_t> NormalizedHexToUint8(opentracing::string_view s) noexcept {
+opentracing::expected<uint8_t> NormalizedHexToUint8(
+    opentracing::string_view s) noexcept {
   assert(s.size() == Num8BitHexDigits);
   return HexToUintImpl<uint8_t>(s.data(), s.data() + s.size());
 }

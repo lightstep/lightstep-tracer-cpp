@@ -64,10 +64,6 @@ opentracing::expected<void> ParseTraceContext(
     return opentracing::make_unexpected(trace_flags_maybe.error());
   }
   trace_context.trace_flags = *trace_flags_maybe;
-  offset += Num8BitHexDigits;
-  if (s[offset] != '-') {
-    return opentracing::make_unexpected(parent_id_maybe.error());
-  }
 
   return {};
 }

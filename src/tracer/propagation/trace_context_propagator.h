@@ -20,6 +20,7 @@ class TraceContextPropagator final : Propagator {
       const opentracing::TextMapReader& carrier, bool case_sensitive,
       uint64_t& trace_id_high, uint64_t& trace_id_low, uint64_t& span_id,
       bool& sampled, BaggageProtobufMap& baggage) const override;
+
  private:
 };
-} // namespace lightstep
+}  // namespace lightstep

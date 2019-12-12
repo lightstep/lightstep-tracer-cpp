@@ -72,9 +72,11 @@ opentracing::expected<void> HexToUint128(opentracing::string_view s,
                                          uint64_t& x_high,
                                          uint64_t& x_low) noexcept;
 
-opentracing::expected<uint8_t> NormalizedHexToUint8(opentracing::string_view s) noexcept;
+opentracing::expected<uint8_t> NormalizedHexToUint8(
+    opentracing::string_view s) noexcept;
 
-opentracing::expected<uint64_t> NormalizedHexToUint64(opentracing::string_view s) noexcept;
+opentracing::expected<uint64_t> NormalizedHexToUint64(
+    opentracing::string_view s) noexcept;
 
 opentracing::expected<void> NormalizedHexToUint128(opentracing::string_view s,
                                                    uint64_t& x_high,
