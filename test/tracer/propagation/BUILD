@@ -95,6 +95,16 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "trace_context_test",
+    srcs = [
+        "trace_context_test.cpp",
+    ],
+    deps = [
+        "//src/tracer/propagation:trace_context_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "lightstep_propagation_test",
     srcs = [
         "lightstep_propagation_test.cpp",

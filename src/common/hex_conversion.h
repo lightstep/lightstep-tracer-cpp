@@ -10,6 +10,8 @@
 namespace lightstep {
 const size_t Num64BitHexDigits = std::numeric_limits<uint64_t>::digits / 4;
 
+const size_t Num128BitHexDigits = 2 * Num64BitHexDigits;
+
 const size_t Num32BitHexDigits = std::numeric_limits<uint32_t>::digits / 4;
 
 const size_t Num8BitHexDigits = std::numeric_limits<uint8_t>::digits / 4;

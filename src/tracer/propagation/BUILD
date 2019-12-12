@@ -90,6 +90,20 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "trace_context_lib",
+    private_hdrs = [
+      "trace_context.h",
+    ],
+    srcs = [
+        "trace_context.cpp",
+    ],
+    deps = [
+        "//src/common:hex_conversion_lib",
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_cc_library(
     name = "trace_context_propagator_lib",
     private_hdrs = [
         "trace_context_propagator.h",

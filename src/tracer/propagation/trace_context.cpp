@@ -1,5 +1,7 @@
 #include "tracer/propagation/trace_context.h"
 
+#include "common/hex_conversion.h"
+
 const size_t TraceContextMinLength = 55;
 
 namespace lightstep {
@@ -9,7 +11,8 @@ namespace lightstep {
 opentracing::expected<void> ParseTraceContext(
     opentracing::string_view s, TraceContext& trace_context) noexcept {
   if (s.size() < TraceContextMinLength) {
-    return std::make_error_code(std::errc::invalid_argument);
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::invalid_argument));
   }
   size_t offset = 0;
 
@@ -22,7 +25,8 @@ opentracing::expected<void> ParseTraceContext(
   trace_context.version = *version_maybe;
   offset += Num8BitHexDigits;
   if (s[offset] != '-') {
-    return std::make_error_code(std::errc::invalid_argument);
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::invalid_argument));
   }
   ++offset;
 
@@ -30,12 +34,13 @@ opentracing::expected<void> ParseTraceContext(
   auto error_maybe = NormalizedHexToUint128(
       opentracing::string_view{s.data() + offset, Num128BitHexDigits},
       trace_context.trace_id_high, trace_context.trace_id_low);
-  if (!was_successful) {
+  if (!error_maybe) {
     return error_maybe;
   }
   offset += Num128BitHexDigits;
   if (s[offset] != '-') {
-    return std::make_error_code(std::errc::invalid_argument);
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::invalid_argument));
   }
   ++offset;
 
@@ -48,10 +53,9 @@ opentracing::expected<void> ParseTraceContext(
   trace_context.parent_id = *parent_id_maybe;
   offset += Num64BitHexDigits;
   if (s[offset] != '-') {
-    return std::make_error_code(std::errc::invalid_argument);
+    return opentracing::make_unexpected(parent_id_maybe.error());
   }
   ++offset;
-
 
   // trace-flags
   auto trace_flags_maybe = NormalizedHexToUint8(
@@ -62,7 +66,7 @@ opentracing::expected<void> ParseTraceContext(
   trace_context.trace_flags = *trace_flags_maybe;
   offset += Num8BitHexDigits;
   if (s[offset] != '-') {
-    return std::make_error_code(std::errc::invalid_argument);
+    return opentracing::make_unexpected(parent_id_maybe.error());
   }
 
   return {};
