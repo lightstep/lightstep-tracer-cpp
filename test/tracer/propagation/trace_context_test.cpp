@@ -3,7 +3,7 @@
 #include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
 
-TEST_CASE("We can parse a trace-context") {
+TEST_CASE("We can serialize and deserialize a trace-context") {
   TraceContext trace_context;
 
   opentracing::string_view valid_trace_context =
@@ -39,5 +39,14 @@ TEST_CASE("We can parse a trace-context") {
     std::string s = valid_trace_context;
     s += ' ';
     REQUIRE(ParseTraceContext(s, trace_context));
+  }
+
+  SECTION(
+      "If we deserialize a trace-context and serialize again, we'll get the "
+      "same value") {
+    REQUIRE(ParseTraceContext(valid_trace_context, trace_context));
+    std::string s(TraceContextMinLength, ' ');
+    SerializeTraceContext(trace_context, &s[0]);
+    REQUIRE(s == valid_trace_context);
   }
 }

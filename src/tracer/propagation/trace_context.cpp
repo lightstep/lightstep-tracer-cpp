@@ -2,8 +2,6 @@
 
 #include "common/hex_conversion.h"
 
-const size_t TraceContextMinLength = 55;
-
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // ParseTraceContext
@@ -67,5 +65,36 @@ opentracing::expected<void> ParseTraceContext(
   trace_context.trace_flags = *trace_flags_maybe;
 
   return {};
+}
+
+//--------------------------------------------------------------------------------------------------
+// SerializeTraceContext
+//--------------------------------------------------------------------------------------------------
+void SerializeTraceContext(const TraceContext& trace_context,
+                           char* s) noexcept {
+  size_t offset = 0;
+
+  // version
+  Uint8ToHex(trace_context.version, s);
+  offset += Num8BitHexDigits;
+  *(s + offset) = '-';
+  ++offset;
+
+  // trace-id
+  Uint64ToHex(trace_context.trace_id_high, s + offset);
+  offset += Num64BitHexDigits;
+  Uint64ToHex(trace_context.trace_id_low, s + offset);
+  offset += Num64BitHexDigits;
+  *(s + offset) = '-';
+  ++offset;
+
+  // parent-id
+  Uint64ToHex(trace_context.parent_id, s + offset);
+  offset += Num64BitHexDigits;
+  *(s + offset) = '-';
+  ++offset;
+
+  // trace-flags
+  Uint8ToHex(trace_context.trace_flags, s + offset);
 }
 }  // namespace lightstep
