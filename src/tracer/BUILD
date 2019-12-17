@@ -77,6 +77,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/tracer:lightstep_span_context_interface",
+        "//src/tracer/propagation:trace_context_lib",
     ],
 )
 

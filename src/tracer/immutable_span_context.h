@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tracer/lightstep_span_context.h"
+#include "tracer/propagation/trace_context.h"
 
 namespace lightstep {
 /**
@@ -21,13 +22,17 @@ class ImmutableSpanContext final : public LightStepSpanContext {
                        BaggageProtobufMap&& baggage) noexcept;
 
   // LightStepSpanContext
-  uint64_t trace_id_high() const noexcept override { return trace_id_high_; }
+  uint64_t trace_id_high() const noexcept override { return trace_context_.trace_id_high; }
 
-  uint64_t trace_id_low() const noexcept override { return trace_id_low_; }
+  uint64_t trace_id_low() const noexcept override { return trace_context_.trace_id_low; }
 
-  uint64_t span_id() const noexcept override { return span_id_; }
+  uint64_t span_id() const noexcept override {
+    return trace_context_.parent_id;
+  }
 
-  bool sampled() const noexcept override { return sampled_; }
+  bool sampled() const noexcept override {
+    return IsTraceFlagSet<SampledFlagMask>(trace_context_.trace_flags);
+  }
 
   void ForeachBaggageItem(
       std::function<bool(const std::string& key, const std::string& value)> f)
@@ -52,18 +57,16 @@ class ImmutableSpanContext final : public LightStepSpanContext {
   }
 
  private:
-  uint64_t trace_id_high_;
-  uint64_t trace_id_low_;
-  uint64_t span_id_;
-  bool sampled_;
+  TraceContext trace_context_;
   BaggageProtobufMap baggage_;
   std::string trace_state_;
 
   template <class Carrier>
   opentracing::expected<void> InjectImpl(
       const PropagationOptions& propagation_options, Carrier& writer) const {
-    return InjectSpanContext(propagation_options, writer, trace_id_high_,
-                             trace_id_low_, span_id_, sampled_, baggage_);
+    return InjectSpanContext(propagation_options, writer, this->trace_id_high(),
+                             this->trace_id_low(), this->span_id(),
+                             this->sampled(), baggage_);
   }
 };
 }  // namespace lightstep
