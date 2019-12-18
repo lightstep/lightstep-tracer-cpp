@@ -233,9 +233,16 @@ def lightstep_google_benchmark(
       tools = [
           ":" + name,
           "//bazel:profile_benchmark",
-      ] + data,
+      ] + data + [
+          "@org_valgrind//:valgrind_filegroup",
+          "@org_graphviz//:dot_filegroup",
+          "//bazel:run_gprof2dot",
+      ],
       testonly = 1,
-      cmd = "$(location //bazel:profile_benchmark) $$PWD/$(location :%s) $@" % name,
+      cmd = "$(location //bazel:profile_benchmark) $$PWD/$(location :%s) $@ " % name +
+            "$$PWD/$(location @org_valgrind//:valgrind_filegroup) " +
+            "$$PWD/$(location @org_graphviz//:dot_filegroup) " +
+            "$$PWD/$(location //bazel:run_gprof2dot)",
   )
 
 def lightstep_go_binary(

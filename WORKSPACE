@@ -177,6 +177,26 @@ go_repository(
     tag = "v1.3.0",
 )
 
+http_archive(
+    name = "org_valgrind",
+    urls = [
+        "https://sourceware.org/pub/valgrind/valgrind-3.15.0.tar.bz2",
+    ],
+    sha256 = "417c7a9da8f60dd05698b3a7bc6002e4ef996f14c13f0ff96679a16873e78ab1",
+    strip_prefix = "valgrind-3.15.0",
+    build_file = "//bazel:valgrind.BUILD",
+)
+
+http_archive(
+    name = "org_graphviz",
+    urls = [
+        "https://graphviz.gitlab.io/pub/graphviz/stable/SOURCES/graphviz.tar.gz",
+    ],
+    sha256 = "ca5218fade0204d59947126c38439f432853543b0818d9d728c589dfe7f3a421",
+    strip_prefix = "graphviz-2.40.1",
+    build_file = "//bazel:graphviz.BUILD",
+)
+
 # Only needed for PIP support:
 git_repository(
     name = "io_bazel_rules_python",
