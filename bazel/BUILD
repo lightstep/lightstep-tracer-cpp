@@ -1,5 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
+load("@python_pip_deps//:requirements.bzl", "requirement") 
+
 config_setting(
     name = "asan_build",
     values = {"define": "LIGHTSTEP_CONFIG_ASAN=1"},
@@ -30,6 +32,16 @@ cc_library(
         # Note grpc already uses this wrapping technique with memcpy, so we add this flag to prevent
         # a multiple definition error
         "-Wl,--allow-multiple-definition", 
+    ],
+)
+
+py_binary(
+    name = "run_gprof2dot",
+    srcs = [
+        "run_gprof2dot.py",
+    ],
+    deps = [
+        requirement("gprof2dot"),
     ],
 )
 
