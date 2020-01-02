@@ -11,11 +11,11 @@ const uint8_t SampledFlagMask = 1;
 const uint8_t TraceContextVersion = 0;
 
 struct TraceContext {
-  uint64_t trace_id_high;
-  uint64_t trace_id_low;
-  uint64_t parent_id;
-  uint8_t trace_flags;
-  uint8_t version;
+  uint64_t trace_id_high{0};
+  uint64_t trace_id_low{0};
+  uint64_t parent_id{0};
+  uint8_t trace_flags{0};
+  uint8_t version{TraceContextVersion};
 };
 
 opentracing::expected<void> ParseTraceContext(

@@ -65,9 +65,13 @@ class ImmutableSpanContext final : public LightStepSpanContext {
   template <class Carrier>
   opentracing::expected<void> InjectImpl(
       const PropagationOptions& propagation_options, Carrier& writer) const {
-    return InjectSpanContext(propagation_options, writer, this->trace_id_high(),
-                             this->trace_id_low(), this->span_id(),
-                             this->sampled(), baggage_);
+    TraceContext trace_context;
+    trace_context.trace_id_high = trace_id_high_;
+    trace_context.trace_id_low = trace_id_low_;
+    trace_context.parent_id = span_id_;
+    trace_context.trace_flags = trace_flags_;
+    return InjectSpanContext(propagation_options, writer, trace_context,
+                             trace_state_, baggage_);
   }
 };
 }  // namespace lightstep

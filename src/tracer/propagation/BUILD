@@ -26,6 +26,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/tracer:baggage_flat_map_lib",
+        ":trace_context_lib",
     ],
     external_deps = [
         "@com_google_protobuf//:protobuf",
@@ -179,5 +180,6 @@ lightstep_cc_library(
     deps = [
         "//src/common:in_memory_stream_lib",
         ":propagation_options_lib",
+        ":trace_context_lib",
     ],
 )
