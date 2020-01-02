@@ -22,16 +22,14 @@ class ImmutableSpanContext final : public LightStepSpanContext {
                        BaggageProtobufMap&& baggage) noexcept;
 
   // LightStepSpanContext
-  uint64_t trace_id_high() const noexcept override { return trace_context_.trace_id_high; }
+  uint64_t trace_id_high() const noexcept override { return trace_id_high_; }
 
-  uint64_t trace_id_low() const noexcept override { return trace_context_.trace_id_low; }
+  uint64_t trace_id_low() const noexcept override { return trace_id_low_; }
 
-  uint64_t span_id() const noexcept override {
-    return trace_context_.parent_id;
-  }
+  uint64_t span_id() const noexcept override { return span_id_; }
 
   bool sampled() const noexcept override {
-    return IsTraceFlagSet<SampledFlagMask>(trace_context_.trace_flags);
+    return IsTraceFlagSet<SampledFlagMask>(trace_flags_);
   }
 
   void ForeachBaggageItem(
@@ -57,7 +55,10 @@ class ImmutableSpanContext final : public LightStepSpanContext {
   }
 
  private:
-  TraceContext trace_context_;
+  uint64_t trace_id_high_;
+  uint64_t trace_id_low_;
+  uint64_t span_id_;
+  uint8_t trace_flags_;
   BaggageProtobufMap baggage_;
   std::string trace_state_;
 
