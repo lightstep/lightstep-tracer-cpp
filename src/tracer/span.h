@@ -104,15 +104,23 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
   uint64_t trace_id_high_{0};
   uint64_t trace_id_;
   uint64_t span_id_;
+  uint8_t trace_flags_;
   BaggageFlatMap baggage_;
-  bool sampled_;
+  std::string trace_state_;
 
   template <class Carrier>
   opentracing::expected<void> InjectImpl(
       const PropagationOptions& propagation_options, Carrier& writer) const {
     SpinLockGuard lock_guard{mutex_};
-    return InjectSpanContext(propagation_options, writer, trace_id_high_,
-                             trace_id_, span_id_, sampled_, baggage_);
+    TraceContext trace_context;
+    trace_context.trace_id_high = trace_id_high_;
+    trace_context.trace_id_low = trace_id_;
+    trace_context.parent_id = span_id_;
+    trace_context.trace_flags = trace_flags_;
+    return InjectSpanContext(propagation_options, writer, trace_context,
+                             trace_state_, baggage_);
+    /* return InjectSpanContext(propagation_options, writer, trace_id_high_, */
+    /*                          trace_id_, span_id_, sampled_, baggage_); */
   }
 
   bool SetSpanReference(
