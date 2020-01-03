@@ -223,6 +223,14 @@ bool LegacySpan::sampled() const noexcept {
   return IsTraceFlagSet<SampledFlagMask>(trace_flags_);
 }
 
+//------------------------------------------------------------------------------
+// trace_flags
+//------------------------------------------------------------------------------
+uint8_t LegacySpan::trace_flags() const noexcept {
+  std::lock_guard<std::mutex> lock_guard{mutex_};
+  return trace_flags_;
+}
+
 //--------------------------------------------------------------------------------------------------
 // SetSpanReference
 //--------------------------------------------------------------------------------------------------

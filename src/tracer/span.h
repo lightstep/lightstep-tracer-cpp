@@ -85,6 +85,8 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
 
   bool sampled() const noexcept override;
 
+  uint8_t trace_flags() const noexcept override;
+
  private:
   // Profiling shows that even with no contention, locking and unlocking a
   // standard mutex represents a significant portion of the cost of
