@@ -119,8 +119,6 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
     trace_context.trace_flags = trace_flags_;
     return InjectSpanContext(propagation_options, writer, trace_context,
                              trace_state_, baggage_);
-    /* return InjectSpanContext(propagation_options, writer, trace_id_high_, */
-    /*                          trace_id_, span_id_, sampled_, baggage_); */
   }
 
   bool SetSpanReference(

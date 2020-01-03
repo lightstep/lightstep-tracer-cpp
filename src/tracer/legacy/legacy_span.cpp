@@ -31,7 +31,7 @@ LegacySpan::LegacySpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
   *span_.mutable_start_timestamp() = ToTimestamp(start_timestamp);
 
   // Set any span references.
-  sampled_ = false;
+  trace_flags_ = 0;
   collector::Reference collector_reference;
   auto& references = *span_.mutable_references();
   references.Reserve(static_cast<int>(options.references.size()));
@@ -39,7 +39,7 @@ LegacySpan::LegacySpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
     uint64_t trace_id_high;
     uint64_t trace_id;
     if (!SetSpanReference(reference, baggage, collector_reference,
-                          trace_id_high, trace_id, sampled_)) {
+                          trace_id_high, trace_id)) {
       continue;
     }
     *references.Add() = collector_reference;
@@ -52,7 +52,7 @@ LegacySpan::LegacySpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
   // If there are any span references, sampled should be true if any of the
   // references are sampled; with no refences, we set sampled to true.
   if (references.empty()) {
-    sampled_ = true;
+    trace_flags_ = SetTraceFlag<SampledFlagMask>(trace_flags_, true);
   }
 
   // Set tags.
@@ -64,7 +64,8 @@ LegacySpan::LegacySpan(std::shared_ptr<const opentracing::Tracer>&& tracer,
     // If sampling_priority is set, it overrides whatever sampling decision was
     // derived from the referenced spans.
     if (tag.first == SamplingPriorityKey) {
-      sampled_ = is_sampled(tag.second);
+      trace_flags_ =
+          SetTraceFlag<SampledFlagMask>(trace_flags_, is_sampled(tag.second));
     }
   }
 
@@ -96,7 +97,7 @@ void LegacySpan::FinishWithOptions(
   }
 
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  if (!sampled_) {
+  if(!IsTraceFlagSet<SampledFlagMask>(trace_flags_)) {
     return;
   }
 
@@ -147,7 +148,8 @@ void LegacySpan::SetTag(opentracing::string_view key,
   *span_.mutable_tags()->Add() = ToKeyValue(key, value);
 
   if (key == SamplingPriorityKey) {
-    sampled_ = is_sampled(value);
+    trace_flags_ =
+        SetTraceFlag<SampledFlagMask>(trace_flags_, is_sampled(value));
   }
 } catch (const std::exception& e) {
   logger_.Error("SetTag failed: ", e.what());
@@ -218,7 +220,7 @@ void LegacySpan::ForeachBaggageItem(
 //------------------------------------------------------------------------------
 bool LegacySpan::sampled() const noexcept {
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  return sampled_;
+  return IsTraceFlagSet<SampledFlagMask>(trace_flags_);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -228,7 +230,7 @@ bool LegacySpan::SetSpanReference(
     const std::pair<opentracing::SpanReferenceType,
                     const opentracing::SpanContext*>& reference,
     BaggageProtobufMap& baggage, collector::Reference& collector_reference,
-    uint64_t& trace_id_high, uint64_t& trace_id, bool& sampled) {
+    uint64_t& trace_id_high, uint64_t& trace_id) {
   collector_reference.Clear();
   switch (reference.first) {
     case opentracing::SpanReferenceType::ChildOfRef:
@@ -253,7 +255,10 @@ bool LegacySpan::SetSpanReference(
   collector_reference.mutable_span_context()->set_trace_id(trace_id);
   collector_reference.mutable_span_context()->set_span_id(
       referenced_context->span_id());
-  sampled = sampled || referenced_context->sampled();
+
+  if (referenced_context->sampled()) {
+    trace_flags_ = SetTraceFlag<SampledFlagMask>(trace_flags_, true);
+  }
 
   referenced_context->ForeachBaggageItem(
       [&baggage](const std::string& key, const std::string& value) {
