@@ -215,6 +215,7 @@ bool Span::SetSpanReference(
   WriteSpanReference(stream_, reference.first, trace_id,
                      referenced_context->span_id());
   trace_flags_ |= referenced_context->trace_flags();
+  AppendTraceState(trace_state_, referenced_context->trace_state());
   referenced_context->ForeachBaggageItem(
       [this](const std::string& key, const std::string& value) {
         this->baggage_.insert_or_assign(std::string{key}, std::string{value});

@@ -257,6 +257,7 @@ bool LegacySpan::SetSpanReference(
       referenced_context->span_id());
 
   trace_flags_ |= referenced_context->trace_flags();
+  AppendTraceState(trace_state_, referenced_context->trace_state());
 
   referenced_context->ForeachBaggageItem(
       [&baggage](const std::string& key, const std::string& value) {

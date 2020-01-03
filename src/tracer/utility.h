@@ -6,6 +6,7 @@
 #include "recorder/recorder.h"
 
 #include <opentracing/value.h>
+#include <opentracing/string_view.h>
 
 namespace lightstep {
 using SystemClock = std::chrono::system_clock;
@@ -56,4 +57,11 @@ inline std::tuple<SystemTime, SteadyTime> ComputeStartTimestamps(
   return std::tuple<SystemTime, SteadyTime>{start_system_timestamp,
                                             start_steady_timestamp};
 }
+
+/**
+ * Appends trace-states to have the union of the two key-value lists.
+ * @param trace_state the trace_state to append to
+ * @param key_values the key-values of another trace-state
+ */
+void AppendTraceState(std::string& trace_state, opentracing::string_view key_values);
 }  // namespace lightstep

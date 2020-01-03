@@ -231,6 +231,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/tracer/tracer_impl.cpp
                    src/tracer/tracer.cpp
                    src/tracer/tag.cpp
+                   src/tracer/utility.cpp
                    )
 
 if (WIN32)

@@ -36,6 +36,9 @@ lightstep_cc_library(
     private_hdrs = [
         "utility.h",
     ],
+    srcs = [
+        "utility.cpp",
+    ],
     deps = [
         "//src/recorder:recorder_interface",
     ],
