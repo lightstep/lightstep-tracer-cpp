@@ -26,19 +26,17 @@ MultiheaderPropagator::MultiheaderPropagator(
 // InjectSpanContext
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<void> MultiheaderPropagator::InjectSpanContext(
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-    uint64_t trace_id_low, uint64_t span_id, bool sampled,
+    const opentracing::TextMapWriter& carrier,
+    const TraceContext& trace_context, opentracing::string_view /*trace_state*/,
     const BaggageProtobufMap& /*baggage*/) const {
-  return this->InjectSpanContextImpl(carrier, trace_id_high, trace_id_low,
-                                     span_id, sampled);
+  return this->InjectSpanContextImpl(carrier, trace_context);
 }
 
 opentracing::expected<void> MultiheaderPropagator::InjectSpanContext(
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-    uint64_t trace_id_low, uint64_t span_id, bool sampled,
+    const opentracing::TextMapWriter& carrier,
+    const TraceContext& trace_context, opentracing::string_view /*trace_state*/,
     const BaggageFlatMap& /*baggage*/) const {
-  return this->InjectSpanContextImpl(carrier, trace_id_high, trace_id_low,
-                                     span_id, sampled);
+  return this->InjectSpanContextImpl(carrier, trace_context);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -69,25 +67,26 @@ opentracing::expected<bool> MultiheaderPropagator::ExtractSpanContext(
 // InjectSpanContextImpl
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<void> MultiheaderPropagator::InjectSpanContextImpl(
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-    uint64_t trace_id_low, uint64_t span_id, bool sampled) const {
+    const opentracing::TextMapWriter& carrier,
+    const TraceContext& trace_context) const {
   HexSerializer hex_serializer;
   opentracing::expected<void> result;
   if (supports_128bit_) {
-    result = carrier.Set(trace_id_key_, hex_serializer.Uint128ToHex(
-                                            trace_id_high, trace_id_low));
+    result = carrier.Set(
+        trace_id_key_, hex_serializer.Uint128ToHex(trace_context.trace_id_high,
+                                                   trace_context.trace_id_low));
   } else {
-    result =
-        carrier.Set(trace_id_key_, hex_serializer.Uint64ToHex(trace_id_low));
+    result = carrier.Set(
+        trace_id_key_, hex_serializer.Uint64ToHex(trace_context.trace_id_low));
   }
   if (!result) {
     return result;
   }
-  result = carrier.Set(span_id_key_, hex_serializer.Uint64ToHex(span_id));
+  result = carrier.Set(span_id_key_, hex_serializer.Uint64ToHex(trace_context.parent_id));
   if (!result) {
     return result;
   }
-  if (sampled) {
+  if (IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags)) {
     result = carrier.Set(sampled_key_, OneStr);
   } else {
     result = carrier.Set(sampled_key_, ZeroStr);
