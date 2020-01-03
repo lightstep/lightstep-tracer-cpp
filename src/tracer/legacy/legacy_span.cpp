@@ -97,7 +97,7 @@ void LegacySpan::FinishWithOptions(
   }
 
   std::lock_guard<std::mutex> lock_guard{mutex_};
-  if(!IsTraceFlagSet<SampledFlagMask>(trace_flags_)) {
+  if (!IsTraceFlagSet<SampledFlagMask>(trace_flags_)) {
     return;
   }
 

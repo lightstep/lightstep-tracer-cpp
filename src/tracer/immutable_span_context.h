@@ -30,6 +30,10 @@ class ImmutableSpanContext final : public LightStepSpanContext {
 
   uint8_t trace_flags() const noexcept override { return trace_flags_; }
 
+  opentracing::string_view trace_state() const noexcept override {
+    return trace_state_;
+  }
+
   void ForeachBaggageItem(
       std::function<bool(const std::string& key, const std::string& value)> f)
       const override;

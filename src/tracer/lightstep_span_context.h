@@ -23,7 +23,7 @@ class LightStepSpanContext : public opentracing::SpanContext {
 
   virtual uint8_t trace_flags() const noexcept = 0;
 
-  virtual opentracing::string_view trace_state() const noexcept { return {}; }
+  virtual opentracing::string_view trace_state() const noexcept = 0;
 
   virtual opentracing::expected<void> Inject(
       const PropagationOptions& propagation_options,

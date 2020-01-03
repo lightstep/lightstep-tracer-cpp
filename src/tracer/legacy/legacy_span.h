@@ -67,6 +67,10 @@ class LegacySpan final : public opentracing::Span, public LightStepSpanContext {
 
   uint8_t trace_flags() const noexcept override;
 
+  opentracing::string_view trace_state() const noexcept override {
+    return trace_state_;
+  }
+
   opentracing::expected<void> Inject(
       const PropagationOptions& propagation_options,
       std::ostream& writer) const override {

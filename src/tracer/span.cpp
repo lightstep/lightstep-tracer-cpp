@@ -67,7 +67,8 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
     // If sampling_priority is set, it overrides whatever sampling decision was
     // derived from the referenced spans.
     if (tag.first == SamplingPriorityKey) {
-      trace_flags_ = SetTraceFlag<SampledFlagMask>(trace_flags_, is_sampled(tag.second));
+      trace_flags_ =
+          SetTraceFlag<SampledFlagMask>(trace_flags_, is_sampled(tag.second));
     }
   }
 }
@@ -234,7 +235,7 @@ void Span::FinishImpl(
     return;
   }
 
-  if(!IsTraceFlagSet<SampledFlagMask>(trace_flags_)) {
+  if (!IsTraceFlagSet<SampledFlagMask>(trace_flags_)) {
     return;
   }
 

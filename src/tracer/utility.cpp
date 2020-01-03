@@ -11,4 +11,4 @@ void AppendTraceState(std::string& trace_state,
   trace_state.append(",");
   trace_state.append(key_values.data(), key_values.size());
 }
-} // namespace lightstep
+}  // namespace lightstep
