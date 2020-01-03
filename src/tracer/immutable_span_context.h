@@ -28,10 +28,6 @@ class ImmutableSpanContext final : public LightStepSpanContext {
 
   uint64_t span_id() const noexcept override { return span_id_; }
 
-  bool sampled() const noexcept override {
-    return IsTraceFlagSet<SampledFlagMask>(trace_flags_);
-  }
-
   uint8_t trace_flags() const noexcept override { return trace_flags_; }
 
   void ForeachBaggageItem(

@@ -216,14 +216,6 @@ void LegacySpan::ForeachBaggageItem(
 }
 
 //------------------------------------------------------------------------------
-// sampled
-//------------------------------------------------------------------------------
-bool LegacySpan::sampled() const noexcept {
-  std::lock_guard<std::mutex> lock_guard{mutex_};
-  return IsTraceFlagSet<SampledFlagMask>(trace_flags_);
-}
-
-//------------------------------------------------------------------------------
 // trace_flags
 //------------------------------------------------------------------------------
 uint8_t LegacySpan::trace_flags() const noexcept {
@@ -264,9 +256,7 @@ bool LegacySpan::SetSpanReference(
   collector_reference.mutable_span_context()->set_span_id(
       referenced_context->span_id());
 
-  if (referenced_context->sampled()) {
-    trace_flags_ = SetTraceFlag<SampledFlagMask>(trace_flags_, true);
-  }
+  trace_flags_ |= referenced_context->trace_flags();
 
   referenced_context->ForeachBaggageItem(
       [&baggage](const std::string& key, const std::string& value) {

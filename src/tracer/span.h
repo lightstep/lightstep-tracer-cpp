@@ -83,8 +83,6 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
 
   uint64_t span_id() const noexcept override { return span_id_; }
 
-  bool sampled() const noexcept override;
-
   uint8_t trace_flags() const noexcept override;
 
  private:

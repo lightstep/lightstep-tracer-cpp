@@ -186,14 +186,6 @@ void Span::ForeachBaggageItem(
 }
 
 //------------------------------------------------------------------------------
-// sampled
-//------------------------------------------------------------------------------
-bool Span::sampled() const noexcept {
-  SpinLockGuard lock_guard{mutex_};
-  return IsTraceFlagSet<SampledFlagMask>(trace_flags_);
-}
-
-//------------------------------------------------------------------------------
 // trace_flags
 //------------------------------------------------------------------------------
 uint8_t Span::trace_flags() const noexcept {
@@ -222,9 +214,7 @@ bool Span::SetSpanReference(
   trace_id = referenced_context->trace_id_low();
   WriteSpanReference(stream_, reference.first, trace_id,
                      referenced_context->span_id());
-  if (referenced_context->sampled()) {
-    trace_flags_ = SetTraceFlag<SampledFlagMask>(trace_flags_, true);
-  }
+  trace_flags_ |= referenced_context->trace_flags();
   referenced_context->ForeachBaggageItem(
       [this](const std::string& key, const std::string& value) {
         this->baggage_.insert_or_assign(std::string{key}, std::string{value});

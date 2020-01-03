@@ -65,8 +65,6 @@ class LegacySpan final : public opentracing::Span, public LightStepSpanContext {
     return span_.span_context().span_id();
   }
 
-  bool sampled() const noexcept override;
-
   uint8_t trace_flags() const noexcept override;
 
   opentracing::expected<void> Inject(

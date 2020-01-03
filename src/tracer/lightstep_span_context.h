@@ -17,7 +17,9 @@ class LightStepSpanContext : public opentracing::SpanContext {
 
   virtual uint64_t span_id() const noexcept = 0;
 
-  virtual bool sampled() const noexcept = 0;
+  bool sampled() const noexcept {
+    return IsTraceFlagSet<SampledFlagMask>(this->trace_flags());
+  }
 
   virtual uint8_t trace_flags() const noexcept = 0;
 
