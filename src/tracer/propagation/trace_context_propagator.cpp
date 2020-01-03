@@ -1,6 +1,31 @@
 #include "tracer/propagation/trace_context_propagator.h"
 
+#include <array>
+
+const opentracing::string_view TraceParentHeaderKey = "traceparent";
+const opentracing::string_view TraceStateHeaderKey = "tracestate";
+
 namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// InjectSpanContextImpl
+//--------------------------------------------------------------------------------------------------
+static opentracing::expected<void> InjectSpanContextImpl(
+    const opentracing::TextMapWriter& carrier,
+    const TraceContext& trace_context, opentracing::string_view trace_state) {
+  std::array<char, TraceContextLength> buffer;
+  SerializeTraceContext(trace_context, buffer.data());
+  auto result = carrier.Set(
+      TraceParentHeaderKey,
+      opentracing::string_view{buffer.data(), buffer.size()});
+  if (!result) {
+    return result;
+  }
+  if (trace_state.empty()) {
+    return {};
+  }
+  return carrier.Set(TraceStateHeaderKey, trace_state);
+}
+
 //--------------------------------------------------------------------------------------------------
 // InjectSpanContext
 //--------------------------------------------------------------------------------------------------
@@ -28,6 +53,20 @@ opentracing::expected<void> TraceContextPropagator::InjectSpanContext(
   (void)sampled;
   (void)baggage;
   return {};
+}
+
+opentracing::expected<void> TraceContextPropagator::InjectSpanContext(
+    const opentracing::TextMapWriter& carrier,
+    const TraceContext& trace_context, opentracing::string_view trace_state,
+    const BaggageProtobufMap& /*baggage*/) const {
+  return InjectSpanContextImpl(carrier, trace_context, trace_state);
+}
+
+opentracing::expected<void> TraceContextPropagator::InjectSpanContext(
+    const opentracing::TextMapWriter& carrier,
+    const TraceContext& trace_context, opentracing::string_view trace_state,
+    const BaggageFlatMap& /*baggage*/) const {
+  return InjectSpanContextImpl(carrier, trace_context, trace_state);
 }
 
 //--------------------------------------------------------------------------------------------------

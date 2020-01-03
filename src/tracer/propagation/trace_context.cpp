@@ -8,7 +8,7 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<void> ParseTraceContext(
     opentracing::string_view s, TraceContext& trace_context) noexcept {
-  if (s.size() < TraceContextMinLength) {
+  if (s.size() < TraceContextLength) {
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::invalid_argument));
   }

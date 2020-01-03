@@ -45,7 +45,7 @@ TEST_CASE("We can serialize and deserialize a trace-context") {
       "If we deserialize a trace-context and serialize again, we'll get the "
       "same value") {
     REQUIRE(ParseTraceContext(valid_trace_context, trace_context));
-    std::string s(TraceContextMinLength, ' ');
+    std::string s(TraceContextLength, ' ');
     SerializeTraceContext(trace_context, &s[0]);
     REQUIRE(s == valid_trace_context);
   }

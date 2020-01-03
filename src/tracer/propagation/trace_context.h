@@ -6,7 +6,7 @@
 #include <opentracing/util.h>
 
 namespace lightstep {
-const size_t TraceContextMinLength = 55;
+const size_t TraceContextLength = 55;
 const uint8_t SampledFlagMask = 1;
 const uint8_t TraceContextVersion = 0;
 
