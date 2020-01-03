@@ -19,34 +19,6 @@ namespace lightstep {
 template <class BaggageMap>
 opentracing::expected<void> InjectSpanContext(
     const PropagationOptions& propagation_options,
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-    uint64_t trace_id_low, uint64_t span_id, bool sampled,
-    const BaggageMap& baggage) {
-  for (auto& propagator : propagation_options.inject_propagators) {
-    auto was_successful = propagator->InjectSpanContext(
-        carrier, trace_id_high, trace_id_low, span_id, sampled, baggage);
-    if (!was_successful) {
-      return was_successful;
-    }
-  }
-  return {};
-}
-
-template opentracing::expected<void> InjectSpanContext(
-    const PropagationOptions& propagation_options,
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-    uint64_t trace_id_low, uint64_t span_id, bool sampled,
-    const BaggageProtobufMap& baggage);
-
-template opentracing::expected<void> InjectSpanContext(
-    const PropagationOptions& propagation_options,
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-    uint64_t trace_id_low, uint64_t span_id, bool sampled,
-    const BaggageFlatMap& baggage);
-
-template <class BaggageMap>
-opentracing::expected<void> InjectSpanContext(
-    const PropagationOptions& propagation_options,
     const opentracing::TextMapWriter& carrier,
     const TraceContext& trace_context, opentracing::string_view trace_state,
     const BaggageMap& baggage) {

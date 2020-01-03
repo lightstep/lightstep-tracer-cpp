@@ -30,32 +30,6 @@ static opentracing::expected<void> InjectSpanContextImpl(
 // InjectSpanContext
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<void> TraceContextPropagator::InjectSpanContext(
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-    uint64_t trace_id_low, uint64_t span_id, bool sampled,
-    const BaggageProtobufMap& baggage) const {
-  (void)carrier;
-  (void)trace_id_high;
-  (void)trace_id_low;
-  (void)span_id;
-  (void)sampled;
-  (void)baggage;
-  return {};
-}
-
-opentracing::expected<void> TraceContextPropagator::InjectSpanContext(
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-    uint64_t trace_id_low, uint64_t span_id, bool sampled,
-    const BaggageFlatMap& baggage) const {
-  (void)carrier;
-  (void)trace_id_high;
-  (void)trace_id_low;
-  (void)span_id;
-  (void)sampled;
-  (void)baggage;
-  return {};
-}
-
-opentracing::expected<void> TraceContextPropagator::InjectSpanContext(
     const opentracing::TextMapWriter& carrier,
     const TraceContext& trace_context, opentracing::string_view trace_state,
     const BaggageProtobufMap& /*baggage*/) const {
