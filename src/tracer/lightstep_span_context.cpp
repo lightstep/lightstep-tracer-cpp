@@ -19,6 +19,7 @@ bool operator==(const LightStepSpanContext& lhs,
   return lhs.trace_id_high() == rhs.trace_id_high() &&
          lhs.trace_id_low() == rhs.trace_id_low() &&
          lhs.span_id() == rhs.span_id() &&
+         lhs.trace_state() == rhs.trace_state() &&
          lhs.trace_flags() == rhs.trace_flags() &&
          extract_baggage(lhs) == extract_baggage(rhs);
 }

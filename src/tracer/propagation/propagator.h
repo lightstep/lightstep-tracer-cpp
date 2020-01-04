@@ -28,5 +28,25 @@ class Propagator {
       const opentracing::TextMapReader& carrier, bool case_sensitive,
       uint64_t& trace_id_high, uint64_t& trace_id_low, uint64_t& span_id,
       bool& sampled, BaggageProtobufMap& baggage) const = 0;
+
+  virtual opentracing::expected<bool> ExtractSpanContext(
+      const opentracing::TextMapReader& carrier, bool case_sensitive,
+      TraceContext& trace_context, std::string& trace_state,
+      BaggageProtobufMap& baggage) const {
+    (void)trace_state;
+    bool sampled;
+    auto result = ExtractSpanContext(
+        carrier, case_sensitive, trace_context.trace_id_high,
+        trace_context.trace_id_low, trace_context.parent_id, sampled, baggage);
+    if (!result || !*result) {
+      return result;
+    }
+    trace_context.trace_flags = IsTraceFlagSet<SampledFlagMask>(0);
+    if (trace_context.trace_id_high == 0 && trace_context.trace_id_low == 0) {
+      return opentracing::make_unexpected(
+          opentracing::invalid_span_context_error);
+    }
+    return true;
+  }
 };
 }  // namespace lightstep

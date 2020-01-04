@@ -21,6 +21,10 @@ class ImmutableSpanContext final : public LightStepSpanContext {
                        uint64_t span_id, bool sampled,
                        BaggageProtobufMap&& baggage) noexcept;
 
+  ImmutableSpanContext(const TraceContext& trace_context,
+                       std::string&& trace_state,
+                       BaggageProtobufMap&& baggage) noexcept;
+
   // LightStepSpanContext
   uint64_t trace_id_high() const noexcept override { return trace_id_high_; }
 
@@ -61,8 +65,8 @@ class ImmutableSpanContext final : public LightStepSpanContext {
   uint64_t trace_id_low_;
   uint64_t span_id_;
   uint8_t trace_flags_;
-  BaggageProtobufMap baggage_;
   std::string trace_state_;
+  BaggageProtobufMap baggage_;
 
   template <class Carrier>
   opentracing::expected<void> InjectImpl(

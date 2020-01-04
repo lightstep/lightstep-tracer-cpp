@@ -63,4 +63,14 @@ opentracing::expected<bool> ExtractSpanContext(
     const opentracing::HTTPHeadersReader& carrier, uint64_t& trace_id_high,
     uint64_t& trace_id_low, uint64_t& span_id, bool& sampled,
     BaggageProtobufMap& baggage);
+
+opentracing::expected<bool> ExtractSpanContext(
+    const PropagationOptions& propagation_options,
+    const opentracing::TextMapReader& carrier, TraceContext& trace_context,
+    std::string& trace_state, BaggageProtobufMap& baggage);
+
+opentracing::expected<bool> ExtractSpanContext(
+    const PropagationOptions& propagation_options,
+    const opentracing::HTTPHeadersReader& carrier, TraceContext& trace_context,
+    std::string& trace_state, BaggageProtobufMap& baggage);
 }  // namespace lightstep

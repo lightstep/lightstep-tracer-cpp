@@ -29,6 +29,16 @@ ImmutableSpanContext::ImmutableSpanContext(
       trace_flags_{SetTraceFlag<SampledFlagMask>(0, sampled)},
       baggage_{std::move(baggage)} {}
 
+ImmutableSpanContext::ImmutableSpanContext(
+    const TraceContext& trace_context, std::string&& trace_state,
+    BaggageProtobufMap&& baggage) noexcept
+    : trace_id_high_{trace_context.trace_id_high},
+      trace_id_low_{trace_context.trace_id_low},
+      span_id_{trace_context.parent_id},
+      trace_flags_{trace_context.trace_flags},
+      trace_state_{std::move(trace_state)},
+      baggage_{std::move(baggage)} {}
+
 //------------------------------------------------------------------------------
 // ForeachBaggageItem
 //------------------------------------------------------------------------------

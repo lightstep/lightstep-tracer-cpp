@@ -26,7 +26,7 @@ static opentracing::expected<void> InjectImpl(
 // ExtractImpl
 //------------------------------------------------------------------------------
 template <class Carrier>
-opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
+static opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
     const PropagationOptions& propagation_options, Carrier& reader) try {
   uint64_t trace_id_high, trace_id_low, span_id;
   bool sampled;
@@ -48,6 +48,32 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
   return opentracing::make_unexpected(
       make_error_code(std::errc::not_enough_memory));
 }
+
+#if 0
+template <class Carrier>
+static opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
+    const PropagationOptions& propagation_options, Carrier& reader) try {
+  uint64_t trace_id_high, trace_id_low, span_id;
+  bool sampled;
+  BaggageProtobufMap baggage;
+  auto extract_maybe =
+      ExtractSpanContext(propagation_options, reader, trace_id_high,
+                         trace_id_low, span_id, sampled, baggage);
+
+  if (!extract_maybe) {
+    return opentracing::make_unexpected(extract_maybe.error());
+  }
+  if (!*extract_maybe) {
+    return std::unique_ptr<opentracing::SpanContext>{nullptr};
+  }
+  std::unique_ptr<opentracing::SpanContext> result{new ImmutableSpanContext{
+      trace_id_high, trace_id_low, span_id, sampled, std::move(baggage)}};
+  return std::move(result);
+} catch (const std::bad_alloc&) {
+  return opentracing::make_unexpected(
+      make_error_code(std::errc::not_enough_memory));
+}
+#endif
 
 //--------------------------------------------------------------------------------------------------
 // constructor
