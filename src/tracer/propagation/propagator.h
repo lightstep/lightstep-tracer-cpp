@@ -17,55 +17,16 @@ class Propagator {
   virtual opentracing::expected<void> InjectSpanContext(
       const opentracing::TextMapWriter& carrier,
       const TraceContext& trace_context, opentracing::string_view trace_state,
-      const BaggageProtobufMap& baggage) const {
-    (void)trace_state;
-    return InjectSpanContext(
-        carrier, trace_context.trace_id_high, trace_context.trace_id_low,
-        trace_context.parent_id,
-        IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags), baggage);
-  }
+      const BaggageProtobufMap& baggage) const = 0;
 
   virtual opentracing::expected<void> InjectSpanContext(
       const opentracing::TextMapWriter& carrier,
       const TraceContext& trace_context, opentracing::string_view trace_state,
-      const BaggageFlatMap& baggage) const {
-    (void)trace_state;
-    return InjectSpanContext(
-        carrier, trace_context.trace_id_high, trace_context.trace_id_low,
-        trace_context.parent_id,
-        IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags), baggage);
-  }
+      const BaggageFlatMap& baggage) const = 0;
 
   virtual opentracing::expected<bool> ExtractSpanContext(
       const opentracing::TextMapReader& carrier, bool case_sensitive,
       uint64_t& trace_id_high, uint64_t& trace_id_low, uint64_t& span_id,
       bool& sampled, BaggageProtobufMap& baggage) const = 0;
- private:
-  virtual opentracing::expected<void> InjectSpanContext(
-      const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-      uint64_t trace_id_low, uint64_t span_id, bool sampled,
-      const BaggageProtobufMap& baggage) const {
-    (void)carrier;
-    (void)trace_id_high;
-    (void)trace_id_low;
-    (void)span_id;
-    (void)sampled;
-    (void)baggage;
-    std::terminate();
-  }
-
-  virtual opentracing::expected<void> InjectSpanContext(
-      const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-      uint64_t trace_id_low, uint64_t span_id, bool sampled,
-      const BaggageFlatMap& baggage) const {
-    (void)carrier;
-    (void)trace_id_high;
-    (void)trace_id_low;
-    (void)span_id;
-    (void)sampled;
-    (void)baggage;
-    std::terminate();
-  }
-
 };
 }  // namespace lightstep
