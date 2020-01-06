@@ -41,7 +41,7 @@ class Propagator {
     if (!result || !*result) {
       return result;
     }
-    trace_context.trace_flags = IsTraceFlagSet<SampledFlagMask>(0);
+    trace_context.trace_flags = SetTraceFlag<SampledFlagMask>(0, sampled);
     if (trace_context.trace_id_high == 0 && trace_context.trace_id_low == 0) {
       return opentracing::make_unexpected(
           opentracing::invalid_span_context_error);
