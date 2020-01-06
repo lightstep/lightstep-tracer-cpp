@@ -52,6 +52,20 @@ inline opentracing::expected<bool> ExtractSpanContext(
   return ExtractSpanContext(carrier, trace_id_low, span_id, sampled, baggage);
 }
 
+inline opentracing::expected<bool> ExtractSpanContext(
+    const PropagationOptions& /*propagation_options*/, std::istream& carrier,
+    TraceContext& trace_context, std::string& /*trace_state*/, BaggageProtobufMap& baggage) {
+  trace_context.trace_id_high = 0;
+  bool sampled;
+  auto result = ExtractSpanContext(carrier, trace_context.trace_id_low,
+                                   trace_context.parent_id, sampled, baggage);
+  if (!result || !*result) {
+    return result;
+  }
+  trace_context.trace_flags = SetTraceFlag<SampledFlagMask>(0, sampled);
+  return result;
+}
+
 opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapReader& carrier, uint64_t& trace_id_high,
