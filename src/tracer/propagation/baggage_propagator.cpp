@@ -45,14 +45,16 @@ BaggagePropagator::BaggagePropagator(
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<void> BaggagePropagator::InjectSpanContext(
     const opentracing::TextMapWriter& carrier,
-    const TraceContext& /*trace_context*/, opentracing::string_view /*trace_state*/,
+    const TraceContext& /*trace_context*/,
+    opentracing::string_view /*trace_state*/,
     const BaggageProtobufMap& baggage) const {
   return this->InjectSpanContextImpl(carrier, baggage);
 }
 
 opentracing::expected<void> BaggagePropagator::InjectSpanContext(
     const opentracing::TextMapWriter& carrier,
-    const TraceContext& /*trace_context*/, opentracing::string_view /*trace_state*/,
+    const TraceContext& /*trace_context*/,
+    opentracing::string_view /*trace_state*/,
     const BaggageFlatMap& baggage) const {
   return this->InjectSpanContextImpl(carrier, baggage);
 }

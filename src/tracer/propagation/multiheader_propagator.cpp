@@ -92,7 +92,8 @@ opentracing::expected<void> MultiheaderPropagator::InjectSpanContextImpl(
   if (!result) {
     return result;
   }
-  result = carrier.Set(span_id_key_, hex_serializer.Uint64ToHex(trace_context.parent_id));
+  result = carrier.Set(span_id_key_,
+                       hex_serializer.Uint64ToHex(trace_context.parent_id));
   if (!result) {
     return result;
   }

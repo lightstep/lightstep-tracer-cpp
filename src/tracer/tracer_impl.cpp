@@ -26,8 +26,9 @@ static opentracing::expected<void> InjectImpl(
 // ExtractImpl
 //------------------------------------------------------------------------------
 template <class Carrier>
-static opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
-    const PropagationOptions& propagation_options, Carrier& reader) try {
+static opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
+ExtractImpl(const PropagationOptions& propagation_options,
+            Carrier& reader) try {
   TraceContext trace_context;
   std::string trace_state;
   BaggageProtobufMap baggage;

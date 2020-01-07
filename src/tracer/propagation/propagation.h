@@ -46,7 +46,8 @@ opentracing::expected<void> InjectSpanContext(
 
 inline opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& /*propagation_options*/, std::istream& carrier,
-    TraceContext& trace_context, std::string& /*trace_state*/, BaggageProtobufMap& baggage) {
+    TraceContext& trace_context, std::string& /*trace_state*/,
+    BaggageProtobufMap& baggage) {
   trace_context.trace_id_high = 0;
   bool sampled;
   auto result = ExtractSpanContext(carrier, trace_context.trace_id_low,

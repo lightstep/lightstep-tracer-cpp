@@ -38,7 +38,7 @@ class MultiheaderPropagator final : public Propagator {
   bool supports_128bit_;
 
   opentracing::expected<void> InjectSpanContextImpl(
-      const opentracing::TextMapWriter& carrier, 
+      const opentracing::TextMapWriter& carrier,
       const TraceContext& trace_context) const;
 
   template <class KeyCompare>
