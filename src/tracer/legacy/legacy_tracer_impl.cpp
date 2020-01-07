@@ -27,12 +27,12 @@ static opentracing::expected<void> InjectImpl(
 template <class Carrier>
 opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
     const PropagationOptions& propagation_options, Carrier& reader) try {
-  uint64_t trace_id_high, trace_id_low, span_id;
-  bool sampled;
+  TraceContext trace_context;
+  std::string trace_state;
   BaggageProtobufMap baggage;
-  auto extract_maybe =
-      ExtractSpanContext(propagation_options, reader, trace_id_high,
-                         trace_id_low, span_id, sampled, baggage);
+
+  auto extract_maybe = ExtractSpanContext(propagation_options, reader,
+                                          trace_context, trace_state, baggage);
 
   if (!extract_maybe) {
     return opentracing::make_unexpected(extract_maybe.error());
@@ -41,7 +41,7 @@ opentracing::expected<std::unique_ptr<opentracing::SpanContext>> ExtractImpl(
     return std::unique_ptr<opentracing::SpanContext>{nullptr};
   }
   std::unique_ptr<opentracing::SpanContext> result{new ImmutableSpanContext{
-      trace_id_high, trace_id_low, span_id, sampled, std::move(baggage)}};
+      trace_context, std::move(trace_state), std::move(baggage)}};
   return std::move(result);
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(
