@@ -44,8 +44,8 @@ opentracing::expected<void> MultiheaderPropagator::InjectSpanContext(
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<bool> MultiheaderPropagator::ExtractSpanContext(
     const opentracing::TextMapReader& carrier, bool case_sensitive,
-    uint64_t& trace_id_high, uint64_t& trace_id_low, uint64_t& span_id,
-    bool& sampled, BaggageProtobufMap& baggage) const {
+    TraceContext& trace_context, std::string& /*trace_state*/,
+    BaggageProtobufMap& baggage) const {
   auto iequals =
       [](opentracing::string_view lhs, opentracing::string_view rhs) noexcept {
     return lhs.length() == rhs.length() &&
@@ -54,13 +54,23 @@ opentracing::expected<bool> MultiheaderPropagator::ExtractSpanContext(
                         return std::tolower(a) == std::tolower(b);
                       });
   };
+  bool sampled;
+  opentracing::expected<bool> result;
   if (case_sensitive) {
-    return ExtractSpanContextImpl(carrier, trace_id_high, trace_id_low, span_id,
-                                  sampled, baggage,
-                                  std::equal_to<opentracing::string_view>{});
+    result = ExtractSpanContextImpl(carrier, trace_context.trace_id_high,
+                                    trace_context.trace_id_low,
+                                    trace_context.parent_id, sampled, baggage,
+                                    std::equal_to<opentracing::string_view>{});
+  } else {
+    result = result = ExtractSpanContextImpl(
+        carrier, trace_context.trace_id_high, trace_context.trace_id_low,
+        trace_context.parent_id, sampled, baggage, iequals);
   }
-  return ExtractSpanContextImpl(carrier, trace_id_high, trace_id_low, span_id,
-                                sampled, baggage, iequals);
+  if (!result || !*result) {
+    return result;
+  }
+  trace_context.trace_flags = SetTraceFlag<SampledFlagMask>(0, sampled);
+  return result;
 }
 
 //--------------------------------------------------------------------------------------------------

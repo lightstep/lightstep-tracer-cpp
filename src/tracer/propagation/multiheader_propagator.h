@@ -27,8 +27,8 @@ class MultiheaderPropagator final : public Propagator {
 
   opentracing::expected<bool> ExtractSpanContext(
       const opentracing::TextMapReader& carrier, bool case_sensitive,
-      uint64_t& trace_id_high, uint64_t& trace_id_low, uint64_t& span_id,
-      bool& sampled, BaggageProtobufMap& baggage) const override;
+      TraceContext& trace_context, std::string& trace_state,
+      BaggageProtobufMap& baggage) const override;
 
  private:
   opentracing::string_view trace_id_key_;
