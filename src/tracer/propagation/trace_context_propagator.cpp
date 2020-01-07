@@ -27,6 +27,35 @@ static opentracing::expected<void> InjectSpanContextImpl(
 }
 
 //--------------------------------------------------------------------------------------------------
+// ExtractSpanContextImpl
+//--------------------------------------------------------------------------------------------------
+template <class KeyCompare>
+static opentracing::expected<bool> ExtractSpanContextImpl(
+    const opentracing::TextMapReader& carrier, TraceContext& trace_context,
+    std::string& trace_state, const KeyCompare& key_compare) {
+  bool parent_header_found = false;
+  auto result =
+      carrier.ForeachKey([&](opentracing::string_view key,
+                             opentracing::string_view
+                                 value) noexcept->opentracing::expected<void> {
+        if (key_compare(key, TraceParentHeaderKey)) {
+          auto was_successful = ParseTraceContext(value, trace_context);
+          if (!was_successful) {
+            return opentracing::make_unexpected(was_successful.error());
+          }
+          parent_header_found = true;
+        } else if (key_compare(key, TraceStateHeaderKey)) {
+          trace_state.assign(value.data(), value.size());
+        }
+        return {};
+      });
+  if (!result) {
+    return opentracing::make_unexpected(result.error());
+  }
+  return parent_header_found;
+}
+
+//--------------------------------------------------------------------------------------------------
 // InjectSpanContext
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<void> TraceContextPropagator::InjectSpanContext(
@@ -64,26 +93,18 @@ opentracing::expected<bool> TraceContextPropagator::ExtractSpanContext(
     const opentracing::TextMapReader& carrier, bool case_sensitive,
     TraceContext& trace_context, std::string& trace_state,
     BaggageProtobufMap& /*baggage*/) const {
-  (void)case_sensitive;
-  bool parent_header_found = false;
-  auto result =
-      carrier.ForeachKey([&](opentracing::string_view key,
-                             opentracing::string_view
-                                 value) noexcept->opentracing::expected<void> {
-        if (key == TraceParentHeaderKey) {
-          auto was_successful = ParseTraceContext(value, trace_context);
-          if (!was_successful) {
-            return opentracing::make_unexpected(was_successful.error());
-          }
-          parent_header_found = true;
-        } else if (key == TraceStateHeaderKey) {
-          trace_state.assign(value.data(), value.size());
-        }
-        return {};
-      });
-  if (!result) {
-    return opentracing::make_unexpected(result.error());
+  auto iequals =
+      [](opentracing::string_view lhs, opentracing::string_view rhs) noexcept {
+    return lhs.length() == rhs.length() &&
+           std::equal(std::begin(lhs), std::end(lhs), std::begin(rhs),
+                      [](char a, char b) {
+                        return std::tolower(a) == std::tolower(b);
+                      });
+  };
+  if (case_sensitive) {
+    return ExtractSpanContextImpl(carrier, trace_context, trace_state,
+                                  std::equal_to<opentracing::string_view>{});
   }
-  return parent_header_found;
+  return ExtractSpanContextImpl(carrier, trace_context, trace_state, iequals);
 }
 }  // namespace lightstep
