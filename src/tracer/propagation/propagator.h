@@ -26,40 +26,7 @@ class Propagator {
 
   virtual opentracing::expected<bool> ExtractSpanContext(
       const opentracing::TextMapReader& carrier, bool case_sensitive,
-      uint64_t& trace_id_high, uint64_t& trace_id_low, uint64_t& span_id,
-      bool& sampled, BaggageProtobufMap& baggage) const {
-    std::string trace_state;
-    TraceContext trace_context;
-    auto result = this->ExtractSpanContext(carrier, case_sensitive,
-                                           trace_context, trace_state, baggage);
-    if (!result || !*result) {
-      return result;
-    }
-    trace_id_high = trace_context.trace_id_high;
-    trace_id_low = trace_context.trace_id_low;
-    span_id = trace_context.parent_id;
-    sampled = IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags);
-    return result;
-  }
-
-  virtual opentracing::expected<bool> ExtractSpanContext(
-      const opentracing::TextMapReader& carrier, bool case_sensitive,
       TraceContext& trace_context, std::string& trace_state,
-      BaggageProtobufMap& baggage) const {
-    (void)trace_state;
-    bool sampled;
-    auto result = ExtractSpanContext(
-        carrier, case_sensitive, trace_context.trace_id_high,
-        trace_context.trace_id_low, trace_context.parent_id, sampled, baggage);
-    if (!result || !*result) {
-      return result;
-    }
-    trace_context.trace_flags = SetTraceFlag<SampledFlagMask>(0, sampled);
-    if (trace_context.trace_id_high == 0 && trace_context.trace_id_low == 0) {
-      return opentracing::make_unexpected(
-          opentracing::invalid_span_context_error);
-    }
-    return true;
-  }
+      BaggageProtobufMap& baggage) const = 0;
 };
 }  // namespace lightstep
