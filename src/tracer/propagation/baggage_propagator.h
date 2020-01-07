@@ -20,11 +20,10 @@ class BaggagePropagator final : public Propagator {
 
   opentracing::expected<bool> ExtractSpanContext(
       const opentracing::TextMapReader& /*carrier*/, bool /*case_sensitive*/,
-      uint64_t& /*trace_id_high*/, uint64_t& /*trace_id_low*/,
-      uint64_t& /*span_id*/, bool& /*sampled*/,
+      TraceContext& /*trace_context*/, std::string& /*trace_state*/,
       BaggageProtobufMap& /*baggage*/) const override {
     // Do nothing: baggage is extracted in the other propagators
-    return true;
+    return false;
   }
 
  private:

@@ -77,20 +77,6 @@ opentracing::expected<void> TraceContextPropagator::InjectSpanContext(
 //--------------------------------------------------------------------------------------------------
 opentracing::expected<bool> TraceContextPropagator::ExtractSpanContext(
     const opentracing::TextMapReader& carrier, bool case_sensitive,
-    uint64_t& trace_id_high, uint64_t& trace_id_low, uint64_t& span_id,
-    bool& sampled, BaggageProtobufMap& baggage) const {
-  (void)carrier;
-  (void)case_sensitive;
-  (void)trace_id_high;
-  (void)trace_id_low;
-  (void)span_id;
-  (void)sampled;
-  (void)baggage;
-  return true;
-}
-
-opentracing::expected<bool> TraceContextPropagator::ExtractSpanContext(
-    const opentracing::TextMapReader& carrier, bool case_sensitive,
     TraceContext& trace_context, std::string& trace_state,
     BaggageProtobufMap& /*baggage*/) const {
   auto iequals =
