@@ -32,8 +32,7 @@ template <uint8_t Mask>
 inline uint8_t SetTraceFlag(uint8_t flags, bool value) noexcept {
   if (value) {
     return flags | Mask;
-  } else {
-    return flags & ~Mask;
   }
+  return flags & ~Mask;
 }
 }  // namespace lightstep
