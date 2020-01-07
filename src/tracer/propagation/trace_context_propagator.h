@@ -23,6 +23,11 @@ class TraceContextPropagator final : Propagator {
       uint64_t& trace_id_high, uint64_t& trace_id_low, uint64_t& span_id,
       bool& sampled, BaggageProtobufMap& baggage) const override;
 
+  opentracing::expected<bool> ExtractSpanContext(
+      const opentracing::TextMapReader& carrier, bool case_sensitive,
+      TraceContext& trace_context, std::string& trace_state,
+      BaggageProtobufMap& baggage) const override;
+
  private:
 };
 }  // namespace lightstep
