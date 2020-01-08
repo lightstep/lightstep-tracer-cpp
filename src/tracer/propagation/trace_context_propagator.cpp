@@ -2,8 +2,11 @@
 
 #include <array>
 
+#include "common/utility.h"
+
 const opentracing::string_view TraceParentHeaderKey = "traceparent";
 const opentracing::string_view TraceStateHeaderKey = "tracestate";
+const opentracing::string_view PrefixBaggage = "ot-baggage-";
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -32,7 +35,8 @@ static opentracing::expected<void> InjectSpanContextImpl(
 template <class KeyCompare>
 static opentracing::expected<bool> ExtractSpanContextImpl(
     const opentracing::TextMapReader& carrier, TraceContext& trace_context,
-    std::string& trace_state, const KeyCompare& key_compare) {
+    std::string& trace_state, const KeyCompare& key_compare,
+    BaggageProtobufMap& baggage) {
   bool parent_header_found = false;
   auto result =
       carrier.ForeachKey([&](opentracing::string_view key,
@@ -46,6 +50,15 @@ static opentracing::expected<bool> ExtractSpanContextImpl(
           parent_header_found = true;
         } else if (key_compare(key, TraceStateHeaderKey)) {
           trace_state.assign(value.data(), value.size());
+        } else if (key.length() > PrefixBaggage.size() &&
+                   key_compare(opentracing::string_view{key.data(),
+                                                        PrefixBaggage.size()},
+                               PrefixBaggage)) {
+          baggage.insert(BaggageProtobufMap::value_type(
+              ToLower(
+                  opentracing::string_view{key.data() + PrefixBaggage.size(),
+                                           key.size() - PrefixBaggage.size()}),
+              value));
         }
         return {};
       });
@@ -78,7 +91,7 @@ opentracing::expected<void> TraceContextPropagator::InjectSpanContext(
 opentracing::expected<bool> TraceContextPropagator::ExtractSpanContext(
     const opentracing::TextMapReader& carrier, bool case_sensitive,
     TraceContext& trace_context, std::string& trace_state,
-    BaggageProtobufMap& /*baggage*/) const {
+    BaggageProtobufMap& baggage) const {
   auto iequals =
       [](opentracing::string_view lhs, opentracing::string_view rhs) noexcept {
     return lhs.length() == rhs.length() &&
@@ -89,8 +102,10 @@ opentracing::expected<bool> TraceContextPropagator::ExtractSpanContext(
   };
   if (case_sensitive) {
     return ExtractSpanContextImpl(carrier, trace_context, trace_state,
-                                  std::equal_to<opentracing::string_view>{});
+                                  std::equal_to<opentracing::string_view>{},
+                                  baggage);
   }
-  return ExtractSpanContextImpl(carrier, trace_context, trace_state, iequals);
+  return ExtractSpanContextImpl(carrier, trace_context, trace_state, iequals,
+                                baggage);
 }
 }  // namespace lightstep
