@@ -3,7 +3,7 @@
 #include "tracer/propagation/propagator.h"
 
 namespace lightstep {
-class TraceContextPropagator final : Propagator {
+class TraceContextPropagator final : public Propagator {
  public:
   // Propagator
   opentracing::expected<void> InjectSpanContext(

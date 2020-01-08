@@ -165,6 +165,7 @@ lightstep_cc_library(
         ":lightstep_propagator_lib",
         ":b3_propagator_lib",
         ":envoy_propagator_lib",
+        ":trace_context_propagator_lib",
         ":baggage_propagator_lib",
     ],
 )

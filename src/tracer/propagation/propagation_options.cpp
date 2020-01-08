@@ -6,6 +6,7 @@
 #include "tracer/propagation/baggage_propagator.h"
 #include "tracer/propagation/envoy_propagator.h"
 #include "tracer/propagation/lightstep_propagator.h"
+#include "tracer/propagation/trace_context_propagator.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -71,6 +72,9 @@ static std::vector<std::unique_ptr<Propagator>> MakePropagators(
         break;
       case PropagationMode::envoy:
         result.emplace_back(new EnvoyPropagator{});
+        break;
+      case PropagationMode::trace_context:
+        result.emplace_back(new TraceContextPropagator{});
         break;
     }
   }

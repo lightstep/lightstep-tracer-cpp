@@ -22,7 +22,12 @@ const std::string& CollectorMethodName();
 enum class LogLevel { debug = 1, info = 2, warn = 3, error = 4, off = 6 };
 
 // Denotes different span context propagation formats.
-enum class PropagationMode { lightstep = 1, b3 = 2, envoy = 3 };
+enum class PropagationMode {
+  lightstep = 1,
+  b3 = 2,
+  envoy = 3,
+  trace_context = 4
+};
 
 // DynamicConfigurationValue is used for configuration values that can
 // be either fixed or changed at runtime. To specify a fixed value, just assign
