@@ -2,6 +2,7 @@
 #include "test/tracer/propagation/http_headers_carrier.h"
 #include "test/tracer/propagation/text_map_carrier.h"
 #include "test/tracer/propagation/utility.h"
+#include "tracer/immutable_span_context.h"
 #include "tracer/legacy/legacy_tracer_impl.h"
 #include "tracer/tracer_impl.h"
 
@@ -32,5 +33,64 @@ TEST_CASE("trace-context propagation") {
           VerifyInjectExtract(*tracer, *span_context, http_headers_carrier));
       text_map.clear();
     }
+  }
+
+  SECTION("trace_flags is copied over to children") {
+    TraceContext trace_context;
+    trace_context.trace_id_high = 123;
+    trace_context.trace_id_low = 456;
+    trace_context.parent_id = 789;
+    trace_context.trace_flags = 2;
+    ImmutableSpanContext span_context{trace_context, "", BaggageProtobufMap{}};
+    auto span = tracer->StartSpan("abc", {opentracing::ChildOf(&span_context)});
+    REQUIRE(dynamic_cast<const LightStepSpanContext&>(span->context())
+                .trace_flags() == 2);
+  }
+
+  SECTION("trace_flags are ORed from multiple parents") {
+    TraceContext trace_context;
+    trace_context.trace_id_high = 123;
+    trace_context.trace_id_low = 456;
+    trace_context.parent_id = 789;
+    trace_context.trace_flags = 2;
+    ImmutableSpanContext span_context1{trace_context, "", BaggageProtobufMap{}};
+    trace_context.trace_flags = 1;
+    ImmutableSpanContext span_context2{trace_context, "", BaggageProtobufMap{}};
+    auto span =
+        tracer->StartSpan("abc", {opentracing::ChildOf(&span_context1),
+                                  opentracing::ChildOf(&span_context2)});
+    REQUIRE(dynamic_cast<const LightStepSpanContext&>(span->context())
+                .trace_flags() == 3);
+  }
+
+  SECTION("trace_state is copied over to children") {
+    TraceContext trace_context;
+    trace_context.trace_id_high = 123;
+    trace_context.trace_id_low = 456;
+    trace_context.parent_id = 789;
+    trace_context.trace_flags = 2;
+    ImmutableSpanContext span_context{trace_context, "abc=123",
+                                      BaggageProtobufMap{}};
+    auto span = tracer->StartSpan("abc", {opentracing::ChildOf(&span_context)});
+    REQUIRE(dynamic_cast<const LightStepSpanContext&>(span->context())
+                .trace_state() == "abc=123");
+  }
+
+  SECTION("trace_states are joined from multiple parents") {
+    TraceContext trace_context;
+    trace_context.trace_id_high = 123;
+    trace_context.trace_id_low = 456;
+    trace_context.parent_id = 789;
+    trace_context.trace_flags = 2;
+    ImmutableSpanContext span_context1{trace_context, "abc=123",
+                                       BaggageProtobufMap{}};
+    trace_context.trace_flags = 1;
+    ImmutableSpanContext span_context2{trace_context, "xyz=456",
+                                       BaggageProtobufMap{}};
+    auto span =
+        tracer->StartSpan("abc", {opentracing::ChildOf(&span_context1),
+                                  opentracing::ChildOf(&span_context2)});
+    REQUIRE(dynamic_cast<const LightStepSpanContext&>(span->context())
+                .trace_state() == "abc=123,xyz=456");
   }
 }
