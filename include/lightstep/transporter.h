@@ -67,4 +67,26 @@ class LegacyAsyncTransporter : public Transporter {
                     google::protobuf::Message& response,
                     Callback& callback) = 0;
 };
+
+class AsyncTransporter : public Transporter {
+ public:
+  class Callback {
+   public:
+    Callback() noexcept = default;
+    Callback(const Callback&) noexcept = default;
+    Callback(Callback&&) noexcept = default;
+
+    virtual ~Callback() = default;
+
+    Callback& operator=(const Callback&) noexcept = default;
+    Callback& operator=(Callback&&) noexcept = default;
+
+    virtual void OnSuccess(const BufferChain& message) noexcept = 0;
+
+    virtual void OnFailure(const BufferChain& message) noexcept = 0;
+  };
+
+  virtual void Send(std::unique_ptr<BufferChain>&& message,
+                    Callback& callback) = 0;
+};
 }  // namespace lightstep
