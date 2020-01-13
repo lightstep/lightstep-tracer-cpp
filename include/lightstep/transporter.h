@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lightstep/buffer_chain.h>
 #include <google/protobuf/message.h>
 #include <opentracing/string_view.h>
 #include <opentracing/util.h>
