@@ -209,7 +209,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/recorder/report_builder.cpp
                    src/recorder/auto_recorder.cpp
                    src/recorder/fork_aware_recorder.cpp
-                   src/recorder/manual_recorder.cpp
+                   src/recorder/legacy_manual_recorder.cpp
                    src/recorder/transporter.cpp
                    src/tracer/binary_carrier.cpp
                    src/tracer/json_options.cpp

@@ -1,11 +1,11 @@
-#include "recorder/manual_recorder.h"
+#include "recorder/legacy_manual_recorder.h"
 #include "common/utility.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-ManualRecorder::ManualRecorder(
+LegacyManualRecorder::LegacyManualRecorder(
     Logger& logger, LightStepTracerOptions options,
     std::unique_ptr<LegacyAsyncTransporter>&& transporter)
     : logger_{logger},
@@ -21,7 +21,8 @@ ManualRecorder::ManualRecorder(
 //------------------------------------------------------------------------------
 // RecordSpan
 //------------------------------------------------------------------------------
-void ManualRecorder::RecordSpan(const collector::Span& span) noexcept try {
+void LegacyManualRecorder::RecordSpan(
+    const collector::Span& span) noexcept try {
   if (disabled_) {
     dropped_spans_++;
     options_.metrics_observer->OnSpansDropped(1);
@@ -53,14 +54,14 @@ void ManualRecorder::RecordSpan(const collector::Span& span) noexcept try {
 //------------------------------------------------------------------------------
 // IsReportInProgress
 //------------------------------------------------------------------------------
-bool ManualRecorder::IsReportInProgress() const noexcept {
+bool LegacyManualRecorder::IsReportInProgress() const noexcept {
   return encoding_seqno_ > 1 + flushed_seqno_;
 }
 
 //------------------------------------------------------------------------------
 // FlushOne
 //------------------------------------------------------------------------------
-bool ManualRecorder::FlushOne() noexcept try {
+bool LegacyManualRecorder::FlushOne() noexcept try {
   options_.metrics_observer->OnFlush();
 
   // If a report is currently in flight, do nothing; and if there are any
@@ -93,7 +94,7 @@ bool ManualRecorder::FlushOne() noexcept try {
 //------------------------------------------------------------------------------
 // FlushWithTimeout
 //------------------------------------------------------------------------------
-bool ManualRecorder::FlushWithTimeout(
+bool LegacyManualRecorder::FlushWithTimeout(
     std::chrono::system_clock::duration /*timeout*/) noexcept {
   if (disabled_) {
     return false;
@@ -104,7 +105,7 @@ bool ManualRecorder::FlushWithTimeout(
 //------------------------------------------------------------------------------
 // OnSuccess
 //------------------------------------------------------------------------------
-void ManualRecorder::OnSuccess() noexcept {
+void LegacyManualRecorder::OnSuccess() noexcept {
   ++flushed_seqno_;
   active_request_.Clear();
   LogReportResponse(logger_, options_.verbose, active_response_);
@@ -119,7 +120,7 @@ void ManualRecorder::OnSuccess() noexcept {
 //------------------------------------------------------------------------------
 // OnFailure
 //------------------------------------------------------------------------------
-void ManualRecorder::OnFailure(std::error_code error) noexcept {
+void LegacyManualRecorder::OnFailure(std::error_code error) noexcept {
   ++flushed_seqno_;
   active_request_.Clear();
   options_.metrics_observer->OnSpansDropped(

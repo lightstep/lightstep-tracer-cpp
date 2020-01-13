@@ -73,12 +73,12 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "manual_recorder_lib",
+    name = "legacy_manual_recorder_lib",
     private_hdrs = [
-        "manual_recorder.h",
+        "legacy_manual_recorder.h",
     ],
     srcs = [
-        "manual_recorder.cpp",
+        "legacy_manual_recorder.cpp",
     ],
     deps = [
         "//src/common:logger_lib",

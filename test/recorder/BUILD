@@ -48,9 +48,9 @@ lightstep_cc_library(
 )
 
 lightstep_catch_test(
-    name = "manual_recorder_test",
+    name = "legacy_manual_recorder_test",
     srcs = [
-        "manual_recorder_test.cpp",
+        "legacy_manual_recorder_test.cpp",
     ],
     deps = [
         "//:manual_tracer_lib",

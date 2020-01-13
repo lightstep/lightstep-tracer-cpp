@@ -2,7 +2,7 @@
 
 #include "3rd_party/catch2/catch.hpp"
 #include "lightstep/tracer.h"
-#include "recorder/manual_recorder.h"
+#include "recorder/legacy_manual_recorder.h"
 #include "test/recorder/in_memory_async_transporter.h"
 #include "test/testing_condition_variable_wrapper.h"
 #include "test/utility.h"
@@ -12,7 +12,7 @@
 using namespace lightstep;
 using namespace opentracing;
 
-TEST_CASE("manual_recorder") {
+TEST_CASE("legacy_manual_recorder") {
   Logger logger{};
   auto metrics_observer = new CountingMetricsObserver{};
   LightStepTracerOptions options;
@@ -21,7 +21,7 @@ TEST_CASE("manual_recorder") {
       std::function<size_t()>{[&] { return max_buffered_spans; }};
   options.metrics_observer.reset(metrics_observer);
   auto in_memory_transporter = new InMemoryAsyncTransporter{};
-  auto recorder = new ManualRecorder{
+  auto recorder = new LegacyManualRecorder{
       logger, std::move(options),
       std::unique_ptr<LegacyAsyncTransporter>{in_memory_transporter}};
   auto tracer = std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{

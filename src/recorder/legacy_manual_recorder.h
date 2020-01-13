@@ -7,14 +7,14 @@
 #include "recorder/report_builder.h"
 
 namespace lightstep {
-// ManualRecorder buffers spans finished by a tracer and sends them over to
-// the provided LegacyAsyncTransporter when FlushWithTimeout is called.
-class ManualRecorder final : public Recorder,
-                             private LegacyAsyncTransporter::Callback,
-                             private Noncopyable {
+// LegacyManualRecorder buffers spans finished by a tracer and sends them over
+// to the provided LegacyAsyncTransporter when FlushWithTimeout is called.
+class LegacyManualRecorder final : public Recorder,
+                                   private LegacyAsyncTransporter::Callback,
+                                   private Noncopyable {
  public:
-  ManualRecorder(Logger& logger, LightStepTracerOptions options,
-                 std::unique_ptr<LegacyAsyncTransporter>&& transporter);
+  LegacyManualRecorder(Logger& logger, LightStepTracerOptions options,
+                       std::unique_ptr<LegacyAsyncTransporter>&& transporter);
 
   void RecordSpan(const collector::Span& span) noexcept override;
 

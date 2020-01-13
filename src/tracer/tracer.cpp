@@ -14,7 +14,7 @@
 #include "lightstep/version.h"
 #include "recorder/auto_recorder.h"
 #include "recorder/grpc_transporter.h"
-#include "recorder/manual_recorder.h"
+#include "recorder/legacy_manual_recorder.h"
 #include "recorder/stream_recorder.h"
 #include "tracer/immutable_span_context.h"
 #include "tracer/legacy/legacy_tracer_impl.h"
@@ -155,8 +155,8 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
     return nullptr;
   }
   auto propagation_options = MakePropagationOptions(options);
-  auto recorder = std::unique_ptr<Recorder>{
-      new ManualRecorder{*logger, std::move(options), std::move(transporter)}};
+  auto recorder = std::unique_ptr<Recorder>{new LegacyManualRecorder{
+      *logger, std::move(options), std::move(transporter)}};
   return std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
       std::move(logger), std::move(propagation_options), std::move(recorder)}};
 }
