@@ -23,7 +23,7 @@ TEST_CASE("manual_recorder") {
   auto in_memory_transporter = new InMemoryAsyncTransporter{};
   auto recorder = new ManualRecorder{
       logger, std::move(options),
-      std::unique_ptr<AsyncTransporter>{in_memory_transporter}};
+      std::unique_ptr<LegacyAsyncTransporter>{in_memory_transporter}};
   auto tracer = std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
       PropagationOptions{}, std::unique_ptr<Recorder>{recorder}}};
   CHECK(tracer);

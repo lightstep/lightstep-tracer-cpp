@@ -9,11 +9,11 @@
 #include "lightstep/transporter.h"
 
 namespace lightstep {
-class InMemoryAsyncTransporter : public AsyncTransporter {
+class InMemoryAsyncTransporter : public LegacyAsyncTransporter {
  public:
   void Send(const google::protobuf::Message& request,
             google::protobuf::Message& response,
-            AsyncTransporter::Callback& callback) override;
+            LegacyAsyncTransporter::Callback& callback) override;
 
   void Write();
 
@@ -31,7 +31,7 @@ class InMemoryAsyncTransporter : public AsyncTransporter {
   bool should_disable_ = false;
   const google::protobuf::Message* active_request_;
   google::protobuf::Message* active_response_;
-  AsyncTransporter::Callback* active_callback_;
+  LegacyAsyncTransporter::Callback* active_callback_;
   std::vector<collector::ReportRequest> reports_;
   std::vector<collector::Span> spans_;
 };

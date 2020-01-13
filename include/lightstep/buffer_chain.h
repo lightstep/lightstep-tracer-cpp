@@ -18,4 +18,4 @@ class BufferChain {
 
   void Copy(char* data, size_t length) const noexcept;
 };
-} // namespace lightstep
+}  // namespace lightstep

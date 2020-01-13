@@ -5,8 +5,9 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
-                               std::unique_ptr<AsyncTransporter>&& transporter)
+ManualRecorder::ManualRecorder(
+    Logger& logger, LightStepTracerOptions options,
+    std::unique_ptr<LegacyAsyncTransporter>&& transporter)
     : logger_{logger},
       options_{std::move(options)},
       builder_{options_.access_token, options_.tags},

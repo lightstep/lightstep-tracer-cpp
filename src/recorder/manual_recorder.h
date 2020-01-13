@@ -8,13 +8,13 @@
 
 namespace lightstep {
 // ManualRecorder buffers spans finished by a tracer and sends them over to
-// the provided AsyncTransporter when FlushWithTimeout is called.
+// the provided LegacyAsyncTransporter when FlushWithTimeout is called.
 class ManualRecorder final : public Recorder,
-                             private AsyncTransporter::Callback,
+                             private LegacyAsyncTransporter::Callback,
                              private Noncopyable {
  public:
   ManualRecorder(Logger& logger, LightStepTracerOptions options,
-                 std::unique_ptr<AsyncTransporter>&& transporter);
+                 std::unique_ptr<LegacyAsyncTransporter>&& transporter);
 
   void RecordSpan(const collector::Span& span) noexcept override;
 
@@ -44,7 +44,7 @@ class ManualRecorder final : public Recorder,
   size_t encoding_seqno_ = 1;
   size_t dropped_spans_ = 0;
 
-  // AsyncTransporter through which to send span reports.
-  std::unique_ptr<AsyncTransporter> transporter_;
+  // LegacyAsyncTransporter through which to send span reports.
+  std::unique_ptr<LegacyAsyncTransporter> transporter_;
 };
 }  // namespace lightstep

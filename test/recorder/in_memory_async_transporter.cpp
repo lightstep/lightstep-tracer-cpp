@@ -4,9 +4,10 @@ namespace lightstep {
 //------------------------------------------------------------------------------
 // Send
 //------------------------------------------------------------------------------
-void InMemoryAsyncTransporter::Send(const google::protobuf::Message& request,
-                                    google::protobuf::Message& response,
-                                    AsyncTransporter::Callback& callback) {
+void InMemoryAsyncTransporter::Send(
+    const google::protobuf::Message& request,
+    google::protobuf::Message& response,
+    LegacyAsyncTransporter::Callback& callback) {
   active_request_ = &request;
   active_response_ = &response;
   active_callback_ = &callback;

@@ -139,13 +139,13 @@ static std::shared_ptr<LightStepTracer> MakeStreamTracer(
 //------------------------------------------------------------------------------
 static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
     std::shared_ptr<Logger> logger, LightStepTracerOptions&& options) {
-  std::unique_ptr<AsyncTransporter> transporter;
+  std::unique_ptr<LegacyAsyncTransporter> transporter;
   if (options.transporter != nullptr) {
-    transporter = std::unique_ptr<AsyncTransporter>{
-        dynamic_cast<AsyncTransporter*>(options.transporter.get())};
+    transporter = std::unique_ptr<LegacyAsyncTransporter>{
+        dynamic_cast<LegacyAsyncTransporter*>(options.transporter.get())};
     if (transporter == nullptr) {
       logger->Error(
-          "`options.transporter` must be derived from AsyncTransporter");
+          "`options.transporter` must be derived from LegacyAsyncTransporter");
       return nullptr;
     }
     options.transporter.release();

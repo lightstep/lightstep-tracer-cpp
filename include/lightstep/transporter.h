@@ -1,13 +1,13 @@
 #pragma once
 
-#include <lightstep/buffer_chain.h>
 #include <google/protobuf/message.h>
+#include <lightstep/buffer_chain.h>
 #include <opentracing/string_view.h>
 #include <opentracing/util.h>
 
 namespace lightstep {
 // Transporter is the abstract base class for SyncTransporter and
-// AsyncTransporter.
+// LegacyAsyncTransporter.
 class Transporter {
  public:
   Transporter() noexcept = default;
@@ -37,8 +37,8 @@ class SyncTransporter : public Transporter {
       google::protobuf::Message& response) = 0;
 };
 
-// AsyncTransporter customizes how asynchronous tracing reports are sent.
-class AsyncTransporter : public Transporter {
+// LegacyAsyncTransporter customizes how asynchronous tracing reports are sent.
+class LegacyAsyncTransporter : public Transporter {
  public:
   // Callback interface used by Send.
   class Callback {
