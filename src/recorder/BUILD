@@ -91,6 +91,23 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "manual_recorder_lib",
+    private_hdrs = [
+        "manual_recorder.h",
+    ],
+    srcs = [
+        "manual_recorder.cpp",
+    ],
+    deps = [
+        "//src/common:logger_lib",
+        "//src/common:noncopyable_lib",
+        "//src/common:utility_lib",
+        ":fork_aware_recorder_lib",
+        ":transporter_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "auto_recorder_lib",
     private_hdrs = [
         "auto_recorder.h",
