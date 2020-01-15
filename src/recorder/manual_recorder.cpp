@@ -11,8 +11,8 @@ ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
       transporter_{std::move(transporter)},
       span_buffer_{tracer_options_.max_buffered_spans.value()} {
   // If no MetricsObserver was provided, use a default one that does nothing.
-  if (options_.metrics_observer == nullptr) {
-    options_.metrics_observer.reset(new MetricsObserver{});
+  if (tracer_options_.metrics_observer == nullptr) {
+    tracer_options_.metrics_observer.reset(new MetricsObserver{});
   }
 }
 
