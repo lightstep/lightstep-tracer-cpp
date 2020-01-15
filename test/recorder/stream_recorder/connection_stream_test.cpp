@@ -2,7 +2,7 @@
 
 #include "3rd_party/catch2/catch.hpp"
 #include "recorder/stream_recorder/span_stream.h"
-#include "recorder/stream_recorder/utility.h"
+#include "recorder/serialization/report_request_header.h"
 #include "test/number_simulation.h"
 #include "test/utility.h"
 using namespace lightstep;
@@ -38,7 +38,7 @@ TEST_CASE("ConnectionStream") {
   StreamRecorderMetrics metrics{metrics_observer};
   SpanStream span_stream{span_buffer, metrics};
   std::string header_common_fragment =
-      WriteStreamHeaderCommonFragment(tracer_options, 123);
+      WriteReportRequestHeader(tracer_options, 123);
   auto host_header_fragment = MakeFragment("Host:abc\r\n");
   ConnectionStream connection_stream{
       host_header_fragment,
@@ -244,7 +244,7 @@ TEST_CASE(
     "Verify through simulation that ConnectionStream behaves correctly.") {
   LightStepTracerOptions tracer_options;
   std::string header_common_fragment =
-      WriteStreamHeaderCommonFragment(tracer_options, 123);
+      WriteReportRequestHeader(tracer_options, 123);
   MetricsObserver metrics_observer;
   StreamRecorderMetrics metrics{metrics_observer};
   auto host_header_fragment = MakeFragment("Host:abc\r\n");
