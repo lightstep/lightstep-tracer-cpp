@@ -102,6 +102,7 @@ lightstep_cc_library(
         "//src/common:logger_lib",
         "//src/common:noncopyable_lib",
         "//src/common:utility_lib",
+        "//src/common:circular_buffer_lib",
         ":fork_aware_recorder_lib",
         ":transporter_lib",
     ],

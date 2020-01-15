@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/circular_buffer.h"
 #include "common/logger.h"
 #include "common/noncopyable.h"
 #include "lightstep/transporter.h"
@@ -25,5 +26,10 @@ class ManualRecorder : public ForkAwareRecorder, private Noncopyable {
   void OnForkedChild() noexcept override;
 
  private:
+  Logger& logger_;
+  LightStepTracerOptions tracer_options_;
+  std::unique_ptr<AsyncTransporter> transporter_;
+
+  CircularBuffer<SerializationChain> span_buffer_;
 };
 }  // namespace lightstep
