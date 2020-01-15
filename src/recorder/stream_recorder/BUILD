@@ -166,12 +166,7 @@ lightstep_cc_library(
         "utility.cpp",
     ],
     deps = [
-        "//include/lightstep:tracer_interface",
-        "//lightstep-tracer-common:collector_proto_cc",
-        "//src/common:protobuf_lib",
         "//src/common/platform:string_lib",
-        "//src/common:utility_lib",
-        "//src/common:fragment_array_input_stream_lib",
     ],
 )
 
