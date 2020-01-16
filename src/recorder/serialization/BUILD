@@ -16,6 +16,8 @@ lightstep_cc_library(
     ],
     deps = [
         "//include/lightstep:buffer_chain_interface",
+        "//src/common:serialization_chain_lib",
+        ":embedded_metrics_message_lib",
     ],
 )
 
@@ -32,6 +34,7 @@ lightstep_cc_library(
         "//lightstep-tracer-common:collector_proto_cc",
         "//src/common:protobuf_lib",
         "//src/common:utility_lib",
+        ":embedded_metrics_message_lib",
     ],
 )
 

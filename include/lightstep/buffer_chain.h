@@ -5,7 +5,7 @@
 namespace lightstep {
 class BufferChain {
  public:
-  using FragmentCallback = bool (*)(void*, const char*, size_t);
+  using FragmentCallback = bool (*)(void*, const void*, size_t);
 
   virtual ~BufferChain() = default;
 
@@ -16,6 +16,6 @@ class BufferChain {
   virtual bool ForEachFragment(FragmentCallback callback,
                                void* context) const = 0;
 
-  void Copy(char* data, size_t length) const noexcept;
+  void CopyOut(char* data, size_t length) const noexcept;
 };
 }  // namespace lightstep
