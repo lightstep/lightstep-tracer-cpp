@@ -58,7 +58,7 @@ lightstep_cc_library(
         "//src/common:utility_lib",
         "//src/common:fragment_input_stream_lib",
         "//src/common:fragment_array_input_stream_lib",
-        ":embedded_metrics_message_lib",
+        "//src/recorder/serialization:embedded_metrics_message_lib",
         ":span_stream_lib",
         ":stream_recorder_metrics_lib",
     ],
@@ -149,7 +149,6 @@ lightstep_cc_library(
         "//src/network:vector_write_lib",
         "//src/recorder/serialization:report_request_header_lib",
         ":stream_recorder_metrics_lib",
-        ":embedded_metrics_message_lib",
         ":host_header_lib",
         ":span_stream_lib",
         ":connection_stream_lib",
@@ -167,20 +166,6 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common/platform:string_lib",
-    ],
-)
-
-lightstep_cc_library(
-    name = "embedded_metrics_message_lib",
-    private_hdrs = [
-        "embedded_metrics_message.h",
-    ],
-    srcs = [
-        "embedded_metrics_message.cpp",
-    ],
-    deps = [
-        "//lightstep-tracer-common:collector_proto_cc",
-        "//src/common:protobuf_lib",
     ],
 )
 

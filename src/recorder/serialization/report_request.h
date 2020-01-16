@@ -4,5 +4,7 @@
 
 namespace lightstep {
 class ReportRequest final : public BufferChain {
+ public:
+ private:
 };
 } // namespace lightstep

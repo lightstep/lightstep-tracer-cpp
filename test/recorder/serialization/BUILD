@@ -17,3 +17,12 @@ lightstep_catch_test(
     ],
 )
 
+lightstep_catch_test(
+    name = "embedded_metrics_message_test",
+    srcs = [
+        "embedded_metrics_message_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/serialization:embedded_metrics_message_lib",
+    ],
+)

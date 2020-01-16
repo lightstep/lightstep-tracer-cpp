@@ -8,7 +8,7 @@
 #include "common/fragment_input_stream.h"
 #include "common/function_ref.h"
 #include "common/utility.h"
-#include "recorder/stream_recorder/embedded_metrics_message.h"
+#include "recorder/serialization/embedded_metrics_message.h"
 #include "recorder/stream_recorder/span_stream.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
 
