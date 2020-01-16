@@ -29,6 +29,30 @@ static int WriteChunkHeader(char* data, size_t data_length,
 SerializationChain::SerializationChain() noexcept : current_block_{&head_} {}
 
 //--------------------------------------------------------------------------------------------------
+// Chain
+//--------------------------------------------------------------------------------------------------
+void SerializationChain::Chain(
+    std::unique_ptr<SerializationChain>&& other) noexcept {
+  assert(other->next_ == nullptr);
+  other->next_ = std::move(next_);
+  next_ = std::move(other);
+}
+
+//--------------------------------------------------------------------------------------------------
+// ForEachSerializationChain
+//--------------------------------------------------------------------------------------------------
+bool SerializationChain::ForEachSerializationChain(
+    FunctionRef<bool(const SerializationChain&)> callback) {
+  if (!callback(*this)) {
+    return true;
+  }
+  if (next_ != nullptr) {
+    return next_->ForEachSerializationChain(callback);
+  }
+  return true;
+}
+
+//--------------------------------------------------------------------------------------------------
 // AddFraming
 //--------------------------------------------------------------------------------------------------
 void SerializationChain::AddFraming() noexcept {

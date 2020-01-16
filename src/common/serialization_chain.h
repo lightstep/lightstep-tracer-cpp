@@ -3,7 +3,9 @@
 #include <array>
 #include <limits>
 #include <memory>
+#include <cassert>
 
+#include "common/function_ref.h"
 #include "common/fragment_input_stream.h"
 #include "common/hex_conversion.h"
 #include "common/noncopyable.h"
@@ -24,6 +26,19 @@ class SerializationChain final
   static const size_t ReportRequestSpansField = 3;
 
   SerializationChain() noexcept;
+
+  /**
+   * Move another SerializationChain into this one.
+   * @param other the SerializationChain to add
+   */
+  void Chain(std::unique_ptr<SerializationChain>&& other) noexcept;
+
+  /**
+   * Iterate over all the owned SerializationChains
+   * @param callback the callback to call with each SerializationChain
+   */
+  bool ForEachSerializationChain(
+      FunctionRef<bool(const SerializationChain&)> callback);
 
   /**
    * Adds http/1.1 chunk framing and a message header so that the data can be
@@ -50,6 +65,8 @@ class SerializationChain final
   void Seek(int fragment_index, int position) noexcept override;
 
  private:
+  std::unique_ptr<SerializationChain> next_;
+
   struct Block {
     std::unique_ptr<Block> next;
     int size;
