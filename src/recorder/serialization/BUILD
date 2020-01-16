@@ -15,7 +15,7 @@ lightstep_cc_library(
         "report_request.cpp",
     ],
     deps = [
-        "//include/lightstep:buffer_chain_interface",
+        "//src/common:buffer_chain_lib",
         "//src/common:serialization_chain_lib",
         ":embedded_metrics_message_lib",
     ],

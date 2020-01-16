@@ -14,6 +14,16 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "buffer_chain_lib",
+    srcs = [
+        "buffer_chain.cpp",
+    ],
+    deps = [
+        "//include/lightstep:buffer_chain_interface",
+    ],
+)
+
+lightstep_cc_library(
     name = "spin_lock_mutex_lib",
     private_hdrs = [
         "spin_lock_mutex.h",
