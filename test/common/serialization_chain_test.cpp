@@ -19,6 +19,7 @@ TEST_CASE("SerializationChain") {
   SECTION("An empty chain has no fragments.") {
     stream.reset();
     chain.AddFraming();
+    REQUIRE(chain.num_bytes_after_framing() == 0);
     REQUIRE(chain.num_fragments() == 0);
   }
 
@@ -27,7 +28,9 @@ TEST_CASE("SerializationChain") {
     stream.reset();
     chain.AddFraming();
     REQUIRE(chain.num_fragments() == 3);
-    REQUIRE(ToString(chain) == AddSpanChunkFraming("abc"));
+    auto s = ToString(chain);
+    REQUIRE(s.size() == chain.num_bytes_after_framing());
+    REQUIRE(s == AddSpanChunkFraming("abc"));
   }
 
   SECTION("We can write strings larger than a single block.") {
@@ -36,7 +39,9 @@ TEST_CASE("SerializationChain") {
     stream.reset();
     chain.AddFraming();
     REQUIRE(chain.num_fragments() == 4);
-    REQUIRE(ToString(chain) == AddSpanChunkFraming(s));
+    auto serialization = ToString(chain);
+    REQUIRE(serialization.size() == chain.num_bytes_after_framing());
+    REQUIRE(serialization == AddSpanChunkFraming(s));
   }
 
   SECTION("We can seek to any byte in the fragment stream.") {

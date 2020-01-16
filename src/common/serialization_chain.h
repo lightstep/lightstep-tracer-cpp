@@ -50,6 +50,11 @@ class SerializationChain final
    */
   void AddFraming() noexcept;
 
+  /**
+   * @return The number of bytes after the SerializationChain has been framed
+   */
+  int num_bytes_after_framing() const noexcept { return num_bytes_after_framing_; }
+
   // ZeroCopyOutputStream
   bool Next(void** data, int* size) override;
 
@@ -79,6 +84,7 @@ class SerializationChain final
 
   int num_blocks_{1};
   int num_bytes_written_{0};
+  int num_bytes_after_framing_{0};
   int current_block_position_{0};
   int header_size_{0};
   Block* current_block_;

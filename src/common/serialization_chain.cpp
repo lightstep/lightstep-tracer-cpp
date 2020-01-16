@@ -7,6 +7,7 @@
 
 namespace lightstep {
 static const char* LineTerminator = "\r\n";
+const int LineTerminatorSize = 2;
 
 //--------------------------------------------------------------------------------------------------
 // WriteChunkHeader
@@ -59,7 +60,6 @@ void SerializationChain::AddFraming() noexcept {
   auto protobuf_header_size =
       ComputeLengthDelimitedHeaderSerializationSize<ReportRequestSpansField>(
           num_bytes_written_);
-  (void)WriteChunkHeader;
   header_size_ = WriteChunkHeader(
       header_.data(), header_.size(),
       static_cast<size_t>(num_bytes_written_) + protobuf_header_size);
@@ -71,6 +71,11 @@ void SerializationChain::AddFraming() noexcept {
   WriteKeyLength<ReportRequestSpansField>(
       stream, static_cast<size_t>(num_bytes_written_));
   header_size_ += protobuf_header_size;
+
+  if (num_bytes_written_ > 0) {
+    num_bytes_after_framing_ =
+        header_size_ + num_bytes_written_ + LineTerminatorSize;
+  }
 
   // Prepare the data structure to act as a FragmentInputStream.
   current_block_ = &head_;
@@ -161,12 +166,13 @@ bool SerializationChain::ForEachFragment(Callback callback) const noexcept {
 
   // chunk trailer
   if (fragment_index_ == num_blocks_ + 1) {
-    assert(fragment_position_ < 2);
+    assert(fragment_position_ < LineTerminatorSize);
     return callback(static_cast<void*>(const_cast<char*>(LineTerminator) +
                                        fragment_position_),
-                    2 - fragment_position_);
+                    LineTerminatorSize - fragment_position_);
   }
-  return callback(static_cast<void*>(const_cast<char*>(LineTerminator)), 2);
+  return callback(static_cast<void*>(const_cast<char*>(LineTerminator)),
+                  LineTerminatorSize);
 }
 
 //--------------------------------------------------------------------------------------------------

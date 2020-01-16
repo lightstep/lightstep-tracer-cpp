@@ -12,10 +12,16 @@ class ReportRequest final : public BufferChain {
   ReportRequest(const std::shared_ptr<const std::string>& header,
                 std::unique_ptr<EmbeddedMetricsMessage>&& metrics);
 
-  // BufferChain
-  size_t num_fragments() const noexcept override;
+  void AddSpan(std::unique_ptr<SerializationChain>&& span) noexcept;
 
-  size_t num_bytes() const noexcept override;
+  // BufferChain
+  size_t num_fragments() const noexcept override {
+    return static_cast<size_t>(num_fragments_);
+  }
+
+  size_t num_bytes() const noexcept override {
+    return static_cast<size_t>(num_bytes_);
+  }
 
   bool ForEachFragment(FragmentCallback callback, void* context) const override;
 
@@ -25,7 +31,9 @@ class ReportRequest final : public BufferChain {
   std::unique_ptr<const EmbeddedMetricsMessage> metrics_;
   std::pair<void*, int> metrics_fragment_;
 
+  int num_bytes_{0};
   int num_spans_{0};
+  int num_fragments_{0};
   std::unique_ptr<SerializationChain> spans_;
 };
 } // namespace lightstep

@@ -26,3 +26,13 @@ lightstep_catch_test(
         "//src/recorder/serialization:embedded_metrics_message_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "report_request_test",
+    srcs = [
+        "report_request_test.cpp",
+    ],
+    deps = [
+        "//src/recorder/serialization:report_request_lib",
+    ],
+)
