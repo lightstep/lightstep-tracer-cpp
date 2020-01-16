@@ -29,6 +29,10 @@ class SerializationChain final
 
   /**
    * Move another SerializationChain into this one.
+   *
+   * Note: This should be used only as an intrusive container when the order of
+   * the SerializaionChains is not important.
+   *
    * @param other the SerializationChain to add
    */
   void Chain(std::unique_ptr<SerializationChain>&& other) noexcept;

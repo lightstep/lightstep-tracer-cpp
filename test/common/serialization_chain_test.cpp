@@ -74,4 +74,55 @@ TEST_CASE("SerializationChain") {
       }
     }
   }
+
+  SECTION(
+      "ForEachSerializationChain behaves correctly when there are no other "
+      "owned chains") {
+    int i = 0;
+    auto was_successful = chain.ForEachSerializationChain([&](
+        const SerializationChain& c) noexcept {
+      REQUIRE(&c == &chain);
+      ++i;
+      return true;
+    });
+    REQUIRE(was_successful);
+    REQUIRE(i == 1);
+    was_successful = chain.ForEachSerializationChain([&](
+        const SerializationChain& /*c*/) noexcept { return false; });
+  }
+
+  SECTION("We can chain SerializationChains together") {
+    auto chain2 = new SerializationChain{};
+    chain.Chain(std::unique_ptr<SerializationChain>{chain2});
+    int i = 0;
+    auto was_successful = chain.ForEachSerializationChain([&](
+        const SerializationChain& c) noexcept {
+      if (i == 0) {
+        REQUIRE(&c == &chain);
+      } else {
+        REQUIRE(&c == chain2);
+      }
+      ++i;
+      return true;
+    });
+    REQUIRE(i == 2);
+    REQUIRE(was_successful);
+    auto chain3 = new SerializationChain{};
+    chain.Chain(std::unique_ptr<SerializationChain>{chain3});
+    i = 0;
+    was_successful = chain.ForEachSerializationChain([&](
+        const SerializationChain& c) noexcept {
+      if (i == 0) {
+        REQUIRE(&c == &chain);
+      } else if (i == 1) {
+        REQUIRE(&c == chain3);
+      } else {
+        REQUIRE(&c == chain2);
+      }
+      ++i;
+      return true;
+    });
+    REQUIRE(i == 3);
+    REQUIRE(was_successful);
+  }
 }

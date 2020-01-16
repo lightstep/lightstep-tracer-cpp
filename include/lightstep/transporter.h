@@ -81,9 +81,9 @@ class AsyncTransporter : public Transporter {
     Callback& operator=(const Callback&) noexcept = default;
     Callback& operator=(Callback&&) noexcept = default;
 
-    virtual void OnSuccess(const BufferChain& message) noexcept = 0;
+    virtual void OnSuccess(BufferChain& message) noexcept = 0;
 
-    virtual void OnFailure(const BufferChain& message) noexcept = 0;
+    virtual void OnFailure(BufferChain& message) noexcept = 0;
   };
 
   virtual void Send(std::unique_ptr<BufferChain>&& message,
