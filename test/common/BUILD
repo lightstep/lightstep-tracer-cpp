@@ -183,6 +183,17 @@ lightstep_catch_test(
     ],
 )
 
+lightstep_catch_test(
+    name = "chained_stream_test",
+    srcs = [
+        "chained_stream_test.cpp",
+    ],
+    deps = [
+        "//src/common:chained_stream_lib",
+        "//test:utility_lib",
+    ],
+)
+
 proto_library(
   name = "test_proto",    
   srcs = ["test.proto"],
