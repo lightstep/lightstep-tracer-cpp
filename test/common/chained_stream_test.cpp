@@ -38,4 +38,38 @@ TEST_CASE("ChainedStream") {
     REQUIRE(chain.num_fragments() == 2);
     REQUIRE(ToString(chain) == s);
   }
+
+  SECTION("We can seek to any byte in the fragment stream.") {
+    std::string s(SerializationChain::BlockSize + 2, 'X');
+    stream->WriteString(s);
+    stream.reset();
+    chain.CloseOutput();
+    for (size_t i = 1; i <= s.size(); ++i) {
+      SECTION("cosumption instance " + std::to_string(i)) {
+        Consume({&chain}, i);
+        REQUIRE(ToString(chain) == s.substr(i));
+      }
+    }
+  }
+
+  SECTION("We can advance to any byte in the fragment stream randomly.") {
+    std::string s(3 * ChainedStream::BlockSize + 10, 'X');
+    stream->WriteString(s);
+    stream.reset();
+    chain.CloseOutput();
+    std::mt19937 random_number_generator{0};
+    for (int i = 0; i < 100; ++i) {
+      size_t num_bytes_consumed = 0;
+      SECTION("Random advance " + std::to_string(i)) {
+        while (num_bytes_consumed < s.size()) {
+          std::uniform_int_distribution<size_t> distribution{
+              1, static_cast<int>(s.size()) - num_bytes_consumed};
+          auto n = distribution(random_number_generator);
+          Consume({&chain}, n);
+          num_bytes_consumed += n;
+          REQUIRE(ToString(chain) == s.substr(num_bytes_consumed));
+        }
+      }
+    }
+  }
 }

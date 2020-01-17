@@ -6,7 +6,6 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-//
 ChainedStream::ChainedStream() noexcept : current_block_{&head_} {}
 
 //--------------------------------------------------------------------------------------------------
@@ -78,16 +77,16 @@ bool ChainedStream::ForEachFragment(Callback callback) const noexcept {
   }
 
   auto block = current_block_;
-  if (fragment_index_ > 0) {
-    auto block_size = block->size;
-    assert(block_size >= fragment_position_);
-    if (!callback(static_cast<void*>(const_cast<char*>(block->data.data()) +
-                                     fragment_position_),
-                  block_size - fragment_position_)) {
-      return false;
-    }
-    block = block->next.get();
+
+  auto block_size = block->size;
+  assert(block_size >= fragment_position_);
+  if (!callback(static_cast<void*>(const_cast<char*>(block->data.data()) +
+                                   fragment_position_),
+                block_size - fragment_position_)) {
+    return false;
   }
+
+  block = block->next.get();
   while (block != nullptr) {
     if (!callback(static_cast<void*>(const_cast<char*>(block->data.data())),
                   block->size)) {
