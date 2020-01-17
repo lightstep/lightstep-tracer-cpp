@@ -1,15 +1,28 @@
 #include "common/chained_stream.h"
 
+#include <cassert>
+
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
 //
 ChainedStream::ChainedStream() noexcept : current_block_{&head_} {}
+
+//--------------------------------------------------------------------------------------------------
+// CloseOutput
+//--------------------------------------------------------------------------------------------------
+void ChainedStream::CloseOutput() noexcept {
+  output_closed_ = true;
+  current_block_ = &head_;
+}
+
 //--------------------------------------------------------------------------------------------------
 // Next
 //--------------------------------------------------------------------------------------------------
 bool ChainedStream::Next(void** data, int* size) {
+  assert(!output_closed_);
+
   if (current_block_position_ < BlockSize) {
     *size = BlockSize - current_block_position_;
     *data = static_cast<void*>(current_block_->data.data() +
@@ -34,6 +47,8 @@ bool ChainedStream::Next(void** data, int* size) {
 // BackUp
 //--------------------------------------------------------------------------------------------------
 void ChainedStream::BackUp(int count) {
+  assert(!output_closed_);
+
   num_bytes_written_ -= count;
   current_block_position_ -= count;
   current_block_->size -= count;
@@ -43,6 +58,8 @@ void ChainedStream::BackUp(int count) {
 // num_fragments
 //--------------------------------------------------------------------------------------------------
 int ChainedStream::num_fragments() const noexcept {
+  assert(output_closed_);
+
   if (num_bytes_written_ == 0) {
     return 0;
   }
@@ -53,6 +70,7 @@ int ChainedStream::num_fragments() const noexcept {
 // ForEachFragment
 //--------------------------------------------------------------------------------------------------
 bool ChainedStream::ForEachFragment(Callback callback) const noexcept {
+  assert(output_closed_);
   assert(fragment_index_ >= 0 && fragment_index_ <= num_blocks_);
 
   if (num_blocks_ == 0) {
@@ -84,6 +102,8 @@ bool ChainedStream::ForEachFragment(Callback callback) const noexcept {
 // Clear
 //--------------------------------------------------------------------------------------------------
 void ChainedStream::Clear() noexcept {
+  assert(output_closed_);
+
   num_blocks_ = 0;
   num_bytes_written_ = 0;
   fragment_index_ = 0;
@@ -95,6 +115,8 @@ void ChainedStream::Clear() noexcept {
 // Seek
 //--------------------------------------------------------------------------------------------------
 void ChainedStream::Seek(int relative_fragment_index, int position) noexcept {
+  assert(output_closed_);
+
   if (relative_fragment_index == 0) {
     fragment_position_ += position;
     return;

@@ -24,6 +24,8 @@ class ChainedStream final
 
   ChainedStream() noexcept;
 
+  void CloseOutput() noexcept;
+
   // ZeroCopyOutputStream
   bool Next(void** data, int* size) override;
 
@@ -48,6 +50,8 @@ class ChainedStream final
     int size;
     std::array<char, BlockSize> data;
   };
+
+  bool output_closed_{false};
 
   int num_blocks_{1};
   int num_bytes_written_{0};
