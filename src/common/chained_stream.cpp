@@ -115,7 +115,7 @@ void ChainedStream::Clear() noexcept {
 //--------------------------------------------------------------------------------------------------
 void ChainedStream::Seek(int relative_fragment_index, int position) noexcept {
   assert(output_closed_);
-
+  assert(fragment_index_ + relative_fragment_index <= num_blocks_);
   if (relative_fragment_index == 0) {
     fragment_position_ += position;
     return;

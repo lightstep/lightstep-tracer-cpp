@@ -162,6 +162,17 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "composable_fragment_input_stream_test",
+    srcs = [
+        "composable_fragment_input_stream_test.cpp",
+    ],
+    deps = [
+        "//src/common:composable_fragment_input_stream_lib",
+        "//test:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "fragment_array_input_stream_test",
     srcs = [
         "fragment_array_input_stream_test.cpp",
