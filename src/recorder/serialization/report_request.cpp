@@ -5,9 +5,10 @@ namespace lightstep {
 // constructor
 //--------------------------------------------------------------------------------------------------
 ReportRequest::ReportRequest(const std::shared_ptr<const std::string>& header,
-                             std::unique_ptr<EmbeddedMetricsMessage>&& metrics)
+                             int num_dropped_spans)
     : header_{header} {
-  (void)metrics;
+  (void)num_dropped_spans;
+  num_bytes_ = static_cast<int>(header_->size());
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -29,9 +30,24 @@ void ReportRequest::AddSpan(std::unique_ptr<SerializationChain>&& span) noexcept
 //--------------------------------------------------------------------------------------------------
 bool ReportRequest::ForEachFragment(FragmentCallback callback,
                                     void* context) const {
-
-  (void)callback;
-  (void)context;
-  return true;
+  if (!callback(context, static_cast<const void*>(header_->data()),
+                header_->size())) {
+    return false;
+  }
+  if (metrics_ != nullptr) {
+    if (!callback(context, metrics_fragment_.first,
+                  static_cast<size_t>(metrics_fragment_.second))) {
+      return false;
+    }
+  }
+  if (spans_ == nullptr) {
+    return true;
+  }
+  return spans_->ForEachSerializationChain(
+      [&](const SerializationChain& chain) {
+        return chain.ForEachFragment([&](void* data, int length) {
+          return callback(context, data, static_cast<size_t>(length));
+        });
+      });
 }
 }  // namespace lightstep

@@ -10,7 +10,7 @@ namespace lightstep {
 class ReportRequest final : public BufferChain {
  public:
   ReportRequest(const std::shared_ptr<const std::string>& header,
-                std::unique_ptr<EmbeddedMetricsMessage>&& metrics);
+                int num_dropped_spans);
 
   void AddSpan(std::unique_ptr<SerializationChain>&& span) noexcept;
 
