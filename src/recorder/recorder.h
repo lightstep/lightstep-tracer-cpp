@@ -24,7 +24,7 @@ class Recorder {
   Recorder& operator=(Recorder&&) = delete;
   Recorder& operator=(const Recorder&) = delete;
 
-  virtual Fragment ReserveHeaderSpans(ChainedStream& /*stream*/) { return {}; }
+  virtual Fragment ReserveHeaderSpace(ChainedStream& /*stream*/) { return {}; }
 
   virtual void RecordSpan(Fragment /*header_fragment*/,
                           std::unique_ptr<ChainedStream>&& /*span*/) noexcept {}
