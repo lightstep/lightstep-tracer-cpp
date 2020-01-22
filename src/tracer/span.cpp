@@ -31,6 +31,7 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
       coded_stream_{chained_stream_.get()},
       tracer_{std::move(tracer)} {
   WriteOperationName(stream_, operation_name);
+  WriteOperationName(coded_stream_, operation_name);
 
   // Set the start timestamps.
   std::chrono::system_clock::time_point start_timestamp;
@@ -38,6 +39,7 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
       tracer_->recorder(), options.start_system_timestamp,
       options.start_steady_timestamp);
   WriteStartTimestamp(stream_, start_timestamp);
+  WriteStartTimestamp(coded_stream_, start_timestamp);
 
   // Set any span references.
   sampled_ = false;
@@ -68,6 +70,7 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
   // Set tags.
   for (auto& tag : options.tags) {
     WriteTag(stream_, tag.first, tag.second);
+    WriteTag(coded_stream_, tag.first, tag.second);
 
     // If sampling_priority is set, it overrides whatever sampling decision was
     // derived from the referenced spans.
@@ -105,6 +108,7 @@ void Span::SetOperationName(opentracing::string_view name) noexcept try {
     return;
   }
   WriteOperationName(stream_, name);
+  WriteOperationName(coded_stream_, name);
 } catch (const std::exception& e) {
   tracer_->logger().Error("SetOperationName failed: ", e.what());
 }
@@ -119,6 +123,7 @@ void Span::SetTag(opentracing::string_view key,
     return;
   }
   WriteTag(stream_, key, value);
+  WriteTag(coded_stream_, key, value);
   if (key == SamplingPriorityKey) {
     sampled_ = is_sampled(value);
   }
@@ -171,6 +176,7 @@ void Span::Log(std::initializer_list<
     return;
   }
   WriteLog(stream_, timestamp, fields.begin(), fields.end());
+  WriteLog(coded_stream_, timestamp, fields.begin(), fields.end());
 } catch (const std::exception& e) {
   tracer_->logger().Error("Log failed: ", e.what());
 }
@@ -218,6 +224,8 @@ bool Span::SetSpanReference(
   trace_id = referenced_context->trace_id_low();
   WriteSpanReference(stream_, reference.first, trace_id,
                      referenced_context->span_id());
+  WriteSpanReference(coded_stream_, reference.first, trace_id,
+                     referenced_context->span_id());
   sampled_ = sampled_ || referenced_context->sampled();
   referenced_context->ForeachBaggageItem(
       [this](const std::string& key, const std::string& value) {
@@ -249,11 +257,14 @@ void Span::FinishImpl(
   // Set timing information.
   auto duration = finish_timestamp - start_steady_;
   WriteDuration(stream_, duration);
+  WriteDuration(coded_stream_, duration);
 
   // Set logs
   for (auto& log_record : options.log_records) {
     try {
       WriteLog(stream_, log_record.timestamp, log_record.fields.data(),
+               log_record.fields.data() + log_record.fields.size());
+      WriteLog(coded_stream_, log_record.timestamp, log_record.fields.data(),
                log_record.fields.data() + log_record.fields.size());
     } catch (const std::exception& e) {
       tracer_->logger().Error("Dropping log record: ", e.what());
@@ -261,10 +272,13 @@ void Span::FinishImpl(
   }
 
   WriteSpanContext(stream_, trace_id_, span_id_, baggage_.as_vector());
+  WriteSpanContext(coded_stream_, trace_id_, span_id_, baggage_.as_vector());
 
   // Record the span
   stream_.Trim();
+  coded_stream_.Trim();
   tracer_->recorder().RecordSpan(std::move(serialization_chain_));
+  tracer_->recorder().RecordSpan(header_fragment_, std::move(chained_stream_));
 } catch (const std::exception& e) {
   tracer_->logger().Error("FinishWithOptions failed: ", e.what());
 }
