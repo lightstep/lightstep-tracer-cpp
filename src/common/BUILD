@@ -70,6 +70,7 @@ lightstep_cc_library(
     deps = [
         ":fragment_input_stream_lib",
         ":noncopyable_lib",
+        ":composable_fragment_input_stream_lib",
     ],
     external_deps = [
         "@com_google_protobuf//:protobuf",

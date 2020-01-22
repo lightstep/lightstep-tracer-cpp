@@ -1,12 +1,12 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 #include <limits>
 #include <memory>
-#include <cassert>
 
+#include "common/composable_fragment_input_stream.h"
 #include "common/function_ref.h"
-#include "common/fragment_input_stream.h"
 #include "common/noncopyable.h"
 
 #include <google/protobuf/io/zero_copy_stream.h>
@@ -15,10 +15,9 @@ namespace lightstep {
 /**
  * Maintains a linked chain of blocks as they aree written
  */
-class ChainedStream final
-    : public google::protobuf::io::ZeroCopyOutputStream,
-      public FragmentInputStream,
-      private Noncopyable {
+class ChainedStream final : public google::protobuf::io::ZeroCopyOutputStream,
+                            public ComposableFragmentInputStream,
+                            private Noncopyable {
  public:
   static const int BlockSize = 256;
 
@@ -36,13 +35,13 @@ class ChainedStream final
   }
 
   // FragmentInputStream
-  int num_fragments() const noexcept override;
+  int segment_num_fragments() const noexcept override;
 
-  bool ForEachFragment(Callback callback) const noexcept override;
+  bool SegmentForEachFragment(Callback callback) const noexcept override;
 
-  void Clear() noexcept override;
+  void SegmentClear() noexcept override;
 
-  void Seek(int relative_fragment_index, int position) noexcept override;
+  void SegmentSeek(int relative_fragment_index, int position) noexcept override;
 
  private:
   struct Block {
@@ -64,4 +63,4 @@ class ChainedStream final
 
   Block head_;
 };
-} // namespace lightstep
+}  // namespace lightstep

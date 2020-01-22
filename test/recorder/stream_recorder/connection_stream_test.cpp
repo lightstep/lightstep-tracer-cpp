@@ -1,8 +1,8 @@
 #include "recorder/stream_recorder/connection_stream.h"
 
 #include "3rd_party/catch2/catch.hpp"
-#include "recorder/stream_recorder/span_stream.h"
 #include "recorder/serialization/report_request_header.h"
+#include "recorder/stream_recorder/span_stream.h"
 #include "test/number_simulation.h"
 #include "test/utility.h"
 using namespace lightstep;

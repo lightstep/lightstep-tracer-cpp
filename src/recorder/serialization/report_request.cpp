@@ -14,7 +14,8 @@ ReportRequest::ReportRequest(const std::shared_ptr<const std::string>& header,
 //--------------------------------------------------------------------------------------------------
 // AddSpan
 //--------------------------------------------------------------------------------------------------
-void ReportRequest::AddSpan(std::unique_ptr<SerializationChain>&& span) noexcept {
+void ReportRequest::AddSpan(
+    std::unique_ptr<SerializationChain>&& span) noexcept {
   ++num_spans_;
   num_fragments_ += span->num_fragments();
   num_bytes_ += span->num_bytes_after_framing();

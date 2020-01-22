@@ -75,4 +75,4 @@ void ComposableFragmentInputStream::Seek(int fragment_index,
   }
   assert(fragment_index == 0 && position == 0);
 }
-} // namespace lightstep
+}  // namespace lightstep

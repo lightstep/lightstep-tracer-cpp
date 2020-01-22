@@ -3,8 +3,8 @@
 #include "3rd_party/catch2/catch.hpp"
 #include "common/composable_fragment_input_stream.h"
 #include "common/fragment_array_input_stream.h"
-#include "test/utility.h"
 #include "test/composable_fragment_input_stream_wrapper.h"
+#include "test/utility.h"
 using namespace lightstep;
 
 TEST_CASE("ComposableFragmentInputStream") {
@@ -27,7 +27,7 @@ TEST_CASE("ComposableFragmentInputStream") {
 
   SECTION("We can consume from ComposableFragmentInputStream") {
     auto contents = ToString(stream);
-    for (size_t i=0; i<contents.size(); ++i) {
+    for (size_t i = 0; i < contents.size(); ++i) {
       SECTION("Consume " + std::to_string(i)) {
         Consume({&stream}, i);
         REQUIRE(ToString(stream) == contents.substr(i));

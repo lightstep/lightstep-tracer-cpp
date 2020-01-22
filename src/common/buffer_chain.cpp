@@ -20,4 +20,4 @@ void BufferChain::CopyOut(char* data, size_t length) const noexcept {
   };
   this->ForEachFragment(callback, static_cast<void*>(&data));
 }
-} // namespace lightstep
+}  // namespace lightstep

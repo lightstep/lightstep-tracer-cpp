@@ -4,5 +4,4 @@
 #include "lightstep-tracer-common/collector.pb.h"
 using namespace lightstep;
 
-TEST_CASE("ReportRequest") {
-}
+TEST_CASE("ReportRequest") {}

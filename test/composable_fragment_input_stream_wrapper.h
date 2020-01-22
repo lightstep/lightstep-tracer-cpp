@@ -33,4 +33,4 @@ class ComposableFragmentInputStreamWrapper final
  private:
   std::unique_ptr<FragmentInputStream> stream_;
 };
-} // namespace lightstep
+}  // namespace lightstep

@@ -54,9 +54,9 @@ void ChainedStream::BackUp(int count) {
 }
 
 //--------------------------------------------------------------------------------------------------
-// num_fragments
+// segment_num_fragments
 //--------------------------------------------------------------------------------------------------
-int ChainedStream::num_fragments() const noexcept {
+int ChainedStream::segment_num_fragments() const noexcept {
   assert(output_closed_);
 
   if (num_bytes_written_ == 0) {
@@ -66,9 +66,9 @@ int ChainedStream::num_fragments() const noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
-// ForEachFragment
+// SegmentForEachFragment
 //--------------------------------------------------------------------------------------------------
-bool ChainedStream::ForEachFragment(Callback callback) const noexcept {
+bool ChainedStream::SegmentForEachFragment(Callback callback) const noexcept {
   assert(output_closed_);
   assert(fragment_index_ >= 0 && fragment_index_ <= num_blocks_);
 
@@ -98,9 +98,9 @@ bool ChainedStream::ForEachFragment(Callback callback) const noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
-// Clear
+// SegmentClear
 //--------------------------------------------------------------------------------------------------
-void ChainedStream::Clear() noexcept {
+void ChainedStream::SegmentClear() noexcept {
   assert(output_closed_);
 
   num_blocks_ = 0;
@@ -111,19 +111,20 @@ void ChainedStream::Clear() noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
-// Seek
+// SegmentSeek
 //--------------------------------------------------------------------------------------------------
-void ChainedStream::Seek(int relative_fragment_index, int position) noexcept {
+void ChainedStream::SegmentSeek(int relative_fragment_index,
+                                int position) noexcept {
   assert(output_closed_);
   assert(fragment_index_ + relative_fragment_index <= num_blocks_);
   if (relative_fragment_index == 0) {
     fragment_position_ += position;
     return;
   }
-  for (int i=0; i<relative_fragment_index; ++i) {
+  for (int i = 0; i < relative_fragment_index; ++i) {
     current_block_ = current_block_->next.get();
   }
   fragment_index_ += relative_fragment_index;
   fragment_position_ = position;
 }
-} // namespace lightstep
+}  // namespace lightstep

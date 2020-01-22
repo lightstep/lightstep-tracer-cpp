@@ -2,9 +2,9 @@
 
 #include <memory>
 
+#include "common/serialization_chain.h"
 #include "lightstep/buffer_chain.h"
 #include "recorder/serialization/embedded_metrics_message.h"
-#include "common/serialization_chain.h"
 
 namespace lightstep {
 class ReportRequest final : public BufferChain {
@@ -36,4 +36,4 @@ class ReportRequest final : public BufferChain {
   int num_fragments_{0};
   std::unique_ptr<SerializationChain> spans_;
 };
-} // namespace lightstep
+}  // namespace lightstep

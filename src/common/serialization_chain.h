@@ -1,12 +1,12 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 #include <limits>
 #include <memory>
-#include <cassert>
 
-#include "common/function_ref.h"
 #include "common/fragment_input_stream.h"
+#include "common/function_ref.h"
 #include "common/hex_conversion.h"
 #include "common/noncopyable.h"
 #include "common/serialization.h"
@@ -53,7 +53,9 @@ class SerializationChain final
   /**
    * @return The number of bytes after the SerializationChain has been framed
    */
-  int num_bytes_after_framing() const noexcept { return num_bytes_after_framing_; }
+  int num_bytes_after_framing() const noexcept {
+    return num_bytes_after_framing_;
+  }
 
   // ZeroCopyOutputStream
   bool Next(void** data, int* size) override;
