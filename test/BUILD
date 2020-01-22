@@ -141,3 +141,13 @@ lightstep_cc_library(
         "//include/lightstep:tracer_interface",
     ],
 )
+
+lightstep_cc_library(
+    name = "composable_fragment_input_stream_wrapper_lib",
+    private_hdrs = [
+        "composable_fragment_input_stream_wrapper.h",
+    ],
+    deps = [
+        "//src/common:composable_fragment_input_stream_lib",
+    ],
+)

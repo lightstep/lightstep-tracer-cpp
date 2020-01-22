@@ -11,6 +11,7 @@ void ComposableFragmentInputStream::Append(
   if (next_ == nullptr) {
     next_ = std::move(stream);
     last_ = next_.get();
+    return;
   }
   assert(last_ != nullptr);
   auto prev_last = last_;
@@ -52,7 +53,7 @@ bool ComposableFragmentInputStream::ForEachFragment(Callback callback) const
 void ComposableFragmentInputStream::Clear() noexcept {
   auto stream = this;
   while (stream != nullptr) {
-    stream->Clear();
+    stream->SegmentClear();
     stream = stream->next_.get();
   }
 }
@@ -69,7 +70,7 @@ void ComposableFragmentInputStream::Seek(int fragment_index,
       return stream->SegmentSeek(fragment_index, position);
     }
     fragment_index -= segment_num_fragments;
-    stream->Clear();
+    stream->SegmentClear();
     stream = stream->next_.get();
   }
   assert(fragment_index == 0 && position == 0);
