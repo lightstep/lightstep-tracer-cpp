@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "common/serialization_chain.h"
+#include "common/chained_stream.h"
 #include "common/timestamp.h"
 
 #include <lightstep/tracer.h>
@@ -22,6 +23,11 @@ class Recorder {
 
   Recorder& operator=(Recorder&&) = delete;
   Recorder& operator=(const Recorder&) = delete;
+
+  virtual Fragment ReserveHeaderSpans(ChainedStream& /*stream*/) { return {}; }
+
+  virtual void RecordSpan(Fragment /*header_fragment*/,
+                          std::unique_ptr<ChainedStream>&& /*span*/) noexcept {}
 
   /**
    * Record a Span
