@@ -252,3 +252,14 @@ lightstep_catch_test(
         "//src/common:timestamp_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "report_request_framing_test",
+    srcs = [
+        "report_request_framing_test.cpp",
+    ],
+    deps = [
+        "//lightstep-tracer-common:collector_proto_cc",
+        "//src/common:report_request_framing_lib",
+    ],
+)

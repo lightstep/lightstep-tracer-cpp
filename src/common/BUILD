@@ -289,6 +289,19 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "report_request_framing_lib",
+    private_hdrs = [
+        "report_request_framing.h",
+    ],
+    srcs = [
+        "report_request_framing.cpp",
+    ],
+    deps = [
+        ":serialization_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "timestamp_lib",
     private_hdrs = [
         "timestamp.h",
