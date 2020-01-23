@@ -276,6 +276,7 @@ void Span::FinishImpl(
 
   // Record the span
   stream_.Trim();
+  tracer_->recorder().WriteFooter(coded_stream_);
   coded_stream_.Trim();
   tracer_->recorder().RecordSpan(std::move(serialization_chain_));
   tracer_->recorder().RecordSpan(header_fragment_, std::move(chained_stream_));

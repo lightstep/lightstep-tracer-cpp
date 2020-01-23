@@ -41,6 +41,9 @@ lightstep_cc_library(
         "//lightstep-tracer-common:collector_proto_cc",
         "//include/lightstep:tracer_interface",
     ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
+    ],
 )
 
 lightstep_cc_library(

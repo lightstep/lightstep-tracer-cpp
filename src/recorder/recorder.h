@@ -7,6 +7,7 @@
 #include "common/chained_stream.h"
 #include "common/timestamp.h"
 
+#include <google/protobuf/io/coded_stream.h>
 #include <lightstep/tracer.h>
 #include "lightstep-tracer-common/collector.pb.h"
 
@@ -25,6 +26,9 @@ class Recorder {
   Recorder& operator=(const Recorder&) = delete;
 
   virtual Fragment ReserveHeaderSpace(ChainedStream& /*stream*/) { return {}; }
+
+  virtual void WriteFooter(
+      google::protobuf::io::CodedOutputStream& /*coded_stream*/) {}
 
   virtual void RecordSpan(Fragment /*header_fragment*/,
                           std::unique_ptr<ChainedStream>&& /*span*/) noexcept {}
