@@ -263,3 +263,13 @@ lightstep_catch_test(
         "//src/common:report_request_framing_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "chunked_http_framing_test",
+    srcs = [
+        "chunked_http_framing_test.cpp",
+    ],
+    deps = [
+        "//src/common:chunked_http_framing_lib",
+    ],
+)
