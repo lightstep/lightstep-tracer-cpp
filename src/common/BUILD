@@ -313,6 +313,9 @@ lightstep_cc_library(
         ":serialization_lib",
         ":hex_conversion_lib",
     ],
+    external_deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
 )
 
 lightstep_cc_library(

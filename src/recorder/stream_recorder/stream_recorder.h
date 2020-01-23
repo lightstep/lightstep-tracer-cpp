@@ -89,7 +89,15 @@ class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
   }
 
   // Recorder
+  Fragment ReserveHeaderSpace(ChainedStream& stream) override;
+
+  void WriteFooter(
+      google::protobuf::io::CodedOutputStream& coded_stream) override;
+
   void RecordSpan(std::unique_ptr<SerializationChain>&& span) noexcept override;
+
+  void RecordSpan(Fragment header_fragment,
+                  std::unique_ptr<ChainedStream>&& span) noexcept override;
 
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;

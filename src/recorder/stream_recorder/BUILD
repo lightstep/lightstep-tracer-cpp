@@ -77,6 +77,8 @@ lightstep_cc_library(
     deps = [
         "//src/common:circular_buffer_lib",
         "//src/common:logger_lib",
+        "//src/common:report_request_framing_lib",
+        "//src/common:chunked_http_framing_lib",
         "//src/common:noncopyable_lib",
         "//src/common:protobuf_lib",
         "//src/common/platform:network_environment_lib",

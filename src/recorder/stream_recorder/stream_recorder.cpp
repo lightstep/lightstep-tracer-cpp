@@ -1,7 +1,10 @@
 #include "recorder/stream_recorder/stream_recorder.h"
 
 #include <exception>
+#include <cassert>
 
+#include "common/chunked_http_framing.h"
+#include "common/report_request_framing.h"
 #include "common/protobuf.h"
 
 namespace lightstep {
@@ -44,8 +47,51 @@ StreamRecorder::~StreamRecorder() noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
+// ReserveHedaerSpace
+//--------------------------------------------------------------------------------------------------
+Fragment StreamRecorder::ReserveHeaderSpace(ChainedStream& stream) {
+  const size_t max_header_size = 
+    ReportRequestSpansMaxHeaderSize + ChunkedHttpMaxHeaderSize;
+  static_assert(ChainedStream::BlockSize >= max_header_size,
+                "BockSize too small");
+  void* data;
+  int size;
+  if(!stream.Next(&data, &size)) {
+    throw std::bad_alloc{};
+  }
+  stream.BackUp(size - static_cast<int>(max_header_size));
+  return {data, size};
+}
+
+//--------------------------------------------------------------------------------------------------
+// WriteFooter
+//--------------------------------------------------------------------------------------------------
+void StreamRecorder::WriteFooter(
+      google::protobuf::io::CodedOutputStream& coded_stream) {
+  coded_stream.WriteRaw(ChunkedHttpFooter.data(), ChunkedHttpFooter.size());
+}
+
+//--------------------------------------------------------------------------------------------------
 // RecordSpan
 //--------------------------------------------------------------------------------------------------
+void StreamRecorder::RecordSpan(
+    Fragment header_fragment, std::unique_ptr<ChainedStream>&& span) noexcept {
+  // Frame the Span
+  char* header_data = static_cast<char*>(header_fragment.first);
+  auto reserved_header_size = static_cast<size_t>(header_fragment.second);
+  auto protobuf_body_size = span->ByteCount() - ChunkedHttpFooter.size();
+  auto protobuf_header_size =
+      WriteReportRequestSpansHeader(header_data, reserved_header_size, protobuf_body_size);
+  auto chunk_body_size = protobuf_body_size + protobuf_header_size;
+  auto chunk_header_size = WriteHttpChunkHeader(
+      header_data, reserved_header_size - protobuf_header_size, chunk_body_size);
+  span->CloseOutput();
+
+  // Advance past reserved header space we didn't use.
+  span->Seek(0, static_cast<int>(reserved_header_size - protobuf_header_size - chunk_header_size));
+
+}
+
 void StreamRecorder::RecordSpan(
     std::unique_ptr<SerializationChain>&& span) noexcept {
   span->AddFraming();
