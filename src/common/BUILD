@@ -302,6 +302,20 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "chunked_http_framing_lib",
+    private_hdrs = [
+        "chunked_http_framing.h",
+    ],
+    srcs = [
+        "chunked_http_framing.cpp",
+    ],
+    deps = [
+        ":serialization_lib",
+        ":hex_conversion_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "timestamp_lib",
     private_hdrs = [
         "timestamp.h",
