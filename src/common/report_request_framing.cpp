@@ -6,7 +6,8 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // WriteReportRequestSpansHeader
 //--------------------------------------------------------------------------------------------------
-size_t WriteReportRequestSpansHeader(char* data, size_t size, uint32_t body_size) noexcept {
+size_t WriteReportRequestSpansHeader(char* data, size_t size,
+                                     uint32_t body_size) noexcept {
   assert(size >= ReportRequestSpansMaxHeaderSize);
   auto header_size =
       ComputeLengthDelimitedHeaderSerializationSize<ReportRequestSpansField>(
@@ -17,4 +18,4 @@ size_t WriteReportRequestSpansHeader(char* data, size_t size, uint32_t body_size
   WriteKeyLength<ReportRequestSpansField>(stream, body_size);
   return header_size;
 }
-} // namespace lightstep
+}  // namespace lightstep

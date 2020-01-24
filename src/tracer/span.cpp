@@ -25,9 +25,7 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
     : serialization_chain_{new SerializationChain{}},
       stream_{serialization_chain_.get()},
       chained_stream_{new ChainedStream{}},
-      header_fragment_{
-        tracer->recorder().ReserveHeaderSpace(*chained_stream_)
-      },
+      header_fragment_{tracer->recorder().ReserveHeaderSpace(*chained_stream_)},
       coded_stream_{chained_stream_.get()},
       tracer_{std::move(tracer)} {
   WriteOperationName(stream_, operation_name);

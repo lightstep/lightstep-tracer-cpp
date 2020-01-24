@@ -5,8 +5,8 @@
 #include <memory>
 #include <mutex>
 
-#include "common/serialization_chain.h"
 #include "common/chained_stream.h"
+#include "common/serialization_chain.h"
 #include "common/spin_lock_mutex.h"
 #include "tracer/baggage_flat_map.h"
 #include "tracer/lightstep_span_context.h"

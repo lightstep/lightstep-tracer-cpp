@@ -16,4 +16,4 @@ size_t WriteHttpChunkHeader(char* data, size_t size,
   *iter++ = '\n';
   return ChunkedHttpMaxHeaderSize;
 }
-} // namespace lightstep
+}  // namespace lightstep

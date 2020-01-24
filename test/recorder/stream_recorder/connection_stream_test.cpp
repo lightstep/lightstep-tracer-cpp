@@ -144,7 +144,7 @@ TEST_CASE("ConnectionStream") {
   SECTION(
       "After writing the header, ConnectionStream writes the contents of the "
       "span buffer.") {
-    AddString(span_buffer, "abc");
+    AddSpanChunkFramedString(span_buffer, "abc");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -162,14 +162,14 @@ TEST_CASE("ConnectionStream") {
           contents = ToString(fragment_streams);
           return Consume(fragment_streams, static_cast<int>(contents.size()));
         });
-    AddString(span_buffer, "abc");
+    AddSpanChunkFramedString(span_buffer, "abc");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
           contents = ToString(fragment_streams);
           return Consume(fragment_streams, 4);
         });
-    AddString(span_buffer, "123");
+    AddSpanChunkFramedString(span_buffer, "123");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -190,7 +190,7 @@ TEST_CASE("ConnectionStream") {
           contents = ToString(fragment_streams);
           return Consume(fragment_streams, static_cast<int>(contents.size()));
         });
-    AddString(span_buffer, "abc");
+    AddSpanChunkFramedString(span_buffer, "abc");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -198,7 +198,7 @@ TEST_CASE("ConnectionStream") {
           return Consume(fragment_streams, 4);
         });
     connection_stream.Shutdown();
-    AddString(span_buffer, "123");
+    AddSpanChunkFramedString(span_buffer, "123");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -217,7 +217,7 @@ TEST_CASE("ConnectionStream") {
           contents = ToString(fragment_streams);
           return Consume(fragment_streams, static_cast<int>(contents.size()));
         });
-    AddString(span_buffer, "abc");
+    AddSpanChunkFramedString(span_buffer, "abc");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -225,7 +225,7 @@ TEST_CASE("ConnectionStream") {
           return Consume(fragment_streams, 4);
         });
     connection_stream.Reset();
-    AddString(span_buffer, "123");
+    AddSpanChunkFramedString(span_buffer, "123");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {

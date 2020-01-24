@@ -53,7 +53,7 @@ static void GenerateRandomBinaryNumbers(
     uint32_t x;
     opentracing::string_view s;
     std::tie(x, s) = GenerateRandomBinaryNumber(32);
-    if (AddString(buffer, s)) {
+    if (AddSpanChunkFramedString(buffer, s)) {
       numbers.push_back(x);
     }
   }

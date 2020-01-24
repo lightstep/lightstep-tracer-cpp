@@ -21,20 +21,20 @@ TEST_CASE("SpanStream") {
   }
 
   SECTION("SpanStream mirrors the contents of its attached buffer") {
-    REQUIRE(AddString(buffer, "abc123"));
+    REQUIRE(AddSpanChunkFramedString(buffer, "abc123"));
     span_stream.Allot();
     REQUIRE(ToString(span_stream) == AddSpanChunkFraming("abc123"));
   }
 
   SECTION("SpanStream is empty after it's been cleared") {
-    REQUIRE(AddString(buffer, "abc123"));
+    REQUIRE(AddSpanChunkFramedString(buffer, "abc123"));
     span_stream.Allot();
     span_stream.Clear();
     REQUIRE(span_stream.empty());
   }
 
   SECTION("SpanStream leaves a remnant if a span is partially consumed") {
-    REQUIRE(AddString(buffer, "abc123"));
+    REQUIRE(AddSpanChunkFramedString(buffer, "abc123"));
     span_stream.Allot();
     auto contents = ToString(span_stream);
     REQUIRE(!Consume({&span_stream}, 3));
@@ -45,13 +45,13 @@ TEST_CASE("SpanStream") {
   }
 
   SECTION("SpanStream leaves no remnant when spans are completely consumed") {
-    REQUIRE(AddString(buffer, "abc123"));
+    REQUIRE(AddSpanChunkFramedString(buffer, "abc123"));
     span_stream.Allot();
     span_stream.Clear();
     REQUIRE(span_stream.ConsumeRemnant() == nullptr);
 
-    REQUIRE(AddString(buffer, "abc"));
-    REQUIRE(AddString(buffer, "123"));
+    REQUIRE(AddSpanChunkFramedString(buffer, "abc"));
+    REQUIRE(AddSpanChunkFramedString(buffer, "123"));
     span_stream.Allot();
     auto span1 = AddSpanChunkFraming("abc");
     REQUIRE(!Consume({&span_stream}, static_cast<int>(span1.size())));

@@ -103,10 +103,10 @@ std::string ToString(const FragmentInputStream& fragment_input_stream) {
 }
 
 //--------------------------------------------------------------------------------------------------
-// AddString
+// AddSpanChunkFramedString
 //--------------------------------------------------------------------------------------------------
-bool AddString(CircularBuffer<SerializationChain>& buffer,
-               const std::string& s) {
+bool AddSpanChunkFramedString(CircularBuffer<SerializationChain>& buffer,
+                              const std::string& s) {
   std::unique_ptr<SerializationChain> chain{new SerializationChain{}};
   {
     google::protobuf::io::CodedOutputStream stream{chain.get()};

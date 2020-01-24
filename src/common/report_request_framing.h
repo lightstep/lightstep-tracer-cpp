@@ -13,5 +13,6 @@ const size_t ReportRequestSpansMaxHeaderSize =
     google::protobuf::io::CodedOutputStream::StaticVarintSize32<
         std::numeric_limits<uint32_t>::max()>::value;
 
-size_t WriteReportRequestSpansHeader(char* data, size_t size, uint32_t body_size) noexcept;
-} // namespace lightstep
+size_t WriteReportRequestSpansHeader(char* data, size_t size,
+                                     uint32_t body_size) noexcept;
+}  // namespace lightstep
