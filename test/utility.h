@@ -6,6 +6,7 @@
 #include "common/circular_buffer.h"
 #include "common/fragment_input_stream.h"
 #include "common/serialization_chain.h"
+#include "common/chained_stream.h"
 
 #include <opentracing/tracer.h>
 #include "lightstep-tracer-common/collector.pb.h"
@@ -67,6 +68,9 @@ std::string ToString(const FragmentInputStream& fragment_input_stream);
  * @return true if the string was succesfully added.
  */
 bool AddSpanChunkFramedString(CircularBuffer<SerializationChain>& buffer,
+                              const std::string& s);
+
+bool AddSpanChunkFramedString(CircularBuffer<ChainedStream>& buffer,
                               const std::string& s);
 
 /**
