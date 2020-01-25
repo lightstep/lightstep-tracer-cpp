@@ -186,17 +186,6 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
-    name = "serialization_chain_test",
-    srcs = [
-        "serialization_chain_test.cpp",
-    ],
-    deps = [
-        "//src/common:serialization_chain_lib",
-        "//test:utility_lib",
-    ],
-)
-
-lightstep_catch_test(
     name = "chained_stream_test",
     srcs = [
         "chained_stream_test.cpp",

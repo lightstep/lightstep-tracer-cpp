@@ -40,7 +40,7 @@ TEST_CASE("ChainedStream") {
   }
 
   SECTION("We can seek to any byte in the fragment stream.") {
-    std::string s(SerializationChain::BlockSize + 2, 'X');
+    std::string s(ChainedStream::BlockSize + 2, 'X');
     stream->WriteString(s);
     stream.reset();
     chain.CloseOutput();
