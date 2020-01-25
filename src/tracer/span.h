@@ -6,7 +6,6 @@
 #include <mutex>
 
 #include "common/chained_stream.h"
-#include "common/serialization_chain.h"
 #include "common/spin_lock_mutex.h"
 #include "tracer/baggage_flat_map.h"
 #include "tracer/lightstep_span_context.h"
@@ -94,9 +93,6 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
   // Even if there is contention, the span operations are cheap, so it makes
   // more sense to use a spin lock for this use case.
   mutable SpinLockMutex mutex_;
-
-  std::unique_ptr<SerializationChain> serialization_chain_;
-  google::protobuf::io::CodedOutputStream stream_;
 
   std::unique_ptr<ChainedStream> chained_stream_;
   Fragment header_fragment_;
