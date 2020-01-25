@@ -28,6 +28,6 @@ class ManualRecorder : public ForkAwareRecorder, private Noncopyable {
   LightStepTracerOptions tracer_options_;
   std::unique_ptr<AsyncTransporter> transporter_;
 
-  CircularBuffer<SerializationChain> span_buffer_;
+  CircularBuffer<ChainedStream> span_buffer_;
 };
 }  // namespace lightstep

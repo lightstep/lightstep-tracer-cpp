@@ -35,7 +35,6 @@ lightstep_cc_library(
       "recorder.h",
     ],
     deps = [
-        "//src/common:serialization_chain_lib",
         "//src/common:chained_stream_lib",
         "//src/common:timestamp_lib",
         "//lightstep-tracer-common:collector_proto_cc",

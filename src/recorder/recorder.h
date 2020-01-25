@@ -4,7 +4,6 @@
 #include <memory>
 
 #include "common/chained_stream.h"
-#include "common/serialization_chain.h"
 #include "common/timestamp.h"
 
 #include <google/protobuf/io/coded_stream.h>
