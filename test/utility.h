@@ -5,7 +5,6 @@
 
 #include "common/circular_buffer.h"
 #include "common/fragment_input_stream.h"
-#include "common/serialization_chain.h"
 #include "common/chained_stream.h"
 
 #include <opentracing/tracer.h>

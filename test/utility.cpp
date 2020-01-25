@@ -7,8 +7,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "common/report_request_framing.h"
 #include "common/serialization.h"
-#include "common/serialization_chain.h"
 #include "common/utility.h"
 #include "network/socket.h"
 
@@ -126,8 +126,7 @@ std::string AddSpanChunkFraming(opentracing::string_view s) {
     {
       google::protobuf::io::OstreamOutputStream zero_copy_stream{&oss};
       google::protobuf::io::CodedOutputStream stream{&zero_copy_stream};
-      WriteKeyLength<SerializationChain::ReportRequestSpansField>(stream,
-                                                                  s.size());
+      WriteKeyLength<ReportRequestSpansField>(stream, s.size());
     }
     return oss.str();
   }();
