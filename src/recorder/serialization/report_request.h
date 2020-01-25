@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "common/serialization_chain.h"
+#include "common/chained_stream.h"
 #include "lightstep/buffer_chain.h"
 #include "recorder/serialization/embedded_metrics_message.h"
 
@@ -12,7 +12,7 @@ class ReportRequest final : public BufferChain {
   ReportRequest(const std::shared_ptr<const std::string>& header,
                 int num_dropped_spans);
 
-  void AddSpan(std::unique_ptr<SerializationChain>&& span) noexcept;
+  void AddSpan(std::unique_ptr<ChainedStream>&& span) noexcept;
 
   // BufferChain
   size_t num_fragments() const noexcept override {
@@ -34,6 +34,6 @@ class ReportRequest final : public BufferChain {
   int num_bytes_{0};
   int num_spans_{0};
   int num_fragments_{0};
-  std::unique_ptr<SerializationChain> spans_;
+  std::unique_ptr<ChainedStream> spans_;
 };
 }  // namespace lightstep

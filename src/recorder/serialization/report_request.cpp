@@ -15,15 +15,18 @@ ReportRequest::ReportRequest(const std::shared_ptr<const std::string>& header,
 // AddSpan
 //--------------------------------------------------------------------------------------------------
 void ReportRequest::AddSpan(
-    std::unique_ptr<SerializationChain>&& span) noexcept {
+    std::unique_ptr<ChainedStream>&& span) noexcept {
   ++num_spans_;
   num_fragments_ += span->num_fragments();
-  num_bytes_ += span->num_bytes_after_framing();
+  span->ForEachFragment([&](void* /*data*/, int length) {
+    num_bytes_ += static_cast<size_t>(length);
+    return true;
+  });
   if (spans_ == nullptr) {
     spans_ = std::move(span);
     return;
   }
-  spans_->Chain(std::move(span));
+  spans_->Append(std::move(span));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -44,11 +47,8 @@ bool ReportRequest::ForEachFragment(FragmentCallback callback,
   if (spans_ == nullptr) {
     return true;
   }
-  return spans_->ForEachSerializationChain(
-      [&](const SerializationChain& chain) {
-        return chain.ForEachFragment([&](void* data, int length) {
-          return callback(context, data, static_cast<size_t>(length));
-        });
-      });
+  return spans_->ForEachFragment([&](void* data, int length) {
+    return callback(context, data, static_cast<size_t>(length));
+  });
 }
 }  // namespace lightstep

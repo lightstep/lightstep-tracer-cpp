@@ -16,7 +16,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:buffer_chain_lib",
-        "//src/common:serialization_chain_lib",
+        "//src/common:chained_stream_lib",
         ":embedded_metrics_message_lib",
     ],
 )
