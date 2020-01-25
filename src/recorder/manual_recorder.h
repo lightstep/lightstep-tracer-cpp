@@ -13,6 +13,11 @@ class ManualRecorder : public ForkAwareRecorder, private Noncopyable {
                  std::unique_ptr<AsyncTransporter>&& transporter);
 
   // Recorder
+  Fragment ReserveHeaderSpace(ChainedStream& stream) override;
+
+  void RecordSpan(Fragment header_fragment,
+                  std::unique_ptr<ChainedStream>&& span) noexcept override;
+
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;
 
