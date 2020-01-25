@@ -18,7 +18,8 @@ class InMemoryRecorder final : public Recorder {
   // Recorder
   void RecordSpan(const collector::Span& span) noexcept override;
 
-  void RecordSpan(std::unique_ptr<SerializationChain>&& span) noexcept override;
+  void RecordSpan(Fragment header_fragment,
+                  std::unique_ptr<ChainedStream>&& span) noexcept override;
 
  private:
   mutable std::mutex mutex_;
