@@ -41,25 +41,6 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "serialization_chain_lib",
-    private_hdrs = [
-        "serialization_chain.h",
-    ],
-    srcs = [
-        "serialization_chain.cpp",
-    ],
-    deps = [
-        ":fragment_input_stream_lib",
-        ":noncopyable_lib",
-        ":hex_conversion_lib",
-        ":serialization_lib",
-    ],
-    external_deps = [
-        "@com_google_protobuf//:protobuf",
-    ],
-)
-
-lightstep_cc_library(
     name = "chained_stream_lib",
     private_hdrs = [
         "chained_stream.h",

@@ -95,7 +95,6 @@ lightstep_cc_library(
         "//src/common:logger_lib",
         "//src/common:utility_lib",
         "//src/common:random_lib",
-        "//src/common:serialization_chain_lib",
         "//src/common:spin_lock_mutex_lib",
         "//src/recorder:recorder_interface",
         ":immutable_span_context_lib",
