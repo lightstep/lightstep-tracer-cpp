@@ -13,8 +13,6 @@ class ManualRecorder : public ForkAwareRecorder, private Noncopyable {
                  std::unique_ptr<AsyncTransporter>&& transporter);
 
   // Recorder
-  void RecordSpan(std::unique_ptr<SerializationChain>&& span) noexcept override;
-
   bool FlushWithTimeout(
       std::chrono::system_clock::duration timeout) noexcept override;
 

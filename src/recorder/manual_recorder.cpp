@@ -17,18 +17,6 @@ ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
 }
 
 //--------------------------------------------------------------------------------------------------
-// RecordSpan
-//--------------------------------------------------------------------------------------------------
-void ManualRecorder::RecordSpan(
-    std::unique_ptr<SerializationChain>&& span) noexcept {
-  span->AddFraming();
-  if (!span_buffer_.Add(span)) {
-    tracer_options_.metrics_observer->OnSpansDropped(1);
-    span.reset();
-  }
-}
-
-//--------------------------------------------------------------------------------------------------
 // FlushWithTimeout
 //--------------------------------------------------------------------------------------------------
 bool ManualRecorder::FlushWithTimeout(
