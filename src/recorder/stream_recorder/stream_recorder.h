@@ -12,7 +12,7 @@
 #include "common/logger.h"
 #include "common/noncopyable.h"
 #include "common/platform/network_environment.h"
-#include "common/serialization_chain.h"
+#include "common/chained_stream.h"
 #include "lightstep/tracer.h"
 #include "network/event_base.h"
 #include "network/timer_event.h"
@@ -84,7 +84,7 @@ class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
   /**
    * @return the associated span buffer.
    */
-  CircularBuffer<SerializationChain>& span_buffer() noexcept {
+  CircularBuffer<ChainedStream>& span_buffer() noexcept {
     return span_buffer_;
   }
 
@@ -93,8 +93,6 @@ class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
 
   void WriteFooter(
       google::protobuf::io::CodedOutputStream& coded_stream) override;
-
-  void RecordSpan(std::unique_ptr<SerializationChain>&& span) noexcept override;
 
   void RecordSpan(Fragment header_fragment,
                   std::unique_ptr<ChainedStream>&& span) noexcept override;
@@ -134,7 +132,7 @@ class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
   LightStepTracerOptions tracer_options_;
   StreamRecorderOptions recorder_options_;
   StreamRecorderMetrics metrics_;
-  CircularBuffer<SerializationChain> span_buffer_;
+  CircularBuffer<ChainedStream> span_buffer_;
 
   std::atomic<bool> exit_{false};
 

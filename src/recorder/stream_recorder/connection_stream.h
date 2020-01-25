@@ -4,6 +4,7 @@
 #include <initializer_list>
 #include <tuple>
 
+#include "common/hex_conversion.h"
 #include "common/fragment_array_input_stream.h"
 #include "common/fragment_input_stream.h"
 #include "common/function_ref.h"
@@ -72,7 +73,7 @@ class ConnectionStream {
   FragmentArrayInputStream header_stream_;
   FragmentArrayInputStream terminal_stream_;
 
-  std::unique_ptr<SerializationChain> span_remnant_;
+  std::unique_ptr<ChainedStream> span_remnant_;
 
   bool shutting_down_;
 

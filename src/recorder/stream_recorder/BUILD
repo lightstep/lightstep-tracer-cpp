@@ -39,7 +39,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/common:circular_buffer_lib",
-        "//src/common:serialization_chain_lib",
+        "//src/common:chained_stream_lib",
         "//src/common:fragment_input_stream_lib",
         ":stream_recorder_metrics_lib",
     ],
@@ -82,7 +82,7 @@ lightstep_cc_library(
         "//src/common:noncopyable_lib",
         "//src/common:protobuf_lib",
         "//src/common/platform:network_environment_lib",
-        "//src/common:serialization_chain_lib",
+        "//src/common:chained_stream_lib",
         "//src/network:event_lib",
         "//src/network:timer_event_lib",
         "//src/recorder:fork_aware_recorder_lib",

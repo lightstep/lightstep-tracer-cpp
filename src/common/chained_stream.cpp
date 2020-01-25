@@ -119,6 +119,7 @@ void ChainedStream::SegmentSeek(int relative_fragment_index,
   assert(fragment_index_ + relative_fragment_index <= num_blocks_);
   if (relative_fragment_index == 0) {
     fragment_position_ += position;
+    assert(fragment_position_ <= current_block_->size);
     return;
   }
   for (int i = 0; i < relative_fragment_index; ++i) {
@@ -126,5 +127,6 @@ void ChainedStream::SegmentSeek(int relative_fragment_index,
   }
   fragment_index_ += relative_fragment_index;
   fragment_position_ = position;
+  assert(fragment_position_ <= current_block_->size);
 }
 }  // namespace lightstep

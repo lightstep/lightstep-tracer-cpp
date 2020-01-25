@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "common/circular_buffer.h"
-#include "common/serialization_chain.h"
+#include "common/chained_stream.h"
 #include "recorder/stream_recorder/connection_stream.h"
 
 #include <opentracing/string_view.h>
@@ -20,7 +20,7 @@ namespace lightstep {
  * @param num_threads the number of threads to write numbers on.
  * @param n the number of numbers to write.
  */
-void RunBinaryNumberProducer(CircularBuffer<SerializationChain>& buffer,
+void RunBinaryNumberProducer(CircularBuffer<ChainedStream>& buffer,
                              std::vector<uint32_t>& numbers, size_t num_threads,
                              size_t n);
 

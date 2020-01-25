@@ -15,7 +15,7 @@ SatelliteStreamer::SatelliteStreamer(
     const LightStepTracerOptions& tracer_options,
     const StreamRecorderOptions& recorder_options,
     StreamRecorderMetrics& metrics,
-    CircularBuffer<SerializationChain>& span_buffer)
+    CircularBuffer<ChainedStream>& span_buffer)
     : logger_{logger},
       event_base_{event_base},
       tracer_options_{tracer_options},

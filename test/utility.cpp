@@ -122,7 +122,7 @@ bool AddSpanChunkFramedString(CircularBuffer<ChainedStream>& buffer,
   std::unique_ptr<ChainedStream> chain{new ChainedStream{}};
   {
     google::protobuf::io::CodedOutputStream stream{chain.get()};
-    stream.WriteString(s);
+    stream.WriteString(framed_s);
   }
   chain->CloseOutput();
   return buffer.Add(chain);

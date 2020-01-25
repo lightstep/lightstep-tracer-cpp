@@ -273,8 +273,8 @@ void Span::FinishImpl(
   WriteSpanContext(coded_stream_, trace_id_, span_id_, baggage_.as_vector());
 
   // Record the span
-  stream_.Trim();
   tracer_->recorder().WriteFooter(coded_stream_);
+  stream_.Trim();
   coded_stream_.Trim();
   tracer_->recorder().RecordSpan(std::move(serialization_chain_));
   tracer_->recorder().RecordSpan(header_fragment_, std::move(chained_stream_));

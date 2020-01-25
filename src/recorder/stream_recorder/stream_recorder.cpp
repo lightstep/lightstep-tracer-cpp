@@ -60,7 +60,7 @@ Fragment StreamRecorder::ReserveHeaderSpace(ChainedStream& stream) {
     throw std::bad_alloc{};
   }
   stream.BackUp(size - static_cast<int>(max_header_size));
-  return {data, size};
+  return {data, static_cast<int>(max_header_size)};
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -79,7 +79,8 @@ void StreamRecorder::RecordSpan(
   // Frame the Span
   char* header_data = static_cast<char*>(header_fragment.first);
   auto reserved_header_size = static_cast<size_t>(header_fragment.second);
-  auto protobuf_body_size = span->ByteCount() - ChunkedHttpFooter.size();
+  auto protobuf_body_size =
+      span->ByteCount() - ChunkedHttpFooter.size() - header_fragment.second;
   auto protobuf_header_size = WriteReportRequestSpansHeader(
       header_data, reserved_header_size, protobuf_body_size);
   auto chunk_body_size = protobuf_body_size + protobuf_header_size;
@@ -91,11 +92,7 @@ void StreamRecorder::RecordSpan(
   // Advance past reserved header space we didn't use.
   span->Seek(0, static_cast<int>(reserved_header_size - protobuf_header_size -
                                  chunk_header_size));
-}
 
-void StreamRecorder::RecordSpan(
-    std::unique_ptr<SerializationChain>&& span) noexcept {
-  span->AddFraming();
   if (!span_buffer_.Add(span)) {
     // Note: the compiler doesn't want to inline this logger call and it shows
     // up in profiling with high span droppage even if the logging isn't turned

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/circular_buffer.h"
-#include "common/serialization_chain.h"
+#include "common/chained_stream.h"
 #include "recorder/stream_recorder/stream_recorder_metrics.h"
 
 namespace lightstep {
@@ -11,7 +11,7 @@ namespace lightstep {
  */
 class SpanStream final : public FragmentInputStream {
  public:
-  SpanStream(CircularBuffer<SerializationChain>& span_buffer,
+  SpanStream(CircularBuffer<ChainedStream>& span_buffer,
              StreamRecorderMetrics& metrics) noexcept;
 
   /**
@@ -23,7 +23,7 @@ class SpanStream final : public FragmentInputStream {
    * Returns and removes the last partially written span.
    * @return the last partially written span
    */
-  std::unique_ptr<SerializationChain> ConsumeRemnant() noexcept;
+  std::unique_ptr<ChainedStream> ConsumeRemnant() noexcept;
 
   /**
    * @return the associagted StreamRecorderMetrics
@@ -40,9 +40,9 @@ class SpanStream final : public FragmentInputStream {
   void Seek(int fragment_index, int position) noexcept override;
 
  private:
-  CircularBuffer<SerializationChain>& span_buffer_;
+  CircularBuffer<ChainedStream>& span_buffer_;
   StreamRecorderMetrics& metrics_;
-  CircularBufferRange<const AtomicUniquePtr<SerializationChain>> allotment_;
-  std::unique_ptr<SerializationChain> remnant_;
+  CircularBufferRange<const AtomicUniquePtr<ChainedStream>> allotment_;
+  std::unique_ptr<ChainedStream> remnant_;
 };
 }  // namespace lightstep
