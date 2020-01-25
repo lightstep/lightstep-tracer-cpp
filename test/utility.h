@@ -67,9 +67,6 @@ std::string ToString(const FragmentInputStream& fragment_input_stream);
  * @param s the string to add.
  * @return true if the string was succesfully added.
  */
-bool AddSpanChunkFramedString(CircularBuffer<SerializationChain>& buffer,
-                              const std::string& s);
-
 bool AddSpanChunkFramedString(CircularBuffer<ChainedStream>& buffer,
                               const std::string& s);
 
