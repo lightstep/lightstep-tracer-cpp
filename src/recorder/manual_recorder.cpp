@@ -1,6 +1,10 @@
 #include "recorder/manual_recorder.h"
 
+#include <cassert>
+#include <exception>
+
 #include "common/report_request_framing.h"
+#include "recorder/serialization/report_request.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -23,8 +27,7 @@ ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
       tracer_options_{std::move(options)},
       transporter_{std::move(transporter)},
       metrics_{GetMetricsObserver(options)},
-      span_buffer_{tracer_options_.max_buffered_spans.value()} {
-}
+      span_buffer_{tracer_options_.max_buffered_spans.value()} {}
 
 //--------------------------------------------------------------------------------------------------
 // ReserveHeaderSpace
@@ -77,8 +80,11 @@ void ManualRecorder::RecordSpan(
 // FlushWithTimeout
 //--------------------------------------------------------------------------------------------------
 bool ManualRecorder::FlushWithTimeout(
-    std::chrono::system_clock::duration /*timeout*/) noexcept {
+    std::chrono::system_clock::duration /*timeout*/) noexcept try {
   return true;
+} catch (const std::exception& e) {
+  logger_.Error("Failed to flush report: ", e.what());
+  return false;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -95,4 +101,31 @@ void ManualRecorder::OnForkedParent() noexcept {}
 // OnForkedChild
 //--------------------------------------------------------------------------------------------------
 void ManualRecorder::OnForkedChild() noexcept {}
+
+//--------------------------------------------------------------------------------------------------
+// OnSuccess
+//--------------------------------------------------------------------------------------------------
+void ManualRecorder::OnSuccess(BufferChain& message) noexcept {
+  auto report_request = dynamic_cast<ReportRequest*>(&message);
+  assert(report_request != nullptr);
+  if (report_request != nullptr) {
+    // This should never happen
+    return;
+  }
+  metrics_.OnSpansSent(report_request->num_spans());
+}
+
+//--------------------------------------------------------------------------------------------------
+// OnFailure
+//--------------------------------------------------------------------------------------------------
+void ManualRecorder::OnFailure(BufferChain& message) noexcept {
+  auto report_request = dynamic_cast<ReportRequest*>(&message);
+  assert(report_request != nullptr);
+  if (report_request != nullptr) {
+    // This should never happen
+    return;
+  }
+  metrics_.OnSpansDropped(report_request->num_spans());
+  metrics_.UnconsumeDroppedSpans(report_request->num_dropped_spans());
+}
 }  // namespace lightstep

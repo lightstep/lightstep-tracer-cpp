@@ -2,10 +2,10 @@
 
 #include <array>
 
-#include "common/report_request_framing.h"
-#include "recorder/serialization/report_request_header.h"
 #include "3rd_party/catch2/catch.hpp"
+#include "common/report_request_framing.h"
 #include "lightstep-tracer-common/collector.pb.h"
+#include "recorder/serialization/report_request_header.h"
 
 #include <google/protobuf/io/coded_stream.h>
 using namespace lightstep;
@@ -48,6 +48,7 @@ TEST_CASE("ReportRequest") {
       WriteReportRequestHeader(options, reporter_id));
   ReportRequest report_request{header, 0};
   REQUIRE(report_request.num_dropped_spans() == 0);
+  REQUIRE(report_request.num_spans() == 0);
 
   SECTION("We can serialize a ReportRequest with no spans") {
     auto protobuf_report_request = ToProtobufReportRequest(report_request);
@@ -68,6 +69,9 @@ TEST_CASE("ReportRequest") {
     collector::Span span;
     span.mutable_span_context()->set_trace_id(1);
     report_request.AddSpan(ToSerialization(span));
+
+    REQUIRE(report_request.num_spans() == 1);
+
     auto protobuf_report_request = ToProtobufReportRequest(report_request);
     REQUIRE(protobuf_report_request.spans().size() == 1);
     REQUIRE(protobuf_report_request.spans()[0].span_context().trace_id() == 1);
@@ -81,6 +85,8 @@ TEST_CASE("ReportRequest") {
     collector::Span span2;
     span2.mutable_span_context()->set_trace_id(2);
     report_request.AddSpan(ToSerialization(span2));
+
+    REQUIRE(report_request.num_spans() == 2);
 
     auto protobuf_report_request = ToProtobufReportRequest(report_request);
     REQUIRE(protobuf_report_request.spans().size() == 2);

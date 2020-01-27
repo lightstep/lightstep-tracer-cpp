@@ -16,6 +16,8 @@ class ReportRequest final : public BufferChain {
 
   int num_dropped_spans() const noexcept;
 
+  int num_spans() const noexcept { return num_spans_; }
+
   // BufferChain
   size_t num_fragments() const noexcept override {
     return static_cast<size_t>(num_fragments_);

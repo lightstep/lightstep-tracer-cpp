@@ -8,7 +8,9 @@
 #include "recorder/metrics_tracker.h"
 
 namespace lightstep {
-class ManualRecorder : public ForkAwareRecorder, private Noncopyable {
+class ManualRecorder : public ForkAwareRecorder,
+                       public AsyncTransporter::Callback,
+                       private Noncopyable {
  public:
   ManualRecorder(Logger& logger, LightStepTracerOptions options,
                  std::unique_ptr<AsyncTransporter>&& transporter);
@@ -28,6 +30,11 @@ class ManualRecorder : public ForkAwareRecorder, private Noncopyable {
   void OnForkedParent() noexcept override;
 
   void OnForkedChild() noexcept override;
+
+  // AsyncTransporter::Callback
+  void OnSuccess(BufferChain& message) noexcept override;
+
+  void OnFailure(BufferChain& message) noexcept override;
 
  private:
   Logger& logger_;

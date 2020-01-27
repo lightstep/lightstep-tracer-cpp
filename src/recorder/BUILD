@@ -108,6 +108,7 @@ lightstep_cc_library(
         "//src/common:utility_lib",
         "//src/common:circular_buffer_lib",
         "//src/recorder:metrics_tracker_lib",
+        "//src/recorder/serialization:report_request_lib",
         ":fork_aware_recorder_lib",
         ":transporter_lib",
     ],
