@@ -33,6 +33,7 @@ lightstep_catch_test(
         "report_request_test.cpp",
     ],
     deps = [
+        "//src/common:report_request_framing_lib",
         "//src/recorder/serialization:report_request_lib",
         "//src/recorder/serialization:report_request_header_lib",
     ],
