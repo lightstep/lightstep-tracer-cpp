@@ -5,6 +5,7 @@
 #include "common/noncopyable.h"
 #include "lightstep/transporter.h"
 #include "recorder/fork_aware_recorder.h"
+#include "recorder/metrics_tracker.h"
 
 namespace lightstep {
 class ManualRecorder : public ForkAwareRecorder, private Noncopyable {
@@ -33,6 +34,7 @@ class ManualRecorder : public ForkAwareRecorder, private Noncopyable {
   LightStepTracerOptions tracer_options_;
   std::unique_ptr<AsyncTransporter> transporter_;
 
+  MetricsTracker metrics_;
   CircularBuffer<ChainedStream> span_buffer_;
 };
 }  // namespace lightstep

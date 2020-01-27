@@ -107,6 +107,7 @@ lightstep_cc_library(
         "//src/common:report_request_framing_lib",
         "//src/common:utility_lib",
         "//src/common:circular_buffer_lib",
+        "//src/recorder:metrics_tracker_lib",
         ":fork_aware_recorder_lib",
         ":transporter_lib",
     ],

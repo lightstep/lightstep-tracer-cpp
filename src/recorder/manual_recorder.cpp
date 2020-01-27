@@ -4,6 +4,17 @@
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
+// GetMetricsObserver
+//--------------------------------------------------------------------------------------------------
+static MetricsObserver& GetMetricsObserver(
+    LightStepTracerOptions& tracer_options) {
+  if (tracer_options.metrics_observer == nullptr) {
+    tracer_options.metrics_observer.reset(new MetricsObserver{});
+  }
+  return *tracer_options.metrics_observer;
+}
+
+//--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
 ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
@@ -11,11 +22,8 @@ ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
     : logger_{logger},
       tracer_options_{std::move(options)},
       transporter_{std::move(transporter)},
+      metrics_{GetMetricsObserver(options)},
       span_buffer_{tracer_options_.max_buffered_spans.value()} {
-  // If no MetricsObserver was provided, use a default one that does nothing.
-  if (tracer_options_.metrics_observer == nullptr) {
-    tracer_options_.metrics_observer.reset(new MetricsObserver{});
-  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -60,7 +68,7 @@ void ManualRecorder::RecordSpan(
         static_cast<int>(LogLevel::debug)) {
       logger_.Debug("Dropping span");
     }
-    /* metrics_.OnSpansDropped(1); */
+    metrics_.OnSpansDropped(1);
     span.reset();
   }
 }
