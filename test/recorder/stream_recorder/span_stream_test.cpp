@@ -11,7 +11,7 @@ TEST_CASE("SpanStream") {
   const size_t max_spans = 10;
   CircularBuffer<ChainedStream> buffer{max_spans};
   MetricsObserver metrics_observer;
-  StreamRecorderMetrics metrics{metrics_observer};
+  MetricsTracker metrics{metrics_observer};
   SpanStream span_stream{buffer, metrics};
 
   SECTION("When the attached buffer is empty, SpanStream has no fragments") {

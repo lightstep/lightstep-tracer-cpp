@@ -6,8 +6,8 @@
 #include <tuple>
 #include <vector>
 
-#include "common/circular_buffer.h"
 #include "common/chained_stream.h"
+#include "common/circular_buffer.h"
 #include "recorder/stream_recorder/connection_stream.h"
 
 #include <opentracing/string_view.h>

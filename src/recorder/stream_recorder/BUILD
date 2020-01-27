@@ -17,19 +17,6 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "stream_recorder_metrics_lib",
-    private_hdrs = [
-        "stream_recorder_metrics.h",
-    ],
-    srcs = [
-      "stream_recorder_metrics.cpp",
-    ],
-    deps = [
-        "//include/lightstep:metrics_observer_interface",
-    ],
-)
-
-lightstep_cc_library(
     name = "span_stream_lib",
     private_hdrs = [
         "span_stream.h",
@@ -41,7 +28,7 @@ lightstep_cc_library(
         "//src/common:circular_buffer_lib",
         "//src/common:chained_stream_lib",
         "//src/common:fragment_input_stream_lib",
-        ":stream_recorder_metrics_lib",
+        "//src/recorder:metrics_tracker_lib",
     ],
 )
 
@@ -60,7 +47,7 @@ lightstep_cc_library(
         "//src/common:fragment_array_input_stream_lib",
         "//src/recorder/serialization:embedded_metrics_message_lib",
         ":span_stream_lib",
-        ":stream_recorder_metrics_lib",
+        "//src/recorder:metrics_tracker_lib",
     ],
 )
 
@@ -88,7 +75,7 @@ lightstep_cc_library(
         "//src/recorder:fork_aware_recorder_lib",
         "//src/recorder:stream_recorder_interface",
         ":stream_recorder_options_lib",
-        ":stream_recorder_metrics_lib",
+        "//src/recorder:metrics_tracker_lib",
         ":satellite_streamer_lib",
     ],
 )
@@ -150,7 +137,7 @@ lightstep_cc_library(
         "//src/network:timer_event_lib",
         "//src/network:vector_write_lib",
         "//src/recorder/serialization:report_request_header_lib",
-        ":stream_recorder_metrics_lib",
+        "//src/recorder:metrics_tracker_lib",
         ":host_header_lib",
         ":span_stream_lib",
         ":connection_stream_lib",

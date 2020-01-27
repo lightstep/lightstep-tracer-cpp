@@ -4,14 +4,13 @@
 #include <initializer_list>
 #include <tuple>
 
-#include "common/hex_conversion.h"
 #include "common/fragment_array_input_stream.h"
 #include "common/fragment_input_stream.h"
 #include "common/function_ref.h"
+#include "common/hex_conversion.h"
 #include "common/utility.h"
 #include "recorder/serialization/embedded_metrics_message.h"
 #include "recorder/stream_recorder/span_stream.h"
-#include "recorder/stream_recorder/stream_recorder_metrics.h"
 
 namespace lightstep {
 /**

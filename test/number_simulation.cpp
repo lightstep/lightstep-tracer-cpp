@@ -46,9 +46,9 @@ GenerateRandomBinaryNumber(size_t max_digits) {
 //--------------------------------------------------------------------------------------------------
 // GenerateRandomBinaryNumbers
 //--------------------------------------------------------------------------------------------------
-static void GenerateRandomBinaryNumbers(
-    CircularBuffer<ChainedStream>& buffer, std::vector<uint32_t>& numbers,
-    size_t n) {
+static void GenerateRandomBinaryNumbers(CircularBuffer<ChainedStream>& buffer,
+                                        std::vector<uint32_t>& numbers,
+                                        size_t n) {
   while (n-- != 0) {
     uint32_t x;
     opentracing::string_view s;

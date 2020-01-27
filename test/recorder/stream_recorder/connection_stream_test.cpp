@@ -35,7 +35,7 @@ TEST_CASE("ConnectionStream") {
   LightStepTracerOptions tracer_options;
   CircularBuffer<ChainedStream> span_buffer{1000};
   MetricsObserver metrics_observer;
-  StreamRecorderMetrics metrics{metrics_observer};
+  MetricsTracker metrics{metrics_observer};
   SpanStream span_stream{span_buffer, metrics};
   std::string header_common_fragment =
       WriteReportRequestHeader(tracer_options, 123);
@@ -246,7 +246,7 @@ TEST_CASE(
   std::string header_common_fragment =
       WriteReportRequestHeader(tracer_options, 123);
   MetricsObserver metrics_observer;
-  StreamRecorderMetrics metrics{metrics_observer};
+  MetricsTracker metrics{metrics_observer};
   auto host_header_fragment = MakeFragment("Host:abc\r\n");
   const size_t num_producer_threads = 4;
   const size_t num_connections = 10;

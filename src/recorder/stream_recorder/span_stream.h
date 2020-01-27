@@ -1,8 +1,8 @@
 #pragma once
 
-#include "common/circular_buffer.h"
 #include "common/chained_stream.h"
-#include "recorder/stream_recorder/stream_recorder_metrics.h"
+#include "common/circular_buffer.h"
+#include "recorder/metrics_tracker.h"
 
 namespace lightstep {
 /**
@@ -12,7 +12,7 @@ namespace lightstep {
 class SpanStream final : public FragmentInputStream {
  public:
   SpanStream(CircularBuffer<ChainedStream>& span_buffer,
-             StreamRecorderMetrics& metrics) noexcept;
+             MetricsTracker& metrics) noexcept;
 
   /**
    * Allots spans from the associated circular buffer to stream to satellites.
@@ -26,9 +26,9 @@ class SpanStream final : public FragmentInputStream {
   std::unique_ptr<ChainedStream> ConsumeRemnant() noexcept;
 
   /**
-   * @return the associagted StreamRecorderMetrics
+   * @return the associagted MetricsTracker
    */
-  StreamRecorderMetrics& metrics() const noexcept { return metrics_; }
+  MetricsTracker& metrics() const noexcept { return metrics_; }
 
   // FragmentInputStream
   int num_fragments() const noexcept override;
@@ -41,7 +41,7 @@ class SpanStream final : public FragmentInputStream {
 
  private:
   CircularBuffer<ChainedStream>& span_buffer_;
-  StreamRecorderMetrics& metrics_;
+  MetricsTracker& metrics_;
   CircularBufferRange<const AtomicUniquePtr<ChainedStream>> allotment_;
   std::unique_ptr<ChainedStream> remnant_;
 };

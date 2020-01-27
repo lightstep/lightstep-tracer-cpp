@@ -14,8 +14,7 @@ ReportRequest::ReportRequest(const std::shared_ptr<const std::string>& header,
 //--------------------------------------------------------------------------------------------------
 // AddSpan
 //--------------------------------------------------------------------------------------------------
-void ReportRequest::AddSpan(
-    std::unique_ptr<ChainedStream>&& span) noexcept {
+void ReportRequest::AddSpan(std::unique_ptr<ChainedStream>&& span) noexcept {
   ++num_spans_;
   num_fragments_ += span->num_fragments();
   span->ForEachFragment([&](void* /*data*/, int length) {

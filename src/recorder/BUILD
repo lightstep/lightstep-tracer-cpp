@@ -163,3 +163,16 @@ lightstep_cc_library(
         ":stream_recorder_interface",
     ],
 )
+
+lightstep_cc_library(
+    name = "metrics_tracker_lib",
+    private_hdrs = [
+        "metrics_tracker.h",
+    ],
+    srcs = [
+        "metrics_tracker.cpp",
+    ],
+    deps = [
+        "//include/lightstep:tracer_interface",
+    ],
+)

@@ -8,17 +8,17 @@
 
 #include "stream_recorder_impl.h"
 
+#include "common/chained_stream.h"
 #include "common/circular_buffer.h"
 #include "common/logger.h"
 #include "common/noncopyable.h"
 #include "common/platform/network_environment.h"
-#include "common/chained_stream.h"
 #include "lightstep/tracer.h"
 #include "network/event_base.h"
 #include "network/timer_event.h"
 #include "recorder/fork_aware_recorder.h"
+#include "recorder/metrics_tracker.h"
 #include "recorder/stream_recorder.h"
-#include "recorder/stream_recorder/stream_recorder_metrics.h"
 #include "recorder/stream_recorder/stream_recorder_options.h"
 
 namespace lightstep {
@@ -77,16 +77,14 @@ class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
   }
 
   /**
-   * @return the associated StreamRecorderMetrics.
+   * @return the associated MetricsTracker.
    */
-  StreamRecorderMetrics& metrics() noexcept { return metrics_; }
+  MetricsTracker& metrics() noexcept { return metrics_; }
 
   /**
    * @return the associated span buffer.
    */
-  CircularBuffer<ChainedStream>& span_buffer() noexcept {
-    return span_buffer_;
-  }
+  CircularBuffer<ChainedStream>& span_buffer() noexcept { return span_buffer_; }
 
   // Recorder
   Fragment ReserveHeaderSpace(ChainedStream& stream) override;
@@ -131,7 +129,7 @@ class StreamRecorder : public ForkAwareRecorder, private Noncopyable {
 
   LightStepTracerOptions tracer_options_;
   StreamRecorderOptions recorder_options_;
-  StreamRecorderMetrics metrics_;
+  MetricsTracker metrics_;
   CircularBuffer<ChainedStream> span_buffer_;
 
   std::atomic<bool> exit_{false};

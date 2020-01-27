@@ -3,9 +3,9 @@
 #include <chrono>
 #include <thread>
 
+#include "common/chained_stream.h"
 #include "common/circular_buffer.h"
 #include "common/fragment_input_stream.h"
-#include "common/chained_stream.h"
 
 #include <opentracing/tracer.h>
 #include "lightstep-tracer-common/collector.pb.h"

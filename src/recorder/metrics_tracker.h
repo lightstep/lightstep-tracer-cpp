@@ -8,9 +8,9 @@ namespace lightstep {
 /**
  * Manages the metrics associated with a StreamRecorder.
  */
-class StreamRecorderMetrics {
+class MetricsTracker {
  public:
-  explicit StreamRecorderMetrics(MetricsObserver& metrics_observer) noexcept;
+  explicit MetricsTracker(MetricsObserver& metrics_observer) noexcept;
 
   /**
    * Record dropped spans.

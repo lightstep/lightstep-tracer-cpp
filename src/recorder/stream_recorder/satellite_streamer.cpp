@@ -13,8 +13,7 @@ namespace lightstep {
 SatelliteStreamer::SatelliteStreamer(
     Logger& logger, EventBase& event_base,
     const LightStepTracerOptions& tracer_options,
-    const StreamRecorderOptions& recorder_options,
-    StreamRecorderMetrics& metrics,
+    const StreamRecorderOptions& recorder_options, MetricsTracker& metrics,
     CircularBuffer<ChainedStream>& span_buffer)
     : logger_{logger},
       event_base_{event_base},
