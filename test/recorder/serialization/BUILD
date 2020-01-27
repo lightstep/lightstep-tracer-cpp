@@ -34,5 +34,6 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/recorder/serialization:report_request_lib",
+        "//src/recorder/serialization:report_request_header_lib",
     ],
 )

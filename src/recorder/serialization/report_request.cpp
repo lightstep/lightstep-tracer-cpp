@@ -7,8 +7,15 @@ namespace lightstep {
 ReportRequest::ReportRequest(const std::shared_ptr<const std::string>& header,
                              int num_dropped_spans)
     : header_{header} {
-  (void)num_dropped_spans;
   num_bytes_ = static_cast<int>(header_->size());
+  if (num_dropped_spans == 0) {
+    return;
+  }
+  auto metrics = new EmbeddedMetricsMessage{};
+  metrics_.reset(metrics);
+  metrics->set_num_dropped_spans(num_dropped_spans);
+  metrics_fragment_ = metrics->MakeFragment();
+  num_bytes_ += metrics_fragment_.second;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -26,6 +33,16 @@ void ReportRequest::AddSpan(std::unique_ptr<ChainedStream>&& span) noexcept {
     return;
   }
   spans_->Append(std::move(span));
+}
+
+//--------------------------------------------------------------------------------------------------
+// num_dropped_spans
+//--------------------------------------------------------------------------------------------------
+int ReportRequest::num_dropped_spans() const noexcept {
+  if (metrics_ == nullptr) {
+    return 0;
+  }
+  return metrics_->num_dropped_spans();
 }
 
 //--------------------------------------------------------------------------------------------------

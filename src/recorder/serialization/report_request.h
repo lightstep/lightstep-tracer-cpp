@@ -14,6 +14,8 @@ class ReportRequest final : public BufferChain {
 
   void AddSpan(std::unique_ptr<ChainedStream>&& span) noexcept;
 
+  int num_dropped_spans() const noexcept;
+
   // BufferChain
   size_t num_fragments() const noexcept override {
     return static_cast<size_t>(num_fragments_);
