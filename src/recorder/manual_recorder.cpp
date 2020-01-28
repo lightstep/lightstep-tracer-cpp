@@ -30,7 +30,7 @@ ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
       transporter_{std::move(transporter)},
       report_request_header_{new std::string{
           WriteReportRequestHeader(tracer_options_, GenerateId())}},
-      metrics_{GetMetricsObserver(options)},
+      metrics_{GetMetricsObserver(tracer_options_)},
       span_buffer_{tracer_options_.max_buffered_spans.value()} {}
 
 //--------------------------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ void ManualRecorder::OnForkedChild() noexcept {
 void ManualRecorder::OnSuccess(BufferChain& message) noexcept {
   auto report_request = dynamic_cast<ReportRequest*>(&message);
   assert(report_request != nullptr);
-  if (report_request != nullptr) {
+  if (report_request == nullptr) {
     // This should never happen
     return;
   }
@@ -141,7 +141,7 @@ void ManualRecorder::OnSuccess(BufferChain& message) noexcept {
 void ManualRecorder::OnFailure(BufferChain& message) noexcept {
   auto report_request = dynamic_cast<ReportRequest*>(&message);
   assert(report_request != nullptr);
-  if (report_request != nullptr) {
+  if (report_request == nullptr) {
     // This should never happen
     return;
   }
