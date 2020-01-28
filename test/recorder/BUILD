@@ -16,6 +16,7 @@ lightstep_cc_library(
         "in_memory_recorder.cpp",
     ],
     deps = [
+        "//src/common:buffer_chain_lib",
         "//src/recorder:recorder_interface",
         "//test:utility_lib",
         "//lightstep-tracer-common:collector_proto_cc",
@@ -44,6 +45,7 @@ lightstep_cc_library(
         "in_memory_async_transporter.cpp",
     ],
     deps = [
+        "//src/common:buffer_chain_lib",
         "//src/recorder:transporter_lib",
     ],
 )
