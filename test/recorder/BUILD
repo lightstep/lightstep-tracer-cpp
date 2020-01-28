@@ -62,6 +62,20 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "manual_recorder_test",
+    srcs = [
+        "manual_recorder_test.cpp",
+    ],
+    deps = [
+        "//:manual_tracer_lib",
+        "//src/tracer:counting_metrics_observer_lib",
+        "//test:utility_lib",
+        "//test:testing_condition_variable_wrapper_lib",
+        ":in_memory_async_transporter_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "auto_recorder_test",
     srcs = [
         "auto_recorder_test.cpp",

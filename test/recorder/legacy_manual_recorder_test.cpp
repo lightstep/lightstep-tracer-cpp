@@ -1,8 +1,9 @@
+#include "recorder/legacy_manual_recorder.h"
+
 #include <atomic>
 
 #include "3rd_party/catch2/catch.hpp"
 #include "lightstep/tracer.h"
-#include "recorder/legacy_manual_recorder.h"
 #include "test/recorder/in_memory_async_transporter.h"
 #include "test/testing_condition_variable_wrapper.h"
 #include "test/utility.h"
@@ -12,7 +13,7 @@
 using namespace lightstep;
 using namespace opentracing;
 
-TEST_CASE("legacy_manual_recorder") {
+TEST_CASE("LegacyManualRecorder") {
   Logger logger{};
   auto metrics_observer = new CountingMetricsObserver{};
   LightStepTracerOptions options;
