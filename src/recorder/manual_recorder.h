@@ -27,10 +27,6 @@ class ManualRecorder : public ForkAwareRecorder,
       std::chrono::system_clock::duration timeout) noexcept override;
 
   // ForkAwareRecorder
-  void PrepareForFork() noexcept override;
-
-  void OnForkedParent() noexcept override;
-
   void OnForkedChild() noexcept override;
 
   // AsyncTransporter::Callback
