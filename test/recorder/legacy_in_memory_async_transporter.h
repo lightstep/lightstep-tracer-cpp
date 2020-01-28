@@ -9,12 +9,8 @@
 #include "lightstep/transporter.h"
 
 namespace lightstep {
-class LegacyInMemoryAsyncTransporter : public LegacyAsyncTransporter {
+class LegacyInMemoryAsyncTransporter final : public LegacyAsyncTransporter {
  public:
-  void Send(const google::protobuf::Message& request,
-            google::protobuf::Message& response,
-            LegacyAsyncTransporter::Callback& callback) override;
-
   void Write();
 
   void Fail(std::error_code error);
@@ -26,6 +22,11 @@ class LegacyInMemoryAsyncTransporter : public LegacyAsyncTransporter {
   const std::vector<collector::Span>& spans() const { return spans_; }
 
   void set_should_disable(bool value) { should_disable_ = value; }
+
+  // LegacyAsyncTransporter
+  void Send(const google::protobuf::Message& request,
+            google::protobuf::Message& response,
+            LegacyAsyncTransporter::Callback& callback) override;
 
  private:
   bool should_disable_ = false;

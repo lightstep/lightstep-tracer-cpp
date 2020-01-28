@@ -87,6 +87,6 @@ class AsyncTransporter : public Transporter {
   };
 
   virtual void Send(std::unique_ptr<BufferChain>&& message,
-                    Callback& callback) = 0;
+                    Callback& callback) noexcept = 0;
 };
 }  // namespace lightstep
