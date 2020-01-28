@@ -3,8 +3,10 @@
 #include <cassert>
 #include <exception>
 
+#include "common/random.h"
 #include "common/report_request_framing.h"
 #include "recorder/serialization/report_request.h"
+#include "recorder/serialization/report_request_header.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -26,6 +28,8 @@ ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
     : logger_{logger},
       tracer_options_{std::move(options)},
       transporter_{std::move(transporter)},
+      report_request_header_{new std::string{
+          WriteReportRequestHeader(tracer_options_, GenerateId())}},
       metrics_{GetMetricsObserver(options)},
       span_buffer_{tracer_options_.max_buffered_spans.value()} {}
 
@@ -81,6 +85,29 @@ void ManualRecorder::RecordSpan(
 //--------------------------------------------------------------------------------------------------
 bool ManualRecorder::FlushWithTimeout(
     std::chrono::system_clock::duration /*timeout*/) noexcept try {
+  std::unique_ptr<ReportRequest> report_request{new ReportRequest{
+      report_request_header_, metrics_.ConsumeDroppedSpans()}};
+  {
+    std::lock_guard<std::mutex> lock_guard{flush_mutex_};
+    auto num_spans = span_buffer_.size();
+    if (num_spans == 0 && report_request->num_dropped_spans() == 0) {
+      // Nothing to do
+      return true;
+    }
+    span_buffer_.Consume(
+        num_spans, [&](CircularBufferRange<AtomicUniquePtr<ChainedStream>> &
+                       spans) noexcept {
+          spans.ForEach([&](AtomicUniquePtr<ChainedStream> & span) noexcept {
+            std::unique_ptr<ChainedStream> span_out;
+            span.Swap(span_out);
+            report_request->AddSpan(std::move(span_out));
+            return true;
+          });
+          return true;
+        });
+  }
+  transporter_->Send(std::unique_ptr<BufferChain>{report_request.release()},
+                     *this);
   return true;
 } catch (const std::exception& e) {
   logger_.Error("Failed to flush report: ", e.what());

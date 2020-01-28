@@ -104,11 +104,13 @@ lightstep_cc_library(
     deps = [
         "//src/common:logger_lib",
         "//src/common:noncopyable_lib",
+        "//src/common:random_lib",
         "//src/common:report_request_framing_lib",
         "//src/common:utility_lib",
         "//src/common:circular_buffer_lib",
         "//src/recorder:metrics_tracker_lib",
         "//src/recorder/serialization:report_request_lib",
+        "//src/recorder/serialization:report_request_header_lib",
         ":fork_aware_recorder_lib",
         ":transporter_lib",
     ],

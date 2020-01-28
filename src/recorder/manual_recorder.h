@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "common/circular_buffer.h"
 #include "common/logger.h"
 #include "common/noncopyable.h"
@@ -40,8 +42,10 @@ class ManualRecorder : public ForkAwareRecorder,
   Logger& logger_;
   LightStepTracerOptions tracer_options_;
   std::unique_ptr<AsyncTransporter> transporter_;
+  std::shared_ptr<const std::string> report_request_header_;
 
   MetricsTracker metrics_;
+  std::mutex flush_mutex_;
   CircularBuffer<ChainedStream> span_buffer_;
 };
 }  // namespace lightstep
