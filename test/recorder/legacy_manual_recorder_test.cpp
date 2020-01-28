@@ -4,7 +4,7 @@
 
 #include "3rd_party/catch2/catch.hpp"
 #include "lightstep/tracer.h"
-#include "test/recorder/in_memory_async_transporter.h"
+#include "test/recorder/legacy_in_memory_async_transporter.h"
 #include "test/testing_condition_variable_wrapper.h"
 #include "test/utility.h"
 #include "tracer/counting_metrics_observer.h"
@@ -21,7 +21,7 @@ TEST_CASE("LegacyManualRecorder") {
   options.max_buffered_spans =
       std::function<size_t()>{[&] { return max_buffered_spans; }};
   options.metrics_observer.reset(metrics_observer);
-  auto in_memory_transporter = new InMemoryAsyncTransporter{};
+  auto in_memory_transporter = new LegacyInMemoryAsyncTransporter{};
   auto recorder = new LegacyManualRecorder{
       logger, std::move(options),
       std::unique_ptr<LegacyAsyncTransporter>{in_memory_transporter}};

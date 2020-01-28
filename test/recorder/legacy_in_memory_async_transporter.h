@@ -9,7 +9,7 @@
 #include "lightstep/transporter.h"
 
 namespace lightstep {
-class InMemoryAsyncTransporter : public LegacyAsyncTransporter {
+class LegacyInMemoryAsyncTransporter : public LegacyAsyncTransporter {
  public:
   void Send(const google::protobuf::Message& request,
             google::protobuf::Message& response,

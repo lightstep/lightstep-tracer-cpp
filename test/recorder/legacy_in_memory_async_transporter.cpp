@@ -1,10 +1,10 @@
-#include "in_memory_async_transporter.h"
+#include "legacy_in_memory_async_transporter.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
 // Send
 //------------------------------------------------------------------------------
-void InMemoryAsyncTransporter::Send(
+void LegacyInMemoryAsyncTransporter::Send(
     const google::protobuf::Message& request,
     google::protobuf::Message& response,
     LegacyAsyncTransporter::Callback& callback) {
@@ -16,7 +16,7 @@ void InMemoryAsyncTransporter::Send(
 //------------------------------------------------------------------------------
 // Write
 //------------------------------------------------------------------------------
-void InMemoryAsyncTransporter::Write() {
+void LegacyInMemoryAsyncTransporter::Write() {
   if (active_request_ == nullptr || active_response_ == nullptr ||
       active_callback_ == nullptr) {
     std::cerr << "No context, success callback, or request\n";
@@ -45,7 +45,7 @@ void InMemoryAsyncTransporter::Write() {
 //------------------------------------------------------------------------------
 // Fail
 //------------------------------------------------------------------------------
-void InMemoryAsyncTransporter::Fail(std::error_code error) {
+void LegacyInMemoryAsyncTransporter::Fail(std::error_code error) {
   if (active_callback_ == nullptr) {
     std::cerr << "No context or failure callback\n";
     std::terminate();
