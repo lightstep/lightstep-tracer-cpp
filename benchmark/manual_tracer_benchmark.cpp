@@ -130,6 +130,26 @@ BENCHMARK_CAPTURE(BM_TaggedSpanReport, legacy_manual, "legacy_manual");
 BENCHMARK_CAPTURE(BM_TaggedSpanReport, manual, "manual");
 
 //--------------------------------------------------------------------------------------------------
+// BM_LoggedSpanReport
+//--------------------------------------------------------------------------------------------------
+static void BM_LoggedSpanReport(benchmark::State& state,
+                                const char* tracer_type) {
+  auto tracer = MakeTracer(tracer_type);
+  assert(tracer != nullptr);
+  for (auto _ : state) {
+    for (int i = 0; i < MaxBufferedSpans; ++i) {
+      auto span = tracer->StartSpan("abc123");
+      for (int i = 0; i < 10; ++i) {
+        span->Log({{"abc", 123}});
+      }
+    }
+    tracer->Flush();
+  }
+}
+BENCHMARK_CAPTURE(BM_LoggedSpanReport, legacy_manual, "legacy_manual");
+BENCHMARK_CAPTURE(BM_LoggedSpanReport, manual, "manual");
+
+//--------------------------------------------------------------------------------------------------
 // BENCHMARK_MAIN
 //--------------------------------------------------------------------------------------------------
 BENCHMARK_MAIN();
