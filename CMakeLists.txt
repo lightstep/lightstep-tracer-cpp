@@ -218,6 +218,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/recorder/transporter.cpp
                    src/recorder/serialization/report_request.cpp
                    src/recorder/serialization/report_request_header.cpp
+                   src/recorder/serialization/embedded_metrics_message.cpp
                    src/tracer/binary_carrier.cpp
                    src/tracer/json_options.cpp
                    src/tracer/propagation/b3_propagator.cpp
@@ -273,7 +274,6 @@ if (WITH_LIBEVENT)
                              src/recorder/metrics_tracker.cpp
                              src/recorder/stream_recorder/connection_stream.cpp
                              src/recorder/stream_recorder/host_header.cpp
-                             src/recorder/stream_recorder/embedded_metrics_message.cpp
                              src/recorder/stream_recorder/status_line_parser.cpp
                              src/recorder/stream_recorder/utility.cpp
                              src/network/event.cpp
