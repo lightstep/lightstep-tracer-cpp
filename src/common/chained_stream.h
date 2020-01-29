@@ -54,7 +54,6 @@ class ChainedStream final : public google::protobuf::io::ZeroCopyOutputStream,
 
   int num_blocks_{1};
   int num_bytes_written_{0};
-  int num_bytes_after_framing_{0};
   int current_block_position_{0};
   Block* current_block_;
 
