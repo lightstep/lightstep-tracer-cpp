@@ -14,3 +14,12 @@ lightstep_google_benchmark(
     ],
 )
 
+lightstep_google_benchmark(
+    name = "manual_tracer_benchmark",
+    srcs = [
+        "manual_tracer_benchmark.cpp",
+    ],
+    deps = [
+        "//:tracer_lib",
+    ],
+)
