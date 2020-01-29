@@ -10,7 +10,7 @@ namespace lightstep {
 class InMemoryAsyncTransporter final : public AsyncTransporter {
  public:
   explicit InMemoryAsyncTransporter(
-      const std::function<void()>& on_span_buffer_full = {});
+      std::function<void()> on_span_buffer_full = {});
 
   const std::vector<collector::ReportRequest>& reports() const noexcept {
     return reports_;

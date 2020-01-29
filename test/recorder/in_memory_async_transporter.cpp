@@ -9,8 +9,8 @@ namespace lightstep {
 // constructor
 //--------------------------------------------------------------------------------------------------
 InMemoryAsyncTransporter::InMemoryAsyncTransporter(
-    const std::function<void()>& on_span_buffer_full)
-    : on_span_buffer_full_{on_span_buffer_full} {}
+    std::function<void()> on_span_buffer_full)
+    : on_span_buffer_full_{std::move(on_span_buffer_full)} {}
 
 //--------------------------------------------------------------------------------------------------
 // Succeed

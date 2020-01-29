@@ -20,7 +20,7 @@ template <size_t FieldNumber, WireType WireTypeValue>
 struct StaticSerializationKey {
   // See https://developers.google.com/protocol-buffers/docs/encoding#structure
   // for documentation on encoding.
-  static const uint32_t value = static_cast<uint32_t>(
+  static constexpr uint32_t value = static_cast<uint32_t>(
       (FieldNumber << 3) | static_cast<size_t>(WireTypeValue));
 };
 
@@ -29,7 +29,7 @@ struct StaticSerializationKey {
  */
 template <size_t FieldNumber, WireType WireTypeValue>
 struct StaticKeySerializationSize {
-  static const size_t value =
+  static constexpr size_t value =
       google::protobuf::io::CodedOutputStream::StaticVarintSize32<
           StaticSerializationKey<FieldNumber, WireTypeValue>::value>::value;
 };

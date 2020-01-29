@@ -77,7 +77,7 @@ void StreamRecorder::WriteFooter(
 void StreamRecorder::RecordSpan(
     Fragment header_fragment, std::unique_ptr<ChainedStream>&& span) noexcept {
   // Frame the Span
-  char* header_data = static_cast<char*>(header_fragment.first);
+  auto header_data = static_cast<char*>(header_fragment.first);
   auto reserved_header_size = static_cast<size_t>(header_fragment.second);
   auto protobuf_body_size =
       span->ByteCount() - ChunkedHttpFooter.size() - header_fragment.second;

@@ -9,7 +9,7 @@
 namespace lightstep {
 class ReportRequest final : public BufferChain {
  public:
-  ReportRequest(const std::shared_ptr<const std::string>& header,
+  ReportRequest(std::shared_ptr<const std::string> header,
                 int num_dropped_spans);
 
   void AddSpan(std::unique_ptr<ChainedStream>&& span) noexcept;

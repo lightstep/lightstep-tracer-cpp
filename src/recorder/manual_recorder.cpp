@@ -55,7 +55,7 @@ Fragment ManualRecorder::ReserveHeaderSpace(ChainedStream& stream) {
 void ManualRecorder::RecordSpan(
     Fragment header_fragment, std::unique_ptr<ChainedStream>&& span) noexcept {
   // Frame the Span
-  char* header_data = static_cast<char*>(header_fragment.first);
+  auto header_data = static_cast<char*>(header_fragment.first);
   auto reserved_header_size = static_cast<size_t>(header_fragment.second);
   auto protobuf_body_size = span->ByteCount() - header_fragment.second;
   auto protobuf_header_size = WriteReportRequestSpansHeader(

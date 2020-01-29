@@ -5,9 +5,9 @@
 #include "common/serialization.h"
 
 namespace lightstep {
-static const size_t ReportRequestSpansField = 3;
+constexpr size_t ReportRequestSpansField = 3;
 
-const size_t ReportRequestSpansMaxHeaderSize =
+constexpr size_t ReportRequestSpansMaxHeaderSize =
     StaticKeySerializationSize<ReportRequestSpansField,
                                WireType::LengthDelimited>::value +
     google::protobuf::io::CodedOutputStream::StaticVarintSize32<

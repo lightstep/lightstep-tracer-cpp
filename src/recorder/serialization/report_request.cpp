@@ -4,9 +4,9 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-ReportRequest::ReportRequest(const std::shared_ptr<const std::string>& header,
+ReportRequest::ReportRequest(std::shared_ptr<const std::string> header,
                              int num_dropped_spans)
-    : header_{header} {
+    : header_{std::move(header)} {
   num_bytes_ = static_cast<int>(header_->size());
   if (num_dropped_spans == 0) {
     return;
