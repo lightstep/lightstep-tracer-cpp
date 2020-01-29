@@ -65,18 +65,15 @@ void ManualRecorder::RecordSpan(
   // Advance past reserved header space we didn't use.
   span->Seek(0, static_cast<int>(reserved_header_size - protobuf_header_size));
 
+  auto was_added = span_buffer_.Add(span);
+  if (was_added) {
+    return;
+  }
+  transporter_->OnSpanBufferFull();
+
+  // Attempt to add the span again in case the transporter decided to flush
   if (!span_buffer_.Add(span)) {
-    // Note: the compiler doesn't want to inline this logger call and it shows
-    // up in profiling with high span droppage even if the logging isn't turned
-    // on.
-    //
-    // Hence, the additional checking to avoid a function call.
-    if (static_cast<int>(logger_.level()) <=
-        static_cast<int>(LogLevel::debug)) {
-      logger_.Debug("Dropping span");
-    }
     metrics_.OnSpansDropped(1);
-    span.reset();
   }
 }
 
@@ -108,6 +105,7 @@ bool ManualRecorder::FlushWithTimeout(
   }
   transporter_->Send(std::unique_ptr<BufferChain>{report_request.release()},
                      *this);
+  metrics_.OnFlush();
   return true;
 } catch (const std::exception& e) {
   logger_.Error("Failed to flush report: ", e.what());

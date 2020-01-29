@@ -16,11 +16,18 @@ TEST_CASE("ManualRecorder") {
   options.max_buffered_spans =
       std::function<size_t()>{[&] { return max_buffered_spans; }};
   options.metrics_observer.reset(metrics_observer);
-  auto in_memory_transporter = new InMemoryAsyncTransporter{};
+  std::shared_ptr<LightStepTracer> tracer;
+  bool flush_on_full = true;
+  auto on_span_buffer_full = [&] {
+    if (flush_on_full) {
+      tracer->Flush();
+    }
+  };
+  auto in_memory_transporter = new InMemoryAsyncTransporter{on_span_buffer_full};
   auto recorder = new ManualRecorder{
       logger, std::move(options),
       std::unique_ptr<AsyncTransporter>{in_memory_transporter}};
-  auto tracer = std::shared_ptr<LightStepTracer>{new TracerImpl{
+  tracer = std::shared_ptr<LightStepTracer>{new TracerImpl{
       PropagationOptions{}, std::unique_ptr<Recorder>{recorder}}};
   REQUIRE(tracer);
 
@@ -52,15 +59,58 @@ TEST_CASE("ManualRecorder") {
     CHECK(LookupSpansDropped(in_memory_transporter->reports().at(0)) == 1);
   }
 
-#if 0
   SECTION("Flush is called when the tracer's buffer is filled.") {
-    for (size_t i = 0; i < max_buffered_spans; ++i) {
+    for (size_t i = 0; i < max_buffered_spans + 1; ++i) {
       auto span = tracer->StartSpan("abc");
       CHECK(span);
       span->Finish();
     }
-    in_memory_transporter->Write();
+    in_memory_transporter->Succeed();
     CHECK(in_memory_transporter->reports().size() == 1);
   }
-#endif
+
+  SECTION("If we don't flush when the span buffer fills, we'll drop the span") {
+    flush_on_full = false;
+    for (size_t i = 0; i < max_buffered_spans + 1; ++i) {
+      auto span = tracer->StartSpan("abc");
+      CHECK(span);
+      span->Finish();
+    }
+    REQUIRE(metrics_observer->num_spans_dropped == 1);
+  }
+
+  SECTION(
+      "MetricsObserver::OnFlush gets called whenever the recorder is "
+      "successfully flushed.") {
+    auto span = tracer->StartSpan("abc");
+    span->Finish();
+    tracer->Flush();
+    in_memory_transporter->Succeed();
+    CHECK(metrics_observer->num_flushes == 1);
+  }
+
+  SECTION(
+      "MetricsObserver::OnSpansSent gets called with the number of spans "
+      "transported") {
+    auto span1 = tracer->StartSpan("abc");
+    span1->Finish();
+    auto span2 = tracer->StartSpan("abc");
+    span2->Finish();
+    tracer->Flush();
+    in_memory_transporter->Succeed();
+    CHECK(metrics_observer->num_spans_sent == 2);
+  }
+
+  SECTION(
+      "MetricsObserver::OnSpansDropped gets called when spans are dropped.") {
+    logger.set_level(LogLevel::off);
+    auto span1 = tracer->StartSpan("abc");
+    span1->Finish();
+    auto span2 = tracer->StartSpan("abc");
+    span2->Finish();
+    tracer->Flush();
+    in_memory_transporter->Fail();
+    CHECK(metrics_observer->num_spans_sent == 0);
+    CHECK(metrics_observer->num_spans_dropped == 2);
+  }
 }

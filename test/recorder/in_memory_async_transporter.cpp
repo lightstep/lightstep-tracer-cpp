@@ -6,6 +6,13 @@
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
+// constructor
+//--------------------------------------------------------------------------------------------------
+InMemoryAsyncTransporter::InMemoryAsyncTransporter(
+    const std::function<void()>& on_span_buffer_full)
+    : on_span_buffer_full_{on_span_buffer_full} {}
+
+//--------------------------------------------------------------------------------------------------
 // Succeed
 //--------------------------------------------------------------------------------------------------
 void InMemoryAsyncTransporter::Succeed() noexcept {
@@ -37,6 +44,15 @@ void InMemoryAsyncTransporter::Fail() noexcept {
   active_callback_->OnFailure(*active_message_);
   active_callback_ = nullptr;
   active_message_.reset();
+}
+
+//--------------------------------------------------------------------------------------------------
+// OnSpanBufferFull
+//--------------------------------------------------------------------------------------------------
+void InMemoryAsyncTransporter::OnSpanBufferFull() noexcept {
+  if (on_span_buffer_full_) {
+    on_span_buffer_full_();
+  }
 }
 
 //--------------------------------------------------------------------------------------------------

@@ -86,6 +86,8 @@ class AsyncTransporter : public Transporter {
     virtual void OnFailure(BufferChain& message) noexcept = 0;
   };
 
+  virtual void OnSpanBufferFull() noexcept {}
+
   virtual void Send(std::unique_ptr<BufferChain>&& message,
                     Callback& callback) noexcept = 0;
 };

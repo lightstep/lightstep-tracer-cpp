@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 
 #include "lightstep-tracer-common/collector.pb.h"
 #include "lightstep/transporter.h"
@@ -8,6 +9,9 @@
 namespace lightstep {
 class InMemoryAsyncTransporter final : public AsyncTransporter {
  public:
+  explicit InMemoryAsyncTransporter(
+      const std::function<void()>& on_span_buffer_full = {});
+
   const std::vector<collector::ReportRequest>& reports() const noexcept {
     return reports_;
   }
@@ -19,9 +23,13 @@ class InMemoryAsyncTransporter final : public AsyncTransporter {
   void Fail() noexcept;
 
    // AsyncTranspoter
+  void OnSpanBufferFull() noexcept override;
+
   void Send(std::unique_ptr<BufferChain>&& message,
                     Callback& callback) noexcept override;
  private:
+  std::function<void()> on_span_buffer_full_;
+
   std::vector<collector::ReportRequest> reports_;
   std::vector<collector::Span> spans_;
 
