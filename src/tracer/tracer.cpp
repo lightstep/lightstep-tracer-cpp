@@ -175,12 +175,6 @@ std::shared_ptr<LightStepTracer> MakeLightStepTracer(
       logger->set_level(LogLevel::error);
     }
 
-    // Validate `options`.
-    if (options.access_token.empty()) {
-      logger->Error("Must provide an access_token!");
-      return nullptr;
-    }
-
     // Copy over default tags.
     for (const auto& tag : GetDefaultTags()) {
       options.tags[tag.first] = tag.second;
