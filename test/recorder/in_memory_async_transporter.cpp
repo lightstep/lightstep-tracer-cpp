@@ -1,8 +1,8 @@
 #include "test/recorder/in_memory_async_transporter.h"
 
-#include <string>
 #include <algorithm>
 #include <iterator>
+#include <string>
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ void InMemoryAsyncTransporter::Succeed() noexcept {
   std::string s(active_message_->num_bytes(), ' ');
   active_message_->CopyOut(&s[0], s.size());
   collector::ReportRequest report;
-  if(!report.ParseFromString(s)) {
+  if (!report.ParseFromString(s)) {
     std::terminate();
   }
   reports_.emplace_back(report);
@@ -63,4 +63,4 @@ void InMemoryAsyncTransporter::Send(std::unique_ptr<BufferChain>&& message,
   active_callback_ = &callback;
   active_message_ = std::move(message);
 }
-} // namespace lightstep
+}  // namespace lightstep

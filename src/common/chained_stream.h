@@ -23,6 +23,10 @@ class ChainedStream final : public google::protobuf::io::ZeroCopyOutputStream,
 
   ChainedStream() noexcept;
 
+  /**
+   * Close the stream for output. After calling this, we can no longer write to
+   * the stream, but we can interact with it as a FragmentInputStream.
+   */
   void CloseOutput() noexcept;
 
   // ZeroCopyOutputStream

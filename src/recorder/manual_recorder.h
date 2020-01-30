@@ -10,6 +10,9 @@
 #include "recorder/metrics_tracker.h"
 
 namespace lightstep {
+/**
+ * Implements a Recorder with no background thread and custom Transporter.
+ */
 class ManualRecorder : public ForkAwareRecorder,
                        public AsyncTransporter::Callback,
                        private Noncopyable {

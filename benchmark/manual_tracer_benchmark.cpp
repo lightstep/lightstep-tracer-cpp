@@ -15,9 +15,9 @@ class LegacyNullTransporter final : public lightstep::LegacyAsyncTransporter {
  public:
   // LegacyAsyncTransporter
   void Send(const google::protobuf::Message& request,
-                    google::protobuf::Message& /*response*/,
-                    Callback& callback) override {
-   using google::protobuf::uint8;
+            google::protobuf::Message& /*response*/,
+            Callback& callback) override {
+    using google::protobuf::uint8;
     auto size = request.ByteSizeLong();
     std::unique_ptr<uint8> buffer{new uint8[size]};
     request.SerializeWithCachedSizesToArray(buffer.get());
@@ -86,15 +86,15 @@ static std::shared_ptr<lightstep::LightStepTracer> MakeTracer(
   std::terminate();
 }
 
-
 //--------------------------------------------------------------------------------------------------
 // BM_SmallSpanReport
 //--------------------------------------------------------------------------------------------------
-static void BM_SmallSpanReport(benchmark::State& state, const char* tracer_type) {
+static void BM_SmallSpanReport(benchmark::State& state,
+                               const char* tracer_type) {
   auto tracer = MakeTracer(tracer_type);
   assert(tracer != nullptr);
   for (auto _ : state) {
-    for (int i=0; i<MaxBufferedSpans; ++i) {
+    for (int i = 0; i < MaxBufferedSpans; ++i) {
       auto span = tracer->StartSpan("abc123");
     }
     tracer->Flush();
@@ -106,7 +106,8 @@ BENCHMARK_CAPTURE(BM_SmallSpanReport, manual, "manual");
 //--------------------------------------------------------------------------------------------------
 // BM_TaggedSpanReport
 //--------------------------------------------------------------------------------------------------
-static void BM_TaggedSpanReport(benchmark::State& state, const char* tracer_type) {
+static void BM_TaggedSpanReport(benchmark::State& state,
+                                const char* tracer_type) {
   auto tracer = MakeTracer(tracer_type);
   assert(tracer != nullptr);
   for (auto _ : state) {

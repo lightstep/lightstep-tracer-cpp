@@ -7,15 +7,28 @@
 #include "recorder/serialization/embedded_metrics_message.h"
 
 namespace lightstep {
+/**
+ * Maintains a BufferChain for a collector::ReportRequest serialization.
+ */
 class ReportRequest final : public BufferChain {
  public:
   ReportRequest(std::shared_ptr<const std::string> header,
                 int num_dropped_spans);
 
+  /**
+   * Add a serialized Span to the ReportRequest.
+   * @param span the serialized span to add.
+   */
   void AddSpan(std::unique_ptr<ChainedStream>&& span) noexcept;
 
+  /**
+   * @return the number of dropped spans recorded in the ReportRequest
+   */
   int num_dropped_spans() const noexcept;
 
+  /**
+   * @return the number of spans in the ReportRequest
+   */
   int num_spans() const noexcept { return num_spans_; }
 
   // BufferChain

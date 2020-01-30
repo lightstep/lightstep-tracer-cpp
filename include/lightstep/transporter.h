@@ -38,6 +38,8 @@ class SyncTransporter : public Transporter {
 };
 
 // LegacyAsyncTransporter customizes how asynchronous tracing reports are sent.
+//
+// Deprecated: Use AsyncTransporter
 class LegacyAsyncTransporter : public Transporter {
  public:
   // Callback interface used by Send.
@@ -68,8 +70,14 @@ class LegacyAsyncTransporter : public Transporter {
                     Callback& callback) = 0;
 };
 
+/**
+ * Provides a hook to customize how ReportRequests are transported.
+ */
 class AsyncTransporter : public Transporter {
  public:
+  /**
+   * A Callback to be invoked after transporting a ReportRequest
+   */
   class Callback {
    public:
     Callback() noexcept = default;
@@ -81,13 +89,31 @@ class AsyncTransporter : public Transporter {
     Callback& operator=(const Callback&) noexcept = default;
     Callback& operator=(Callback&&) noexcept = default;
 
+    /**
+     * Call when a ReportRequest was successfully transported.
+     * @param message the ReportRequest
+     */
     virtual void OnSuccess(BufferChain& message) noexcept = 0;
 
+    /**
+     * Call when a ReportRequest not successfully transported.
+     * @param message the ReportRequest
+     */
     virtual void OnFailure(BufferChain& message) noexcept = 0;
   };
 
+  /**
+   * Called when the tracer's span buffer is full. Implementors can either flush
+   * the pending spans early (so that we don't drop anything) or do nothing and
+   * let subsequent finished spans drop.
+   */
   virtual void OnSpanBufferFull() noexcept {}
 
+  /**
+   * Send a ReportRequest
+   * @param message a BufferChain representing the ReportRequest's serialization
+   * @param callback a Callback to be called after message is transported
+   */
   virtual void Send(std::unique_ptr<BufferChain>&& message,
                     Callback& callback) noexcept = 0;
 };

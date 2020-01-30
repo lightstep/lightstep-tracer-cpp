@@ -1,11 +1,11 @@
 #include "recorder/manual_recorder.h"
 
+#include "3rd_party/catch2/catch.hpp"
+#include "lightstep/tracer.h"
 #include "test/recorder/in_memory_async_transporter.h"
+#include "test/utility.h"
 #include "tracer/counting_metrics_observer.h"
 #include "tracer/tracer_impl.h"
-#include "test/utility.h"
-#include "lightstep/tracer.h"
-#include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
 
 TEST_CASE("ManualRecorder") {
@@ -23,7 +23,8 @@ TEST_CASE("ManualRecorder") {
       tracer->Flush();
     }
   };
-  auto in_memory_transporter = new InMemoryAsyncTransporter{on_span_buffer_full};
+  auto in_memory_transporter =
+      new InMemoryAsyncTransporter{on_span_buffer_full};
   auto recorder = new ManualRecorder{
       logger, std::move(options),
       std::unique_ptr<AsyncTransporter>{in_memory_transporter}};
