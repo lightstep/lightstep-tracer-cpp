@@ -13,7 +13,7 @@
 
 namespace lightstep {
 /**
- * Maintains a linked chain of blocks as they aree written
+ * Maintains a linked chain of blocks as they are written
  */
 class ChainedStream final : public google::protobuf::io::ZeroCopyOutputStream,
                             public ComposableFragmentInputStream,

@@ -4,7 +4,7 @@
 
 namespace lightstep {
 /**
- * BufferChain provides an interface to access a chained sequestion of
+ * BufferChain provides an interface to access a chained sequence of
  * contiguous memory buffers.
  */
 class BufferChain {
