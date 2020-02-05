@@ -16,19 +16,19 @@ class MultiheaderPropagator final : public Propagator {
 
   // Propagator
   opentracing::expected<void> InjectSpanContext(
-      const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-      uint64_t trace_id_low, uint64_t span_id, bool sampled,
+      const opentracing::TextMapWriter& carrier,
+      const TraceContext& trace_context, opentracing::string_view trace_state,
       const BaggageProtobufMap& baggage) const override;
 
   opentracing::expected<void> InjectSpanContext(
-      const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-      uint64_t trace_id_low, uint64_t span_id, bool sampled,
+      const opentracing::TextMapWriter& carrier,
+      const TraceContext& trace_context, opentracing::string_view trace_state,
       const BaggageFlatMap& baggage) const override;
 
   opentracing::expected<bool> ExtractSpanContext(
       const opentracing::TextMapReader& carrier, bool case_sensitive,
-      uint64_t& trace_id_high, uint64_t& trace_id_low, uint64_t& span_id,
-      bool& sampled, BaggageProtobufMap& baggage) const override;
+      TraceContext& trace_context, std::string& trace_state,
+      BaggageProtobufMap& baggage) const override;
 
  private:
   opentracing::string_view trace_id_key_;
@@ -38,8 +38,8 @@ class MultiheaderPropagator final : public Propagator {
   bool supports_128bit_;
 
   opentracing::expected<void> InjectSpanContextImpl(
-      const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-      uint64_t trace_id_low, uint64_t span_id, bool sampled) const;
+      const opentracing::TextMapWriter& carrier,
+      const TraceContext& trace_context) const;
 
   template <class KeyCompare>
   opentracing::expected<bool> ExtractSpanContextImpl(

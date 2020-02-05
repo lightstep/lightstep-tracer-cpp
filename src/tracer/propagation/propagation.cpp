@@ -13,50 +13,18 @@
 #include "common/in_memory_stream.h"
 
 namespace lightstep {
-//------------------------------------------------------------------------------
-// InjectSpanContext
-//------------------------------------------------------------------------------
-template <class BaggageMap>
-opentracing::expected<void> InjectSpanContext(
-    const PropagationOptions& propagation_options,
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-    uint64_t trace_id_low, uint64_t span_id, bool sampled,
-    const BaggageMap& baggage) {
-  for (auto& propagator : propagation_options.inject_propagators) {
-    auto was_successful = propagator->InjectSpanContext(
-        carrier, trace_id_high, trace_id_low, span_id, sampled, baggage);
-    if (!was_successful) {
-      return was_successful;
-    }
-  }
-  return {};
-}
-
-template opentracing::expected<void> InjectSpanContext(
-    const PropagationOptions& propagation_options,
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-    uint64_t trace_id_low, uint64_t span_id, bool sampled,
-    const BaggageProtobufMap& baggage);
-
-template opentracing::expected<void> InjectSpanContext(
-    const PropagationOptions& propagation_options,
-    const opentracing::TextMapWriter& carrier, uint64_t trace_id_high,
-    uint64_t trace_id_low, uint64_t span_id, bool sampled,
-    const BaggageFlatMap& baggage);
-
-//------------------------------------------------------------------------------
-// ExtractSpanContext
-//------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
+// ExtractSpanContextImpl
+//--------------------------------------------------------------------------------------------------
 static opentracing::expected<bool> ExtractSpanContextImpl(
     const PropagationOptions& propagation_options,
     const opentracing::TextMapReader& carrier, bool case_sensitive,
-    uint64_t& trace_id_high, uint64_t& trace_id_low, uint64_t& span_id,
-    bool& sampled, BaggageProtobufMap& baggage) {
+    TraceContext& trace_context, std::string& trace_state,
+    BaggageProtobufMap& baggage) {
   for (auto& propagator : propagation_options.extract_propagators) {
     baggage.clear();
-    auto result =
-        propagator->ExtractSpanContext(carrier, case_sensitive, trace_id_high,
-                                       trace_id_low, span_id, sampled, baggage);
+    auto result = propagator->ExtractSpanContext(
+        carrier, case_sensitive, trace_context, trace_state, baggage);
     if (!result) {
       // One of the injected span contexts is corrupt, return immediately
       // without trying the other extractors.
@@ -70,23 +38,53 @@ static opentracing::expected<bool> ExtractSpanContextImpl(
   return false;
 }
 
+//------------------------------------------------------------------------------
+// InjectSpanContext
+//------------------------------------------------------------------------------
+template <class BaggageMap>
+opentracing::expected<void> InjectSpanContext(
+    const PropagationOptions& propagation_options,
+    const opentracing::TextMapWriter& carrier,
+    const TraceContext& trace_context, opentracing::string_view trace_state,
+    const BaggageMap& baggage) {
+  for (auto& propagator : propagation_options.inject_propagators) {
+    auto was_successful = propagator->InjectSpanContext(carrier, trace_context,
+                                                        trace_state, baggage);
+    if (!was_successful) {
+      return was_successful;
+    }
+  }
+  return {};
+}
+
+template opentracing::expected<void> InjectSpanContext(
+    const PropagationOptions& propagation_options,
+    const opentracing::TextMapWriter& carrier,
+    const TraceContext& trace_context, opentracing::string_view trace_state,
+    const BaggageProtobufMap& baggage);
+
+template opentracing::expected<void> InjectSpanContext(
+    const PropagationOptions& propagation_options,
+    const opentracing::TextMapWriter& carrier,
+    const TraceContext& trace_context, opentracing::string_view trace_state,
+    const BaggageFlatMap& baggage);
+
+//------------------------------------------------------------------------------
+// ExtractSpanContext
+//------------------------------------------------------------------------------
 opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& propagation_options,
-    const opentracing::TextMapReader& carrier, uint64_t& trace_id_high,
-    uint64_t& trace_id_low, uint64_t& span_id, bool& sampled,
-    BaggageProtobufMap& baggage) {
+    const opentracing::TextMapReader& carrier, TraceContext& trace_context,
+    std::string& trace_state, BaggageProtobufMap& baggage) {
   return ExtractSpanContextImpl(propagation_options, carrier, true,
-                                trace_id_high, trace_id_low, span_id, sampled,
-                                baggage);
+                                trace_context, trace_state, baggage);
 }
 
 opentracing::expected<bool> ExtractSpanContext(
     const PropagationOptions& propagation_options,
-    const opentracing::HTTPHeadersReader& carrier, uint64_t& trace_id_high,
-    uint64_t& trace_id_low, uint64_t& span_id, bool& sampled,
-    BaggageProtobufMap& baggage) {
+    const opentracing::HTTPHeadersReader& carrier, TraceContext& trace_context,
+    std::string& trace_state, BaggageProtobufMap& baggage) {
   return ExtractSpanContextImpl(propagation_options, carrier, false,
-                                trace_id_high, trace_id_low, span_id, sampled,
-                                baggage);
+                                trace_context, trace_state, baggage);
 }
 }  // namespace lightstep

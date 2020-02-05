@@ -10,7 +10,11 @@
 namespace lightstep {
 const size_t Num64BitHexDigits = std::numeric_limits<uint64_t>::digits / 4;
 
+const size_t Num128BitHexDigits = 2 * Num64BitHexDigits;
+
 const size_t Num32BitHexDigits = std::numeric_limits<uint32_t>::digits / 4;
+
+const size_t Num8BitHexDigits = std::numeric_limits<uint8_t>::digits / 4;
 
 extern const unsigned char HexDigitLookupTable[513];
 
@@ -46,6 +50,19 @@ inline opentracing::string_view Uint32ToHex(uint32_t x, char* output) noexcept {
   return {output, Num32BitHexDigits};
 }
 
+/**
+ * Writes a 8-bit number in hex.
+ * @param x the number to write
+ * @param output where to output the number
+ * @return x as a hex string
+ */
+inline opentracing::string_view Uint8ToHex(uint8_t x, char* output) noexcept {
+  auto lookup_index = static_cast<int>(x) * 2;
+  output[0] = HexDigitLookupTable[lookup_index];
+  output[1] = HexDigitLookupTable[lookup_index + 1];
+  return {output, Num8BitHexDigits};
+}
+
 // Converts a hexidecimal number to a 64-bit integer. Either returns the number
 // or an error code.
 opentracing::expected<uint64_t> HexToUint64(
@@ -54,6 +71,16 @@ opentracing::expected<uint64_t> HexToUint64(
 opentracing::expected<void> HexToUint128(opentracing::string_view s,
                                          uint64_t& x_high,
                                          uint64_t& x_low) noexcept;
+
+opentracing::expected<uint8_t> NormalizedHexToUint8(
+    opentracing::string_view s) noexcept;
+
+opentracing::expected<uint64_t> NormalizedHexToUint64(
+    opentracing::string_view s) noexcept;
+
+opentracing::expected<void> NormalizedHexToUint128(opentracing::string_view s,
+                                                   uint64_t& x_high,
+                                                   uint64_t& x_low) noexcept;
 
 /**
  * Serialize integers to hex

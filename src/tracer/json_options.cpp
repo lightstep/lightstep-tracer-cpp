@@ -44,6 +44,9 @@ static PropagationMode GetPropagationMode(opentracing::string_view s) {
   if (s == "envoy") {
     return PropagationMode::envoy;
   }
+  if (s == "trace_context") {
+    return PropagationMode::trace_context;
+  }
   std::ostringstream oss;
   oss << "invalid propagation mode " << s;
   throw std::runtime_error{oss.str()};

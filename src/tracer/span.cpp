@@ -36,7 +36,7 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
   WriteStartTimestamp(coded_stream_, start_timestamp);
 
   // Set any span references.
-  sampled_ = false;
+  trace_flags_ = 0;
   int reference_count = 0;
   for (auto& reference : options.references) {
     uint64_t trace_id_high;
@@ -52,7 +52,7 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
   // If there are any span references, sampled should be true if any of the
   // references are sampled; with no refences, we set sampled to true.
   if (reference_count == 0) {
-    sampled_ = true;
+    trace_flags_ = SetTraceFlag<SampledFlagMask>(trace_flags_, true);
     auto ids = GenerateIds<2>();
     trace_id_high_ = 0;
     trace_id_ = ids[0];
@@ -68,7 +68,8 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
     // If sampling_priority is set, it overrides whatever sampling decision was
     // derived from the referenced spans.
     if (tag.first == SamplingPriorityKey) {
-      sampled_ = is_sampled(tag.second);
+      trace_flags_ =
+          SetTraceFlag<SampledFlagMask>(trace_flags_, is_sampled(tag.second));
     }
   }
 }
@@ -116,7 +117,8 @@ void Span::SetTag(opentracing::string_view key,
   }
   WriteTag(coded_stream_, key, value);
   if (key == SamplingPriorityKey) {
-    sampled_ = is_sampled(value);
+    trace_flags_ =
+        SetTraceFlag<SampledFlagMask>(trace_flags_, is_sampled(value));
   }
 } catch (const std::exception& e) {
   tracer_->logger().Error("SetTag failed: ", e.what());
@@ -186,11 +188,11 @@ void Span::ForeachBaggageItem(
 }
 
 //------------------------------------------------------------------------------
-// sampled
+// trace_flags
 //------------------------------------------------------------------------------
-bool Span::sampled() const noexcept {
+uint8_t Span::trace_flags() const noexcept {
   SpinLockGuard lock_guard{mutex_};
-  return sampled_;
+  return trace_flags_;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -214,7 +216,8 @@ bool Span::SetSpanReference(
   trace_id = referenced_context->trace_id_low();
   WriteSpanReference(coded_stream_, reference.first, trace_id,
                      referenced_context->span_id());
-  sampled_ = sampled_ || referenced_context->sampled();
+  trace_flags_ |= referenced_context->trace_flags();
+  AppendTraceState(trace_state_, referenced_context->trace_state());
   referenced_context->ForeachBaggageItem(
       [this](const std::string& key, const std::string& value) {
         this->baggage_.insert_or_assign(std::string{key}, std::string{value});
@@ -233,7 +236,7 @@ void Span::FinishImpl(
     return;
   }
 
-  if (!sampled_) {
+  if (!IsTraceFlagSet<SampledFlagMask>(trace_flags_)) {
     return;
   }
 

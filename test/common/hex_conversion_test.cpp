@@ -19,6 +19,20 @@ static void Generate128BitTestCases(uint64_t x, F f) {
   f(max - x, max - x);
 }
 
+TEST_CASE("hex-integer conversions (8-bit)") {
+  char data[Num8BitHexDigits];
+
+  SECTION("Verify hex conversion and back against a range of values.") {
+    for (uint8_t x = 0; x < std::numeric_limits<uint8_t>::max(); ++x) {
+      {
+        REQUIRE(x == *NormalizedHexToUint8(Uint8ToHex(x, data)));
+        auto y = std::numeric_limits<uint8_t>::max() - x;
+        REQUIRE(y == *NormalizedHexToUint8(Uint8ToHex(y, data)));
+      }
+    }
+  }
+}
+
 TEST_CASE("hex-integer conversions (64-bit)") {
   char data[Num64BitHexDigits];
 

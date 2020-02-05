@@ -95,9 +95,33 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "trace_context_test",
+    srcs = [
+        "trace_context_test.cpp",
+    ],
+    deps = [
+        "//src/tracer/propagation:trace_context_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "lightstep_propagation_test",
     srcs = [
         "lightstep_propagation_test.cpp",
+    ],
+    deps = [
+        "//:manual_tracer_lib",
+        "//test/recorder:in_memory_recorder_lib",
+        ":text_map_carrier_lib",
+        ":http_headers_carrier_lib",
+        ":utility_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "trace_context_propagation_test",
+    srcs = [
+        "trace_context_propagation_test.cpp",
     ],
     deps = [
         "//:manual_tracer_lib",
