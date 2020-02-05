@@ -79,7 +79,7 @@
       "items": {
         "type": "string"
       },
-      "description": "A list of propagation modes to use for injection/extraction.\nValid values are \"lightstep\", \"b3\", and \"envoy\"."
+      "description": "A list of propagation modes to use for injection/extraction.\nValid values are \"lightstep\", \"b3\", \"envoy\", and \"trace_context\"."
     }
   },
   "definitions": {

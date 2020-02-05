@@ -9,13 +9,13 @@ TEST_CASE("LightStepTracerFactory") {
   SECTION("We can specify propagation modes via a tracers json configuration") {
     const char* config = R"({
       "component_name": "t",
-      "propagation_modes": ["lightstep", "b3", "envoy"]
+      "propagation_modes": ["lightstep", "b3", "envoy", "trace_context"]
     })";
     auto options_maybe = MakeTracerOptions(config, error_message);
     REQUIRE(options_maybe);
     std::vector<PropagationMode> expected_propagation_modes = {
-        PropagationMode::lightstep, PropagationMode::b3,
-        PropagationMode::envoy};
+        PropagationMode::lightstep, PropagationMode::b3, PropagationMode::envoy,
+        PropagationMode::trace_context};
     REQUIRE(options_maybe->propagation_modes == expected_propagation_modes);
   }
 

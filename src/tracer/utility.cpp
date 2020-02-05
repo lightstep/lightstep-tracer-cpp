@@ -1,6 +1,9 @@
 #include "tracer/utility.h"
 
 namespace lightstep {
+//--------------------------------------------------------------------------------------------------
+// AppendTraceState
+//--------------------------------------------------------------------------------------------------
 void AppendTraceState(std::string& trace_state,
                       opentracing::string_view key_values) {
   if (trace_state.empty()) {
