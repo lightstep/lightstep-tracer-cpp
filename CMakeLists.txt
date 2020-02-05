@@ -217,6 +217,8 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/tracer/propagation/baggage_propagator.cpp
                    src/tracer/propagation/binary_propagation.cpp
                    src/tracer/propagation/envoy_propagator.cpp
+                   src/tracer/propagation/trace_context.cpp
+                   src/tracer/propagation/trace_context_propagator.cpp
                    src/tracer/propagation/lightstep_propagator.cpp
                    src/tracer/propagation/multiheader_propagator.cpp
                    src/tracer/propagation/propagation.cpp
@@ -231,6 +233,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/tracer/tracer_impl.cpp
                    src/tracer/tracer.cpp
                    src/tracer/tag.cpp
+                   src/tracer/utility.cpp
                    )
 
 if (WIN32)

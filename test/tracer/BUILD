@@ -22,6 +22,16 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "utility_test",
+    srcs = [
+        "utility_test.cpp",
+    ],
+    deps = [
+        "//src/tracer:utility_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "dynamic_load_test",
     srcs = [
         "dynamic_load_test.cpp",

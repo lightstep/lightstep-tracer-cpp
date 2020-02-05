@@ -36,6 +36,9 @@ lightstep_cc_library(
     private_hdrs = [
         "utility.h",
     ],
+    srcs = [
+        "utility.cpp",
+    ],
     deps = [
         "//src/recorder:recorder_interface",
     ],
@@ -77,6 +80,7 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/tracer:lightstep_span_context_interface",
+        "//src/tracer/propagation:trace_context_lib",
     ],
 )
 
