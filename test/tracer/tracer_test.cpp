@@ -230,7 +230,6 @@ TEST_CASE("Configuration validation") {
   // spans with this test.
   options.collector_host = "localhost";
   options.collector_port = 1234;
-  options.access_token = "abc";
   options.satellite_endpoints = {{"localhost", 1234}};
 
   SECTION("We can construct a valid rpc tracer.") {

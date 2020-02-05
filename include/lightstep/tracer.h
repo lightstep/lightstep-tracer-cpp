@@ -162,7 +162,9 @@ class LightStepTracer : public opentracing::Tracer {
   opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
   MakeSpanContext(uint64_t trace_id, uint64_t span_id,
                   std::unordered_map<std::string, std::string>&& baggage) const
-      noexcept;
+      noexcept {
+    return this->MakeSpanContext(trace_id, span_id, true, std::move(baggage));
+  }
 
   opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
   MakeSpanContext(uint64_t trace_id, uint64_t span_id, bool sampled,
