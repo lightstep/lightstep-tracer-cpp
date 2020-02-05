@@ -1,8 +1,11 @@
 #include "recorder/stream_recorder/stream_recorder.h"
 
+#include <cassert>
 #include <exception>
 
+#include "common/chunked_http_framing.h"
 #include "common/protobuf.h"
+#include "common/report_request_framing.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -44,11 +47,52 @@ StreamRecorder::~StreamRecorder() noexcept {
 }
 
 //--------------------------------------------------------------------------------------------------
+// ReserveHedaerSpace
+//--------------------------------------------------------------------------------------------------
+Fragment StreamRecorder::ReserveHeaderSpace(ChainedStream& stream) {
+  const size_t max_header_size =
+      ReportRequestSpansMaxHeaderSize + ChunkedHttpMaxHeaderSize;
+  static_assert(ChainedStream::BlockSize >= max_header_size,
+                "BockSize too small");
+  void* data;
+  int size;
+  if (!stream.Next(&data, &size)) {
+    throw std::bad_alloc{};
+  }
+  stream.BackUp(size - static_cast<int>(max_header_size));
+  return {data, static_cast<int>(max_header_size)};
+}
+
+//--------------------------------------------------------------------------------------------------
+// WriteFooter
+//--------------------------------------------------------------------------------------------------
+void StreamRecorder::WriteFooter(
+    google::protobuf::io::CodedOutputStream& coded_stream) {
+  coded_stream.WriteRaw(ChunkedHttpFooter.data(), ChunkedHttpFooter.size());
+}
+
+//--------------------------------------------------------------------------------------------------
 // RecordSpan
 //--------------------------------------------------------------------------------------------------
 void StreamRecorder::RecordSpan(
-    std::unique_ptr<SerializationChain>&& span) noexcept {
-  span->AddFraming();
+    Fragment header_fragment, std::unique_ptr<ChainedStream>&& span) noexcept {
+  // Frame the Span
+  auto header_data = static_cast<char*>(header_fragment.first);
+  auto reserved_header_size = static_cast<size_t>(header_fragment.second);
+  auto protobuf_body_size =
+      span->ByteCount() - ChunkedHttpFooter.size() - header_fragment.second;
+  auto protobuf_header_size = WriteReportRequestSpansHeader(
+      header_data, reserved_header_size, protobuf_body_size);
+  auto chunk_body_size = protobuf_body_size + protobuf_header_size;
+  auto chunk_header_size = WriteHttpChunkHeader(
+      header_data, reserved_header_size - protobuf_header_size,
+      chunk_body_size);
+  span->CloseOutput();
+
+  // Advance past reserved header space we didn't use.
+  span->Seek(0, static_cast<int>(reserved_header_size - protobuf_header_size -
+                                 chunk_header_size));
+
   if (!span_buffer_.Add(span)) {
     // Note: the compiler doesn't want to inline this logger call and it shows
     // up in profiling with high span droppage even if the logging isn't turned

@@ -4,8 +4,8 @@ namespace lightstep {
 //--------------------------------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------------------------------
-SpanStream::SpanStream(CircularBuffer<SerializationChain>& span_buffer,
-                       StreamRecorderMetrics& metrics) noexcept
+SpanStream::SpanStream(CircularBuffer<ChainedStream>& span_buffer,
+                       MetricsTracker& metrics) noexcept
     : span_buffer_{span_buffer}, metrics_{metrics} {}
 
 //--------------------------------------------------------------------------------------------------
@@ -16,8 +16,8 @@ void SpanStream::Allot() noexcept { allotment_ = span_buffer_.Peek(); }
 //--------------------------------------------------------------------------------------------------
 // ConsumeRemnant
 //--------------------------------------------------------------------------------------------------
-std::unique_ptr<SerializationChain> SpanStream::ConsumeRemnant() noexcept {
-  return std::unique_ptr<SerializationChain>{remnant_.release()};
+std::unique_ptr<ChainedStream> SpanStream::ConsumeRemnant() noexcept {
+  return std::unique_ptr<ChainedStream>{remnant_.release()};
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ std::unique_ptr<SerializationChain> SpanStream::ConsumeRemnant() noexcept {
 int SpanStream::num_fragments() const noexcept {
   int result = 0;
   allotment_.ForEach([&result](
-      const AtomicUniquePtr<SerializationChain>& span) noexcept {
+      const AtomicUniquePtr<ChainedStream>& span) noexcept {
     result += span->num_fragments();
     return true;
   });
@@ -38,7 +38,7 @@ int SpanStream::num_fragments() const noexcept {
 //--------------------------------------------------------------------------------------------------
 bool SpanStream::ForEachFragment(Callback callback) const noexcept {
   return allotment_.ForEach(
-      [callback](const AtomicUniquePtr<SerializationChain>& span) {
+      [callback](const AtomicUniquePtr<ChainedStream>& span) {
         return span->ForEachFragment(callback);
       });
 }
@@ -50,7 +50,7 @@ void SpanStream::Clear() noexcept {
   remnant_.reset();
   metrics_.OnSpansSent(allotment_.size());
   span_buffer_.Consume(allotment_.size());
-  allotment_ = CircularBufferRange<const AtomicUniquePtr<SerializationChain>>{};
+  allotment_ = CircularBufferRange<const AtomicUniquePtr<ChainedStream>>{};
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
   int full_span_count = 0;
   int span_count = 0;
   allotment_.ForEach([&, fragment_index ](
-      const AtomicUniquePtr<SerializationChain>& span) mutable noexcept {
+      const AtomicUniquePtr<ChainedStream>& span) mutable noexcept {
     auto num_fragments = span->num_fragments();
     if (num_fragments <= fragment_index) {
       fragment_index -= num_fragments;
@@ -79,9 +79,9 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
   });
   span_buffer_.Consume(
       span_count, [ this, fragment_index, position ](
-                      CircularBufferRange<AtomicUniquePtr<SerializationChain>>
+                      CircularBufferRange<AtomicUniquePtr<ChainedStream>>
                           range) mutable noexcept {
-        range.ForEach([&](AtomicUniquePtr<SerializationChain> & span) noexcept {
+        range.ForEach([&](AtomicUniquePtr<ChainedStream> & span) noexcept {
           auto num_fragments = span->num_fragments();
           if (num_fragments <= fragment_index) {
             fragment_index -= num_fragments;
@@ -94,6 +94,6 @@ void SpanStream::Seek(int fragment_index, int position) noexcept {
         });
       });
   metrics_.OnSpansSent(full_span_count);
-  allotment_ = CircularBufferRange<const AtomicUniquePtr<SerializationChain>>{};
+  allotment_ = CircularBufferRange<const AtomicUniquePtr<ChainedStream>>{};
 }
 }  // namespace lightstep

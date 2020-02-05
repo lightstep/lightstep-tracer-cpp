@@ -20,11 +20,19 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "buffer_chain_interface",
+    hdrs = [
+        "buffer_chain.h",
+    ],
+)
+
+lightstep_cc_library(
     name = "transporter_interface",
     hdrs = [
         "transporter.h",
     ],
     external_deps = [
+        ":buffer_chain_interface",
         "@com_google_protobuf//:protobuf",
         "@io_opentracing_cpp//:opentracing",
     ],

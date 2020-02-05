@@ -22,17 +22,18 @@ namespace lightstep {
 Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
            opentracing::string_view operation_name,
            const opentracing::StartSpanOptions& options)
-    : serialization_chain_{new SerializationChain{}},
-      stream_{serialization_chain_.get()},
+    : chained_stream_{new ChainedStream{}},
+      header_fragment_{tracer->recorder().ReserveHeaderSpace(*chained_stream_)},
+      coded_stream_{chained_stream_.get()},
       tracer_{std::move(tracer)} {
-  WriteOperationName(stream_, operation_name);
+  WriteOperationName(coded_stream_, operation_name);
 
   // Set the start timestamps.
   std::chrono::system_clock::time_point start_timestamp;
   std::tie(start_timestamp, start_steady_) = ComputeStartTimestamps(
       tracer_->recorder(), options.start_system_timestamp,
       options.start_steady_timestamp);
-  WriteStartTimestamp(stream_, start_timestamp);
+  WriteStartTimestamp(coded_stream_, start_timestamp);
 
   // Set any span references.
   trace_flags_ = 0;
@@ -62,7 +63,7 @@ Span::Span(std::shared_ptr<const TracerImpl>&& tracer,
 
   // Set tags.
   for (auto& tag : options.tags) {
-    WriteTag(stream_, tag.first, tag.second);
+    WriteTag(coded_stream_, tag.first, tag.second);
 
     // If sampling_priority is set, it overrides whatever sampling decision was
     // derived from the referenced spans.
@@ -100,7 +101,7 @@ void Span::SetOperationName(opentracing::string_view name) noexcept try {
   if (is_finished_) {
     return;
   }
-  WriteOperationName(stream_, name);
+  WriteOperationName(coded_stream_, name);
 } catch (const std::exception& e) {
   tracer_->logger().Error("SetOperationName failed: ", e.what());
 }
@@ -114,7 +115,7 @@ void Span::SetTag(opentracing::string_view key,
   if (is_finished_) {
     return;
   }
-  WriteTag(stream_, key, value);
+  WriteTag(coded_stream_, key, value);
   if (key == SamplingPriorityKey) {
     trace_flags_ =
         SetTraceFlag<SampledFlagMask>(trace_flags_, is_sampled(value));
@@ -167,7 +168,7 @@ void Span::Log(std::initializer_list<
   if (is_finished_) {
     return;
   }
-  WriteLog(stream_, timestamp, fields.begin(), fields.end());
+  WriteLog(coded_stream_, timestamp, fields.begin(), fields.end());
 } catch (const std::exception& e) {
   tracer_->logger().Error("Log failed: ", e.what());
 }
@@ -213,7 +214,7 @@ bool Span::SetSpanReference(
   }
   trace_id_high = referenced_context->trace_id_high();
   trace_id = referenced_context->trace_id_low();
-  WriteSpanReference(stream_, reference.first, trace_id,
+  WriteSpanReference(coded_stream_, reference.first, trace_id,
                      referenced_context->span_id());
   trace_flags_ |= referenced_context->trace_flags();
   AppendTraceState(trace_state_, referenced_context->trace_state());
@@ -246,23 +247,24 @@ void Span::FinishImpl(
 
   // Set timing information.
   auto duration = finish_timestamp - start_steady_;
-  WriteDuration(stream_, duration);
+  WriteDuration(coded_stream_, duration);
 
   // Set logs
   for (auto& log_record : options.log_records) {
     try {
-      WriteLog(stream_, log_record.timestamp, log_record.fields.data(),
+      WriteLog(coded_stream_, log_record.timestamp, log_record.fields.data(),
                log_record.fields.data() + log_record.fields.size());
     } catch (const std::exception& e) {
       tracer_->logger().Error("Dropping log record: ", e.what());
     }
   }
 
-  WriteSpanContext(stream_, trace_id_, span_id_, baggage_.as_vector());
+  WriteSpanContext(coded_stream_, trace_id_, span_id_, baggage_.as_vector());
 
   // Record the span
-  stream_.Trim();
-  tracer_->recorder().RecordSpan(std::move(serialization_chain_));
+  tracer_->recorder().WriteFooter(coded_stream_);
+  coded_stream_.Trim();
+  tracer_->recorder().RecordSpan(header_fragment_, std::move(chained_stream_));
 } catch (const std::exception& e) {
   tracer_->logger().Error("FinishWithOptions failed: ", e.what());
 }

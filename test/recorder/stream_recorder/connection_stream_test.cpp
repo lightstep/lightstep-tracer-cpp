@@ -1,8 +1,8 @@
 #include "recorder/stream_recorder/connection_stream.h"
 
 #include "3rd_party/catch2/catch.hpp"
+#include "recorder/serialization/report_request_header.h"
 #include "recorder/stream_recorder/span_stream.h"
-#include "recorder/stream_recorder/utility.h"
 #include "test/number_simulation.h"
 #include "test/utility.h"
 using namespace lightstep;
@@ -33,12 +33,12 @@ static collector::ReportRequest ParseStreamHeader(std::string& s) {
 
 TEST_CASE("ConnectionStream") {
   LightStepTracerOptions tracer_options;
-  CircularBuffer<SerializationChain> span_buffer{1000};
+  CircularBuffer<ChainedStream> span_buffer{1000};
   MetricsObserver metrics_observer;
-  StreamRecorderMetrics metrics{metrics_observer};
+  MetricsTracker metrics{metrics_observer};
   SpanStream span_stream{span_buffer, metrics};
   std::string header_common_fragment =
-      WriteStreamHeaderCommonFragment(tracer_options, 123);
+      WriteReportRequestHeader(tracer_options, 123);
   auto host_header_fragment = MakeFragment("Host:abc\r\n");
   ConnectionStream connection_stream{
       host_header_fragment,
@@ -144,7 +144,7 @@ TEST_CASE("ConnectionStream") {
   SECTION(
       "After writing the header, ConnectionStream writes the contents of the "
       "span buffer.") {
-    AddString(span_buffer, "abc");
+    AddSpanChunkFramedString(span_buffer, "abc");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -162,14 +162,14 @@ TEST_CASE("ConnectionStream") {
           contents = ToString(fragment_streams);
           return Consume(fragment_streams, static_cast<int>(contents.size()));
         });
-    AddString(span_buffer, "abc");
+    AddSpanChunkFramedString(span_buffer, "abc");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
           contents = ToString(fragment_streams);
           return Consume(fragment_streams, 4);
         });
-    AddString(span_buffer, "123");
+    AddSpanChunkFramedString(span_buffer, "123");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -190,7 +190,7 @@ TEST_CASE("ConnectionStream") {
           contents = ToString(fragment_streams);
           return Consume(fragment_streams, static_cast<int>(contents.size()));
         });
-    AddString(span_buffer, "abc");
+    AddSpanChunkFramedString(span_buffer, "abc");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -198,7 +198,7 @@ TEST_CASE("ConnectionStream") {
           return Consume(fragment_streams, 4);
         });
     connection_stream.Shutdown();
-    AddString(span_buffer, "123");
+    AddSpanChunkFramedString(span_buffer, "123");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -217,7 +217,7 @@ TEST_CASE("ConnectionStream") {
           contents = ToString(fragment_streams);
           return Consume(fragment_streams, static_cast<int>(contents.size()));
         });
-    AddString(span_buffer, "abc");
+    AddSpanChunkFramedString(span_buffer, "abc");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -225,7 +225,7 @@ TEST_CASE("ConnectionStream") {
           return Consume(fragment_streams, 4);
         });
     connection_stream.Reset();
-    AddString(span_buffer, "123");
+    AddSpanChunkFramedString(span_buffer, "123");
     connection_stream.Flush(
         [&contents](
             std::initializer_list<FragmentInputStream*> fragment_streams) {
@@ -244,15 +244,15 @@ TEST_CASE(
     "Verify through simulation that ConnectionStream behaves correctly.") {
   LightStepTracerOptions tracer_options;
   std::string header_common_fragment =
-      WriteStreamHeaderCommonFragment(tracer_options, 123);
+      WriteReportRequestHeader(tracer_options, 123);
   MetricsObserver metrics_observer;
-  StreamRecorderMetrics metrics{metrics_observer};
+  MetricsTracker metrics{metrics_observer};
   auto host_header_fragment = MakeFragment("Host:abc\r\n");
   const size_t num_producer_threads = 4;
   const size_t num_connections = 10;
   const size_t n = 25000;
   for (size_t max_size : {1, 2, 10, 100, 1000}) {
-    CircularBuffer<SerializationChain> buffer{max_size};
+    CircularBuffer<ChainedStream> buffer{max_size};
     SpanStream span_stream{buffer, metrics};
     std::vector<ConnectionStream> connection_streams;
     connection_streams.reserve(num_connections);

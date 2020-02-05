@@ -1,18 +1,14 @@
-#include <atomic>
+#include "recorder/manual_recorder.h"
 
 #include "3rd_party/catch2/catch.hpp"
 #include "lightstep/tracer.h"
-#include "recorder/manual_recorder.h"
 #include "test/recorder/in_memory_async_transporter.h"
-#include "test/testing_condition_variable_wrapper.h"
 #include "test/utility.h"
 #include "tracer/counting_metrics_observer.h"
-#include "tracer/legacy/legacy_tracer_impl.h"
-
+#include "tracer/tracer_impl.h"
 using namespace lightstep;
-using namespace opentracing;
 
-TEST_CASE("manual_recorder") {
+TEST_CASE("ManualRecorder") {
   Logger logger{};
   auto metrics_observer = new CountingMetricsObserver{};
   LightStepTracerOptions options;
@@ -20,13 +16,21 @@ TEST_CASE("manual_recorder") {
   options.max_buffered_spans =
       std::function<size_t()>{[&] { return max_buffered_spans; }};
   options.metrics_observer.reset(metrics_observer);
-  auto in_memory_transporter = new InMemoryAsyncTransporter{};
+  std::shared_ptr<LightStepTracer> tracer;
+  bool flush_on_full = true;
+  auto on_span_buffer_full = [&] {
+    if (flush_on_full) {
+      tracer->Flush();
+    }
+  };
+  auto in_memory_transporter =
+      new InMemoryAsyncTransporter{on_span_buffer_full};
   auto recorder = new ManualRecorder{
       logger, std::move(options),
       std::unique_ptr<AsyncTransporter>{in_memory_transporter}};
-  auto tracer = std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
+  tracer = std::shared_ptr<LightStepTracer>{new TracerImpl{
       PropagationOptions{}, std::unique_ptr<Recorder>{recorder}}};
-  CHECK(tracer);
+  REQUIRE(tracer);
 
   SECTION("Buffered spans get transported after Flush is manually called.") {
     auto span = tracer->StartSpan("abc");
@@ -34,19 +38,8 @@ TEST_CASE("manual_recorder") {
     span->Finish();
     CHECK(in_memory_transporter->reports().empty());
     CHECK(tracer->Flush());
-    in_memory_transporter->Write();
+    in_memory_transporter->Succeed();
     CHECK(in_memory_transporter->reports().size() == 1);
-  }
-
-  SECTION("Flush fails if a report is already being sent.") {
-    auto span1 = tracer->StartSpan("abc");
-    CHECK(span1);
-    span1->Finish();
-    CHECK(tracer->Flush());
-    auto span2 = tracer->StartSpan("xyz");
-    CHECK(span2);
-    span2->Finish();
-    CHECK(!tracer->Flush());
   }
 
   SECTION(
@@ -57,41 +50,34 @@ TEST_CASE("manual_recorder") {
     CHECK(span1);
     span1->Finish();
     CHECK(tracer->Flush());
-    in_memory_transporter->Fail(
-        std::make_error_code(std::errc::network_unreachable));
+    in_memory_transporter->Fail();
 
     auto span2 = tracer->StartSpan("xyz");
     CHECK(span2);
     span2->Finish();
     CHECK(tracer->Flush());
-    in_memory_transporter->Write();
+    in_memory_transporter->Succeed();
     CHECK(LookupSpansDropped(in_memory_transporter->reports().at(0)) == 1);
   }
 
-  SECTION(
-      "If a collector sends back a disable command, then the tracer stops "
-      "sending reports") {
-    in_memory_transporter->set_should_disable(true);
-
-    auto span = tracer->StartSpan("abc");
-    span->Finish();
-    CHECK(tracer->Flush());
-    in_memory_transporter->Write();
-
-    span = tracer->StartSpan("xyz");
-    CHECK(span);
-    span->Finish();
-    CHECK(!tracer->Flush());
-  }
-
   SECTION("Flush is called when the tracer's buffer is filled.") {
-    for (size_t i = 0; i < max_buffered_spans; ++i) {
+    for (size_t i = 0; i < max_buffered_spans + 1; ++i) {
       auto span = tracer->StartSpan("abc");
       CHECK(span);
       span->Finish();
     }
-    in_memory_transporter->Write();
+    in_memory_transporter->Succeed();
     CHECK(in_memory_transporter->reports().size() == 1);
+  }
+
+  SECTION("If we don't flush when the span buffer fills, we'll drop the span") {
+    flush_on_full = false;
+    for (size_t i = 0; i < max_buffered_spans + 1; ++i) {
+      auto span = tracer->StartSpan("abc");
+      CHECK(span);
+      span->Finish();
+    }
+    REQUIRE(metrics_observer->num_spans_dropped == 1);
   }
 
   SECTION(
@@ -100,7 +86,7 @@ TEST_CASE("manual_recorder") {
     auto span = tracer->StartSpan("abc");
     span->Finish();
     tracer->Flush();
-    in_memory_transporter->Write();
+    in_memory_transporter->Succeed();
     CHECK(metrics_observer->num_flushes == 1);
   }
 
@@ -112,7 +98,7 @@ TEST_CASE("manual_recorder") {
     auto span2 = tracer->StartSpan("abc");
     span2->Finish();
     tracer->Flush();
-    in_memory_transporter->Write();
+    in_memory_transporter->Succeed();
     CHECK(metrics_observer->num_spans_sent == 2);
   }
 
@@ -124,22 +110,8 @@ TEST_CASE("manual_recorder") {
     auto span2 = tracer->StartSpan("abc");
     span2->Finish();
     tracer->Flush();
-    in_memory_transporter->Fail(
-        std::make_error_code(std::errc::network_unreachable));
-    CHECK(metrics_observer->num_spans_sent == 2);
+    in_memory_transporter->Fail();
+    CHECK(metrics_observer->num_spans_sent == 0);
     CHECK(metrics_observer->num_spans_dropped == 2);
-  }
-
-  SECTION(
-      "If `max_buffered_spans` is dynamically changed, it takes whenever the "
-      "recorder is next invoked.") {
-    max_buffered_spans -= 1;
-    for (size_t i = 0; i < max_buffered_spans; ++i) {
-      auto span = tracer->StartSpan("abc");
-      CHECK(span);
-      span->Finish();
-    }
-    in_memory_transporter->Write();
-    CHECK(in_memory_transporter->reports().size() == 1);
   }
 }

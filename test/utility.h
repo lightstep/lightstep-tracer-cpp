@@ -3,9 +3,9 @@
 #include <chrono>
 #include <thread>
 
+#include "common/chained_stream.h"
 #include "common/circular_buffer.h"
 #include "common/fragment_input_stream.h"
-#include "common/serialization_chain.h"
 
 #include <opentracing/tracer.h>
 #include "lightstep-tracer-common/collector.pb.h"
@@ -66,8 +66,8 @@ std::string ToString(const FragmentInputStream& fragment_input_stream);
  * @param s the string to add.
  * @return true if the string was succesfully added.
  */
-bool AddString(CircularBuffer<SerializationChain>& buffer,
-               const std::string& s);
+bool AddSpanChunkFramedString(CircularBuffer<ChainedStream>& buffer,
+                              const std::string& s);
 
 /**
  * Adds http/1.1 chunk framing and ReportRequest embedded span framing to a

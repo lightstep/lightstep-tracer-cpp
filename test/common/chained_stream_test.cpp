@@ -1,4 +1,4 @@
-#include "common/serialization_chain.h"
+#include "common/chained_stream.h"
 
 #include <iomanip>
 #include <random>
@@ -10,66 +10,64 @@
 #include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;
 
-TEST_CASE("SerializationChain") {
-  SerializationChain chain;
+TEST_CASE("ChainedStream") {
+  ChainedStream chain;
 
   std::unique_ptr<google::protobuf::io::CodedOutputStream> stream{
       new google::protobuf::io::CodedOutputStream{&chain}};
 
   SECTION("An empty chain has no fragments.") {
     stream.reset();
-    chain.AddFraming();
+    chain.CloseOutput();
     REQUIRE(chain.num_fragments() == 0);
   }
 
   SECTION("We can write a string smaller than the block size.") {
     stream->WriteString("abc");
     stream.reset();
-    chain.AddFraming();
-    REQUIRE(chain.num_fragments() == 3);
-    REQUIRE(ToString(chain) == AddSpanChunkFraming("abc"));
+    chain.CloseOutput();
+    REQUIRE(chain.num_fragments() == 1);
+    REQUIRE(ToString(chain) == "abc");
   }
 
   SECTION("We can write strings larger than a single block.") {
-    std::string s(SerializationChain::BlockSize + 1, 'X');
+    std::string s(ChainedStream::BlockSize + 1, 'X');
     stream->WriteString(s);
     stream.reset();
-    chain.AddFraming();
-    REQUIRE(chain.num_fragments() == 4);
-    REQUIRE(ToString(chain) == AddSpanChunkFraming(s));
+    chain.CloseOutput();
+    REQUIRE(chain.num_fragments() == 2);
+    REQUIRE(ToString(chain) == s);
   }
 
   SECTION("We can seek to any byte in the fragment stream.") {
-    std::string s(SerializationChain::BlockSize + 2, 'X');
+    std::string s(ChainedStream::BlockSize + 2, 'X');
     stream->WriteString(s);
     stream.reset();
-    chain.AddFraming();
-    std::string serialization = AddSpanChunkFraming(s);
-    for (size_t i = 1; i <= serialization.size(); ++i) {
+    chain.CloseOutput();
+    for (size_t i = 1; i <= s.size(); ++i) {
       SECTION("cosumption instance " + std::to_string(i)) {
         Consume({&chain}, i);
-        REQUIRE(ToString(chain) == serialization.substr(i));
+        REQUIRE(ToString(chain) == s.substr(i));
       }
     }
   }
 
   SECTION("We can advance to any byte in the fragment stream randomly.") {
-    std::string s(3 * SerializationChain::BlockSize + 10, 'X');
+    std::string s(3 * ChainedStream::BlockSize + 10, 'X');
     stream->WriteString(s);
     stream.reset();
-    chain.AddFraming();
-    std::string serialization = AddSpanChunkFraming(s);
+    chain.CloseOutput();
     std::mt19937 random_number_generator{0};
     for (int i = 0; i < 100; ++i) {
       size_t num_bytes_consumed = 0;
       SECTION("Random advance " + std::to_string(i)) {
-        while (num_bytes_consumed < serialization.size()) {
+        while (num_bytes_consumed < s.size()) {
           std::uniform_int_distribution<size_t> distribution{
-              1, static_cast<int>(serialization.size()) - num_bytes_consumed};
+              1, static_cast<int>(s.size()) - num_bytes_consumed};
           auto n = distribution(random_number_generator);
           Consume({&chain}, n);
           num_bytes_consumed += n;
-          REQUIRE(ToString(chain) == serialization.substr(num_bytes_consumed));
+          REQUIRE(ToString(chain) == s.substr(num_bytes_consumed));
         }
       }
     }

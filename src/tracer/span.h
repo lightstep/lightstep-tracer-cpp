@@ -5,7 +5,7 @@
 #include <memory>
 #include <mutex>
 
-#include "common/serialization_chain.h"
+#include "common/chained_stream.h"
 #include "common/spin_lock_mutex.h"
 #include "tracer/baggage_flat_map.h"
 #include "tracer/lightstep_span_context.h"
@@ -98,8 +98,9 @@ class Span final : public opentracing::Span, public LightStepSpanContext {
   // more sense to use a spin lock for this use case.
   mutable SpinLockMutex mutex_;
 
-  std::unique_ptr<SerializationChain> serialization_chain_;
-  google::protobuf::io::CodedOutputStream stream_;
+  std::unique_ptr<ChainedStream> chained_stream_;
+  Fragment header_fragment_;
+  google::protobuf::io::CodedOutputStream coded_stream_;
 
   std::chrono::steady_clock::time_point start_steady_;
   std::atomic<bool> is_finished_{false};

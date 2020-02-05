@@ -76,16 +76,6 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
-    name = "embedded_metrics_message_test",
-    srcs = [
-        "embedded_metrics_message_test.cpp",
-    ],
-    deps = [
-        "//src/recorder/stream_recorder:embedded_metrics_message_lib",
-    ],
-)
-
-lightstep_catch_test(
     name = "span_stream_test",
     srcs = [
         "span_stream_test.cpp",
@@ -103,7 +93,7 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/recorder/stream_recorder:connection_stream_lib",
-        "//src/recorder/stream_recorder:utility_lib",
+        "//src/recorder/serialization:report_request_header_lib",
         "//test:number_simulation_lib",
         "//test:utility_lib",
     ],

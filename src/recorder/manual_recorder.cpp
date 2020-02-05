@@ -1,129 +1,149 @@
 #include "recorder/manual_recorder.h"
-#include "common/utility.h"
+
+#include <cassert>
+#include <exception>
+
+#include "common/random.h"
+#include "common/report_request_framing.h"
+#include "recorder/serialization/report_request.h"
+#include "recorder/serialization/report_request_header.h"
 
 namespace lightstep {
-//------------------------------------------------------------------------------
-// Constructor
-//------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
+// GetMetricsObserver
+//--------------------------------------------------------------------------------------------------
+static MetricsObserver& GetMetricsObserver(
+    LightStepTracerOptions& tracer_options) {
+  if (tracer_options.metrics_observer == nullptr) {
+    tracer_options.metrics_observer.reset(new MetricsObserver{});
+  }
+  return *tracer_options.metrics_observer;
+}
+
+//--------------------------------------------------------------------------------------------------
+// constructor
+//--------------------------------------------------------------------------------------------------
 ManualRecorder::ManualRecorder(Logger& logger, LightStepTracerOptions options,
                                std::unique_ptr<AsyncTransporter>&& transporter)
     : logger_{logger},
-      options_{std::move(options)},
-      builder_{options_.access_token, options_.tags},
-      transporter_{std::move(transporter)} {
-  // If no MetricsObserver was provided, use a default one that does nothing.
-  if (options_.metrics_observer == nullptr) {
-    options_.metrics_observer.reset(new MetricsObserver{});
+      tracer_options_{std::move(options)},
+      transporter_{std::move(transporter)},
+      report_request_header_{new std::string{
+          WriteReportRequestHeader(tracer_options_, GenerateId())}},
+      metrics_{GetMetricsObserver(tracer_options_)},
+      span_buffer_{tracer_options_.max_buffered_spans.value()} {}
+
+//--------------------------------------------------------------------------------------------------
+// ReserveHeaderSpace
+//--------------------------------------------------------------------------------------------------
+Fragment ManualRecorder::ReserveHeaderSpace(ChainedStream& stream) {
+  const size_t max_header_size = ReportRequestSpansMaxHeaderSize;
+  static_assert(ChainedStream::BlockSize >= max_header_size,
+                "BockSize too small");
+  void* data;
+  int size;
+  if (!stream.Next(&data, &size)) {
+    throw std::bad_alloc{};
   }
+  stream.BackUp(size - static_cast<int>(max_header_size));
+  return {data, static_cast<int>(max_header_size)};
 }
 
-//------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
 // RecordSpan
-//------------------------------------------------------------------------------
-void ManualRecorder::RecordSpan(const collector::Span& span) noexcept try {
-  if (disabled_) {
-    dropped_spans_++;
-    options_.metrics_observer->OnSpansDropped(1);
+//--------------------------------------------------------------------------------------------------
+void ManualRecorder::RecordSpan(
+    Fragment header_fragment, std::unique_ptr<ChainedStream>&& span) noexcept {
+  // Frame the Span
+  auto header_data = static_cast<char*>(header_fragment.first);
+  auto reserved_header_size = static_cast<size_t>(header_fragment.second);
+  auto protobuf_body_size = span->ByteCount() - header_fragment.second;
+  auto protobuf_header_size = WriteReportRequestSpansHeader(
+      header_data, reserved_header_size, protobuf_body_size);
+  span->CloseOutput();
+
+  // Advance past reserved header space we didn't use.
+  span->Seek(0, static_cast<int>(reserved_header_size - protobuf_header_size));
+
+  auto was_added = span_buffer_.Add(span);
+  if (was_added) {
     return;
   }
+  transporter_->OnSpanBufferFull();
 
-  auto max_buffered_spans = options_.max_buffered_spans.value();
-  if (builder_.num_pending_spans() >= max_buffered_spans) {
-    // If there's no report in flight, flush the recoder. We can only get
-    // here if max_buffered_spans was dynamically decreased.
-    //
-    // Otherwise, drop the span.
-    if (!IsReportInProgress()) {
-      FlushOne();
-    } else {
-      dropped_spans_++;
-      options_.metrics_observer->OnSpansDropped(1);
-      return;
+  // Attempt to add the span again in case the transporter decided to flush
+  if (!span_buffer_.Add(span)) {
+    metrics_.OnSpansDropped(1);
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+// FlushWithTimeout
+//--------------------------------------------------------------------------------------------------
+bool ManualRecorder::FlushWithTimeout(
+    std::chrono::system_clock::duration /*timeout*/) noexcept try {
+  std::unique_ptr<ReportRequest> report_request{new ReportRequest{
+      report_request_header_, metrics_.ConsumeDroppedSpans()}};
+  {
+    std::lock_guard<std::mutex> lock_guard{flush_mutex_};
+    auto num_spans = span_buffer_.size();
+    if (num_spans == 0 && report_request->num_dropped_spans() == 0) {
+      // Nothing to do
+      return true;
     }
+    span_buffer_.Consume(
+        num_spans, [&](CircularBufferRange<AtomicUniquePtr<ChainedStream>> &
+                       spans) noexcept {
+          spans.ForEach([&](AtomicUniquePtr<ChainedStream> & span) noexcept {
+            std::unique_ptr<ChainedStream> span_out;
+            span.Swap(span_out);
+            report_request->AddSpan(std::move(span_out));
+            return true;
+          });
+          return true;
+        });
   }
-  builder_.AddSpan(span);
-  if (builder_.num_pending_spans() >= max_buffered_spans) {
-    FlushOne();
-  }
-} catch (const std::exception& e) {
-  logger_.Error("Failed to record span: ", e.what());
-}
-
-//------------------------------------------------------------------------------
-// IsReportInProgress
-//------------------------------------------------------------------------------
-bool ManualRecorder::IsReportInProgress() const noexcept {
-  return encoding_seqno_ > 1 + flushed_seqno_;
-}
-
-//------------------------------------------------------------------------------
-// FlushOne
-//------------------------------------------------------------------------------
-bool ManualRecorder::FlushOne() noexcept try {
-  options_.metrics_observer->OnFlush();
-
-  // If a report is currently in flight, do nothing; and if there are any
-  // pending spans, then the flush is considered to have failed.
-  if (IsReportInProgress()) {
-    return builder_.num_pending_spans() == 0;
-  }
-
-  saved_pending_spans_ = builder_.num_pending_spans();
-  if (saved_pending_spans_ == 0) {
-    return true;
-  }
-  options_.metrics_observer->OnSpansSent(
-      static_cast<int>(saved_pending_spans_));
-  saved_dropped_spans_ = dropped_spans_;
-  builder_.set_pending_client_dropped_spans(dropped_spans_);
-  dropped_spans_ = 0;
-  std::swap(builder_.pending(), active_request_);
-  ++encoding_seqno_;
-  transporter_->Send(active_request_, active_response_, *this);
+  transporter_->Send(std::unique_ptr<BufferChain>{report_request.release()},
+                     *this);
+  metrics_.OnFlush();
   return true;
 } catch (const std::exception& e) {
-  logger_.Error("Failed to Flush: ", e.what());
-  options_.metrics_observer->OnSpansDropped(saved_pending_spans_);
-  dropped_spans_ += saved_pending_spans_;
-  active_request_.Clear();
+  logger_.Error("Failed to flush report: ", e.what());
   return false;
 }
 
-//------------------------------------------------------------------------------
-// FlushWithTimeout
-//------------------------------------------------------------------------------
-bool ManualRecorder::FlushWithTimeout(
-    std::chrono::system_clock::duration /*timeout*/) noexcept {
-  if (disabled_) {
-    return false;
-  }
-  return FlushOne();
+//--------------------------------------------------------------------------------------------------
+// OnForkedChild
+//--------------------------------------------------------------------------------------------------
+void ManualRecorder::OnForkedChild() noexcept {
+  metrics_.ConsumeDroppedSpans();
+  span_buffer_.Clear();
 }
 
-//------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
 // OnSuccess
-//------------------------------------------------------------------------------
-void ManualRecorder::OnSuccess() noexcept {
-  ++flushed_seqno_;
-  active_request_.Clear();
-  LogReportResponse(logger_, options_.verbose, active_response_);
-  for (auto& command : active_response_.commands()) {
-    if (command.disable()) {
-      logger_.Warn("Tracer disabled by collector");
-      disabled_ = true;
-    }
+//--------------------------------------------------------------------------------------------------
+void ManualRecorder::OnSuccess(BufferChain& message) noexcept {
+  auto report_request = dynamic_cast<ReportRequest*>(&message);
+  assert(report_request != nullptr);
+  if (report_request == nullptr) {
+    // This should never happen
+    return;
   }
+  metrics_.OnSpansSent(report_request->num_spans());
 }
 
-//------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
 // OnFailure
-//------------------------------------------------------------------------------
-void ManualRecorder::OnFailure(std::error_code error) noexcept {
-  ++flushed_seqno_;
-  active_request_.Clear();
-  options_.metrics_observer->OnSpansDropped(
-      static_cast<int>(saved_pending_spans_));
-  dropped_spans_ += saved_dropped_spans_ + saved_pending_spans_;
-  logger_.Error("Failed to send report: ", error.message());
+//--------------------------------------------------------------------------------------------------
+void ManualRecorder::OnFailure(BufferChain& message) noexcept {
+  auto report_request = dynamic_cast<ReportRequest*>(&message);
+  assert(report_request != nullptr);
+  if (report_request == nullptr) {
+    // This should never happen
+    return;
+  }
+  metrics_.OnSpansDropped(report_request->num_spans());
+  metrics_.UnconsumeDroppedSpans(report_request->num_dropped_spans());
 }
 }  // namespace lightstep

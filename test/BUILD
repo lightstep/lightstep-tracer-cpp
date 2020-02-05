@@ -19,8 +19,9 @@ lightstep_cc_library(
         "//src/common:utility_lib",
         "//src/network:socket_lib",
         "//src/common:fragment_input_stream_lib",
+        "//src/common:report_request_framing_lib",
         "//src/common:serialization_lib",
-        "//src/common:serialization_chain_lib",
+        "//src/common:chained_stream_lib",
         "//src/common:circular_buffer_lib",
     ],
     external_deps = [
@@ -139,5 +140,15 @@ lightstep_cc_library(
     ],
     deps = [
         "//include/lightstep:tracer_interface",
+    ],
+)
+
+lightstep_cc_library(
+    name = "composable_fragment_input_stream_wrapper_lib",
+    private_hdrs = [
+        "composable_fragment_input_stream_wrapper.h",
+    ],
+    deps = [
+        "//src/common:composable_fragment_input_stream_lib",
     ],
 )

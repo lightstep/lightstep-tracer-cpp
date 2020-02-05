@@ -4,7 +4,7 @@
 #include <cassert>
 
 #include "common/random.h"
-#include "recorder/stream_recorder/utility.h"
+#include "recorder/serialization/report_request_header.h"
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -13,15 +13,14 @@ namespace lightstep {
 SatelliteStreamer::SatelliteStreamer(
     Logger& logger, EventBase& event_base,
     const LightStepTracerOptions& tracer_options,
-    const StreamRecorderOptions& recorder_options,
-    StreamRecorderMetrics& metrics,
-    CircularBuffer<SerializationChain>& span_buffer)
+    const StreamRecorderOptions& recorder_options, MetricsTracker& metrics,
+    CircularBuffer<ChainedStream>& span_buffer)
     : logger_{logger},
       event_base_{event_base},
       tracer_options_{tracer_options},
       recorder_options_{recorder_options},
       header_common_fragment_{
-          WriteStreamHeaderCommonFragment(tracer_options, GenerateId())},
+          WriteReportRequestHeader(tracer_options, GenerateId())},
       endpoint_manager_{logger, event_base, tracer_options, recorder_options,
                         [this] { this->OnEndpointManagerReady(); }},
       span_buffer_{span_buffer},

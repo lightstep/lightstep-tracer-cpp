@@ -1,8 +1,8 @@
 #pragma once
 
+#include "common/chained_stream.h"
 #include "common/circular_buffer.h"
-#include "common/serialization_chain.h"
-#include "recorder/stream_recorder/stream_recorder_metrics.h"
+#include "recorder/metrics_tracker.h"
 
 namespace lightstep {
 /**
@@ -11,8 +11,8 @@ namespace lightstep {
  */
 class SpanStream final : public FragmentInputStream {
  public:
-  SpanStream(CircularBuffer<SerializationChain>& span_buffer,
-             StreamRecorderMetrics& metrics) noexcept;
+  SpanStream(CircularBuffer<ChainedStream>& span_buffer,
+             MetricsTracker& metrics) noexcept;
 
   /**
    * Allots spans from the associated circular buffer to stream to satellites.
@@ -23,12 +23,12 @@ class SpanStream final : public FragmentInputStream {
    * Returns and removes the last partially written span.
    * @return the last partially written span
    */
-  std::unique_ptr<SerializationChain> ConsumeRemnant() noexcept;
+  std::unique_ptr<ChainedStream> ConsumeRemnant() noexcept;
 
   /**
-   * @return the associagted StreamRecorderMetrics
+   * @return the associagted MetricsTracker
    */
-  StreamRecorderMetrics& metrics() const noexcept { return metrics_; }
+  MetricsTracker& metrics() const noexcept { return metrics_; }
 
   // FragmentInputStream
   int num_fragments() const noexcept override;
@@ -40,9 +40,9 @@ class SpanStream final : public FragmentInputStream {
   void Seek(int fragment_index, int position) noexcept override;
 
  private:
-  CircularBuffer<SerializationChain>& span_buffer_;
-  StreamRecorderMetrics& metrics_;
-  CircularBufferRange<const AtomicUniquePtr<SerializationChain>> allotment_;
-  std::unique_ptr<SerializationChain> remnant_;
+  CircularBuffer<ChainedStream>& span_buffer_;
+  MetricsTracker& metrics_;
+  CircularBufferRange<const AtomicUniquePtr<ChainedStream>> allotment_;
+  std::unique_ptr<ChainedStream> remnant_;
 };
 }  // namespace lightstep

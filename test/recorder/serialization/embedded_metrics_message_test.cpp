@@ -1,4 +1,4 @@
-#include "recorder/stream_recorder/embedded_metrics_message.h"
+#include "recorder/serialization/embedded_metrics_message.h"
 
 #include "3rd_party/catch2/catch.hpp"
 using namespace lightstep;

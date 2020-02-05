@@ -144,7 +144,7 @@ struct LightStepTracerOptions {
   // default transporter is used.
   //
   // If `use_thread` is false, `transporter` should be derived from
-  // AsyncTransporter; otherwise, it must be derived from SyncTransporter.
+  // LegacyAsyncTransporter; otherwise, it must be derived from SyncTransporter.
   std::unique_ptr<Transporter> transporter;
 
   // `metrics_observer` can be optionally provided to track LightStep tracer

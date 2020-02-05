@@ -3,9 +3,10 @@
 #include <chrono>
 #include <memory>
 
-#include "common/serialization_chain.h"
+#include "common/chained_stream.h"
 #include "common/timestamp.h"
 
+#include <google/protobuf/io/coded_stream.h>
 #include <lightstep/tracer.h>
 #include "lightstep-tracer-common/collector.pb.h"
 
@@ -23,18 +24,24 @@ class Recorder {
   Recorder& operator=(Recorder&&) = delete;
   Recorder& operator=(const Recorder&) = delete;
 
+  virtual Fragment ReserveHeaderSpace(ChainedStream& /*stream*/) { return {}; }
+
+  virtual void WriteFooter(
+      google::protobuf::io::CodedOutputStream& /*coded_stream*/) {}
+
+  /**
+   * Record a Span
+   * @header_fragment the fragment reserved to hold header framing for the span
+   * @span the serialization of a protobuf span and framing
+   */
+  virtual void RecordSpan(Fragment /*header_fragment*/,
+                          std::unique_ptr<ChainedStream>&& /*span*/) noexcept {}
+
   /**
    * Record a Span
    * @span the protobuf span
    */
   virtual void RecordSpan(const collector::Span& /*span*/) noexcept {}
-
-  /**
-   * Record a Span
-   * @span the serialization of a protobuf span and framing
-   */
-  virtual void RecordSpan(
-      std::unique_ptr<SerializationChain>&& /*span*/) noexcept {}
 
   /**
    * Block until the recorder is flushed or a time limit is exceeded.

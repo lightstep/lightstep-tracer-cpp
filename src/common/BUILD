@@ -14,6 +14,16 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "buffer_chain_lib",
+    srcs = [
+        "buffer_chain.cpp",
+    ],
+    deps = [
+        "//include/lightstep:buffer_chain_interface",
+    ],
+)
+
+lightstep_cc_library(
     name = "spin_lock_mutex_lib",
     private_hdrs = [
         "spin_lock_mutex.h",
@@ -31,18 +41,17 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
-    name = "serialization_chain_lib",
+    name = "chained_stream_lib",
     private_hdrs = [
-        "serialization_chain.h",
+        "chained_stream.h",
     ],
     srcs = [
-        "serialization_chain.cpp",
+        "chained_stream.cpp",
     ],
     deps = [
         ":fragment_input_stream_lib",
         ":noncopyable_lib",
-        ":hex_conversion_lib",
-        ":serialization_lib",
+        ":composable_fragment_input_stream_lib",
     ],
     external_deps = [
         "@com_google_protobuf//:protobuf",
@@ -217,6 +226,19 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "composable_fragment_input_stream_lib",
+    private_hdrs = [
+        "composable_fragment_input_stream.h",
+    ],
+    srcs = [
+        "composable_fragment_input_stream.cpp",
+    ],
+    deps = [
+        ":fragment_input_stream_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "fragment_array_input_stream_lib",
     private_hdrs = [
         "fragment_array_input_stream.h",
@@ -243,6 +265,36 @@ lightstep_cc_library(
     ],
     external_deps = [
         "@com_google_protobuf//:protobuf",
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
+
+lightstep_cc_library(
+    name = "report_request_framing_lib",
+    private_hdrs = [
+        "report_request_framing.h",
+    ],
+    srcs = [
+        "report_request_framing.cpp",
+    ],
+    deps = [
+        ":serialization_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "chunked_http_framing_lib",
+    private_hdrs = [
+        "chunked_http_framing.h",
+    ],
+    srcs = [
+        "chunked_http_framing.cpp",
+    ],
+    deps = [
+        ":serialization_lib",
+        ":hex_conversion_lib",
+    ],
+    external_deps = [
         "@io_opentracing_cpp//:opentracing",
     ],
 )

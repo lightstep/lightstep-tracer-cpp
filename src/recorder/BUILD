@@ -35,10 +35,13 @@ lightstep_cc_library(
       "recorder.h",
     ],
     deps = [
-        "//src/common:serialization_chain_lib",
+        "//src/common:chained_stream_lib",
         "//src/common:timestamp_lib",
         "//lightstep-tracer-common:collector_proto_cc",
         "//include/lightstep:tracer_interface",
+    ],
+    external_deps = [
+        "@com_google_protobuf//:protobuf",
     ],
 )
 
@@ -73,6 +76,24 @@ lightstep_cc_library(
 )
 
 lightstep_cc_library(
+    name = "legacy_manual_recorder_lib",
+    private_hdrs = [
+        "legacy_manual_recorder.h",
+    ],
+    srcs = [
+        "legacy_manual_recorder.cpp",
+    ],
+    deps = [
+        "//src/common:logger_lib",
+        "//src/common:noncopyable_lib",
+        "//src/common:utility_lib",
+        ":recorder_interface",
+        ":report_builder_lib",
+        ":transporter_lib",
+    ],
+)
+
+lightstep_cc_library(
     name = "manual_recorder_lib",
     private_hdrs = [
         "manual_recorder.h",
@@ -83,9 +104,14 @@ lightstep_cc_library(
     deps = [
         "//src/common:logger_lib",
         "//src/common:noncopyable_lib",
+        "//src/common:random_lib",
+        "//src/common:report_request_framing_lib",
         "//src/common:utility_lib",
-        ":recorder_interface",
-        ":report_builder_lib",
+        "//src/common:circular_buffer_lib",
+        "//src/recorder:metrics_tracker_lib",
+        "//src/recorder/serialization:report_request_lib",
+        "//src/recorder/serialization:report_request_header_lib",
+        ":fork_aware_recorder_lib",
         ":transporter_lib",
     ],
 )
@@ -139,5 +165,18 @@ lightstep_cc_library(
     ],
     deps = [
         ":stream_recorder_interface",
+    ],
+)
+
+lightstep_cc_library(
+    name = "metrics_tracker_lib",
+    private_hdrs = [
+        "metrics_tracker.h",
+    ],
+    srcs = [
+        "metrics_tracker.cpp",
+    ],
+    deps = [
+        "//include/lightstep:tracer_interface",
     ],
 )

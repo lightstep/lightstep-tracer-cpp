@@ -1,55 +1,66 @@
-#include "in_memory_async_transporter.h"
+#include "test/recorder/in_memory_async_transporter.h"
+
+#include <algorithm>
+#include <iterator>
+#include <string>
 
 namespace lightstep {
-//------------------------------------------------------------------------------
-// Send
-//------------------------------------------------------------------------------
-void InMemoryAsyncTransporter::Send(const google::protobuf::Message& request,
-                                    google::protobuf::Message& response,
-                                    AsyncTransporter::Callback& callback) {
-  active_request_ = &request;
-  active_response_ = &response;
-  active_callback_ = &callback;
-}
+//--------------------------------------------------------------------------------------------------
+// constructor
+//--------------------------------------------------------------------------------------------------
+InMemoryAsyncTransporter::InMemoryAsyncTransporter(
+    std::function<void()> on_span_buffer_full)
+    : on_span_buffer_full_{std::move(on_span_buffer_full)} {}
 
-//------------------------------------------------------------------------------
-// Write
-//------------------------------------------------------------------------------
-void InMemoryAsyncTransporter::Write() {
-  if (active_request_ == nullptr || active_response_ == nullptr ||
-      active_callback_ == nullptr) {
-    std::cerr << "No context, success callback, or request\n";
+//--------------------------------------------------------------------------------------------------
+// Succeed
+//--------------------------------------------------------------------------------------------------
+void InMemoryAsyncTransporter::Succeed() noexcept {
+  if (active_callback_ == nullptr || active_message_ == nullptr) {
     std::terminate();
   }
-  const auto& report =
-      dynamic_cast<const collector::ReportRequest&>(*active_request_);
-  reports_.push_back(report);
-
-  spans_.reserve(spans_.size() + report.spans_size());
-  for (auto& span : report.spans()) {
-    spans_.push_back(span);
+  std::string s(active_message_->num_bytes(), ' ');
+  active_message_->CopyOut(&s[0], s.size());
+  collector::ReportRequest report;
+  if (!report.ParseFromString(s)) {
+    std::terminate();
   }
+  reports_.emplace_back(report);
+  std::copy(report.spans().begin(), report.spans().end(),
+            std::back_inserter(spans_));
 
-  active_response_->CopyFrom(*Transporter::MakeCollectorResponse());
-  if (should_disable_) {
-    collector::Command command;
-    command.set_disable(true);
-    auto& report_response =
-        dynamic_cast<collector::ReportResponse&>(*active_response_);
-    *report_response.add_commands() = command;
-  }
-  active_callback_->OnSuccess();
+  active_callback_->OnSuccess(*active_message_);
+  active_callback_ = nullptr;
+  active_message_.reset();
 }
 
-//------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
 // Fail
-//------------------------------------------------------------------------------
-void InMemoryAsyncTransporter::Fail(std::error_code error) {
-  if (active_callback_ == nullptr) {
-    std::cerr << "No context or failure callback\n";
+//--------------------------------------------------------------------------------------------------
+void InMemoryAsyncTransporter::Fail() noexcept {
+  if (active_callback_ == nullptr || active_message_ == nullptr) {
     std::terminate();
   }
+  active_callback_->OnFailure(*active_message_);
+  active_callback_ = nullptr;
+  active_message_.reset();
+}
 
-  active_callback_->OnFailure(error);
+//--------------------------------------------------------------------------------------------------
+// OnSpanBufferFull
+//--------------------------------------------------------------------------------------------------
+void InMemoryAsyncTransporter::OnSpanBufferFull() noexcept {
+  if (on_span_buffer_full_) {
+    on_span_buffer_full_();
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+// Send
+//--------------------------------------------------------------------------------------------------
+void InMemoryAsyncTransporter::Send(std::unique_ptr<BufferChain>&& message,
+                                    Callback& callback) noexcept {
+  active_callback_ = &callback;
+  active_message_ = std::move(message);
 }
 }  // namespace lightstep

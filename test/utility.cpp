@@ -7,8 +7,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "common/report_request_framing.h"
 #include "common/serialization.h"
-#include "common/serialization_chain.h"
 #include "common/utility.h"
 #include "network/socket.h"
 
@@ -103,16 +103,17 @@ std::string ToString(const FragmentInputStream& fragment_input_stream) {
 }
 
 //--------------------------------------------------------------------------------------------------
-// AddString
+// AddSpanChunkFramedString
 //--------------------------------------------------------------------------------------------------
-bool AddString(CircularBuffer<SerializationChain>& buffer,
-               const std::string& s) {
-  std::unique_ptr<SerializationChain> chain{new SerializationChain{}};
+bool AddSpanChunkFramedString(CircularBuffer<ChainedStream>& buffer,
+                              const std::string& s) {
+  auto framed_s = AddSpanChunkFraming(s);
+  std::unique_ptr<ChainedStream> chain{new ChainedStream{}};
   {
     google::protobuf::io::CodedOutputStream stream{chain.get()};
-    stream.WriteString(s);
+    stream.WriteString(framed_s);
   }
-  chain->AddFraming();
+  chain->CloseOutput();
   return buffer.Add(chain);
 }
 
@@ -125,8 +126,7 @@ std::string AddSpanChunkFraming(opentracing::string_view s) {
     {
       google::protobuf::io::OstreamOutputStream zero_copy_stream{&oss};
       google::protobuf::io::CodedOutputStream stream{&zero_copy_stream};
-      WriteKeyLength<SerializationChain::ReportRequestSpansField>(stream,
-                                                                  s.size());
+      WriteKeyLength<ReportRequestSpansField>(stream, s.size());
     }
     return oss.str();
   }();

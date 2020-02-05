@@ -46,14 +46,14 @@ GenerateRandomBinaryNumber(size_t max_digits) {
 //--------------------------------------------------------------------------------------------------
 // GenerateRandomBinaryNumbers
 //--------------------------------------------------------------------------------------------------
-static void GenerateRandomBinaryNumbers(
-    CircularBuffer<SerializationChain>& buffer, std::vector<uint32_t>& numbers,
-    size_t n) {
+static void GenerateRandomBinaryNumbers(CircularBuffer<ChainedStream>& buffer,
+                                        std::vector<uint32_t>& numbers,
+                                        size_t n) {
   while (n-- != 0) {
     uint32_t x;
     opentracing::string_view s;
     std::tie(x, s) = GenerateRandomBinaryNumber(32);
-    if (AddString(buffer, s)) {
+    if (AddSpanChunkFramedString(buffer, s)) {
       numbers.push_back(x);
     }
   }
@@ -163,7 +163,7 @@ static bool HasPendingData(ConnectionStream& connection_stream) {
 //--------------------------------------------------------------------------------------------------
 // RunBinaryNumberProducer
 //--------------------------------------------------------------------------------------------------
-void RunBinaryNumberProducer(CircularBuffer<SerializationChain>& buffer,
+void RunBinaryNumberProducer(CircularBuffer<ChainedStream>& buffer,
                              std::vector<uint32_t>& numbers, size_t num_threads,
                              size_t n) {
   std::vector<std::vector<uint32_t>> thread_numbers(num_threads);

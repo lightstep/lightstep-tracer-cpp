@@ -195,6 +195,7 @@ include(LightStepTracerCommon)
 include(LightStepTracerConfiguration)
 
 set(LIGHTSTEP_SRCS src/common/utility.cpp
+                   src/common/buffer_chain.cpp
                    src/common/fragment_input_stream.cpp
                    src/common/fragment_array_input_stream.cpp
                    src/common/protobuf.cpp
@@ -204,13 +205,20 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/common/random.cpp
                    src/common/random_traverser.cpp
                    src/common/serialization.cpp
-                   src/common/serialization_chain.cpp
+                   src/common/chunked_http_framing.cpp
+                   src/common/report_request_framing.cpp
+                   src/common/composable_fragment_input_stream.cpp
+                   src/common/chained_stream.cpp
                    src/common/timestamp.cpp
                    src/recorder/report_builder.cpp
                    src/recorder/auto_recorder.cpp
                    src/recorder/fork_aware_recorder.cpp
+                   src/recorder/legacy_manual_recorder.cpp
                    src/recorder/manual_recorder.cpp
                    src/recorder/transporter.cpp
+                   src/recorder/serialization/report_request.cpp
+                   src/recorder/serialization/report_request_header.cpp
+                   src/recorder/serialization/embedded_metrics_message.cpp
                    src/tracer/binary_carrier.cpp
                    src/tracer/json_options.cpp
                    src/tracer/propagation/b3_propagator.cpp
@@ -266,10 +274,9 @@ if (WITH_LIBEVENT)
                              src/recorder/stream_recorder/satellite_connection.cpp
                              src/recorder/stream_recorder/satellite_streamer.cpp
                              src/recorder/stream_recorder/span_stream.cpp
-                             src/recorder/stream_recorder/stream_recorder_metrics.cpp
+                             src/recorder/metrics_tracker.cpp
                              src/recorder/stream_recorder/connection_stream.cpp
                              src/recorder/stream_recorder/host_header.cpp
-                             src/recorder/stream_recorder/embedded_metrics_message.cpp
                              src/recorder/stream_recorder/status_line_parser.cpp
                              src/recorder/stream_recorder/utility.cpp
                              src/network/event.cpp

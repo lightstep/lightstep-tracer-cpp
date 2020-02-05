@@ -16,11 +16,26 @@ lightstep_cc_library(
         "in_memory_recorder.cpp",
     ],
     deps = [
+        "//src/common:buffer_chain_lib",
         "//src/recorder:recorder_interface",
         "//test:utility_lib",
+        "//lightstep-tracer-common:collector_proto_cc",
     ],
 )
 
+lightstep_cc_library(
+    name = "legacy_in_memory_async_transporter_lib",
+    private_hdrs = [
+        "legacy_in_memory_async_transporter.h",
+    ],
+    srcs = [
+        "legacy_in_memory_async_transporter.cpp",
+    ],
+    deps = [
+        "//src/recorder:transporter_lib",
+    ],
+
+)
 lightstep_cc_library(
     name = "in_memory_async_transporter_lib",
     private_hdrs = [
@@ -30,6 +45,7 @@ lightstep_cc_library(
         "in_memory_async_transporter.cpp",
     ],
     deps = [
+        "//src/common:buffer_chain_lib",
         "//src/recorder:transporter_lib",
     ],
 )
@@ -44,6 +60,20 @@ lightstep_cc_library(
     ],
     deps = [
         "//src/recorder:transporter_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "legacy_manual_recorder_test",
+    srcs = [
+        "legacy_manual_recorder_test.cpp",
+    ],
+    deps = [
+        "//:manual_tracer_lib",
+        "//src/tracer:counting_metrics_observer_lib",
+        "//test:utility_lib",
+        "//test:testing_condition_variable_wrapper_lib",
+        ":legacy_in_memory_async_transporter_lib",
     ],
 )
 

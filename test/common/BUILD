@@ -162,6 +162,19 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
+    name = "composable_fragment_input_stream_test",
+    srcs = [
+        "composable_fragment_input_stream_test.cpp",
+    ],
+    deps = [
+        "//src/common:composable_fragment_input_stream_lib",
+        "//src/common:fragment_array_input_stream_lib",
+        "//test:utility_lib",
+        "//test:composable_fragment_input_stream_wrapper_lib",
+    ],
+)
+
+lightstep_catch_test(
     name = "fragment_array_input_stream_test",
     srcs = [
         "fragment_array_input_stream_test.cpp",
@@ -173,12 +186,12 @@ lightstep_catch_test(
 )
 
 lightstep_catch_test(
-    name = "serialization_chain_test",
+    name = "chained_stream_test",
     srcs = [
-        "serialization_chain_test.cpp",
+        "chained_stream_test.cpp",
     ],
     deps = [
-        "//src/common:serialization_chain_lib",
+        "//src/common:chained_stream_lib",
         "//test:utility_lib",
     ],
 )
@@ -226,5 +239,26 @@ lightstep_catch_test(
     ],
     deps = [
         "//src/common:timestamp_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "report_request_framing_test",
+    srcs = [
+        "report_request_framing_test.cpp",
+    ],
+    deps = [
+        "//lightstep-tracer-common:collector_proto_cc",
+        "//src/common:report_request_framing_lib",
+    ],
+)
+
+lightstep_catch_test(
+    name = "chunked_http_framing_test",
+    srcs = [
+        "chunked_http_framing_test.cpp",
+    ],
+    deps = [
+        "//src/common:chunked_http_framing_lib",
     ],
 )

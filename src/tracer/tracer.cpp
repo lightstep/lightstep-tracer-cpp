@@ -14,6 +14,7 @@
 #include "lightstep/version.h"
 #include "recorder/auto_recorder.h"
 #include "recorder/grpc_transporter.h"
+#include "recorder/legacy_manual_recorder.h"
 #include "recorder/manual_recorder.h"
 #include "recorder/stream_recorder.h"
 #include "tracer/immutable_span_context.h"
@@ -135,6 +136,34 @@ static std::shared_ptr<LightStepTracer> MakeStreamTracer(
 }
 
 //------------------------------------------------------------------------------
+// MakeLegacySingleThreadedTracer
+//------------------------------------------------------------------------------
+static std::shared_ptr<LightStepTracer> MakeLegacySingleThreadedTracer(
+    std::shared_ptr<Logger> logger, LightStepTracerOptions&& options) {
+  std::unique_ptr<LegacyAsyncTransporter> transporter;
+  if (options.transporter != nullptr) {
+    transporter = std::unique_ptr<LegacyAsyncTransporter>{
+        dynamic_cast<LegacyAsyncTransporter*>(options.transporter.get())};
+    if (transporter == nullptr) {
+      logger->Error(
+          "`options.transporter` must be derived from AsyncTransporter "
+          "LegacyAsyncTransporter");
+      return nullptr;
+    }
+    options.transporter.release();
+  } else {
+    logger->Error(
+        "`options.transporter` must be set if `options.use_thread` is false");
+    return nullptr;
+  }
+  auto propagation_options = MakePropagationOptions(options);
+  auto recorder = std::unique_ptr<Recorder>{new LegacyManualRecorder{
+      *logger, std::move(options), std::move(transporter)}};
+  return std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
+      std::move(logger), std::move(propagation_options), std::move(recorder)}};
+}
+
+//------------------------------------------------------------------------------
 // MakeSingleThreadedTracer
 //------------------------------------------------------------------------------
 static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
@@ -144,9 +173,7 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
     transporter = std::unique_ptr<AsyncTransporter>{
         dynamic_cast<AsyncTransporter*>(options.transporter.get())};
     if (transporter == nullptr) {
-      logger->Error(
-          "`options.transporter` must be derived from AsyncTransporter");
-      return nullptr;
+      return MakeLegacySingleThreadedTracer(logger, std::move(options));
     }
     options.transporter.release();
   } else {
@@ -157,7 +184,7 @@ static std::shared_ptr<LightStepTracer> MakeSingleThreadedTracer(
   auto propagation_options = MakePropagationOptions(options);
   auto recorder = std::unique_ptr<Recorder>{
       new ManualRecorder{*logger, std::move(options), std::move(transporter)}};
-  return std::shared_ptr<LightStepTracer>{new LegacyTracerImpl{
+  return std::shared_ptr<LightStepTracer>{new TracerImpl{
       std::move(logger), std::move(propagation_options), std::move(recorder)}};
 }
 

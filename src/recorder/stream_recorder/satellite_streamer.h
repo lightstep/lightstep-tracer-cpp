@@ -5,10 +5,10 @@
 
 #include "common/noncopyable.h"
 #include "common/random_traverser.h"
+#include "recorder/metrics_tracker.h"
 #include "recorder/stream_recorder/satellite_connection.h"
 #include "recorder/stream_recorder/satellite_endpoint_manager.h"
 #include "recorder/stream_recorder/span_stream.h"
-#include "recorder/stream_recorder/stream_recorder_metrics.h"
 
 namespace lightstep {
 /**
@@ -19,8 +19,8 @@ class SatelliteStreamer : private Noncopyable {
   SatelliteStreamer(Logger& logger, EventBase& event_base,
                     const LightStepTracerOptions& tracer_options,
                     const StreamRecorderOptions& recorder_options,
-                    StreamRecorderMetrics& metrics,
-                    CircularBuffer<SerializationChain>& span_buffer);
+                    MetricsTracker& metrics,
+                    CircularBuffer<ChainedStream>& span_buffer);
 
   /**
    * @return the associated Logger.
@@ -90,7 +90,7 @@ class SatelliteStreamer : private Noncopyable {
   const StreamRecorderOptions& recorder_options_;
   std::string header_common_fragment_;
   SatelliteEndpointManager endpoint_manager_;
-  CircularBuffer<SerializationChain>& span_buffer_;
+  CircularBuffer<ChainedStream>& span_buffer_;
   SpanStream span_stream_;
   std::vector<std::unique_ptr<SatelliteConnection>> connections_;
   RandomTraverser connection_traverser_;
