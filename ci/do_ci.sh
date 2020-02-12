@@ -138,7 +138,7 @@ elif [[ "$1" == "plugin" ]]; then
   cp bazel-bin/test/mock_satellite/mock_satellite /plugin
   cp bazel-bin/test/mock_satellite/mock_satellite_query /plugin
   cp bazel-bin/test/tracer/span_probe /plugin
-  cp bazel-genfiles/bridge/python/wheel.tgz /
+  cp bazel-bin/bridge/python/wheel.tgz /
   cd /
   tar zxf wheel.tgz
   cp wheel/* plugin/
