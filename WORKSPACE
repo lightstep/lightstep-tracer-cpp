@@ -76,10 +76,6 @@ git_repository(
     commit = "8cf19cfdd840731bb31665a757fd1074e58e8ce4",
 )
 
-load("@build_stack_rules_proto//cpp:deps.bzl", "cpp_grpc_compile")
-
-cpp_grpc_compile()
-
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 
 grpc_deps()
