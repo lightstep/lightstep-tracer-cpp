@@ -155,6 +155,7 @@ TEST_CASE("StreamRecorder") {
   }
 
   SECTION("Spans drop when the recorder's buffer fills.") {
+    mock_satellite->SetThrottleReports();
     std::atomic<bool> stop{false};
     std::thread generator{GenerateSpans, std::ref(stop), std::ref(*tracer)};
     REQUIRE(IsEventuallyTrue([&] {
