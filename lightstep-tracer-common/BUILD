@@ -43,8 +43,4 @@ cc_grpc_library(
     ],
     grpc_only = True,
     visibility = ["//visibility:public"],
-    # deps = [
-    #     "@com_github_grpc_grpc//:grpc++",
-    #     "@com_github_grpc_grpc//:grpc++_reflection",
-    # ],
 )

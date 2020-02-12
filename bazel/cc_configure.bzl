@@ -87,45 +87,6 @@ def cc_autoconf_impl(repository_ctx):
         overriden_tools["gcc"] = _build_proj_cc_wrapper(repository_ctx)
     return _upstream_cc_autoconf_impl(repository_ctx, overriden_tools = overriden_tools)
 
-# cc_autoconf = repository_rule(
-#     implementation = cc_autoconf_impl,
-#     attrs = {
-#         "_proj_cc_wrapper": attr.label(default = "@com_lightstep_tracer_cpp//bazel:cc_wrapper.py"),
-#     },
-#     environ = [
-#         "ABI_LIBC_VERSION",
-#         "ABI_VERSION",
-#         "BAZEL_COMPILER",
-#         "BAZEL_HOST_SYSTEM",
-#         "BAZEL_PYTHON",
-#         "BAZEL_SH",
-#         "BAZEL_TARGET_CPU",
-#         "BAZEL_TARGET_LIBC",
-#         "BAZEL_TARGET_SYSTEM",
-#         "BAZEL_USE_CPP_ONLY_TOOLCHAIN",
-#         "BAZEL_VC",
-#         "BAZEL_VS",
-#         "CC",
-#         "CXX",
-#         "CC_CONFIGURE_DEBUG",
-#         "CC_TOOLCHAIN_NAME",
-#         "CPLUS_INCLUDE_PATH",
-#         "CUDA_COMPUTE_CAPABILITIES",
-#         "CUDA_PATH",
-#         "CXX",
-#         "HOMEBREW_RUBY_PATH",
-#         "NO_WHOLE_ARCHIVE_OPTION",
-#         "USE_DYNAMIC_CRT",
-#         "USE_MSVC_WRAPPER",
-#         "SYSTEMROOT",
-#         "VS90COMNTOOLS",
-#         "VS100COMNTOOLS",
-#         "VS110COMNTOOLS",
-#         "VS120COMNTOOLS",
-#         "VS140COMNTOOLS",
-#     ],
-# )
-
 MSVC_ENVVARS = [
     "BAZEL_VC",
     "BAZEL_VC_FULL_VERSION",
