@@ -99,7 +99,7 @@ elif [[ "$1" == "bazel.tsan" ]]; then
            -//test/recorder/stream_recorder:stream_recorder_fork_test # This test hangs forever when run with tsan
   exit 0
 elif [[ "$1" == "bazel.benchmark" ]]; then
-  export BENCHMARK_SRC_DIR=bazel-genfiles/benchmark
+  export BENCHMARK_SRC_DIR=bazel-bin/benchmark
   export BENCHMARK_DST_DIR=/benchmark
   bazel build -c opt \
         $BAZEL_OPTIONS \
