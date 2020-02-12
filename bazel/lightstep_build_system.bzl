@@ -68,6 +68,7 @@ def lightstep_cc_library(name,
                      external_deps = [],
                      deps = [],
                      data = [],
+                     alwayslink = True,
                      is_3rd_party = False,
                      strip_include_prefix = None):
   native.cc_library(
@@ -82,6 +83,7 @@ def lightstep_cc_library(name,
       linkstatic = 1,
       include_prefix = lightstep_include_prefix(native.package_name()),
       visibility = visibility,
+      alwayslink = alwayslink,
       strip_include_prefix = strip_include_prefix,
   )
 

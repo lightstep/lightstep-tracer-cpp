@@ -16,6 +16,6 @@ py_test(
         requirement("opentracing"),
     ],
     data = [
-        "//bridge/python/binary/py27mu:lightstep_streaming.so",
+        "//bridge/python/binary/py3:lightstep_streaming.so",
     ],
 )

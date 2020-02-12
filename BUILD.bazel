@@ -73,6 +73,7 @@ lightstep_portable_cc_binary(
     linkshared = 1,
     linkopts = [
         "-Wl,--version-script=$(location :tracer-export-map.ld)",
+        "-Wl,--undefined=OpenTracingMakeTracerFactory",
     ],
     deps = [
         ":tracer-export-map.ld",
