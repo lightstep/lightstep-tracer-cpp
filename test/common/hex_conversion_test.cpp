@@ -135,7 +135,7 @@ TEST_CASE("hex-integer conversions (128-bit)") {
     auto s2 =
         "FFFFFFFFFFFFFFFx"
         "FFFFFFFFFFFFFFFF";
-    REQUIRE(!HexToUint128(s1, x_high, x_low));
+    REQUIRE(!HexToUint128(s2, x_high, x_low));
   }
 
   SECTION("Verify hex conversion fails on overflow") {
