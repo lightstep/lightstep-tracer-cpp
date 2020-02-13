@@ -16,7 +16,7 @@ go_proto_library(
     proto = "//lightstep-tracer-common:collector_proto",
     importpath = "github.com/lightstep/lightstep-tracer-cpp/lightstep-tracer-common",
     deps = [
-        "@com_github_googleapis_googleapis//google/api:annotations_go_proto",
+        "@com_github_googleapis//google/api:annotations_go_proto",
     ],
 )
 
