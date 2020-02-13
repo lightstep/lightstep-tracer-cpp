@@ -4,7 +4,7 @@ proto_library(
     name = "collector_proto",
     srcs = ["collector.proto"],
     deps = [
-        "@com_github_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:descriptor_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],

@@ -38,11 +38,11 @@ load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 protobuf_deps()
 
 git_repository(
-    name = "com_github_googleapis",
+    name = "com_google_googleapis",
     remote = "https://github.com/googleapis/googleapis",
     commit = "e46f761cd6ec15a9e3d5ed4ff321a4bcba8e8585",
 )
-load("@com_github_googleapis//:repository_rules.bzl", "switched_rules_by_language")
+load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
 switched_rules_by_language(
     name = "com_google_googleapis_imports",
     grpc = True,
