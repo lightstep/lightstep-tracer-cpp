@@ -6,13 +6,13 @@ cmake_minimum_required(VERSION 3.1)
 # Allows us to control options via normal variables
 # this is used for the windows build
 # See https://cmake.org/cmake/help/git-stage/policy/CMP0077.html
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0") 
+if(NOT (${CMAKE_VERSION} VERSION_LESS "3.13.0"))
   cmake_policy(SET CMP0077 NEW)
 endif()
 
 # Allows us to specify the MSVC runtime via cmake variables
 # See https://cmake.org/cmake/help/git-stage/policy/CMP0091.html
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.15.0") 
+if(NOT (${CMAKE_VERSION} VERSION_LESS "3.15.0"))
   cmake_policy(SET CMP0091 NEW)
 endif()
 
