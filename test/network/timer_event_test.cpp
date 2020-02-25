@@ -6,9 +6,9 @@
 
 using namespace lightstep;
 
-static const auto TestingCallbackInterval = std::chrono::milliseconds{600};
-static const auto TestingDuration = std::chrono::milliseconds{2000};
-static const auto TestingEpsilon = std::chrono::milliseconds{100};
+static const auto TestingCallbackInterval = std::chrono::milliseconds{900};
+static const auto TestingDuration = std::chrono::milliseconds{3000};
+static const auto TestingEpsilon = std::chrono::milliseconds{150};
 
 namespace {
 struct CallbackContext {

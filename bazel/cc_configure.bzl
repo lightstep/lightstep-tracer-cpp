@@ -1,4 +1,6 @@
-load("@bazel_tools//tools/cpp:cc_configure.bzl", _upstream_cc_autoconf_impl = "cc_autoconf_impl")
+load("@bazel_tools//tools/cpp:cc_configure.bzl", 
+     "cc_autoconf_toolchains",
+     _upstream_cc_autoconf_impl = "cc_autoconf_impl")
 load("@bazel_tools//tools/cpp:lib_cc_configure.bzl", "get_cpu_value")
 load("@bazel_tools//tools/cpp:unix_cc_configure.bzl", "find_cc")
 
@@ -85,8 +87,23 @@ def cc_autoconf_impl(repository_ctx):
         overriden_tools["gcc"] = _build_proj_cc_wrapper(repository_ctx)
     return _upstream_cc_autoconf_impl(repository_ctx, overriden_tools = overriden_tools)
 
+MSVC_ENVVARS = [
+    "BAZEL_VC",
+    "BAZEL_VC_FULL_VERSION",
+    "BAZEL_VS",
+    "BAZEL_WINSDK_FULL_VERSION",
+    "VS90COMNTOOLS",
+    "VS100COMNTOOLS",
+    "VS110COMNTOOLS",
+    "VS120COMNTOOLS",
+    "VS140COMNTOOLS",
+    "VS150COMNTOOLS",
+    "VS160COMNTOOLS",
+    "TMP",
+    "TEMP",
+]
+
 cc_autoconf = repository_rule(
-    implementation = cc_autoconf_impl,
     attrs = {
         "_proj_cc_wrapper": attr.label(default = "@com_lightstep_tracer_cpp//bazel:cc_wrapper.py"),
     },
@@ -95,36 +112,38 @@ cc_autoconf = repository_rule(
         "ABI_VERSION",
         "BAZEL_COMPILER",
         "BAZEL_HOST_SYSTEM",
+        "BAZEL_CXXOPTS",
+        "BAZEL_LINKOPTS",
+        "BAZEL_LINKLIBS",
         "BAZEL_PYTHON",
         "BAZEL_SH",
         "BAZEL_TARGET_CPU",
         "BAZEL_TARGET_LIBC",
         "BAZEL_TARGET_SYSTEM",
         "BAZEL_USE_CPP_ONLY_TOOLCHAIN",
-        "BAZEL_VC",
-        "BAZEL_VS",
+        "BAZEL_USE_XCODE_TOOLCHAIN",
+        "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN",
+        "BAZEL_USE_LLVM_NATIVE_COVERAGE",
+        "BAZEL_LLVM",
+        "BAZEL_IGNORE_SYSTEM_HEADERS_VERSIONS",
+        "USE_CLANG_CL",
         "CC",
-        "CXX",
         "CC_CONFIGURE_DEBUG",
         "CC_TOOLCHAIN_NAME",
         "CPLUS_INCLUDE_PATH",
-        "CUDA_COMPUTE_CAPABILITIES",
-        "CUDA_PATH",
-        "CXX",
+        "GCOV",
         "HOMEBREW_RUBY_PATH",
-        "NO_WHOLE_ARCHIVE_OPTION",
-        "USE_DYNAMIC_CRT",
-        "USE_MSVC_WRAPPER",
         "SYSTEMROOT",
-        "VS90COMNTOOLS",
-        "VS100COMNTOOLS",
-        "VS110COMNTOOLS",
-        "VS120COMNTOOLS",
-        "VS140COMNTOOLS",
-    ],
+    ] + MSVC_ENVVARS,
+    implementation = cc_autoconf_impl,
+    configure = True,
 )
 
 def cc_configure():
+    cc_autoconf_toolchains(name = "local_config_cc_toolchains")
     cc_autoconf(name = "local_config_cc")
     native.bind(name = "cc_toolchain", actual = "@local_config_cc//:toolchain")
-
+    native.register_toolchains(
+        # Use register_toolchain's target pattern expansion to register all toolchains in the package.
+        "@local_config_cc_toolchains//:all",
+    )

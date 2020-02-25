@@ -13,7 +13,7 @@ cc_configure()
 git_repository(
     name = "rules_foreign_cc",
     remote = "https://github.com/bazelbuild/rules_foreign_cc",
-    commit = "bf99a0bf0080bcd50431aa7124ef23e5afd58325",
+    commit = "ed3db61a55c13da311d875460938c42ee8bbc2a5",
 )
 
 load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
@@ -30,13 +30,24 @@ git_repository(
 git_repository(
     name = "com_google_protobuf",
     remote = "https://github.com/protocolbuffers/protobuf.git",
-    commit = "8e5ea65953f3c47e01bca360ecf3abdf2c8b1c33",
+    commit = "498de9f761bef56a032815ee44b6e6dbe0892cc4",
 )
 
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
 git_repository(
-    name = "com_github_googleapis_googleapis",
+    name = "com_google_googleapis",
     remote = "https://github.com/googleapis/googleapis",
-    commit = "41d72d444fbe445f4da89e13be02078734fb7875",
+    commit = "e46f761cd6ec15a9e3d5ed4ff321a4bcba8e8585",
+)
+load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
+switched_rules_by_language(
+    name = "com_google_googleapis_imports",
+    grpc = True,
+    cc = True,
+    go = True,
 )
 
 http_archive(
@@ -60,24 +71,18 @@ http_archive(
 )
 
 git_repository(
-    name = "build_stack_rules_proto",
-    remote = "https://github.com/stackb/rules_proto",
-    commit = "4c2226458203a9653ae722245cc27e8b07c383f7",
-)
-
-git_repository(
     name = "com_github_grpc_grpc",
     remote = "https://github.com/grpc/grpc",
-    commit = "75475f090875e737ad6909a6057c59577f0c79b1",
+    commit = "8cf19cfdd840731bb31665a757fd1074e58e8ce4",
 )
-
-load("@build_stack_rules_proto//cpp:deps.bzl", "cpp_grpc_compile")
-
-cpp_grpc_compile()
 
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 
 grpc_deps()
+
+load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
+
+grpc_extra_deps()
 
 #######################################
 # Python bridge
@@ -146,20 +151,26 @@ git_repository(
         remote = "https://github.com/gflags/gflags.git"
 )
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 http_archive(
     name = "io_bazel_rules_go",
-    urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.17.0/rules_go-0.17.0.tar.gz"],
-    sha256 = "492c3ac68ed9dcf527a07e6a1b2dcbf199c6bf8b35517951467ac32e421c06c1",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.19.10/rules_go-v0.19.10.tar.gz",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.19.10/rules_go-v0.19.10.tar.gz",
+    ],
+    sha256 = "0a99597dd30ecfd94f64fc64717cd1b6c4bd9807918942a8501a3883990e4b1d",
 )
 
 load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
+
 go_rules_dependencies()
 go_register_toolchains()
 
 http_archive(
     name = "bazel_gazelle",
-    urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.16.0/bazel-gazelle-0.16.0.tar.gz"],
-    sha256 = "7949fc6cc17b5b191103e97481cf8889217263acf52e00b560683413af204fcb",
+    urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.18.2/bazel-gazelle-0.18.2.tar.gz"],
+    sha256 = "7fc87f4170011201b1690326e8c16c5d802836e3a0d617d8f75c3af2b23180c4",
 )
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")

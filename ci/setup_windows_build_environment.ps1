@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 trap { $host.SetShouldExit(1) }
 
-git clone https://github.com/Microsoft/vcpkg.git
+git clone -b 2020.01 https://github.com/Microsoft/vcpkg.git
 cd vcpkg
 $VCPKG_DIR=(Get-Item -Path ".\").FullName
 ./bootstrap-vcpkg.bat

@@ -18,7 +18,7 @@ using namespace lightstep;
 
 static void GenerateSpans(std::atomic<bool>& stop,
                           opentracing::Tracer& tracer) {
-  std::string payload(50000, 'X');
+  std::string payload(100000, 'X');
   while (!stop) {
     auto span = tracer.StartSpan("abc");
     span->SetTag("payload", payload.c_str());
@@ -155,6 +155,7 @@ TEST_CASE("StreamRecorder") {
   }
 
   SECTION("Spans drop when the recorder's buffer fills.") {
+    mock_satellite->SetThrottleReports();
     std::atomic<bool> stop{false};
     std::thread generator{GenerateSpans, std::ref(stop), std::ref(*tracer)};
     REQUIRE(IsEventuallyTrue([&] {
