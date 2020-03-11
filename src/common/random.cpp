@@ -3,7 +3,6 @@
 #include <cassert>
 
 #include "common/platform/fork.h"
-#include "lightstep/randutils.h"
 
 namespace lightstep {
 //------------------------------------------------------------------------------
@@ -17,22 +16,29 @@ namespace lightstep {
 namespace {
 class TlsRandomNumberGenerator {
  public:
-  using BaseGenerator = randutils::random_generator<FastRandomNumberGenerator>;
-
-  TlsRandomNumberGenerator() { AtFork(nullptr, nullptr, OnFork); }
+  TlsRandomNumberGenerator() {
+    Seed();
+    AtFork(nullptr, nullptr, OnFork);
+  }
 
   static FastRandomNumberGenerator& engine() noexcept {
-    return base_generator_.engine();
+    return engine_;
   }
 
  private:
-  static thread_local BaseGenerator base_generator_;
+  static thread_local FastRandomNumberGenerator engine_;
 
-  static void OnFork() noexcept { base_generator_.seed(); }
+  static void OnFork() noexcept { Seed(); }
+
+  static void Seed() noexcept {
+    std::random_device random_device;
+    std::seed_seq seed_seq{random_device(), random_device(), random_device(),
+                           random_device()};
+    engine_.seed(seed_seq);
+  }
 };
 
-thread_local TlsRandomNumberGenerator::BaseGenerator
-    TlsRandomNumberGenerator::base_generator_{};
+thread_local FastRandomNumberGenerator TlsRandomNumberGenerator::engine_{};
 }  // namespace
 
 //--------------------------------------------------------------------------------------------------

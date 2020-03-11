@@ -131,7 +131,6 @@ lightstep_cc_library(
     deps = [
         "//src/common/platform:fork_lib",
         ":fast_random_number_generator_lib",
-        "//3rd_party/randutils:randutils_lib",
     ],
     linkopts = [
         "-pthread",

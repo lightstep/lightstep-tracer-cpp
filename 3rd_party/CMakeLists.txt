@@ -1,6 +1,5 @@
 set(LIGHTSTEP_THIRD_PARTY_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/catch2/include
                                    ${CMAKE_CURRENT_SOURCE_DIR}/base64/include
-                                   ${CMAKE_CURRENT_SOURCE_DIR}/randutils/include
 )
 set(LIGHTSTEP_THIRD_PARTY_INCLUDES ${LIGHTSTEP_THIRD_PARTY_INCLUDES} 
                                    PARENT_SCOPE)
