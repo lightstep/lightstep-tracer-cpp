@@ -28,7 +28,6 @@ def lightstep_include_copts():
       "src",
       "test",
   ]) + lightstep_private_include_copts([
-    "3rd_party/randutils/include", 
     "3rd_party/base64/include", 
   ], is_system=True)
 
@@ -285,7 +284,6 @@ def lightstep_python_wheel(
         "//:gen-config/lightstep/version.h",
         "//:LICENSE",
         "//3rd_party/base64:LICENSE",
-        "//3rd_party/randutils:LICENSE",
         "//bridge/python:wheel_files",
         binary,
       ],
@@ -324,8 +322,6 @@ def lightstep_python_wheel(
       cp $(location //:LICENSE) $$SRC_DIR
       mkdir -p $$SRC_DIR/3rd_party/base64
       cp $(location //3rd_party/base64:LICENSE) $$SRC_DIR/3rd_party/base64
-      mkdir -p $$SRC_DIR/3rd_party/randutils
-      cp $(location //3rd_party/randutils:LICENSE) $$SRC_DIR/3rd_party/randutils
 
       # Generate the record file
       python $$GENERATE_RECORD $$WORK_DIR > $$DISTINFO_DIR/RECORD
