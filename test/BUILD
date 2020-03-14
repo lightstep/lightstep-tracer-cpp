@@ -1,10 +1,28 @@
 load(
     "//bazel:lightstep_build_system.bzl",
     "lightstep_cc_library",
+    "lightstep_catch_test",
     "lightstep_package",
 )
 
 lightstep_package()
+
+lightstep_cc_library(
+    name = "circular_buffer_lib",
+    private_hdrs = [
+        "circular_buffer.h",
+    ],
+)
+
+lightstep_catch_test(
+    name = "circular_buffer_test",
+    srcs = [
+        "circular_buffer_test.cpp",
+    ],
+    deps = [
+        ":circular_buffer_lib",
+    ],
+)
 
 lightstep_cc_library(
     name = "utility_lib",
