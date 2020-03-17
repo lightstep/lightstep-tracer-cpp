@@ -33,7 +33,7 @@ TEST_CASE("CircularBuffer") {
     REQUIRE(buffer.Add(std::unique_ptr<int>{new int{123}}));
     REQUIRE(buffer.Add(std::unique_ptr<int>{new int{123}}));
     buffer.Consume([&](std::unique_ptr<int>&& /*ptr*/) {});
-    for (size_t i=0; i<max_elements-1; ++i) {
+    for (size_t i = 0; i < max_elements - 1; ++i) {
       REQUIRE(buffer.Add(std::unique_ptr<int>{new int{123}}));
     }
     buffer.Consume([&](std::unique_ptr<int>&& /*ptr*/) { ++count; });

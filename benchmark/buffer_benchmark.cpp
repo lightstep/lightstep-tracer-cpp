@@ -1,12 +1,12 @@
 #include "benchmark/benchmark.h"
 
 #include <atomic>
-#include <random>
-#include <memory>
-#include <vector>
-#include <thread>
-#include <iostream>
 #include <cstdint>
+#include <iostream>
+#include <memory>
+#include <random>
+#include <thread>
+#include <vector>
 
 #include "common/circular_buffer.h"
 #include "test/baseline_circular_buffer.h"
@@ -17,7 +17,8 @@ const int N = 10000;
 //--------------------------------------------------------------------------------------------------
 // ConsumeBufferNumbers
 //--------------------------------------------------------------------------------------------------
-uint64_t ConsumeBufferNumbers(BaselineCircularBuffer<uint64_t>& buffer) noexcept {
+uint64_t ConsumeBufferNumbers(
+    BaselineCircularBuffer<uint64_t>& buffer) noexcept {
   uint64_t result = 0;
   buffer.Consume([&](std::unique_ptr<uint64_t>&& x) {
     result += *x;
@@ -29,8 +30,8 @@ uint64_t ConsumeBufferNumbers(BaselineCircularBuffer<uint64_t>& buffer) noexcept
 uint64_t ConsumeBufferNumbers(CircularBuffer<uint64_t>& buffer) noexcept {
   uint64_t result = 0;
   buffer.Consume(
-      buffer.size(),
-      [&](CircularBufferRange<AtomicUniquePtr<uint64_t>> & range) noexcept {
+      buffer.size(), [&](CircularBufferRange<AtomicUniquePtr<uint64_t>> &
+                         range) noexcept {
         range.ForEach([&](AtomicUniquePtr<uint64_t> & ptr) noexcept {
           result += *ptr;
           ptr.Reset();
@@ -60,7 +61,8 @@ static void GenerateNumbersForThread(Buffer& buffer, int n,
 // GenerateNumbers
 //--------------------------------------------------------------------------------------------------
 template <class Buffer>
-static uint64_t GenerateNumbers(Buffer& buffer, int num_threads, int n) noexcept {
+static uint64_t GenerateNumbers(Buffer& buffer, int num_threads,
+                                int n) noexcept {
   std::atomic<uint64_t> sum{0};
   std::vector<std::thread> threads(num_threads);
   for (auto& thread : threads) {
@@ -79,7 +81,7 @@ static uint64_t GenerateNumbers(Buffer& buffer, int num_threads, int n) noexcept
 template <class Buffer>
 static void ConsumeNumbers(Buffer& buffer, uint64_t& sum,
                            std::atomic<bool>& finished) noexcept {
-  while(!finished) {
+  while (!finished) {
     sum += ConsumeBufferNumbers(buffer);
   }
   sum += ConsumeBufferNumbers(buffer);
