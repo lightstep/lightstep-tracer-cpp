@@ -118,7 +118,7 @@ static void BM_BaselineBuffer(benchmark::State& state) {
   }
 }
 
-BENCHMARK(BM_BaselineBuffer)->Arg(1)->Arg(4)->Arg(8);
+BENCHMARK(BM_BaselineBuffer)->Arg(1)->Arg(2)->Arg(4);
 
 //--------------------------------------------------------------------------------------------------
 // BM_LockFreeBuffer
@@ -133,7 +133,7 @@ static void BM_LockFreeBuffer(benchmark::State& state) {
   }
 }
 
-BENCHMARK(BM_LockFreeBuffer)->Arg(1)->Arg(4)->Arg(8);
+BENCHMARK(BM_LockFreeBuffer)->Arg(1)->Arg(2)->Arg(4);
 
 //--------------------------------------------------------------------------------------------------
 // BENCHMARK_MAIN
