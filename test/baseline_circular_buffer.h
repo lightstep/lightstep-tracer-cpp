@@ -12,9 +12,9 @@ namespace lightstep {
  * Used as a baseline in benchmarking.
  */
 template <class T>
-class CircularBuffer {
+class BaselineCircularBuffer {
  public:
-   explicit CircularBuffer(size_t max_size) 
+   explicit BaselineCircularBuffer(size_t max_size) 
      : data_{max_size}
    {
    }
@@ -24,6 +24,10 @@ class CircularBuffer {
     * @param element the element to add
     * @return true if the element was added successfully
     */
+   bool Add(std::unique_ptr<T>& element) noexcept {
+     return this->Add(std::move(element));
+   }
+
    bool Add(std::unique_ptr<T>&& element) noexcept {
      std::lock_guard<std::mutex> lock_gaurd{mutex_};
      if (tail_ + data_.size() == head_) {

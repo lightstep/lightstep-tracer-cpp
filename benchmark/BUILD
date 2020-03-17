@@ -23,3 +23,14 @@ lightstep_google_benchmark(
         "//:tracer_lib",
     ],
 )
+
+lightstep_google_benchmark(
+    name = "buffer_benchmark",
+    srcs = [
+        "buffer_benchmark.cpp",
+    ],
+    deps = [
+      "//src/common:circular_buffer_lib", 
+      "//test:baseline_circular_buffer_lib",
+    ],
+)

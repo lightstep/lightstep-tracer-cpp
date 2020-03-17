@@ -5,7 +5,7 @@ using namespace lightstep;
 
 TEST_CASE("CircularBuffer") {
   size_t max_elements = 5;
-  CircularBuffer<int> buffer{max_elements};
+  BaselineCircularBuffer<int> buffer{max_elements};
   int count = 0;
 
   SECTION("The default CircularBuffer is empty") {
