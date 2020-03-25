@@ -21,9 +21,7 @@ class TlsRandomNumberGenerator {
     AtFork(nullptr, nullptr, OnFork);
   }
 
-  static FastRandomNumberGenerator& engine() noexcept {
-    return engine_;
-  }
+  static FastRandomNumberGenerator& engine() noexcept { return engine_; }
 
  private:
   static thread_local FastRandomNumberGenerator engine_;
