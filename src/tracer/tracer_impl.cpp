@@ -44,7 +44,7 @@ ExtractImpl(const PropagationOptions& propagation_options,
   }
   std::unique_ptr<opentracing::SpanContext> result{new ImmutableSpanContext{
       trace_context, std::move(trace_state), std::move(baggage)}};
-  return std::move(result);
+  return result;
 } catch (const std::bad_alloc&) {
   return opentracing::make_unexpected(
       make_error_code(std::errc::not_enough_memory));
