@@ -215,6 +215,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/recorder/fork_aware_recorder.cpp
                    src/recorder/legacy_manual_recorder.cpp
                    src/recorder/manual_recorder.cpp
+		   src/recorder/metrics_tracker.cpp
                    src/recorder/transporter.cpp
                    src/recorder/serialization/report_request.cpp
                    src/recorder/serialization/report_request_header.cpp
