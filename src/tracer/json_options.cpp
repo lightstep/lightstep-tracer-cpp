@@ -104,6 +104,10 @@ opentracing::expected<LightStepTracerOptions> MakeTracerOptions(
     options.propagation_modes.push_back(GetPropagationMode(propagation_mode));
   }
 
+  for (auto& tag : tracer_configuration.tags()) {
+    options.tags.emplace(tag.first, tag.second);
+  }
+
   return options;
 } catch (const std::exception& e) {
   std::cerr << "Invalid options: " << e.what() << "\n";
