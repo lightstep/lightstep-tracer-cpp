@@ -22,7 +22,7 @@ project(lightstep-tracer)
 # Version information
 
 set(LIGHTSTEP_VERSION_MAJOR "0")
-set(LIGHTSTEP_VERSION_MINOR "12")
+set(LIGHTSTEP_VERSION_MINOR "13")
 set(LIGHTSTEP_VERSION_PATCH "0")
 set(LIGHTSTEP_VERSION_STRING
   "${LIGHTSTEP_VERSION_MAJOR}.${LIGHTSTEP_VERSION_MINOR}.${LIGHTSTEP_VERSION_PATCH}")
@@ -215,7 +215,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/recorder/fork_aware_recorder.cpp
                    src/recorder/legacy_manual_recorder.cpp
                    src/recorder/manual_recorder.cpp
-		   src/recorder/metrics_tracker.cpp
+                   src/recorder/metrics_tracker.cpp
                    src/recorder/transporter.cpp
                    src/recorder/serialization/report_request.cpp
                    src/recorder/serialization/report_request_header.cpp
