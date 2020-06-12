@@ -51,7 +51,7 @@ timeval ToTimeval(std::chrono::microseconds microseconds) {
 static void WriteEscapedString(std::ostringstream& writer,
                                opentracing::string_view s) {
   writer << '"';
-  for (char c : s) {
+  for (signed char c : s) {
     switch (c) {
       case '"':
         writer << R"(\")";
