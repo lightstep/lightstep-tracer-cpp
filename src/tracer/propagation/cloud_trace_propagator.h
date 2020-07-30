@@ -22,15 +22,19 @@ class CloudTracePropagator final : public Propagator {
       BaggageProtobufMap& baggage) const override;
 
   private:
-   template <class BaggageMap>
    opentracing::expected<void> InjectSpanContextImpl(
        const opentracing::TextMapWriter& carrier,
-       const TraceContext& trace_context, const BaggageMap& baggage) const;
+       const TraceContext& trace_context) const;
 
    template <class KeyCompare>
    opentracing::expected<bool> ExtractSpanContextImpl(
-       const opentracing::TextMapReader& carrier, uint64_t& trace_id_high,
-       uint64_t& trace_id_low, uint64_t& span_id, bool& sampled,
-       BaggageProtobufMap& baggage, const KeyCompare& key_compare) const;
+       const opentracing::TextMapReader& carrier, TraceContext& trace_context,
+       const KeyCompare& key_compare, BaggageProtobufMap& baggage) const;
+
+   opentracing::expected<void> ParseCloudTrace(
+       opentracing::string_view s, lightstep::TraceContext& trace_context) const noexcept;
+
+   void SerializeCloudTrace(const TraceContext& trace_context,
+                              char* s) const noexcept;
 };
 }  // namespace lightstep
