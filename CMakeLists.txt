@@ -131,6 +131,11 @@ endif()
 include_directories(SYSTEM ${OPENTRACING_INCLUDE_DIR})
 list(APPEND LIGHTSTEP_LINK_LIBRARIES ${OPENTRACING_LIBRARY})
 
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads REQUIRED)
+list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
+
 if (WITH_GRPC)                           
   find_package(gRPC CONFIG)
   # First attempt to set up gRPC via cmake; but if cmake config files aren't
