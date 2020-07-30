@@ -141,3 +141,17 @@ lightstep_catch_test(
         "//src/tracer/propagation:propagation_lib",
     ],
 )
+
+lightstep_catch_test(
+    name = "cloud_trace_propagation_test",
+    srcs = [
+        "cloud_trace_propagation_test.cpp",
+    ],
+    deps = [
+        "//:manual_tracer_lib",
+        "//test/recorder:in_memory_recorder_lib",
+        ":text_map_carrier_lib",
+        ":http_headers_carrier_lib",
+        ":utility_lib",
+    ],
+)

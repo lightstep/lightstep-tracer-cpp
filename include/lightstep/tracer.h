@@ -26,7 +26,8 @@ enum class PropagationMode {
   lightstep = 1,
   b3 = 2,
   envoy = 3,
-  trace_context = 4
+  trace_context = 4,
+  cloud_trace = 5
 };
 
 // DynamicConfigurationValue is used for configuration values that can
