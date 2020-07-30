@@ -1,12 +1,12 @@
 #include "tracer/propagation/cloud_trace_propagator.h"
 
-#include <lightstep/base64/base64.h>
+#include "common/hex_conversion.h"
 
-#include "common/in_memory_stream.h"
 #include "tracer/propagation/binary_propagation.h"
 #include "tracer/propagation/utility.h"
 
 const opentracing::string_view PropagationSingleKey = "x-cloud-trace-context";
+const opentracing::string_view PrefixBaggage = "ot-baggage-";
 
 namespace lightstep {
 //--------------------------------------------------------------------------------------------------
@@ -15,17 +15,16 @@ namespace lightstep {
 opentracing::expected<void> CloudTracePropagator::InjectSpanContext(
     const opentracing::TextMapWriter& carrier,
     const TraceContext& trace_context, opentracing::string_view /*trace_state*/,
-    const BaggageProtobufMap& baggage) const {
-  return this->InjectSpanContextImpl(carrier, trace_context, baggage);
+    const BaggageProtobufMap& /*baggage*/) const {
+  return this->InjectSpanContextImpl(carrier, trace_context);
 }
 
 opentracing::expected<void> CloudTracePropagator::InjectSpanContext(
     const opentracing::TextMapWriter& carrier,
     const TraceContext& trace_context, opentracing::string_view /*trace_state*/,
-    const BaggageFlatMap& baggage) const {
-  return this->InjectSpanContextImpl(carrier, trace_context, baggage);
+    const BaggageFlatMap& /*baggage*/) const {
+  return this->InjectSpanContextImpl(carrier, trace_context);
 }
-
 //--------------------------------------------------------------------------------------------------
 // ExtractSpanContext
 //--------------------------------------------------------------------------------------------------
@@ -44,14 +43,10 @@ opentracing::expected<bool> CloudTracePropagator::ExtractSpanContext(
   bool sampled;
   opentracing::expected<bool> result;
   if (case_sensitive) {
-    result = ExtractSpanContextImpl(carrier, trace_context.trace_id_high,
-                                    trace_context.trace_id_low,
-                                    trace_context.parent_id, sampled, baggage,
-                                    std::equal_to<opentracing::string_view>{});
+    result = this->ExtractSpanContextImpl(carrier, trace_context,
+                                    std::equal_to<opentracing::string_view>{}, baggage);
   } else {
-    result = result = ExtractSpanContextImpl(
-        carrier, trace_context.trace_id_high, trace_context.trace_id_low,
-        trace_context.parent_id, sampled, baggage, iequals);
+    result = this->ExtractSpanContextImpl(carrier, trace_context, iequals, baggage);
   }
   if (!result || !*result) {
     return result;
@@ -63,32 +58,13 @@ opentracing::expected<bool> CloudTracePropagator::ExtractSpanContext(
 //--------------------------------------------------------------------------------------------------
 // InjectSpanContextImpl
 //--------------------------------------------------------------------------------------------------
-template <class BaggageMap>
 opentracing::expected<void> CloudTracePropagator::InjectSpanContextImpl(
     const opentracing::TextMapWriter& carrier,
-    const TraceContext& trace_context, const BaggageMap& baggage) const {
-  std::ostringstream ostream;
-  auto result = lightstep::InjectSpanContext(
-      ostream, trace_context.trace_id_low, trace_context.parent_id,
-      IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags), baggage);
-  if (!result) {
-    return result;
-  }
-  std::string context_value;
-  try {
-    auto binary_encoding = ostream.str();
-    context_value =
-        Base64::encode(binary_encoding.data(), binary_encoding.size());
-  } catch (const std::bad_alloc&) {
-    return opentracing::make_unexpected(
-        std::make_error_code(std::errc::not_enough_memory));
-  }
-
-  result = carrier.Set(PropagationSingleKey, context_value);
-  if (!result) {
-    return result;
-  }
-  return {};
+    const TraceContext& trace_context) const {
+  std::array<char, TraceContextLength> buffer;
+  this->SerializeCloudTrace(trace_context, buffer.data());
+  return carrier.Set(PropagationSingleKey,
+                  opentracing::string_view{buffer.data(), buffer.size()});
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -96,31 +72,123 @@ opentracing::expected<void> CloudTracePropagator::InjectSpanContextImpl(
 //--------------------------------------------------------------------------------------------------
 template <class KeyCompare>
 opentracing::expected<bool> CloudTracePropagator::ExtractSpanContextImpl(
-    const opentracing::TextMapReader& carrier, uint64_t& trace_id_high,
-    uint64_t& trace_id_low, uint64_t& span_id, bool& sampled,
-    BaggageProtobufMap& baggage, const KeyCompare& key_compare) const {
-  trace_id_high = 0;
-  auto value_maybe = LookupKey(carrier, PropagationSingleKey, key_compare);
-  if (!value_maybe) {
-    if (AreErrorsEqual(value_maybe.error(), opentracing::key_not_found_error)) {
-      return false;
-    }
-    return opentracing::make_unexpected(value_maybe.error());
-  }
-  auto value = *value_maybe;
-  std::string base64_decoding;
-  try {
-    base64_decoding = Base64::decode(value.data(), value.size());
-  } catch (const std::bad_alloc&) {
+    const opentracing::TextMapReader& carrier, TraceContext& trace_context, const KeyCompare& key_compare,
+    BaggageProtobufMap& baggage) const {
+      bool parent_header_found = false;
+      auto result =
+          carrier.ForeachKey([&](opentracing::string_view key,
+                                 opentracing::string_view
+                                     value) noexcept->opentracing::expected<void> {
+            if (key_compare(key, PropagationSingleKey)) {
+              auto was_successful = this->ParseCloudTrace(value, trace_context);
+              if (!was_successful) {
+                return opentracing::make_unexpected(was_successful.error());
+              }
+              parent_header_found = true;
+            } else if (key.length() > PrefixBaggage.size() &&
+                       key_compare(opentracing::string_view{key.data(),
+                                                            PrefixBaggage.size()},
+                                   PrefixBaggage)) {
+              baggage.insert(BaggageProtobufMap::value_type(
+                  ToLower(
+                      opentracing::string_view{key.data() + PrefixBaggage.size(),
+                                               key.size() - PrefixBaggage.size()}),
+                  value));
+            }
+            return {};
+          });
+      if (!result) {
+        return opentracing::make_unexpected(result.error());
+      }
+      return parent_header_found;
+}
+
+opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
+    opentracing::string_view s, TraceContext& trace_context) const noexcept {
+  if (s.size() < TraceContextLength) {
     return opentracing::make_unexpected(
-        std::make_error_code(std::errc::not_enough_memory));
+        std::make_error_code(std::errc::invalid_argument));
   }
-  if (base64_decoding.empty()) {
+  size_t offset = 0;
+
+  // version
+  auto version_maybe = NormalizedHexToUint8(
+      opentracing::string_view{s.data() + offset, Num8BitHexDigits});
+  if (!version_maybe) {
+    return opentracing::make_unexpected(version_maybe.error());
+  }
+  trace_context.version = *version_maybe;
+  offset += Num8BitHexDigits;
+  if (s[offset] != '-') {
     return opentracing::make_unexpected(
-        opentracing::span_context_corrupted_error);
+        std::make_error_code(std::errc::invalid_argument));
   }
-  in_memory_stream istream{base64_decoding.data(), base64_decoding.size()};
-  return lightstep::ExtractSpanContext(istream, trace_id_low, span_id, sampled,
-                                       baggage);
+  ++offset;
+
+  // trace-id
+  auto error_maybe = NormalizedHexToUint128(
+      opentracing::string_view{s.data() + offset, Num128BitHexDigits},
+      trace_context.trace_id_high, trace_context.trace_id_low);
+  if (!error_maybe) {
+    return error_maybe;
+  }
+  offset += Num128BitHexDigits;
+  if (s[offset] != '-') {
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::invalid_argument));
+  }
+  ++offset;
+
+  // parent-id
+  auto parent_id_maybe = NormalizedHexToUint64(
+      opentracing::string_view{s.data() + offset, Num64BitHexDigits});
+  if (!parent_id_maybe) {
+    return opentracing::make_unexpected(parent_id_maybe.error());
+  }
+  trace_context.parent_id = *parent_id_maybe;
+  offset += Num64BitHexDigits;
+  if (s[offset] != '-') {
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::invalid_argument));
+  }
+  ++offset;
+
+  // trace-flags
+  auto trace_flags_maybe = NormalizedHexToUint8(
+      opentracing::string_view{s.data() + offset, Num8BitHexDigits});
+  if (!trace_flags_maybe) {
+    return opentracing::make_unexpected(trace_flags_maybe.error());
+  }
+  trace_context.trace_flags = *trace_flags_maybe;
+
+  return {};
+}
+
+void CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_context,
+                           char* s) const noexcept {
+  size_t offset = 0;
+
+  // version
+  Uint8ToHex(trace_context.version, s);
+  offset += Num8BitHexDigits;
+  *(s + offset) = '-';
+  ++offset;
+
+  // trace-id
+  Uint64ToHex(trace_context.trace_id_high, s + offset);
+  offset += Num64BitHexDigits;
+  Uint64ToHex(trace_context.trace_id_low, s + offset);
+  offset += Num64BitHexDigits;
+  *(s + offset) = '-';
+  ++offset;
+
+  // parent-id
+  Uint64ToHex(trace_context.parent_id, s + offset);
+  offset += Num64BitHexDigits;
+  *(s + offset) = '-';
+  ++offset;
+
+  // trace-flags
+  Uint8ToHex(trace_context.trace_flags, s + offset);
 }
 }  // namespace lightstep
