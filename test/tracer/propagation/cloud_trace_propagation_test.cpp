@@ -38,7 +38,7 @@ TEST_CASE("cloud_trace propagation") {
     }
   }
 
-  SECTION("Verify extraction against a 128-bit trace id") {
+  SECTION("Verify extraction against a long-form header with sampled set to true") {
     text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/aef5705a09004083;o=1"}};
     auto span_context_maybe = tracer->Extract(http_headers_carrier);
     REQUIRE(span_context_maybe);
@@ -50,7 +50,7 @@ TEST_CASE("cloud_trace propagation") {
     REQUIRE(span_context->sampled() == true);
   }
 
-  SECTION("Verify extraction with a 128 bit trace id when sampled is false") {
+  SECTION("Verify extraction against a long-form header when sampled is false") {
     text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/aef5705a09004083;o=0"}};
     auto span_context_maybe = tracer->Extract(http_headers_carrier);
     REQUIRE(span_context_maybe);
@@ -60,6 +60,34 @@ TEST_CASE("cloud_trace propagation") {
     REQUIRE(span_context->trace_id_low() == 0x8f1359ebafa5c0c6ul);
     REQUIRE(span_context->span_id() == 0xaef5705a09004083ul);
     REQUIRE(span_context->sampled() == false);
+  }
+
+  SECTION("Verify extraction against a medium-form header (trace id/span id)") {
+    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/aef5705a09004083"}};
+    auto span_context_maybe = tracer->Extract(http_headers_carrier);
+    REQUIRE(span_context_maybe);
+    auto span_context =
+        dynamic_cast<LightStepSpanContext*>(span_context_maybe->get());
+    REQUIRE(span_context->trace_id_high() == 0xaef5705a09004083ul);
+    REQUIRE(span_context->trace_id_low() == 0x8f1359ebafa5c0c6ul);
+    REQUIRE(span_context->span_id() == 0xaef5705a09004083ul);
+    REQUIRE(span_context->sampled() == true);
+  }
+
+  SECTION("Verify extraction against a short-form header (trace id)") {
+    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6"}};
+    auto span_context_maybe = tracer->Extract(http_headers_carrier);
+    REQUIRE(span_context_maybe);
+    auto span_context =
+        dynamic_cast<LightStepSpanContext*>(span_context_maybe->get());
+    REQUIRE(span_context->trace_id_high() == 0xaef5705a09004083ul);
+    REQUIRE(span_context->trace_id_low() == 0x8f1359ebafa5c0c6ul);
+
+    // TODO - this will fail - I'm not sure what the behaviour should be if a
+    //                         span ID isn't given
+    REQUIRE(span_context->span_id() == 0xaef5705a09004083ul);
+
+    REQUIRE(span_context->sampled() == true);
   }
 
   SECTION("A child keeps the same trace id as its parent") {
