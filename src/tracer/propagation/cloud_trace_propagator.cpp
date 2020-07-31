@@ -40,7 +40,6 @@ opentracing::expected<bool> CloudTracePropagator::ExtractSpanContext(
                         return std::tolower(a) == std::tolower(b);
                       });
   };
-  bool sampled;
   opentracing::expected<bool> result;
   if (case_sensitive) {
     result = this->ExtractSpanContextImpl(carrier, trace_context,
@@ -51,7 +50,7 @@ opentracing::expected<bool> CloudTracePropagator::ExtractSpanContext(
   if (!result || !*result) {
     return result;
   }
-  trace_context.trace_flags = SetTraceFlag<SampledFlagMask>(0, sampled);
+
   return result;
 }
 
