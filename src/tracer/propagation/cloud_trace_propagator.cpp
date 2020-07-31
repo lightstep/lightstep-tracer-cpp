@@ -104,11 +104,16 @@ opentracing::expected<bool> CloudTracePropagator::ExtractSpanContextImpl(
 
 opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
     opentracing::string_view s, TraceContext& trace_context) const noexcept {
-  if (s.size() < 32) {
+  if (s.size() < Num128BitHexDigits) {
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::invalid_argument));
   }
   size_t offset = 0;
+
+  // default sampled to on (this comes from the ;o=1 part of
+  // x-cloud-trace-context; if it is not set we will default to sampling
+  // this request)
+  trace_context.trace_flags = SetTraceFlag<SampledFlagMask>(trace_context.trace_flags, true);
 
   // trace-id
   auto error_maybe = NormalizedHexToUint128(
@@ -119,8 +124,8 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   }
 
   offset += Num128BitHexDigits;
-  if (offset >= s.size()) {
-    // only a trace ID has been given
+  if (s.size() < Num128BitHexDigits + 1 + Num64BitHexDigits) {
+    // only a short form trace ID has been given (not a "trace id/span id")
     return {};
   }
 
@@ -139,6 +144,11 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   trace_context.parent_id = *parent_id_maybe;
   offset += Num64BitHexDigits;
 
+  if (s.size() < Num128BitHexDigits + 1 + Num64BitHexDigits + 4) {
+    // only a "trace ID/span ID" has been given (not a "trace id/span id;o=[0-1]")
+    return {};
+  }
+
   char subbuff[4];
   memcpy( subbuff, &s[offset], 3 );
   subbuff[3] = '\0';
@@ -150,10 +160,8 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   offset += 3;
 
   // trace-flags
-  if (s[offset] == '1') {
-    // sampled
-    trace_context.trace_flags = SetTraceFlag<SampledFlagMask>(trace_context.trace_flags, true);
-  } else {
+  if (s[offset] == '0') {
+    // don't sample
     trace_context.trace_flags = SetTraceFlag<SampledFlagMask>(trace_context.trace_flags, false);
   }
 
