@@ -104,25 +104,11 @@ opentracing::expected<bool> CloudTracePropagator::ExtractSpanContextImpl(
 
 opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
     opentracing::string_view s, TraceContext& trace_context) const noexcept {
-  if (s.size() < TraceContextLength) {
+  if (s.size() < 32) {
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::invalid_argument));
   }
   size_t offset = 0;
-
-  // version
-  auto version_maybe = NormalizedHexToUint8(
-      opentracing::string_view{s.data() + offset, Num8BitHexDigits});
-  if (!version_maybe) {
-    return opentracing::make_unexpected(version_maybe.error());
-  }
-  trace_context.version = *version_maybe;
-  offset += Num8BitHexDigits;
-  if (s[offset] != '-') {
-    return opentracing::make_unexpected(
-        std::make_error_code(std::errc::invalid_argument));
-  }
-  ++offset;
 
   // trace-id
   auto error_maybe = NormalizedHexToUint128(
@@ -131,8 +117,14 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   if (!error_maybe) {
     return error_maybe;
   }
+
   offset += Num128BitHexDigits;
-  if (s[offset] != '-') {
+  if (offset >= s.size()) {
+    // only a trace ID has been given
+    return {};
+  }
+
+  if (s[offset] != '/') {
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::invalid_argument));
   }
@@ -146,19 +138,24 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   }
   trace_context.parent_id = *parent_id_maybe;
   offset += Num64BitHexDigits;
-  if (s[offset] != '-') {
+
+  char subbuff[4];
+  memcpy( subbuff, &s[offset], 3 );
+  subbuff[3] = '\0';
+
+  if (strcmp(subbuff, ";o=") != 0) {
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::invalid_argument));
   }
-  ++offset;
+  offset += 3;
 
   // trace-flags
-  auto trace_flags_maybe = NormalizedHexToUint8(
-      opentracing::string_view{s.data() + offset, Num8BitHexDigits});
-  if (!trace_flags_maybe) {
-    return opentracing::make_unexpected(trace_flags_maybe.error());
+  if (s[offset] == '1') {
+    // sampled
+    trace_context.trace_flags = SetTraceFlag<SampledFlagMask>(trace_context.trace_flags, true);
+  } else {
+    trace_context.trace_flags = SetTraceFlag<SampledFlagMask>(trace_context.trace_flags, false);
   }
-  trace_context.trace_flags = *trace_flags_maybe;
 
   return {};
 }
@@ -167,27 +164,29 @@ void CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_context
                            char* s) const noexcept {
   size_t offset = 0;
 
-  // version
-  Uint8ToHex(trace_context.version, s);
-  offset += Num8BitHexDigits;
-  *(s + offset) = '-';
-  ++offset;
-
   // trace-id
   Uint64ToHex(trace_context.trace_id_high, s + offset);
   offset += Num64BitHexDigits;
   Uint64ToHex(trace_context.trace_id_low, s + offset);
   offset += Num64BitHexDigits;
-  *(s + offset) = '-';
+  *(s + offset) = '/';
   ++offset;
 
   // parent-id
   Uint64ToHex(trace_context.parent_id, s + offset);
   offset += Num64BitHexDigits;
-  *(s + offset) = '-';
+  *(s + offset) = ';';
+  ++offset;
+  *(s + offset) = 'o';
+  ++offset;
+  *(s + offset) = '=';
   ++offset;
 
   // trace-flags
-  Uint8ToHex(trace_context.trace_flags, s + offset);
+  if(IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags)) {
+    s[offset] = '1';
+  } else {
+    s[offset] = '0';
+  }
 }
 }  // namespace lightstep
