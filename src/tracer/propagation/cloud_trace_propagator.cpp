@@ -61,9 +61,9 @@ opentracing::expected<void> CloudTracePropagator::InjectSpanContextImpl(
     const opentracing::TextMapWriter& carrier,
     const TraceContext& trace_context) const {
   std::array<char, CloudContextLength> buffer;
-  this->SerializeCloudTrace(trace_context, buffer.data());
+  auto data_length = this->SerializeCloudTrace(trace_context, buffer.data());
   return carrier.Set(PropagationSingleKey,
-                  opentracing::string_view{buffer.data(), buffer.size()});
+                  opentracing::string_view{buffer.data(), data_length});
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -174,7 +174,7 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   return {};
 }
 
-void CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_context,
+size_t CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_context,
                            char* s) const noexcept {
   size_t offset = 0;
 
@@ -206,8 +206,6 @@ void CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_context
     *(s + offset) = '0';
   }
 
-  // terminate the string
-  ++offset;
-  *(s + offset) = '\0';
+  return ++offset;
 }
 }  // namespace lightstep

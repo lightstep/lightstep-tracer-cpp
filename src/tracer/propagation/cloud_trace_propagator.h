@@ -4,7 +4,7 @@
 
 namespace lightstep {
 
-const size_t CloudContextLength = 58; // max x-cloud-trace-context header
+const size_t CloudContextLength = 57; // max x-cloud-trace-context header
 
 class CloudTracePropagator final : public Propagator {
  public:
@@ -37,7 +37,7 @@ class CloudTracePropagator final : public Propagator {
    opentracing::expected<void> ParseCloudTrace(
        opentracing::string_view s, lightstep::TraceContext& trace_context) const noexcept;
 
-   void SerializeCloudTrace(const TraceContext& trace_context,
+   size_t SerializeCloudTrace(const TraceContext& trace_context,
                               char* s) const noexcept;
 };
 }  // namespace lightstep
