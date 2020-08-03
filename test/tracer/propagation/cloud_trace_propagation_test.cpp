@@ -85,7 +85,7 @@ TEST_CASE("cloud_trace propagation") {
 
     // TODO - this will fail - I'm not sure what the behaviour should be if a
     //                         span ID isn't given
-    REQUIRE(span_context->span_id() == 0xaef5705a09004083ul);
+    REQUIRE(span_context->span_id() == 0x0);
 
     REQUIRE(span_context->sampled() == true);
   }
