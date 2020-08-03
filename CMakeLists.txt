@@ -30,7 +30,7 @@ set(LIGHTSTEP_VERSION_STRING
 # ==============================================================================
 # Set up cpack
 
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY 
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
                   "A LightStep implementation of the C++ OpenTracing API")
 set(CPACK_PACKAGE_VENDOR "lightstep.com")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
@@ -56,13 +56,13 @@ option(WITH_CARES "Build with support for dns resolution using c-ares." OFF)
 option(WITH_DYNAMIC_LOAD "Build support for dynamic loading." ON)
 option(HEADERS_ONLY "Only generate version.h." OFF)
 
-# Allow a user to specify an optional default roots.pem file to embed into the 
-# library. 
+# Allow a user to specify an optional default roots.pem file to embed into the
+# library.
 #
 # This is useful if the library is distributed to an environment where gRPC
 # hasn't been installed.
 #
-# To use, invoke cmake with 
+# To use, invoke cmake with
 #   cmake -DDEFAULT_SSL_ROOTS_PEM:STRING=/path/to/roots.pem ...
 #
 # See also discussion on https://github.com/grpc/grpc/issues/4834
@@ -87,7 +87,7 @@ endif()
 
 configure_file(version.h.in include/lightstep/version.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lightstep 
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lightstep
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 if(HEADERS_ONLY)
@@ -131,12 +131,7 @@ endif()
 include_directories(SYSTEM ${OPENTRACING_INCLUDE_DIR})
 list(APPEND LIGHTSTEP_LINK_LIBRARIES ${OPENTRACING_LIBRARY})
 
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-find_package(Threads REQUIRED)
-list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
-
-if (WITH_GRPC)                           
+if (WITH_GRPC)
   find_package(gRPC CONFIG)
   # First attempt to set up gRPC via cmake; but if cmake config files aren't
   # available, fallback to pkg-config.
@@ -154,7 +149,7 @@ if (WITH_GRPC)
     find_package(PkgConfig REQUIRED)
     pkg_search_module(GRPC REQUIRED grpc)
     pkg_search_module(GRPCPP REQUIRED grpc++)
-    list(APPEND LIGHTSTEP_LINK_LIBRARIES ${GRPCPP_LDFLAGS} ${GRPC_LDFLAGS})  
+    list(APPEND LIGHTSTEP_LINK_LIBRARIES ${GRPCPP_LDFLAGS} ${GRPC_LDFLAGS})
     include_directories(SYSTEM ${GRPC_INCLUDE_DIRS} ${GRPCPP_INCLUDE_DIRS})
   endif()
 endif()
@@ -180,7 +175,7 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 list(APPEND LIGHTSTEP_LINK_LIBRARIES Threads::Threads)
 
-if (WIN32) 
+if (WIN32)
   list(APPEND LIGHTSTEP_LINK_LIBRARIES "wsock32" "ws2_32")
 endif()
 
@@ -320,7 +315,7 @@ else()
   list(APPEND LIGHTSTEP_SRCS ${EMBED_SSL_ROOTS_PEM_CPP_FILE})
 endif()
 
-if (BUILD_SHARED_LIBS)  
+if (BUILD_SHARED_LIBS)
   add_library(lightstep_tracer SHARED $<TARGET_OBJECTS:lightstep_tracer_common>
                                       $<TARGET_OBJECTS:lightstep_tracer_configuration>
                                       $<TARGET_OBJECTS:lightstep_3rd_party>
@@ -332,7 +327,7 @@ if (BUILD_SHARED_LIBS)
           LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
-if (BUILD_STATIC_LIBS)  
+if (BUILD_STATIC_LIBS)
   add_library(lightstep_tracer-static STATIC $<TARGET_OBJECTS:lightstep_tracer_common>
                                              $<TARGET_OBJECTS:lightstep_tracer_configuration>
                                              $<TARGET_OBJECTS:lightstep_3rd_party>
