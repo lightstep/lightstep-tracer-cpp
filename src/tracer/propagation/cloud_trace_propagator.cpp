@@ -201,13 +201,13 @@ void CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_context
 
   // trace-flags
   if(IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags)) {
-    s[offset] = '1';
+    *(s + offset) = '1';
   } else {
-    s[offset] = '0';
+    *(s + offset) = '0';
   }
 
   // terminate the string
   ++offset;
-  s[offset] = '\0';
+  *(s + offset) = '\0';
 }
 }  // namespace lightstep
