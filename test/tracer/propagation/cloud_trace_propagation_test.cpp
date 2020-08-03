@@ -39,7 +39,7 @@ TEST_CASE("cloud_trace propagation") {
   }
 
   SECTION("Verify extraction against a long-form header with sampled set to true") {
-    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/aef5705a09004083;o=1"}};
+    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/12607106263893950595;o=1"}};
     auto span_context_maybe = tracer->Extract(http_headers_carrier);
     REQUIRE(span_context_maybe);
     auto span_context =
@@ -51,7 +51,7 @@ TEST_CASE("cloud_trace propagation") {
   }
 
   SECTION("Verify extraction against a long-form header when sampled is false") {
-    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/aef5705a09004083;o=0"}};
+    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/12607106263893950595;o=0"}};
     auto span_context_maybe = tracer->Extract(http_headers_carrier);
     REQUIRE(span_context_maybe);
     auto span_context =
@@ -63,7 +63,7 @@ TEST_CASE("cloud_trace propagation") {
   }
 
   SECTION("Verify extraction against a medium-form header (trace id/span id)") {
-    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/aef5705a09004083"}};
+    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/12607106263893950595"}};
     auto span_context_maybe = tracer->Extract(http_headers_carrier);
     REQUIRE(span_context_maybe);
     auto span_context =
@@ -91,7 +91,7 @@ TEST_CASE("cloud_trace propagation") {
   }
 
   SECTION("A child keeps the same trace id as its parent") {
-    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/aef5705a09004083;o=0"}};
+    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/12607106263893950595;o=0"}};
     auto span_context_maybe = tracer->Extract(http_headers_carrier);
     REQUIRE(span_context_maybe);
     auto span = tracer->StartSpan(
@@ -105,7 +105,7 @@ TEST_CASE("cloud_trace propagation") {
   }
 
   SECTION("The low part of 128-bit trace ids are sent to satellites") {
-    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/aef5705a09004083;o=1"}};
+    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/12607106263893950595;o=1"}};
     auto span_context_maybe = tracer->Extract(http_headers_carrier);
     REQUIRE(span_context_maybe);
     tracer->StartSpan("abc", {opentracing::ChildOf(span_context_maybe->get())});

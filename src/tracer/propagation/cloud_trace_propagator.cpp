@@ -124,7 +124,7 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   }
 
   offset += Num128BitHexDigits;
-  if (s.size() < Num128BitHexDigits + 1 + Num64BitHexDigits) {
+  if (s.size() < Num128BitHexDigits + 2) {
     // only a short form trace ID has been given (not a "trace id/span id")
     return {};
   }
@@ -135,16 +135,22 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   }
   ++offset;
 
-  // parent-id
-  auto parent_id_maybe = NormalizedHexToUint64(
-      opentracing::string_view{s.data() + offset, Num64BitHexDigits});
-  if (!parent_id_maybe) {
-    return opentracing::make_unexpected(parent_id_maybe.error());
-  }
-  trace_context.parent_id = *parent_id_maybe;
-  offset += Num64BitHexDigits;
+  char parent_id [21];
+  int span_id_length;
+  for(span_id_length = 0; span_id_length<20; span_id_length++) {
+    if(s[offset]==';' || s[offset]=='\0') {
+      parent_id[span_id_length] = '\0';
+      break;
+    }
 
-  if (s.size() < Num128BitHexDigits + 1 + Num64BitHexDigits + 4) {
+    parent_id[span_id_length] = s[offset];
+    ++offset;
+  }
+
+  // parent-id
+  trace_context.parent_id = std::strtoull(parent_id, NULL, 10);
+
+  if (s.size() < Num128BitHexDigits + 1 + span_id_length + 4) {
     // only a "trace ID/span ID" has been given (not a "trace id/span id;o=[0-1]")
     return {};
   }
@@ -180,9 +186,12 @@ void CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_context
   *(s + offset) = '/';
   ++offset;
 
+  *(s + offset) = '\0';
   // parent-id
-  Uint64ToHex(trace_context.parent_id, s + offset);
-  offset += Num64BitHexDigits;
+  auto parent_id = std::to_string(trace_context.parent_id);
+  std::strcat(s, parent_id.c_str());
+
+  offset += parent_id.length();
   *(s + offset) = ';';
   ++offset;
   *(s + offset) = 'o';
@@ -196,5 +205,9 @@ void CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_context
   } else {
     s[offset] = '0';
   }
+
+  // terminate the string
+  ++offset;
+  s[offset] = '\0';
 }
 }  // namespace lightstep
