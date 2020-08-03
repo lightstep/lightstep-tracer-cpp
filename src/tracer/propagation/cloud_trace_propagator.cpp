@@ -60,7 +60,7 @@ opentracing::expected<bool> CloudTracePropagator::ExtractSpanContext(
 opentracing::expected<void> CloudTracePropagator::InjectSpanContextImpl(
     const opentracing::TextMapWriter& carrier,
     const TraceContext& trace_context) const {
-  std::array<char, TraceContextLength> buffer;
+  std::array<char, CloudContextLength> buffer;
   this->SerializeCloudTrace(trace_context, buffer.data());
   return carrier.Set(PropagationSingleKey,
                   opentracing::string_view{buffer.data(), buffer.size()});

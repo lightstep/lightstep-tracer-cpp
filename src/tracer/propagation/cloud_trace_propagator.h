@@ -3,6 +3,9 @@
 #include "tracer/propagation/propagator.h"
 
 namespace lightstep {
+
+const size_t CloudContextLength = 58; // max x-cloud-trace-context header
+
 class CloudTracePropagator final : public Propagator {
  public:
   // Propagator
