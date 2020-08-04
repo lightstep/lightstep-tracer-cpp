@@ -4,6 +4,7 @@
 
 #include "tracer/propagation/binary_propagation.h"
 #include "tracer/propagation/utility.h"
+#include <string.h>
 
 const opentracing::string_view PropagationSingleKey = "x-cloud-trace-context";
 const opentracing::string_view PrefixBaggage = "ot-baggage-";
@@ -135,11 +136,10 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   }
   ++offset;
 
-  char parent_id [21];
+  char parent_id [20];
   int span_id_length;
   for(span_id_length = 0; span_id_length<20; span_id_length++) {
     if(s[offset]==';' || s[offset]=='\0') {
-      parent_id[span_id_length] = '\0';
       break;
     }
 
@@ -148,9 +148,10 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   }
 
   // parent-id
-  trace_context.parent_id = std::strtoull(parent_id, NULL, 10);
+  char * pEnd = parent_id;
+  trace_context.parent_id = std::strtoull(pEnd, &pEnd, 10);
 
-  if (s.size() < Num128BitHexDigits + 1 + span_id_length + 4) {
+  if (s.size() - offset < 4) {
     // only a "trace ID/span ID" has been given (not a "trace id/span id;o=[0-1]")
     return {};
   }
@@ -186,12 +187,14 @@ size_t CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_conte
   *(s + offset) = '/';
   ++offset;
 
-  *(s + offset) = '\0';
   // parent-id
   auto parent_id = std::to_string(trace_context.parent_id);
-  std::strcat(s, parent_id.c_str());
+  auto parent_id_char = parent_id.c_str();
+  for(uint x=0; x < parent_id.length(); x++) {
+    *(s + offset) = parent_id_char[x];
+    ++offset;
+  }
 
-  offset += parent_id.length();
   *(s + offset) = ';';
   ++offset;
   *(s + offset) = 'o';
