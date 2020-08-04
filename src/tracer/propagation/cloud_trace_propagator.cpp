@@ -189,7 +189,7 @@ size_t CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_conte
   // parent-id
   auto parent_id = std::to_string(trace_context.parent_id);
   auto parent_id_char = parent_id.c_str();
-  for(uint x=0; x < parent_id.length(); x++) {
+  for(uint16_t x=0; x < parent_id.length(); x++) {
     *(s + offset) = parent_id_char[x];
     ++offset;
   }
