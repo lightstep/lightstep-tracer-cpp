@@ -82,11 +82,7 @@ TEST_CASE("cloud_trace propagation") {
         dynamic_cast<LightStepSpanContext*>(span_context_maybe->get());
     REQUIRE(span_context->trace_id_high() == 0xaef5705a09004083ul);
     REQUIRE(span_context->trace_id_low() == 0x8f1359ebafa5c0c6ul);
-
-    // TODO - this will fail - I'm not sure what the behaviour should be if a
-    //                         span ID isn't given
     REQUIRE(span_context->span_id() == 0x0);
-
     REQUIRE(span_context->sampled() == true);
   }
 
