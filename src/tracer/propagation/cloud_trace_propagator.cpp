@@ -4,7 +4,6 @@
 
 #include "tracer/propagation/binary_propagation.h"
 #include "tracer/propagation/utility.h"
-#include <string.h>
 
 const opentracing::string_view PropagationSingleKey = "x-cloud-trace-context";
 const opentracing::string_view PrefixBaggage = "ot-baggage-";
