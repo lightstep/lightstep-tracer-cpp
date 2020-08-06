@@ -18,6 +18,18 @@ static std::tuple<uint64_t, uint64_t> GenerateTraceID(bool use_128bit_ids) {
 }
 
 //------------------------------------------------------------------------------
+// GenerateMaxTraceID
+//------------------------------------------------------------------------------
+// Generates the maximum value a trace ID can possibly be
+static std::tuple<uint64_t, uint64_t> GenerateMaxTraceID(bool use_128bit_ids) {
+  if (use_128bit_ids) {
+    return {std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max()};
+  }
+  return {0, std::numeric_limits<uint64_t>::max()};
+}
+
+
+//------------------------------------------------------------------------------
 // MakeTestSpanContexts
 //------------------------------------------------------------------------------
 // A vector of different types of span contexts to test against.
@@ -52,6 +64,13 @@ std::vector<std::unique_ptr<opentracing::SpanContext>> MakeTestSpanContexts(
   result.push_back(
       std::unique_ptr<opentracing::SpanContext>{new ImmutableSpanContext{
           trace_id_high, trace_id_low, 456, false,
+          std::unordered_map<std::string, std::string>{}}});
+
+  // max values span context
+  std::tie(trace_id_high, trace_id_low) = GenerateMaxTraceID(use_128bit_trace_ids);
+  result.push_back(
+      std::unique_ptr<opentracing::SpanContext>{new ImmutableSpanContext{
+          trace_id_high, trace_id_low, std::numeric_limits<uint64_t>::max(), true,
           std::unordered_map<std::string, std::string>{}}});
 
   return result;

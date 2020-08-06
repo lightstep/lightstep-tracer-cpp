@@ -4,7 +4,7 @@
 
 namespace lightstep {
 
-const size_t CloudContextLength = 57; // max x-cloud-trace-context header
+const size_t CloudContextLength = 58; // max x-cloud-trace-context header
 
 class CloudTracePropagator final : public Propagator {
  public:
