@@ -148,21 +148,18 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
 
   // parent-id
   char * pEnd = parent_id;
-  trace_context.parent_id = std::strtoull(pEnd, &pEnd, 10);
+  trace_context.parent_id = std::strtoull(pEnd, nullptr, 10);
 
   if (s.size() - offset < 4) {
     // only a "trace ID/span ID" has been given (not a "trace id/span id;o=[0-1]")
     return {};
   }
 
-  char subbuff[4];
-  memcpy( subbuff, &s[offset], 3 );
-  subbuff[3] = '\0';
-
-  if (strcmp(subbuff, ";o=") != 0) {
+  if(opentracing::string_view(s.begin() + offset, 3) != opentracing::string_view(";o=")) {
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::invalid_argument));
   }
+
   offset += 3;
 
   // trace-flags
