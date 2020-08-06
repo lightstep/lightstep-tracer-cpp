@@ -174,37 +174,13 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
 
 size_t CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_context,
                            char* s) const noexcept {
-  size_t offset = 0;
-
   // trace-id
-  Uint64ToHex(trace_context.trace_id_high, s + offset);
-  offset += Num64BitHexDigits;
-  Uint64ToHex(trace_context.trace_id_low, s + offset);
-  offset += Num64BitHexDigits;
-  *(s + offset) = '/';
-  ++offset;
+  char trace_id[Num64BitHexDigits + Num64BitHexDigits + 1];
+  Uint64ToHex(trace_context.trace_id_high, trace_id);
+  Uint64ToHex(trace_context.trace_id_low, trace_id + Num64BitHexDigits);
+  *(trace_id + Num64BitHexDigits + Num64BitHexDigits) = '\0';
 
-  // parent-id
-  auto parent_id = std::to_string(trace_context.parent_id);
-  auto parent_id_char = parent_id.c_str();
-  for(uint16_t x=0; x < parent_id.length(); x++) {
-    *(s + offset) = parent_id_char[x];
-    ++offset;
-  }
-
-  *(s + offset) = ';';
-  ++offset;
-  *(s + offset) = 'o';
-  ++offset;
-  *(s + offset) = '=';
-  ++offset;
-
-  // trace-flags
-  if(IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags)) {
-    *(s + offset) = '1';
-  } else {
-    *(s + offset) = '0';
-  }
+  size_t offset = snprintf (s, CloudContextLength, "%s/%lu;o=%d", trace_id, trace_context.parent_id, IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags) ? 1 : 0);
 
   return ++offset;
 }
