@@ -74,6 +74,18 @@ TEST_CASE("cloud_trace propagation") {
     REQUIRE(span_context->sampled() == true);
   }
 
+  SECTION("Verify extraction against a medium-form header with a short span id(trace id/span id)") {
+    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/123"}};
+    auto span_context_maybe = tracer->Extract(http_headers_carrier);
+    REQUIRE(span_context_maybe);
+    auto span_context =
+        dynamic_cast<LightStepSpanContext*>(span_context_maybe->get());
+    REQUIRE(span_context->trace_id_high() == 0xaef5705a09004083ul);
+    REQUIRE(span_context->trace_id_low() == 0x8f1359ebafa5c0c6ul);
+    REQUIRE(span_context->span_id() == 0x7b);
+    REQUIRE(span_context->sampled() == true);
+  }
+
   SECTION("Verify extraction against a short-form header (trace id)") {
     text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6"}};
     auto span_context_maybe = tracer->Extract(http_headers_carrier);
