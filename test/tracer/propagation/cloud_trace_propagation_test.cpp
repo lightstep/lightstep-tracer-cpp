@@ -62,6 +62,14 @@ TEST_CASE("cloud_trace propagation") {
     REQUIRE(span_context->sampled() == false);
   }
 
+  SECTION("Verify error handling against a long-form header when sampled flag is invalid") {
+    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/12607106263893950595;__0"}};
+    auto span_context_maybe = tracer->Extract(http_headers_carrier);
+    CHECK(!span_context_maybe);
+    CHECK(span_context_maybe.error() ==
+          std::errc::invalid_argument);
+  }
+
   SECTION("Verify extraction against a medium-form header (trace id/span id)") {
     text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/12607106263893950595"}};
     auto span_context_maybe = tracer->Extract(http_headers_carrier);
