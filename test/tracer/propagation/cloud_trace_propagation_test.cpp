@@ -86,6 +86,14 @@ TEST_CASE("cloud_trace propagation") {
     REQUIRE(span_context->sampled() == true);
   }
 
+  SECTION("Verify error handling against a medium-form header with a bad separator (trace id/span id)") {
+    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6_1"}};
+    auto span_context_maybe = tracer->Extract(http_headers_carrier);
+    CHECK(!span_context_maybe);
+    CHECK(span_context_maybe.error() ==
+          std::errc::invalid_argument);
+  }
+
   SECTION("Verify extraction against a short-form header (trace id)") {
     text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6"}};
     auto span_context_maybe = tracer->Extract(http_headers_carrier);
@@ -96,6 +104,22 @@ TEST_CASE("cloud_trace propagation") {
     REQUIRE(span_context->trace_id_low() == 0x8f1359ebafa5c0c6ul);
     REQUIRE(span_context->span_id() == 0x0);
     REQUIRE(span_context->sampled() == true);
+  }
+
+  SECTION("Verify error handling on too short a trace id") {
+    text_map = {{"x-cloud-trace-context", "AABB0011"}};
+    auto span_context_maybe = tracer->Extract(http_headers_carrier);
+    CHECK(!span_context_maybe);
+    CHECK(span_context_maybe.error() ==
+          std::errc::invalid_argument);
+  }
+
+  SECTION("Verify error handling on invalid hex in trace id") {
+    text_map = {{"x-cloud-trace-context", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}};
+    auto span_context_maybe = tracer->Extract(http_headers_carrier);
+    CHECK(!span_context_maybe);
+    CHECK(span_context_maybe.error() ==
+          std::errc::invalid_argument);
   }
 
   SECTION("A child keeps the same trace id as its parent") {
