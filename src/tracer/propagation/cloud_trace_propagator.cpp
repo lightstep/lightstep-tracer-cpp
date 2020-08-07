@@ -182,6 +182,6 @@ size_t CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_conte
 
   size_t offset = snprintf (s, CloudContextLength, "%s/%lu;o=%d", trace_id, trace_context.parent_id, IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags) ? 1 : 0);
 
-  return ++offset;
+  return offset;
 }
 }  // namespace lightstep
