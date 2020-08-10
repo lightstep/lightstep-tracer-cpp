@@ -102,6 +102,14 @@ TEST_CASE("cloud_trace propagation") {
           std::errc::invalid_argument);
   }
 
+  SECTION("Verify error handling against a medium-form header with a span ID that is out of range of a 64bit unsigned integer") {
+    text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6/99999999999999999999"}};
+    auto span_context_maybe = tracer->Extract(http_headers_carrier);
+    CHECK(!span_context_maybe);
+    CHECK(span_context_maybe.error() ==
+          std::errc::result_out_of_range);
+  }
+
   SECTION("Verify extraction against a short-form header (trace id)") {
     text_map = {{"x-cloud-trace-context", "aef5705a090040838f1359ebafa5c0c6"}};
     auto span_context_maybe = tracer->Extract(http_headers_carrier);
