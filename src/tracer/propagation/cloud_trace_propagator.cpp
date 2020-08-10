@@ -138,7 +138,7 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   char parent_id [21];
   int span_id_length;
   for(span_id_length = 0; span_id_length<20 && offset<s.length(); span_id_length++) {
-    if(!std::isdigit(s[offset])) {
+    if(std::isdigit(s[offset]) == 0) {
       break;
     }
 
