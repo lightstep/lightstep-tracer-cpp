@@ -51,7 +51,8 @@ timeval ToTimeval(std::chrono::microseconds microseconds) {
 static void WriteEscapedString(std::ostringstream& writer,
                                opentracing::string_view s) {
   writer << '"';
-  for (char c : s) {
+  for (auto c_prime : s) {
+    auto c = static_cast<signed char>(c_prime);
     switch (c) {
       case '"':
         writer << R"(\")";
@@ -72,7 +73,8 @@ static void WriteEscapedString(std::ostringstream& writer,
         writer << R"(\t)";
         break;
       default:
-        if ('\x00' <= c && c <= '\x1f') {
+        if (static_cast<signed char>('\x00') <= c &&
+            c <= static_cast<signed char>('\x1f')) {
           writer << R"(\u)";
           writer << std::hex << std::setw(4) << std::setfill('0')
                  << static_cast<int>(c);
