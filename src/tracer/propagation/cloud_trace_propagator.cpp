@@ -124,7 +124,7 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   }
 
   offset += Num128BitHexDigits;
-  if (s.size() < Num128BitHexDigits + 2) {
+  if (s.size() - offset < 2) {
     // only a short form trace ID has been given (not a "trace id/span id")
     return {};
   }
@@ -135,22 +135,19 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   }
   ++offset;
 
-  char parent_id [21];
-  int span_id_length;
-  for(span_id_length = 0; span_id_length<20 && offset<s.length(); span_id_length++) {
-    if(std::isdigit(s[offset]) == 0) {
+  std::array<char, Num64BitDecimalDigits + 1> parent_id;
+  for (size_t i=0; i < Num64BitDecimalDigits; ++i) {
+    if (offset == s.length() || std::isdigit(s[offset]) == 0) {
       break;
     }
-
-    parent_id[span_id_length] = s[offset];
+    parent_id[i] = s[offset];
     ++offset;
   }
-  parent_id[span_id_length] = '\0';
+  parent_id.back() = '\0';
 
   // parent-id
-  char * pEnd = parent_id;
   errno = 0;
-  trace_context.parent_id = std::strtoull(pEnd, nullptr, 10);
+  trace_context.parent_id = std::strtoull(parent_id.data(), nullptr, 10);
   if (errno == ERANGE) {
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::result_out_of_range));
@@ -186,7 +183,7 @@ size_t CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_conte
   Uint64ToHex(trace_context.trace_id_low, s + offset);
   offset += Num64BitHexDigits;
 
-  offset += snprintf(s + offset, CloudContextLength, "/%lu;o=%d", trace_context.parent_id, IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags) ? 1 : 0);
+  offset += snprintf(s + offset, CloudContextLength - offset, "/%lu;o=%d", trace_context.parent_id, IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags) ? 1 : 0);
 
   return offset;
 }
