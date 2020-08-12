@@ -44,7 +44,7 @@ jobs:
       - run: ./ci/install_bazel.sh
       - run: ./ci/do_ci.sh bazel.test
 
-  # Verify that we can work on architectures that default to use an unsgiend char
+  # Verify that we can work on architectures that default to use an unsigned char
   # See https://github.com/lightstep/lightstep-tracer-cpp/issues/246
   #     https://github.com/lightstep/lightstep-tracer-cpp/pull/245
   unsigned_char_test:
