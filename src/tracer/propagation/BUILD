@@ -167,6 +167,7 @@ lightstep_cc_library(
         ":envoy_propagator_lib",
         ":trace_context_propagator_lib",
         ":baggage_propagator_lib",
+        ":cloud_trace_propagator_lib",
     ],
 )
 
@@ -182,5 +183,20 @@ lightstep_cc_library(
         "//src/common:in_memory_stream_lib",
         ":propagation_options_lib",
         ":trace_context_lib",
+    ],
+)
+
+lightstep_cc_library(
+    name = "cloud_trace_propagator_lib",
+    private_hdrs = [
+        "cloud_trace_propagator.h",
+    ],
+    srcs = [
+        "cloud_trace_propagator.cpp",
+    ],
+    deps = [
+      "//3rd_party/base64:base64_lib",
+      ":binary_propagation_lib",
+      ":utility_lib",
     ],
 )

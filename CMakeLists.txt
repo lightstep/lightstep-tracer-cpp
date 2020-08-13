@@ -230,6 +230,7 @@ set(LIGHTSTEP_SRCS src/common/utility.cpp
                    src/tracer/propagation/trace_context_propagator.cpp
                    src/tracer/propagation/lightstep_propagator.cpp
                    src/tracer/propagation/multiheader_propagator.cpp
+                   src/tracer/propagation/cloud_trace_propagator.cpp
                    src/tracer/propagation/propagation.cpp
                    src/tracer/propagation/propagation_options.cpp
                    src/tracer/immutable_span_context.cpp
