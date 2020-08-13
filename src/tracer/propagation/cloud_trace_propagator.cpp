@@ -136,14 +136,15 @@ opentracing::expected<void> CloudTracePropagator::ParseCloudTrace(
   ++offset;
 
   std::array<char, Num64BitDecimalDigits + 1> parent_id;
-  for (size_t i=0; i < Num64BitDecimalDigits; ++i) {
+  size_t i;
+  for (i=0; i < Num64BitDecimalDigits; ++i) {
     if (offset == s.length() || std::isdigit(s[offset]) == 0) {
       break;
     }
     parent_id[i] = s[offset];
     ++offset;
   }
-  parent_id.back() = '\0';
+  parent_id[i] = '\0';
 
   // parent-id
   errno = 0;
