@@ -183,6 +183,10 @@ endif()
 # ==============================================================================
 # Build LightStep tracer library
 
+add_library(dummy_version_check
+          src/common/version_check.cpp)
+target_link_libraries(dummy_version_check ${OPENTRACING_LIBRARY})
+
 add_subdirectory(3rd_party)
 include_directories(SYSTEM ${LIGHTSTEP_THIRD_PARTY_INCLUDES})
 
