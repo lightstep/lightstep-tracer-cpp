@@ -307,3 +307,13 @@ lightstep_cc_library(
         "timestamp.cpp",
     ],
 )
+
+cc_library(
+    name = "version_check_lib",
+    srcs = [
+        "version_check.cpp",
+    ],
+    deps = [
+        "@io_opentracing_cpp//:opentracing",
+    ],
+)
