@@ -87,6 +87,15 @@ jobs:
       - run: ./ci/setup_windows_build_environment.ps1
       - run: ./ci/do_ci.ps1 build
 
+  osx:
+    macos:
+      xcode: "11.0.0"
+    steps:
+      - checkout
+      - run: ./ci/install_osx_bazelisk.sh
+      - run: ./ci/install_osx_cmake.sh
+      - run: bazel build //src/...
+
   release:
     resource_class: xlarge
     docker:
@@ -311,6 +320,7 @@ workflows:
       - asan
       - tsan
       - windows
+      - osx
       - benchmark
       - coverage
       - build_plugin
