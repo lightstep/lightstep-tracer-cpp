@@ -184,7 +184,10 @@ size_t CloudTracePropagator::SerializeCloudTrace(const TraceContext& trace_conte
   Uint64ToHex(trace_context.trace_id_low, s + offset);
   offset += Num64BitHexDigits;
 
-  offset += snprintf(s + offset, CloudContextLength - offset, "/%lu;o=%d", trace_context.parent_id, IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags) ? 1 : 0);
+  offset += snprintf(
+      s + offset, CloudContextLength - offset, "/%llu;o=%d",
+      static_cast<unsigned long long>(trace_context.parent_id),
+      IsTraceFlagSet<SampledFlagMask>(trace_context.trace_flags) ? 1 : 0);
 
   return offset;
 }
