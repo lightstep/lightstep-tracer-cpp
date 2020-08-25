@@ -93,7 +93,7 @@ jobs:
     steps:
       - checkout
       - run: ./ci/install_osx_bazelisk.sh
-      - run: ./ci/do_ci.sh bazel.build
+      - run: BUILD_DIR=$HOME/build ./ci/do_ci.sh bazel.build
 
   release:
     resource_class: xlarge
