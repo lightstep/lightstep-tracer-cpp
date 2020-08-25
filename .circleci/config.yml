@@ -93,6 +93,7 @@ jobs:
     steps:
       - checkout
       - run: ./ci/install_osx_bazelisk.sh
+      - run: ./ci/install_osx_cmake.sh
       - run: bazel build //src/...
 
   release:
