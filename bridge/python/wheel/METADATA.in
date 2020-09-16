@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
 Name: lightstep_streaming
 Version: $VERSION
-Summary: High performace C++ implementation of LightStep tracing
+Summary: Experimental native bindings for the LightStep tracer.
 Home-page: UNKNOWN
 Author: LightStep
 Author-email: UNKNOWN
@@ -17,7 +17,7 @@ Requires-Dist: opentracing (>=2.2.0)
 Requires-Python: >=2.7,!=3.0.*,!=3.1.*
 Description-Content-Type: text/markdown; charset=UTF-8
 
-# LightStep Streaming: Our Streaming Python Tracer
+# LightStep Streaming Tracer for Python
 
 The Streaming Python Tracer, is an [OpenTracing](http://opentracing.io) tracer which sends data to [LightStep Satellites](https://docs.lightstep.com/docs/satellite-setup).
 
