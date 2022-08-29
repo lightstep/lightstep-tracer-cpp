@@ -1,4 +1,6 @@
 # lightstep-tracer-cpp
+> ❗ **This instrumentation is no longer recommended**. Please review [documentation on setting up and configuring the OpenTelemetry C++ API and SDK](https://github.com/open-telemetry/opentelemetry-cpp) for more information on migrating to updated instrumentation.
+
 [![MIT license](http://img.shields.io/badge/license-MIT-blue.svg)](http://opensource.org/licenses/MIT)
 
 The LightStep distributed tracing library for C++.
